@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Arena 会话 → Windows 本地电脑控制桥（GPT PC Bridge）
 // @namespace    https://github.com/fantonghui/chatgpt-pc-bridge
-// @version      1.5.0
-// @description  监听 arena.ai 会话中新出现的执行标记代码块，把命令发到本地 Bridge 执行。结果写剪贴板 + 悬浮面板双通道，拒绝/失败全部可见。
+// @version      1.6.0
+// @description  监听 arena.ai 会话中新出现的执行标记代码块，把命令发到本地 Bridge 执行。结果带 SHA 关联ID/序号/耗时，可与发出的指令逐条对账。
 // @author       fantonghui
 // @match        https://arena.ai/*
 // @grant        GM_xmlhttpRequest
@@ -48,6 +48,27 @@
   const inFlight = new Set();
   let lastResultText = '';
   let busy = 0;
+  let seq = 0;
+  const seenIds = new Map(); // sha8 -> 执行次数
+
+  async function sha8(text) {
+    try {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+      return Array.from(new Uint8Array(buf)).slice(0, 4)
+        .map((b) => b.toString(16).padStart(2, '0')).join('');
+    } catch (e) {
+      // 非安全上下文没有 crypto.subtle，退回简易 hash
+      let h = 0x811c9dc5;
+      for (let i = 0; i < text.length; i++) { h ^= text.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+      return h.toString(16).padStart(8, '0');
+    }
+  }
+
+  function stamp() {
+    const d = new Date(), z = (n) => String(n).padStart(2, '0');
+    return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()) + ' '
+      + z(d.getHours()) + ':' + z(d.getMinutes()) + ':' + z(d.getSeconds());
+  }
 
   const log = (...a) => console.log('%c[PC-Bridge]', 'color:#4ade80', ...a);
   const warn = (...a) => console.warn('[PC-Bridge]', ...a);
@@ -225,13 +246,21 @@
     });
   }
 
-  function present(cmd, r) {
-    const lines = [CFG.RESULT_HEADER, '', '命令:', cmd, '', '状态码: ' + (r.code === null ? '(未提供)' : r.code)];
+  function present(cmd, r, meta) {
+    const lines = [
+      CFG.RESULT_HEADER,
+      'id=' + meta.id + '  seq=' + meta.seq + '  耗时=' + meta.dur + 's  发出=' + meta.sent
+        + '  命令长度=' + cmd.length + (meta.repeat > 1 ? '  [第' + meta.repeat + '次执行同一命令]' : ''),
+      '',
+      '命令:', cmd, '',
+      '状态码: ' + (r.code === null ? '(未提供)' : r.code),
+    ];
     if (r.stdout) lines.push('', 'stdout:', r.stdout.trim());
     if (r.stderr) lines.push('', 'stderr:', r.stderr.trim());
     lastResultText = lines.join('\n');
 
-    append('◀ 执行完毕 (状态码 ' + (r.code === null ? '未提供' : r.code) + ')', r.code ? '#f87171' : '#4ade80');
+    append('◀ [' + meta.id + '] 完毕 · ' + meta.dur + 's · 状态码 '
+      + (r.code === null ? '未提供' : r.code), r.code ? '#f87171' : '#4ade80');
     if (r.stdout) append(r.stdout.trim().slice(0, 4000), '#d1d5db');
     if (r.stderr) append(r.stderr.trim().slice(0, 4000), '#f87171');
 
@@ -265,15 +294,24 @@
     if (inFlight.has(cmd)) return;
     inFlight.add(cmd);
     busy++;
-    setStatus('执行中… (' + busy + ')', '#60a5fa');
-    append('▶ 发送命令 (' + cmd.length + ' 字符)', '#60a5fa');
-    log('发送命令:', cmd);
+
+    const id = await sha8(cmd);
+    const repeat = (seenIds.get(id) || 0) + 1;
+    seenIds.set(id, repeat);
+    const meta = { id: id, seq: ++seq, sent: stamp(), repeat: repeat };
+    const t0 = performance.now();
+
+    setStatus('执行中 [' + id + '] (' + busy + ')', '#60a5fa');
+    append('▶ [' + id + '] seq=' + meta.seq + ' 发送 ' + cmd.length + ' 字符'
+      + (repeat > 1 ? ' (重复第' + repeat + '次)' : ''), '#60a5fa');
+    log('发送命令 id=' + id + ' seq=' + meta.seq + ':', cmd);
 
     const r = await runCommand(cmd);
 
+    meta.dur = ((performance.now() - t0) / 1000).toFixed(1);
     inFlight.delete(cmd);
     busy--;
-    present(cmd, r);
+    present(cmd, r, meta);
     if (busy === 0 && statusText.textContent.startsWith('执行中')) setStatus('PC Bridge 就绪', '#4ade80');
   }
 
@@ -297,11 +335,11 @@
   // ---------------------------------------------------------------- 启动
   function start() {
     buildUI();
-    log('v1.5.0 已加载，Bridge =', CFG.BRIDGE_URL);
+    log('v1.6.0 已加载，Bridge =', CFG.BRIDGE_URL);
 
     let baseline = 0;
     for (const b of document.querySelectorAll('pre, code')) { seenBlocks.add(b); baseline++; }
-    append('PC Bridge v1.5.0 已就绪 · 忽略历史代码块 ' + baseline + ' 个', '#6b7280');
+    append('PC Bridge v1.6.0 已就绪 · 忽略历史代码块 ' + baseline + ' 个', '#6b7280');
 
     new MutationObserver((muts) => {
       for (const m of muts) {

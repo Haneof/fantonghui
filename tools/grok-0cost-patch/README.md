@@ -111,3 +111,27 @@ Copy-Item "D:\API中转\grok\run_0cost_grok_register.py.bak-20260902-150225" `
 
 Bridge 返回的 stdout 若为 cp936 字节而桥按其它编码解码，会出现中文乱码（内容本身无损）。
 在命令开头加 `[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;$env:PYTHONIOENCODING='utf-8';` 可规避。
+
+## v1.6.0 — 请求/响应对账
+
+v1.5.0 之前无法判断回传结果对应哪条指令（结果里只有一大坨命令原文，肉眼无法核对）。
+v1.6.0 给每次执行加了关联信息：
+
+```
+【GPT PC AGENT 本地执行结果】
+id=28997b93  seq=3  耗时=2.4s  发出=2026-09-02 23:41:05  命令长度=855
+```
+
+- `id` = 命令原文 UTF-8 的 SHA-256 前 4 字节。发指令方可以离线算出同一个值：
+  `python cmd_id.py "<命令原文>"`（已验证浏览器 `crypto.subtle` 与 Python `hashlib` 结果逐字节一致）
+- `seq` = 本次页面会话内的自增序号，跳号即代表有指令丢失
+- `耗时` / `发出` = 定位是否拿到了旧结果
+- 同一条命令重复执行会标 `[第N次执行同一命令]`
+
+### 无需升级脚本的替代方案
+
+在命令首尾自带标签，标签会直接出现在 stdout 里，v1.4.2 也适用：
+
+```powershell
+$TAG='PING-7F3A';"BEGIN $TAG"; <实际工作>; "END $TAG rc=$LASTEXITCODE"
+```
