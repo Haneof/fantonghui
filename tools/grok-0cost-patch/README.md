@@ -151,3 +151,27 @@ v1.6.1 改为按命令 ID 去重并持久化：
 - 启动窗口之后出现的 → 正常自动执行
 
 这样既不会重放老命令，也不会凭空丢指令。
+
+---
+
+# add_ip_guard.py — 出口 IP 守门
+
+`exact_patch.py` 之后运行。在 `worker_loop` 的每轮循环开头，把 `_force_rotate_ip(worker_id)`
+换成 `_wait_for_usable_ip(worker_id)`：切完 IP 后**实测出口**，不可用就一直等，绝不放行注册。
+
+判定不可用：
+1. 探测 `cdn-cgi/trace` 失败
+2. 解析不出 `ip=`
+3. **代理出口 IP == 本机直连出口 IP** → 代理压根没生效
+
+顺手把 rotate 日志截断从 35 放宽到 120 字符（35 正好把 IP 截掉，妨碍排查）。
+
+## 开发中踩的坑
+
+守门函数体内部本身就有一行 `_force_rotate_ip(worker_id)`（8 空格缩进）。
+最初的实现是「先注入守门代码，再全局 `replace(..., 1)` 改调用点」——
+`replace` 命中的是文件里**最先出现**的那处，也就是守门函数自己的调用，
+结果 `_wait_for_usable_ip` 调用自己，**无限递归，worker 一启动就爆栈**。
+
+修法：先用 AST 定位 `worker_loop` 的行范围、只在该范围内替换，然后才注入守门代码。
+测试用例 `递归自检` 固化了这一点：`_wait_for_usable_ip` 内必须仍是 `_force_rotate_ip`。
