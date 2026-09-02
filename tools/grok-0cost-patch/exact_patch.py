@@ -30,7 +30,14 @@ MARK_HEADER = "# === GROK-0COST-PATCH: rotate-ip (auto-generated, do not edit by
 MARK_DELAY = "# === GROK-0COST-PATCH: stagger-start ==="
 MARK_ROTATE_CALL = "# === GROK-0COST-PATCH: rotate-per-loop ==="
 
-ROTATE_BLOCK = '''{mark}
+# 日志图标。cp936 控制台把输出重定向到文件时 emoji 会 UnicodeEncodeError,
+# 用 --ascii 切成纯文本前缀即可规避。
+ICONS_EMOJI = {"rotate": "\\U0001F504", "warn": "\\u26A0\\uFE0F", "dice": "\\U0001F3B2"}
+ICONS_ASCII = {"rotate": "[IP]", "warn": "[WARN]", "dice": "[WAIT]"}
+
+
+def rotate_block(icons):
+    return '''{mark}
 import random as _p_random
 import time as _p_time
 import urllib.request as _p_urlreq
@@ -45,13 +52,14 @@ def _force_rotate_ip(worker_id=0):
         req = _p_urlreq.Request(ROTATE_URL, headers={{"Connection": "close"}})
         with _p_urlreq.urlopen(req, timeout=ROTATE_TIMEOUT) as resp:
             txt = resp.read().decode("utf-8", errors="ignore").strip()
-        print(f"\\U0001F504 [Worker-{{worker_id}}] 代理中枢已切 IP | 响应: {{txt[:35]}}", flush=True)
+        print(f"{rotate} [Worker-{{worker_id}}] 代理中枢已切 IP | 响应: {{txt[:35]}}", flush=True)
         return True
     except Exception as e:
-        print(f"\\u26A0\\uFE0F [Worker-{{worker_id}}] 切 IP 提示: {{e}}", flush=True)
+        print(f"{warn} [Worker-{{worker_id}}] 切 IP 提示: {{e}}", flush=True)
         return False
 # === GROK-0COST-PATCH: end rotate-ip ===
-'''.format(mark=MARK_HEADER)
+'''.format(mark=MARK_HEADER, rotate=icons["rotate"], warn=icons["warn"])
+
 
 
 BAT_CODE = """@echo off
@@ -159,8 +167,9 @@ def insertion_indent(node):
     return " " * node.col_offset
 
 
-def patch_source(src):
+def patch_source(src, icons=None):
     """返回 (new_src, [做过的改动描述])。"""
+    icons = icons or ICONS_EMOJI
     actions = []
     tree = ast.parse(src)
     lines = src.splitlines(keepends=True)
@@ -211,7 +220,7 @@ def patch_source(src):
         block = [
             "%s%s\n" % (ind, MARK_DELAY),
             "%s_delay = max(0, worker_id - 1) * 12 + _p_random.uniform(1.0, 3.0)\n" % ind,
-            "%sprint(f\"\\U0001F3B2 [Worker-{worker_id}] 错峰等待 {_delay:.1f} 秒后启动...\", flush=True)\n" % ind,
+            "%sprint(f\"%s [Worker-{worker_id}] 错峰等待 {_delay:.1f} 秒后启动...\", flush=True)\n" % (ind, icons["dice"]),
             "%s_p_time.sleep(_delay)\n" % ind,
             "%s# === GROK-0COST-PATCH: end stagger-start ===\n" % ind,
         ]
@@ -250,7 +259,7 @@ def patch_source(src):
             idx = htree.body[skip].lineno - 1
         elif htree.body:
             idx = htree.body[-1].end_lineno
-        head_lines[idx:idx] = ["\n" + ROTATE_BLOCK + "\n"]
+        head_lines[idx:idx] = ["\n" + rotate_block(icons) + "\n"]
         out = "".join(head_lines)
         actions.append("在第 %d 行前插入 _force_rotate_ip 定义块" % (idx + 1))
 
@@ -264,13 +273,15 @@ def main():
     ap.add_argument("--bat", default=DEFAULT_BAT, help="要生成的 .bat 路径")
     ap.add_argument("--dry-run", action="store_true", help="只打印 diff, 不写文件")
     ap.add_argument("--no-bat", action="store_true", help="不生成 .bat")
+    ap.add_argument("--ascii", action="store_true",
+                    help="日志用 [IP]/[WAIT]/[WARN] 代替 emoji (日志重定向到文件时避免 cp936 崩溃)")
     args = ap.parse_args()
 
     if not os.path.isfile(args.reg):
         raise SystemExit("[FAIL] 找不到文件: %s" % args.reg)
 
     src = read_source(args.reg)
-    new_src, actions = patch_source(src)
+    new_src, actions = patch_source(src, ICONS_ASCII if args.ascii else ICONS_EMOJI)
 
     print("---- 改动清单 ----")
     for a in actions:
