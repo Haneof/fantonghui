@@ -84,3 +84,30 @@ GBK 编码 + CRLF 换行（中文 Windows CMD 直接可用），流程：
 Copy-Item "D:\API中转\grok\run_0cost_grok_register.py.bak-20260902-150225" `
           "D:\API中转\grok\run_0cost_grok_register.py" -Force
 ```
+
+---
+
+# arena-pc-bridge.user.js (v1.5.0)
+
+油猴脚本改版。原 v1.4.2 的问题与修复：
+
+| 问题 | 后果 | v1.5.0 |
+|---|---|---|
+| `isValidCommand` 拒绝时无任何日志 | 命令静默消失，无从排查 | console.warn + 面板红字显示拒绝原因与原文 |
+| `BROKEN_RE` 含无锚点 `\.\.\.` | 任何带省略号的命令全废 | 改为 `^(cmd\|dir\|test\|测试\|\.\.\.\|<\|>)$` 全串锚定 |
+| `BROKEN_RE` 含无锚点 `\\n\|\\r\|\\t` | **Windows 路径躺枪**：`D:\report` `D:\new` `D:\temp` 全被拒 | 改为 `looksMangled()`：需同时出现 `\n` 与 `\"` 且无真实换行才判定转义损坏 |
+| `collectCodeBlocks` 对元素节点只向下搜 | 流式渲染往 `<code>` 插 `<span>` 时整条命令漏执行（随机复现） | 元素节点同时 `closest()` 向上 + `querySelectorAll` 向下 |
+| 剪贴板失败无兜底 | 页面失焦时 `writeText` 抛 `NotAllowedError`，结果蒸发 | 面板常驻显示结果 + 手动「复制」按钮 + 窗口重获焦点自动重试 |
+| 无兜底扫描 | observer 漏帧 = 永久丢失 | 每 1.5s 全量重扫一次 |
+| `processed` 按命令文本永久去重 | 同一命令无法重跑 | 改为按代码块元素去重（WeakSet） |
+| 超时 60s | 长任务误判超时 | 默认 180s，油猴菜单可调 |
+
+## 新增
+
+- 右下角悬浮面板：状态灯 / 执行日志 / stdout / stderr，可拖拽、可折叠
+- 油猴菜单：`设置 Bridge 地址`、`设置超时(秒)`
+
+## 已知限制
+
+Bridge 返回的 stdout 若为 cp936 字节而桥按其它编码解码，会出现中文乱码（内容本身无损）。
+在命令开头加 `[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;$env:PYTHONIOENCODING='utf-8';` 可规避。
