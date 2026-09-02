@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Arena 会话 → Windows 本地电脑控制桥（GPT PC Bridge）
 // @namespace    https://github.com/fantonghui/chatgpt-pc-bridge
-// @version      1.6.0
+// @version      1.6.1
 // @description  监听 arena.ai 会话中新出现的执行标记代码块，把命令发到本地 Bridge 执行。结果带 SHA 关联ID/序号/耗时，可与发出的指令逐条对账。
 // @author       fantonghui
 // @match        https://arena.ai/*
@@ -49,7 +49,19 @@
   let lastResultText = '';
   let busy = 0;
   let seq = 0;
-  const seenIds = new Map(); // sha8 -> 执行次数
+  const seenIds = new Map(); // sha8 -> 本次会话执行次数
+
+  // 跨页面刷新持久化「已执行过的命令 ID」。
+  // v1.6.0 靠 2.5s 时间窗判定历史块，渲染慢一点老命令就会真的重跑，
+  // 而新命令又可能被误当历史吞掉（PING 就是这么丢的）。改用 ID 去重。
+  let executedIds = new Set();
+  try { executedIds = new Set(JSON.parse(GM_getValue('executedIds', '[]'))); } catch (e) {}
+  function markExecuted(id) {
+    executedIds.add(id);
+    const arr = Array.from(executedIds).slice(-300);
+    executedIds = new Set(arr);
+    try { GM_setValue('executedIds', JSON.stringify(arr)); } catch (e) {}
+  }
 
   async function sha8(text) {
     try {
@@ -162,6 +174,23 @@
     append('• ' + msg, color || '#9ca3af');
   }
 
+  // 历史里没跑过的命令：不自动执行，挂一个按钮让用户决定
+  function addPending(id, cmd) {
+    const row = document.createElement('div');
+    row.style.cssText = 'margin-bottom:6px;padding:6px;border:1px dashed #4b5563;border-radius:6px';
+    const t = document.createElement('div');
+    t.textContent = '⏸ [' + id + '] 历史中未执行的命令 (' + cmd.length + ' 字符)';
+    t.style.color = '#fbbf24';
+    const pre = document.createElement('div');
+    pre.textContent = cmd.slice(0, 160) + (cmd.length > 160 ? ' …' : '');
+    pre.style.cssText = 'color:#6b7280;margin:4px 0';
+    const run = mkBtn('▶ 执行', async () => { row.remove(); await execute(id, cmd); });
+    const skip = mkBtn('忽略', () => { markExecuted(id); row.remove(); });
+    row.append(t, pre, run, document.createTextNode(' '), skip);
+    bodyEl.appendChild(row);
+    bodyEl.scrollTop = bodyEl.scrollHeight;
+  }
+
   // ---------------------------------------------------------------- 剪贴板
   function writeClipboard(text, manual) {
     const ok = () => { setStatus('结果已复制到剪贴板', '#4ade80'); if (manual) toast('已复制', '#4ade80'); };
@@ -269,33 +298,11 @@
   }
 
   // ---------------------------------------------------------------- 调度
-  async function consider(block) {
-    if (seenBlocks.has(block)) return;
-
-    const cmd = extract(block);
-    if (cmd === null) return;      // 不是命令块，或还没输出完 —— 不标记，留待重扫
-    seenBlocks.add(block);         // 到这里已是完整命令块，只处理一次
-
-    if (Date.now() - startedAt < CFG.IGNORE_FIRST_MS) {
-      log('忽略启动初期出现的历史命令块');
-      return;
-    }
-
-    const bad = validate(cmd);
-    if (bad) {
-      // v1.4.2 在这里是静默 return —— 命令凭空消失，无从排查
-      warn('命令被拒绝：' + bad + '\n' + cmd);
-      setStatus('命令被拒绝', '#f87171');
-      append('✕ 命令被拒绝：' + bad, '#f87171');
-      append(cmd.slice(0, 300), '#6b7280');
-      return;
-    }
-
+  async function execute(id, cmd) {
     if (inFlight.has(cmd)) return;
     inFlight.add(cmd);
     busy++;
 
-    const id = await sha8(cmd);
     const repeat = (seenIds.get(id) || 0) + 1;
     seenIds.set(id, repeat);
     const meta = { id: id, seq: ++seq, sent: stamp(), repeat: repeat };
@@ -311,8 +318,35 @@
     meta.dur = ((performance.now() - t0) / 1000).toFixed(1);
     inFlight.delete(cmd);
     busy--;
+    markExecuted(id);
     present(cmd, r, meta);
     if (busy === 0 && statusText.textContent.startsWith('执行中')) setStatus('PC Bridge 就绪', '#4ade80');
+  }
+
+  async function consider(block) {
+    if (seenBlocks.has(block)) return;
+
+    const cmd = extract(block);
+    if (cmd === null) return;      // 不是命令块，或还在流式输出 —— 不标记，留待重扫
+    seenBlocks.add(block);
+
+    const bad = validate(cmd);
+    if (bad) {
+      warn('命令被拒绝：' + bad + '\n' + cmd);
+      setStatus('命令被拒绝', '#f87171');
+      append('✕ 命令被拒绝：' + bad, '#f87171');
+      append(cmd.slice(0, 300), '#6b7280');
+      return;
+    }
+
+    const id = await sha8(cmd);
+
+    if (executedIds.has(id)) { log('跳过已执行过的命令 id=' + id); return; }
+
+    // 启动窗口内出现 = 页面刷新带出来的历史。不自动跑，但也不丢弃。
+    if (Date.now() - startedAt < CFG.IGNORE_FIRST_MS) { addPending(id, cmd); return; }
+
+    await execute(id, cmd);
   }
 
   function scanAll(root) {
@@ -335,11 +369,11 @@
   // ---------------------------------------------------------------- 启动
   function start() {
     buildUI();
-    log('v1.6.0 已加载，Bridge =', CFG.BRIDGE_URL);
+    log('v1.6.1 已加载，Bridge =', CFG.BRIDGE_URL);
 
     let baseline = 0;
     for (const b of document.querySelectorAll('pre, code')) { seenBlocks.add(b); baseline++; }
-    append('PC Bridge v1.6.0 已就绪 · 忽略历史代码块 ' + baseline + ' 个', '#6b7280');
+    append('PC Bridge v1.6.1 已就绪 · 忽略历史代码块 ' + baseline + ' 个', '#6b7280');
 
     new MutationObserver((muts) => {
       for (const m of muts) {
