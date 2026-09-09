@@ -1,0 +1,23 @@
+# ===== 密钥与凭据 —— 永不入库 =====
+api_keys.json
+**/api_keys.json
+*.key
+*.token
+*_secret*
+.env
+
+# ===== 运行时数据（体积大且可再生） =====
+*.db
+*.db-*
+*.log
+nohup.out
+run/health.json
+
+# ===== Python =====
+__pycache__/
+*.pyc
+*.pyo
+
+# ===== 系统 =====
+Thumbs.db
+.DS_Store

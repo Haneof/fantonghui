@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIOS 宪法重构评审报告 · V1.1</title>
+<style>
+  :root{
+    --bg:#f5f6f4;
+    --ink:#1c1f21;
+    --ink-2:#4a5053;
+    --ink-3:#7d8487;
+    --hair:#d8dad5;
+    --hair-2:#e6e8e3;
+    --accent:#0e6b5f;
+    --accent-ink:#0a4f46;
+    --warn:#8a4b2f;
+    --mono:ui-monospace,"SF Mono","Cascadia Code",Consolas,"Courier New",monospace;
+    --sans:"PingFang SC","Microsoft YaHei","Noto Sans SC","Source Han Sans SC",sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased}
+  .page{max-width:1180px;margin:0 auto;padding:0 48px 120px}
+  /* ---- cover ---- */
+  .cover{padding:88px 0 56px;border-bottom:1px solid var(--hair)}
+  .cover .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--accent);text-transform:uppercase;margin-bottom:26px}
+  .cover h1{font-size:52px;line-height:1.12;letter-spacing:-.02em;font-weight:600;max-width:820px}
+  .cover h1 span{color:var(--ink-3)}
+  .cover .sub{margin-top:22px;font-size:17px;color:var(--ink-2);max-width:720px;line-height:1.75}
+  .cover .meta{display:flex;flex-wrap:wrap;gap:0;margin-top:44px;border:1px solid var(--hair);background:#fbfcfa}
+  .cover .meta div{padding:13px 26px;border-right:1px solid var(--hair);font-size:13px}
+  .cover .meta div:last-child{border-right:none}
+  .cover .meta b{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--ink-3);font-weight:400;margin-bottom:4px}
+  /* ---- toc ---- */
+  .toc{padding:44px 0 52px;border-bottom:1px solid var(--hair)}
+  .toc .toc-title{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--ink-3);margin-bottom:22px}
+  .toc-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 64px}
+  .toc a{display:flex;align-items:baseline;gap:14px;padding:9px 0;color:var(--ink-2);text-decoration:none;border-bottom:1px solid var(--hair-2);font-size:14px}
+  .toc a:hover{color:var(--accent)}
+  .toc a .no{font-family:var(--mono);font-size:12px;color:var(--accent);min-width:26px}
+  /* ---- section ---- */
+  section.ch{padding:64px 0 20px}
+  .ch .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--accent);margin-bottom:14px}
+  .ch h2{font-size:30px;font-weight:600;letter-spacing:-.01em;margin-bottom:8px}
+  .ch .lede{color:var(--ink-2);font-size:15.5px;max-width:860px;margin-bottom:34px}
+  h3{font-size:19px;font-weight:600;margin:44px 0 16px;letter-spacing:.005em}
+  h3 .h3no{font-family:var(--mono);font-size:13px;color:var(--accent);font-weight:400;margin-right:10px}
+  p{margin:0 0 16px;max-width:860px}
+  p.wide{max-width:100%}
+  strong{font-weight:600}
+  .note{border:1px solid var(--hair);background:#fbfcfa;padding:18px 24px;margin:24px 0;max-width:860px;font-size:14px;color:var(--ink-2)}
+  .note b{color:var(--ink)}
+  .verdict{border:1px solid var(--accent);border-left-width:3px;background:#f4faf8;padding:18px 24px;margin:24px 0;max-width:860px;font-size:14px}
+  .verdict .v-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:var(--accent);display:block;margin-bottom:8px}
+  /* ---- tables ---- */
+  table{width:100%;border-collapse:collapse;margin:24px 0 36px;font-size:13.5px}
+  th{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-align:left;color:var(--ink-3);font-weight:400;padding:10px 14px;border-bottom:1px solid var(--ink)}
+  td{padding:12px 14px;border-bottom:1px solid var(--hair-2);vertical-align:top;line-height:1.55}
+  tr:hover td{background:#fbfcfa}
+  td .cell-main{font-weight:500}
+  td .cell-sub{display:block;font-size:12.5px;color:var(--ink-3);margin-top:3px}
+  /* ---- badges ---- */
+  .b{display:inline-block;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;padding:2px 9px;border:1px solid;white-space:nowrap;vertical-align:1px}
+  .b-amend{color:var(--accent-ink);border-color:var(--accent);background:#eef6f4}
+  .b-align{color:#5a5230;border-color:#b8a95a;background:#f8f5e8}
+  .b-drop{color:#7a3b2a;border-color:#c07a5f;background:#f9efe9}
+  .b-keep{color:#3c4a5a;border-color:#8fa3b8;background:#eef3f8}
+  .b-lift{color:#0a4f46;border-color:#0e6b5f;background:#e8f2ef}
+  /* ---- layout helpers ---- */
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin:28px 0}
+  .doc-card{border:1px solid var(--hair);background:#fbfcfa;padding:22px 26px}
+  .doc-card .dc-role{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;margin-bottom:10px}
+  .doc-card h4{font-size:16px;font-weight:600;margin-bottom:8px}
+  .doc-card p{font-size:13.5px;color:var(--ink-2);margin:0;max-width:100%}
+  .doc-card ul{margin:10px 0 0;padding-left:18px;font-size:13px;color:var(--ink-2)}
+  .doc-card li{margin-bottom:5px}
+  /* ---- figure ---- */
+  figure{margin:36px 0 40px;border:1px solid var(--hair);background:#fbfcfa;padding:28px}
+  figure svg{display:block;width:100%;height:auto}
+  figcaption{margin-top:18px;font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:.04em}
+  /* ---- conclusion strip ---- */
+  .final{border-top:2px solid var(--ink);margin-top:70px;padding-top:36px}
+  .final .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--accent);margin-bottom:14px}
+  .colophon{margin-top:80px;padding-top:24px;border-top:1px solid var(--hair);font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:.04em;line-height:2}
+  .num-big{font-family:var(--mono);font-size:34px;color:var(--accent);font-weight:400;letter-spacing:-.02em}
+  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--hair);border:1px solid var(--hair);margin:30px 0 38px}
+  .stat-row div{background:#fbfcfa;padding:20px 24px}
+  .stat-row b{display:block;font-size:12.5px;color:var(--ink-3);font-weight:400;margin-top:6px;font-family:var(--mono);letter-spacing:.06em}
+  code{font-family:var(--mono);font-size:.92em;background:#eceee9;padding:1px 6px}
+  .ref{font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+  @media (max-width:900px){
+    .page{padding:0 22px 80px}
+    .cover h1{font-size:36px}
+    .toc-grid{grid-template-columns:1fr}
+    .two-col{grid-template-columns:1fr}
+    .stat-row{grid-template-columns:1fr 1fr}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ================= COVER ================= -->
+<div class="cover">
+  <div class="kicker">AIOS · ARCHITECTURE REVIEW &amp; RECONSTRUCTION</div>
+  <h1>AIOS 宪法重构评审报告<span>　V1.1 → V1.2 建议</span></h1>
+  <p class="sub">以《AIOS 宪法》为唯一最高架构准则，对三份补充文档（Deep Blue 能力机制 V1.0、腕上 AI 终端产品框架 V1.0、赛博具身伴侣白皮书 V4.0）进行一致性审计：逐条识别冲突、给出裁定，并产出宪法修订建议与 Linux 落地部署架构。</p>
+  <div class="meta">
+    <div><b>评审基准</b>AIOS 宪法 V1.1（2026-09-08）</div>
+    <div><b>审计对象</b>3 份补充文档 · 15 项冲突</div>
+    <div><b>目标平台</b>Linux 腕上终端</div>
+    <div><b>日期</b>2026-09-08</div>
+    <div><b>性质</b>架构裁决 · 内部评审</div>
+  </div>
+</div>
+
+<!-- ================= TOC ================= -->
+<div class="toc">
+  <div class="toc-title">CONTENTS</div>
+  <div class="toc-grid">
+    <a href="#s1"><span class="no">01</span>评审范围：文档体系与身份裁定</a>
+    <a href="#s2"><span class="no">02</span>总体结论</a>
+    <a href="#s3"><span class="no">03</span>冲突裁定总表（15 项）</a>
+    <a href="#s4"><span class="no">04</span>根本冲突详析（C1–C3）</a>
+    <a href="#s5"><span class="no">05</span>结构性冲突与裁定（C4–C15）</a>
+    <a href="#s6"><span class="no">06</span>宪法 V1.2 修订建议（条款级）</a>
+    <a href="#s7"><span class="no">07</span>补充文档处置方案</a>
+    <a href="#s8"><span class="no">08</span>Linux 部署架构：九大系统 × 功耗域映射</a>
+    <a href="#s9"><span class="no">09</span>重构路线图（Phase 0–3）</a>
+    <a href="#s10"><span class="no">10</span>开放问题与风险清单</a>
+  </div>
+</div>
+
+<!-- ================= 01 ================= -->
+<section class="ch" id="s1">
+  <div class="kicker">SECTION 01 · SCOPE</div>
+  <h2>评审范围：文档体系与身份裁定</h2>
+  <p class="lede">目录内现有四份有效文档，且互相重叠。重构的第一步不是写新文档，而是给每份文档裁定一个明确的<strong>体系身份</strong>：谁是宪法、谁是实现规范、谁是参考资料。裁定如下。</p>
+
+  <table>
+    <tr><th style="width:24%">文档</th><th style="width:14%">版本状态</th><th style="width:20%">体系身份（裁定后）</th><th>说明</th></tr>
+    <tr>
+      <td><span class="cell-main">AIOS 宪法</span><span class="cell-sub">AI腕上终端_产品规格书V1.txt / AIOS宪法.md（同一文档两种格式）</span></td>
+      <td>V1.1<span class="cell-sub">修改记录已至 V1.1，标题仍写 V1.0</span></td>
+      <td><span class="b b-lift">宪法 · 最高准则</span></td>
+      <td>四条最高原则、11 步生命循环、六层架构、九大内核系统。唯一不可被推翻的基准；自身可经审慎讨论修订。</td>
+    </tr>
+    <tr>
+      <td><span class="cell-main">Deep Blue 能力机制</span><span class="cell-sub">Deep_Blue_神经系统_事件升级与记忆架构_V1.pdf</span></td>
+      <td>V1.0 · 2026-09-07</td>
+      <td><span class="b b-lift">实现规范层 · 待提升</span></td>
+      <td>工程化程度最高的一份：L0–L3 计算漏斗、Attention Lease、非对称阈值、五级介入通道、S0–S11 状态机。经审计与宪法<strong>零根本冲突</strong>，建议整体提升为宪法的《神经系统实现规范》附录。</td>
+    </tr>
+    <tr>
+      <td><span class="cell-main">腕上 AI 终端产品框架</span><span class="cell-sub">克劳德5对话.txt</span></td>
+      <td>V1.0 · 2026-09-08</td>
+      <td><span class="b b-align">参考资料 · 部分提升</span></td>
+      <td>九大模块产品框架。其中「隐私与安全架构」（模块八）建议宪章化；硬件模块（模块五）与 Linux 路线冲突需重写；数字永生（模块九）超出宪法边界需裁决。</td>
+    </tr>
+    <tr>
+      <td><span class="cell-main">赛博具身伴侣白皮书</span><span class="cell-sub">手镯.txt</span></td>
+      <td>V4.0 · <strong>未写完</strong><span class="cell-sub">止于第五章 5.1</span></td>
+      <td><span class="b b-align">参考资料 · 需重写</span></td>
+      <td>硬件规格与外观定义有效（来源待核实）；L0–L5 分层模型与宪法的九大系统混淆，需按宪法重构；「范老板」人格命名与数字分身定位待产品层单独裁决。</td>
+    </tr>
+  </table>
+
+  <div class="note"><b>文档管理问题一并指出：</b>宪法文件标题写 V1.0、修改记录到 V1.1，且 .txt 与 .md 双版本并存（fc 比对确认内容同步、仅格式与编码不同）；手镯.txt 是未完稿却标着「最终修正版 V4.0」。建议：宪法只保留 .md 单一权威版本、版本号与修改记录强制一致；未完稿不标「最终」。</div>
+</section>
+
+<!-- ================= 02 ================= -->
+<section class="ch" id="s2">
+  <div class="kicker">SECTION 02 · EXECUTIVE SUMMARY</div>
+  <h2>总体结论</h2>
+  <p class="lede">宪法作为唯一最高准则是可行的：四份文档的全部实质内容都能在「四原则 + 六层架构 + 九大内核」框架内安放，<strong>不存在需要推翻宪法才能解决的冲突</strong>。但审计发现 15 项冲突，其中 3 项是根本性冲突，必须先裁决、后动工。</p>
+
+  <div class="stat-row">
+    <div><span class="num-big">15</span><b>冲突总数</b></div>
+    <div><span class="num-big">3</span><b>根本冲突 C1–C3</b></div>
+    <div><span class="num-big">12</span><b>结构冲突 C4–C15</b></div>
+    <div><span class="num-big">0</span><b>推翻宪法级冲突</b></div>
+  </div>
+
+  <div class="two-col">
+    <div class="doc-card">
+      <div class="dc-role" style="color:var(--accent)">STRENGTHS · 宪法已站稳的</div>
+      <h4>四原则 + 九大系统是合格的骨架</h4>
+      <ul>
+        <li>三棵树分离（事实 / 推断 / 经验）是全文档集里最先进的架构决策，直接防住「AI 猜的变成事实」这一类产品级事故</li>
+        <li>KNOWLEDGE 五状态（KNOWN / INFERRED / HYPOTHESIS / UNKNOWN / CONFLICT）给认知系统定了可实现的规格</li>
+        <li>「保持沉默也是行动」+ 介入预算，与 Deep Blue 的非对称阈值天然兼容</li>
+        <li>事件总线 + 标准接口 + 扩展规则，Linux 工程可直接落地</li>
+      </ul>
+    </div>
+    <div class="doc-card">
+      <div class="dc-role" style="color:var(--warn)">GAPS · 宪法缺失、必须补的</div>
+      <h4>四块空白，全部来自补充文档可补</h4>
+      <ul>
+        <li><strong>隐私与数据主权</strong>：宪法只在 Safety 优先级里提到「安全 &gt; 隐私」，无系统性隐私章节 —— 冷启动读微信记录这种敏感能力没有宪法级约束</li>
+        <li><strong>功耗与算力预算</strong>：宪法假设九大系统永远在跑，但腕上设备的物理约束要求「持续的是感知与过滤，不是持续语义推理」</li>
+        <li><strong>数据接入通道</strong>：冷启动的 8 类数据全部在手机里，Linux 手镯自己拿不到，宪法未定义「手机器官」的工程角色</li>
+        <li><strong>交互通道优先级</strong>：有振动语义表，但没有「最低打扰通道优先」原则</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="verdict">
+    <span class="v-label">总裁定</span>
+    以宪法 V1.2（修订版）为顶端，将 Deep Blue 提升为《实现规范》、克劳德5框架拆解为《产品框架》与《隐私宪章》、手镯白皮书重写为《硬件规格书》。四层文档体系，单向依赖：宪法 → 规范 → 框架 → 硬件。任何下层与上层冲突，上层胜。
+  </div>
+</section>
+
+<!-- ================= 03 ================= -->
+<section class="ch" id="s3">
+  <div class="kicker">SECTION 03 · CONFLICT REGISTER</div>
+  <h2>冲突裁定总表</h2>
+  <p class="lede">15 项冲突的浓缩视图。裁定动作四选一：<span class="b b-amend">修订宪法</span> 吸收或修正宪法条款；<span class="b b-lift">提升并入</span> 把补充文档内容提升进宪法体系；<span class="b b-align">下层对齐</span> 修订补充文档服从宪法；<span class="b b-drop">废弃</span> 删除该设计。</p>
+
+  <table>
+    <tr><th style="width:5%">#</th><th style="width:23%">冲突</th><th style="width:27%">冲突双方立场</th><th style="width:10%">级别</th><th>裁定</th><th style="width:11%">动作</th></tr>
+    <tr><td class="ref">C1</td><td><span class="cell-main">全息秒级记录 vs 事件驱动采集</span></td><td>宪法 6.4「以秒为基础、全方位覆盖、秒级全息日志」 ⟷ Deep Blue / 克劳德5「事件驱动、非全时全量、原始音视频短缓存」</td><td><span class="b b-drop">根本</span></td><td>重定义：秒级是<strong>时间戳精度</strong>，不是采样密度。改为「秒级时间戳 + 分级采样」：生理低频常采、语音 VAD 触发、环境事件触发（详见 §04）</td><td><span class="b b-amend">修订宪法 6.4</span></td></tr>
+    <tr><td class="ref">C2</td><td><span class="cell-main">基于 Linux ⟷ 硬件方案跑 Android</span></td><td>宪法 1.3「基于 Linux 的全新 AIOS」 ⟷ 克劳德5 模块五「QCS4290 + Android 系统」</td><td><span class="b b-drop">根本</span></td><td>QCS4290 是 Android 变体（供应商 BSP 为 Android / 内核 4.19）；同硅片 Linux 变体为 QRB4210（Yocto）。按 Deep Blue「能力反推硬件」原则，不锁芯片，重写硬件章（详见 §04）</td><td><span class="b b-align">重写硬件章</span></td></tr>
+    <tr><td class="ref">C3</td><td><span class="cell-main">冷启动「静默无感」 ⟷ 隐私知情同意</span></td><td>宪法 4.4「后台静默处理、用户没有感觉」+ 相册/聊天记录采集 ⟷ 克劳德5 / Deep Blue「明确授权 → 告知范围 → 本地处理 → 最小上云」</td><td><span class="b b-drop">根本</span></td><td>宪法新增《数据主权与隐私》章：采集前显式授权、范围逐项告知、默认本地、「惊艳时刻」使用数据须脱敏；静默处理指处理过程不打扰，不是授权过程无感（详见 §04）</td><td><span class="b b-amend">新增宪法章</span></td></tr>
+    <tr><td class="ref">C4</td><td><span class="cell-main">功耗分层冒充功能分层</span></td><td>手镯.txt 把「记忆」「决策」编入 L0–L5 功耗层 ⟷ 宪法九大系统是功能职责划分</td><td>结构</td><td>两个正交维度分层对待：九大系统 = 功能轴，L0–L3 = 功耗轴；记忆系统是持久化基础设施，不属于任何功耗层，只声明「运行在哪些功耗域」（详见 §08 映射表）</td><td><span class="b b-align">下层对齐</span></td></tr>
+    <tr><td class="ref">C5</td><td><span class="cell-main">MODE 判定：AI 参与 vs 零 AI</span></td><td>宪法 5.1「AI 推断 + 用户确认」 ⟷ Deep Blue「L1 规则引擎、零 AI 参与、不上云」</td><td>结构</td><td>M快速通道 = 本地规则引擎（宪法补充实现约束）；AI 推断降级为低频慢通道修正建议，必须经用户确认。两者统一写进 5.1</td><td><span class="b b-amend">修订宪法 5.1</span></td></tr>
+    <tr><td class="ref">C6</td><td><span class="cell-main">MODE 列表三版不一致</span></td><td>宪法 8 种 / Deep Blue 12 种 / 手镯.txt 6 种</td><td>结构</td><td>宪法改采「核心 MODE + 可扩展 + <strong>未知态</strong>」：未知时保守策略，禁止盲猜。具体列表下沉到实现规范维护</td><td><span class="b b-amend">修订宪法 5.1</span></td></tr>
+    <tr><td class="ref">C7</td><td><span class="cell-main">「用户画像」混合事实与推断</span></td><td>手镯.txt / 克劳德5「宿主画像持续更新」 ⟷ 宪法原则二「三棵树绝对不能混合」</td><td>结构</td><td>「画像」一词违宪拆解：客观记录（消费流水、作息）→ 人生树；AI 判断（性格模型、情绪模式、价值观）→ 认知树，全部带置信度。产品话术可用「画像」，数据结构必须分树</td><td><span class="b b-align">下层对齐</span></td></tr>
+    <tr><td class="ref">C8</td><td><span class="cell-main">数字永生 / 数字分身超出宪法边界</span></td><td>克劳德5 五阶段「以宿主身份代理社交」、手镯.txt「数字分身」 ⟷ 宪法无此章，且三棵树分离原则与之张力</td><td>结构</td><td>「以宿主身份回答 / 代理社交」= 把 AI 认知树输出伪装成用户人生树事实，触碰原则二红线。裁定：记忆存档（V2–V3）与「他会怎么说」（V3–V4）作为<strong>远期领域</strong>保留研究；「完整代理」阶段冻结，待伦理与法律框架成立并修宪后才可启动</td><td><span class="b b-align">降级为远期领域</span></td></tr>
+    <tr><td class="ref">C9</td><td><span class="cell-main">交互通道定义不齐</span></td><td>宪法 6.8「看屏幕 / 滑动 / 按耳朵」 ⟷ 克劳德5「骨传导主通道」+ Deep Blue 五级介入通道</td><td>结构</td><td>「按耳朵」修正为「抬腕贴耳（骨传导）」；宪法 6.8 吸收 Deep Blue 五级介入通道（不介入 / 静默视觉 / 触觉 / 骨传导 / 执行）并新增「最低打扰通道优先」原则</td><td><span class="b b-lift">提升并入 6.8</span></td></tr>
+    <tr><td class="ref">C10</td><td><span class="cell-main">Attention 引擎缺算力预算机制</span></td><td>宪法 5.3 定义了筛什么 ⟷ Deep Blue Attention Lease 定义了算力怎么给</td><td>结构</td><td>互补不冲突。租约机制（30 秒预算、超时释放、L2 唤醒次数为可测指标）并入宪法 5.3 作为实现规范</td><td><span class="b b-lift">提升并入 5.3</span></td></tr>
+    <tr><td class="ref">C11</td><td><span class="cell-main">介入反馈的单次大幅调整 ⟷ 进化安全机制</span></td><td>手镯.txt「摘手环 → 24h 内介入减少 90%」 ⟷ 宪法 6.9「不能基于单次事件永久改变行为」</td><td>结构</td><td>拆成两层：即时安全降档（摘环 = 通道失效，介入预算立即收缩，属决策系统实时调节，合法）；策略级改变必须走进化系统的多次验证与可回溯路径。Intervention Regret 整体并入 6.9</td><td><span class="b b-lift">分层并入 6.9</span></td></tr>
+    <tr><td class="ref">C12</td><td><span class="cell-main">术语体系不统一</span></td><td>用户 / 宿主 / 范老板；L2 含义三份文档各异</td><td>结构</td><td>宪法统一术语表（附录 A）扩充：主用户（user / 宿主并入）、AIOS 实例名（产品层命名，不入宪法）、L0–L3 唯一定义以实现规范为准</td><td><span class="b b-amend">修订附录 A</span></td></tr>
+    <tr><td class="ref">C13</td><td><span class="cell-main">宪法 1.3 架构图与正文矛盾</span></td><td>ASCII 图呈「Android/iOS → AIOS → 用户」上下层 ⟷ 正文「不替代、基于 Linux 的独立系统」</td><td>结构</td><td>图错文对。正确关系：AIOS（Linux）与 Android/iOS 手机是<strong>平级协作</strong>——手机是 AIOS 的数据器官（经伴侣 App 授权供数），不是 AIOS 的宿主层。图需重绘（见 §08）</td><td><span class="b b-amend">修订宪法 1.3</span></td></tr>
+    <tr><td class="ref">C14</td><td><span class="cell-main">冷启动数据通道未定义</span></td><td>宪法 4.4 要读微信/支付宝/日历等 8 类数据 ⟷ 这些数据全部在手机侧，Linux 手镯无直接通道</td><td>结构</td><td>宪法设备层明确「手机器官」职责：冷启动与日常增量数据经手机伴侣 App 授权导入；聊天记录读取的合规路径列为本项目最高风险项（见 §10）</td><td><span class="b b-amend">修订宪法第九章</span></td></tr>
+    <tr><td class="ref">C15</td><td><span class="cell-main">存储预算与终生保存矛盾</span></td><td>宪法「每 3 年总结 + 终生记忆」 ⟷ 克劳德5「32–64GB UFS」</td><td>结构</td><td>事件驱动文本日志估算可行（年增量 GB 级），但<strong>全息音频不可行</strong>（估算见 §04 C1 表）。裁决：原始音频环形缓存 + 转写文本长期保存 + 摘要级云端加密备份；UFS 建议 128GB 起步</td><td><span class="b b-align">下层对齐</span></td></tr>
+  </table>
+</section>
+
+<!-- ================= 04 ================= -->
+<section class="ch" id="s4">
+  <div class="kicker">SECTION 04 · FUNDAMENTAL CONFLICTS</div>
+  <h2>根本冲突详析（C1–C3）</h2>
+
+  <h3><span class="h3no">C1</span>「秒级全息日志」在物理上不成立 —— 重新定义，而不是放弃</h3>
+  <p>宪法 6.4 的原文愿景是「以秒为基础作为原始日志……全方位覆盖」＋「秒级全息日志」。三份工程文档无一例外选择了事件驱动：Deep Blue 明确「持续的是感知与过滤，不是持续语义推理」「原始音频短缓存」；克劳德5 明确「VAD 触发，非全时录音」。这不是工程保守，是三重硬约束：</p>
+  <table>
+    <tr><th style="width:16%">约束维度</th><th>全时方案的代价（量级估算）</th><th style="width:30%">事件驱动方案</th></tr>
+    <tr><td><span class="cell-main">功耗</span></td><td>麦克风 + 音频前端持续工作 + 语义层常开，对应「全力监听模式 ~4–5 小时」续航 —— 与「终生伴侣」定位直接冲突（数值来源：手镯.txt 续航表，<strong>待工程验证</strong>）</td><td>L0/L1 常驻 &lt;7mW，L2 租约唤醒，日常 15–18h</td></tr>
+    <tr><td><span class="cell-main">存储</span></td><td>全息音频 ≈ 30MB/小时（AAC 级）≈ 0.7GB/天 ≈ <strong>250GB/年</strong>，任何腕上存储都无法终生保存</td><td>结构化文本 + 转写日志年增量估算 2–7GB（<strong>估算值</strong>），可终生承载</td></tr>
+    <tr><td><span class="cell-main">隐私与法律</span></td><td>全时录音在多数司法辖区涉及他人（被录音方）知情同意问题，常态化不可辩护</td><td>短缓存 + 本地处理 + 用户授权，与 Bee（Amazon）已验证的合规形态一致</td></tr>
+  </table>
+  <div class="verdict">
+    <span class="v-label">裁定 C1</span>
+    宪法 6.4 修订为：<strong>「秒级」是时间戳精度与事件流粒度，不是采样密度。</strong>原始生命日志 = 秒级时间戳的事件流，按数据类型分级采样——生理指标低频常采（L0，秒–分钟级）、语音 VAD 触发转写、环境与行为事件触发记录、消费/社交/搜索经授权增量同步。「全息」重新定义为「全维度覆盖、密度分级」，而非「全时全量」。这样宪法愿景（一眼看到去年干了什么，也能钻取到某天某句话）完整保留——因为钻取的精度由时间戳保证，不由全时录音保证。
+  </div>
+
+  <h3><span class="h3no">C2</span>「基于 Linux」与 QCS4290 的事实冲突</h3>
+  <p>克劳德5 模块五明确写「QCS4290 + Android 系统」，与宪法 1.3「基于 Linux 的全新 AIOS」直接矛盾。经外部核实的事实：</p>
+  <table>
+    <tr><th style="width:22%">芯片 / 平台</th><th style="width:26%">OS 支持（已核实）</th><th>对本项目的含义</th></tr>
+    <tr><td><span class="cell-main">QCS4290</span></td><td>Android 变体：供应商 SOM 出厂 BSP 为 Android（如 Android 12 / 内核 4.19）</td><td>与「基于 Linux」冲突。走 Android 路线 = 宪法 1.3 作废</td></tr>
+    <tr><td><span class="cell-main">QRB4210</span></td><td>同代同硅的 Linux 变体（Qualcomm Robotics RB2 平台，Yocto BSP，支持 ROS2）</td><td>若沿用该代平台，Linux 正解是 QRB4210，不是 QCS4290</td></tr>
+    <tr><td><span class="cell-main">Qualcomm Linux 官方栈</span></td><td>LTS 内核 6.6.x，面向更新一代 IoT 平台（QCS6490 一类）</td><td>若想要新内核 + 官方长期维护，应评估升级一档的芯片</td></tr>
+    <tr><td><span class="cell-main">Amazon Bee（竞品参照）</span></td><td>已量产的常听腕带：$49.99，实时处理不存音频，2025 年被 Amazon 收购</td><td>证明「常听 + 事件驱动 + 云端摘要」形态成立；也证明巨头已入场</td></tr>
+  </table>
+  <div class="verdict">
+    <span class="v-label">裁定 C2</span>
+    采纳 Deep Blue 的原则：<strong>先定义能力指标，再选硬件，宪法不锁芯片。</strong>硬件章重写为「功耗域 + 接口规范」而非芯片清单；选型评估两条路线——①QRB4210（沿用现成 7.84 寸屏供应链，代价是老内核）②新一代带官方 Qualcomm Linux（6.6 LTS）的 IoT 平台（代价是重新核对屏驱与柔性屏货源）。屏幕、骨传导、马达等外设规格从手镯.txt 平移，但须重新标注「供应商方案待核实」。
+  </div>
+
+  <h3><span class="h3no">C3</span>冷启动的「静默惊艳」与隐私知情同意的张力</h3>
+  <p>宪法 4.4 的冷启动设计（读聊天记录 / 消费记录 / 相册，后台静默处理，晚上主动说出关心的话）是全文档最有产品魅力的段落，也是隐私风险最集中的段落。克劳德5 模块八与 Deep Blue 第九章已经给出了成熟的隐私架构（数据分级 / 本地默认 / 最小上云 / 可查删导出），但它们在宪法里没有位置——宪法只有 Safety 内核的一句「安全 &gt; 隐私 &gt; 舒适」，而 Safety 还可以「无视隐私设置」，若不加约束，这句话在法务上不可辩护。</p>
+  <div class="verdict">
+    <span class="v-label">裁定 C3</span>
+    宪法新增第十二章《数据主权与隐私》，核心条款：①<strong>授权前置</strong>——每类数据源独立授权、随时可撤销，「静默」仅指授权之后的处理过程不打扰，不指采集无感；②<strong>本地默认</strong>——原始音视频与生理数据永不上云，上云仅限脱敏摘要 + 最小充分上下文（吸收 Deep Blue「最小充分上下文」原则）；③<strong>惊艳时刻约束</strong>——AI 主动开口引用的数据必须来自已授权源，且引用粒度不得超出授权范围（用户授权了聊天记录，不等于授权在今晚的对话里复述消费流水）；④<strong>用户四权</strong>——查看 / 删除 / 导出 / 遗留继承，逐项落地；⑤Safety 的「无视隐私」收敛为「紧急情形下向紧急联系人共享最小必要信息（位置 + 体征），事后告知」，而不是无限制。隐私章与四原则并列，修改需同等审慎。
+  </div>
+</section>
+
+<!-- ================= 05 ================= -->
+<section class="ch" id="s5">
+  <div class="kicker">SECTION 05 · STRUCTURAL CONFLICTS</div>
+  <h2>结构性冲突与裁定（C4–C15）</h2>
+  <p class="lede">12 项结构性冲突已在总表给出裁定，此处仅展开其中影响架构动作最大的三项：C4（分层混淆）、C7（画像违宪）、C8（数字永生边界）。其余按总表执行。</p>
+
+  <h3><span class="h3no">C4</span>手镯.txt 的 L0–L5：把功耗层当成了架构层</h3>
+  <p>手镯.txt 把「记忆与经验层」标为第 3 层、「决策与输出层」标为第 4 层——这是把功耗分层与功能分层压成了一个轴。宪法九大系统是<strong>功能职责轴</strong>（感知 / 实体 / 状态 / 记忆 / 认知 / 决策 / 能力 / 交互 / 进化），L0–L3 是<strong>功耗预算轴</strong>（常驻反射 / 事件分类 / 本地语义 / 云端大脑），两轴正交。正确的表述是矩阵：每个系统声明「我运行在哪些功耗域」（见 §08 映射表）。记忆系统是持久化基础设施，横跨所有功耗域可写，不专属任何一层；决策系统的安全反射路径在 L1，策略评估在 L2/L3。Deep Blue 的三层漏斗之所以正确，正因为它的 L0–L3 全部只谈「算力与租约」，不吞并功能系统。</p>
+
+  <h3><span class="h3no">C7</span>「用户画像」是三棵树原则最大的隐性违宪点</h3>
+  <p>「宿主画像：性格模型、价值观、情绪模式、消费习惯」作为一个混合物持续更新——这句话在两份补充文档里都出现了。按宪法原则二拆开：消费流水、作息记录是<strong>事实</strong>（人生树）；「性格偏内向」「最近情绪低落」「重视交付超过价格」是<strong>AI 的推断</strong>（认知树，带置信度、可被推翻）。混合存储的后果宪法已经预言过：AI 猜的东西随时间沉淀成「事实」，系统越用越蠢。裁定：产品话术可以继续叫「画像」（用户不需要知道内部结构），但数据层强制分树，所有画像字段标注来源树与置信度。</p>
+
+  <h3><span class="h3no">C8</span>数字永生：可以要，但必须以修宪的方式要</h3>
+  <p>克劳德5 模块九的五阶段路线（记忆存档 → 「他会怎么说」 → 以宿主身份对话 → 代理社交 → 数字生命）是超出宪法边界的增项。前两阶段是记忆系统的自然延伸，无冲突；后三阶段存在原则性障碍：「以宿主身份代理社交」意味着把 AI 认知树的输出当作用户人生树的事实对外发布——这正是原则二要防的认知冒充。且「完整数字人格」与手镯.txt「终生只服务于一个人」在继承场景下互相矛盾（继承后服务的是谁？）。裁定：V4+ 阶段冻结为研究性远景，写入宪法时明确三重前置条件——用户生前显式授权、伦理与法律框架成立、宪法再次修订。数字遗产的第一阶段只承诺「人生树的授权访问（只读回忆）」。</p>
+</section>
+
+<!-- ================= 06 ================= -->
+<section class="ch" id="s6">
+  <div class="kicker">SECTION 06 · CONSTITUTION AMENDMENTS</div>
+  <h2>宪法 V1.2 修订建议（条款级）</h2>
+  <p class="lede">所有修订汇总为一张清单。原则：只修实现约束与空白，不动四条最高原则的语义。</p>
+
+  <table>
+    <tr><th style="width:12%">条款</th><th style="width:12%">动作</th><th>修订内容</th></tr>
+    <tr><td class="ref">1.3</td><td><span class="b b-amend">修正</span></td><td>重绘架构图：AIOS（Linux）与手机为平级协作器官；删除「Android/iOS → AIOS → 用户」的层级暗示</td></tr>
+    <tr><td class="ref">4.4</td><td><span class="b b-amend">修正</span></td><td>冷启动章补三句：数据源逐项授权；处理过程静默 ≠ 采集无感；首夜「惊艳时刻」的数据引用不得超出授权源范围</td></tr>
+    <tr><td class="ref">5.1</td><td><span class="b b-amend">修正</span></td><td>MODE：本地规则引擎为快速通道（不上云、零语义模型）；AI 推断仅作低频修正建议需用户确认；MODE 列表改「核心 + 可扩展 + 未知态」，未知时保守策略</td></tr>
+    <tr><td class="ref">5.3</td><td><span class="b b-lift">并入</span></td><td>Attention 引擎增加算力侧规范：注意力租约（L2 有限时长预算、超时释放、未解决事件记录）；「省电模式 = 减少非关键事件租约发放，不是关闭神经系统」</td></tr>
+    <tr><td class="ref">6.4</td><td><span class="b b-amend">重写</span></td><td>按 C1 裁定重写：秒级时间戳 + 分级采样；原始音频环形缓存、转写文本长期保存；存储预算纳入规范</td></tr>
+    <tr><td class="ref">6.8</td><td><span class="b b-lift">并入</span></td><td>交互系统增加「最低打扰通道优先」原则 + 五级介入通道（不介入 / 静默视觉 / 触觉 / 骨传导 / 受控执行）；「按耳朵」改为「抬腕贴耳」</td></tr>
+    <tr><td class="ref">6.9</td><td><span class="b b-lift">并入</span></td><td>进化系统吸收 Intervention Regret，并区分两层：即时安全降档（合法）与策略级进化（多次验证 + 可回溯）</td></tr>
+    <tr><td class="ref">8.2</td><td><span class="b b-amend">补充</span></td><td>模型路由器增加默认序：隐私敏感与简单判定 → 本地；「无网络时降级为本地能力 + 未解决事件队列」</td></tr>
+    <tr><td class="ref">第九章</td><td><span class="b b-amend">补充</span></td><td>设备层明确「手机器官」：数据接入通道（伴侣 App 授权同步）、冷启动执行者、紧急通信备份</td></tr>
+    <tr><td class="ref">新十二章</td><td><span class="b b-amend">新增</span></td><td>《数据主权与隐私》：授权前置 / 本地默认 / 最小充分上下文 / 用户四权 / Safety 隐私豁免收敛（按 C3 裁定）</td></tr>
+    <tr><td class="ref">新附录</td><td><span class="b b-lift">新增</span></td><td>《神经系统实现规范》：L0–L3 漏斗、非对称阈值（SAFETY/SOCIAL/FINANCIAL）、S0–S11 状态机、事件字段标准——整体来自 Deep Blue，标注来源</td></tr>
+    <tr><td class="ref">附录 A</td><td><span class="b b-amend">扩充</span></td><td>术语表统一：主用户（废「宿主」分歧）、L0–L3 唯一定义、产品人格命名与系统名分离</td></tr>
+  </table>
+</section>
+
+<!-- ================= 07 ================= -->
+<section class="ch" id="s7">
+  <div class="kicker">SECTION 07 · DOCUMENT DISPOSITION</div>
+  <h2>补充文档处置方案</h2>
+  <table>
+    <tr><th style="width:20%">文档</th><th style="width:16%">处置</th><th>具体动作</th></tr>
+    <tr>
+      <td><span class="cell-main">Deep Blue V1.0</span></td>
+      <td><span class="b b-lift">提升</span></td>
+      <td>全文提升为宪法附录《神经系统实现规范》。其中第 21 章「事件状态机清单」单列为下一阶段的工程任务（Phase 3）；第 18 章能力指标表作为硬件选型的输入。改动最小、价值最大的一份。</td>
+    </tr>
+    <tr>
+      <td><span class="cell-main">克劳德5 框架 V1.0</span></td>
+      <td><span class="b b-align">拆解</span></td>
+      <td>模块八（隐私）→ 宪章化并入新十二章；模块一/二/三/四（AI 协同、记忆、输出）→ 与宪法及实现规范对齐后并入《产品框架》；模块五（硬件）→ 按 C2 裁定重写；模块九（数字永生）→ 按 C8 降级为远期领域附录。</td>
+    </tr>
+    <tr>
+      <td><span class="cell-main">手镯.txt 白皮书 V4.0</span></td>
+      <td><span class="b b-align">重写</span></td>
+      <td>硬件参数表（屏 / 电池 / 传感器 / 骨传导 / 马达）与外观定义平移进《硬件规格书》，全部标注「供应商方案待核实」；L0–L5 分层模型废弃，按 §08 矩阵重写；「范老板」命名、「社交装逼」等场景话术移入产品营销文档，不入架构文档。</td>
+    </tr>
+  </table>
+</section>
+
+<!-- ================= 08 ================= -->
+<section class="ch" id="s8">
+  <div class="kicker">SECTION 08 · DEPLOYMENT ARCHITECTURE</div>
+  <h2>Linux 部署架构：九大系统 × 功耗域映射</h2>
+  <p class="lede">腕上 Linux 设备的标准形态是双域：超低功耗 Sensor Hub（RTOS，如 Zephyr）+ 主 SoC（Linux）。宪法九大系统到两个芯片域的部署映射如下——这张表就是 C4 裁定的落地物。</p>
+
+  <figure>
+    <svg viewBox="0 0 1060 620" xmlns="http://www.w3.org/2000/svg" font-family="PingFang SC, Microsoft YaHei, sans-serif">
+      <!-- background zones -->
+      <rect x="20" y="70" width="330" height="500" fill="#eff3ef" stroke="#c8ccc4"/>
+      <rect x="370" y="70" width="330" height="500" fill="#eef1f4" stroke="#c8ccc4"/>
+      <rect x="720" y="70" width="320" height="500" fill="#f4f0ea" stroke="#c8ccc4"/>
+      <text x="40" y="100" font-size="13" fill="#0e6b5f" font-weight="600">SENSOR HUB · RTOS 域</text>
+      <text x="40" y="120" font-size="11" fill="#7d8487">L0 + L1 · 常驻 &lt; 7mW · 永不停</text>
+      <text x="390" y="100" font-size="13" fill="#3c5a7a" font-weight="600">主 SoC · LINUX 域</text>
+      <text x="390" y="120" font-size="11" fill="#7d8487">L2 · 租约唤醒 ~800mW · 用完即释放</text>
+      <text x="740" y="100" font-size="13" fill="#8a6d2f" font-weight="600">云端 · L3</text>
+      <text x="740" y="120" font-size="11" fill="#7d8487">高价值事件 · 最小充分上下文</text>
+
+      <!-- constitutional systems -->
+      <g font-size="12.5" fill="#1c1f21">
+        <!-- perception -->
+        <rect x="40" y="140" width="290" height="64" fill="#ffffff" stroke="#0e6b5f" stroke-width="1.4"/>
+        <text x="54" y="164" font-weight="600">① 感知系统（反射部分）</text>
+        <text x="54" y="184" font-size="11" fill="#4a5053">VAD / IMU / 抬腕 / 跌倒 / 生理阈值 / 环境变化</text>
+        <!-- attention L1 -->
+        <rect x="40" y="218" width="290" height="64" fill="#ffffff" stroke="#0e6b5f" stroke-width="1.4"/>
+        <text x="54" y="242" font-weight="600">横跨层：Attention（L1 过滤）</text>
+        <text x="54" y="262" font-size="11" fill="#4a5053">事件分类 + 升级阈值 + 租约发放 · MODE 快速通道</text>
+        <!-- MODE -->
+        <rect x="40" y="296" width="290" height="64" fill="#ffffff" stroke="#0e6b5f" stroke-width="1.4"/>
+        <text x="54" y="320" font-weight="600">横跨层：MODE 快速通道</text>
+        <text x="54" y="340" font-size="11" fill="#4a5053">规则引擎判定 · 零语义模型 · 不上云（C5 裁定）</text>
+        <!-- safety reflex -->
+        <rect x="40" y="374" width="290" height="64" fill="#ffffff" stroke="#8a4b2f" stroke-width="1.4"/>
+        <text x="54" y="398" font-weight="600" fill="#8a4b2f">Safety 内核（反射路径）</text>
+        <text x="54" y="418" font-size="11" fill="#4a5053">撞击 / 跌倒 / 生命体征异常 → 直接触发，不等 L2</text>
+
+        <!-- Linux domain systems -->
+        <rect x="390" y="140" width="290" height="64" fill="#ffffff" stroke="#3c5a7a" stroke-width="1.4"/>
+        <text x="404" y="164" font-weight="600">① 感知（语义部分）+ ⑥ 决策</text>
+        <text x="404" y="184" font-size="11" fill="#4a5053">租约内上下文重建 / 非对称阈值评估 / 介入预算</text>
+        <rect x="390" y="218" width="290" height="64" fill="#ffffff" stroke="#3c5a7a" stroke-width="1.4"/>
+        <text x="404" y="242" font-weight="600">④ 记忆 + ② 实体 + ③ 状态</text>
+        <text x="404" y="262" font-size="11" fill="#4a5053">SQLite/嵌入数据库 + 三棵树写入 + 主题树索引</text>
+        <rect x="390" y="296" width="290" height="64" fill="#ffffff" stroke="#3c5a7a" stroke-width="1.4"/>
+        <text x="404" y="320" font-weight="600">⑤ 认知 + ⑨ 进化</text>
+        <text x="404" y="340" font-size="11" fill="#4a5053">Belief/置信度维护 · Intervention Regret 归档</text>
+        <rect x="390" y="374" width="290" height="64" fill="#ffffff" stroke="#3c5a7a" stroke-width="1.4"/>
+        <text x="404" y="398" font-weight="600">⑦ 能力 + ⑧ 交互</text>
+        <text x="404" y="418" font-size="11" fill="#4a5053">能力插件注册表 / 五级介入通道选择 / 本地 TTS</text>
+        <rect x="390" y="452" width="290" height="64" fill="#ffffff" stroke="#3c5a7a" stroke-width="1.4" stroke-dasharray="5 3"/>
+        <text x="404" y="476" font-weight="600">本地小模型（1.5B 级量化）</text>
+        <text x="404" y="496" font-size="11" fill="#4a5053">意图识别 / 隐私过滤 / 简单响应 / RAG 检索</text>
+
+        <!-- cloud -->
+        <rect x="740" y="140" width="280" height="100" fill="#ffffff" stroke="#8a6d2f" stroke-width="1.4"/>
+        <text x="754" y="166" font-weight="600">云端大模型（模型路由器）</text>
+        <text x="754" y="186" font-size="11" fill="#4a5053">复杂推理 / 深度对话 / 跨长期记忆分析</text>
+        <text x="754" y="206" font-size="11" fill="#4a5053">输入=最小充分上下文 · 输出=结构化决策</text>
+        <rect x="740" y="256" width="280" height="76" fill="#ffffff" stroke="#8a6d2f" stroke-width="1.4"/>
+        <text x="754" y="282" font-weight="600">手机器官（伴侣 App）</text>
+        <text x="754" y="302" font-size="11" fill="#4a5053">冷启动数据授权导入 / 聊天-支付-日程增量同步</text>
+        <text x="754" y="320" font-size="11" fill="#4a5053">紧急通信备份（C14 裁定）</text>
+        <rect x="740" y="348" width="280" height="76" fill="#ffffff" stroke="#8a6d2f" stroke-width="1.4" stroke-dasharray="5 3"/>
+        <text x="754" y="374" font-weight="600">加密备份（可选）</text>
+        <text x="754" y="394" font-size="11" fill="#4a5053">记忆树摘要级加密备份 · 用户可关</text>
+      </g>
+
+      <!-- arrows -->
+      <g stroke="#7d8487" stroke-width="1.3" fill="none">
+        <path d="M330 200 C 352 200, 352 172, 390 172" marker-end="url(#arr)"/>
+        <path d="M330 300 C 352 300, 352 240, 390 240" marker-end="url(#arr)"/>
+        <path d="M330 406 C 360 406, 360 440, 390 440" marker-end="url(#arr)" stroke="#8a4b2f"/>
+        <path d="M680 190 C 702 190, 702 190, 740 190" marker-end="url(#arr)"/>
+        <path d="M680 250 C 710 250, 710 286, 740 294" marker-end="url(#arr)"/>
+      </g>
+      <defs>
+        <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+          <path d="M0,0 L7,3 L0,6 Z" fill="#7d8487"/>
+        </marker>
+      </defs>
+
+      <!-- legend -->
+      <text x="24" y="46" font-size="15" fill="#1c1f21" font-weight="600">AIOS 部署视图：宪法的功能轴 × 工程的功耗轴（C4 裁定落地）</text>
+      <text x="24" y="600" font-size="11" fill="#7d8487">实线框 = 常驻或按需激活的模块 · 虚线框 = 可选 / 按配置加载 · 跨域箭头 = 事件升级与租约申请路径</text>
+    </svg>
+    <figcaption>FIG.01 — 九大内核系统与横跨层在 RTOS / Linux / 云端三域上的部署映射。功能系统不被功耗层吞并，而是声明运行域。</figcaption>
+  </figure>
+
+  <table>
+    <tr><th style="width:20%">功耗域</th><th style="width:22%">运行内容</th><th>宪法依据</th></tr>
+    <tr><td><span class="cell-main">L0 反射（RTOS）</span><span class="cell-sub">&lt;5mW · 永不停</span></td><td>传感采集、VAD、姿态 / 抬腕 / 撞击检测、生理阈值</td><td>感知系统的输入适配器 + Safety 反射路径</td></tr>
+    <tr><td><span class="cell-main">L1 事件分类（RTOS）</span><span class="cell-sub">&lt;2mW · 永不停</span></td><td>事件归类、MODE 快速通道、升级阈值、租约发放</td><td>Attention 引擎 + MODE 引擎（实现规范）</td></tr>
+    <tr><td><span class="cell-main">L2 本地语义（Linux）</span><span class="cell-sub">~800mW · 租约唤醒</span></td><td>上下文重建、记忆读写、认知维护、能力插件、本地小模型、交互输出</td><td>九大系统的主体在此域运行；记忆库为持久化基础设施</td></tr>
+    <tr><td><span class="cell-main">L3 云端大脑</span><span class="cell-sub">高价值事件</span></td><td>复杂推理、深度对话、跨年记忆分析；输入最小充分上下文，输出结构化决策</td><td>AI 算力层 · 模型路由器（8.2）</td></tr>
+  </table>
+
+  <div class="note"><b>关键工程事实（选型前必须验证）：</b>QRB4210 的 Yocto BSP 内核版本、7.84 寸 600×1920 柔性屏在该平台上的驱动可用性、1.5B 量化模型在其 NPU 上的实际 token 吞吐、双麦阵列 + 骨传导振子的供应链 —— 四项全部要 EVK 实测，任何一项不过都要回到 C2 的两条路线重新权衡。</div>
+</section>
+
+<!-- ================= 09 ================= -->
+<section class="ch" id="s9">
+  <div class="kicker">SECTION 09 · ROADMAP</div>
+  <h2>重构路线图</h2>
+  <table>
+    <tr><th style="width:14%">阶段</th><th style="width:20%">产出物</th><th style="width:14%">周期（建议）</th><th>关键事项</th></tr>
+    <tr>
+      <td><span class="cell-main">Phase 0</span><span class="cell-sub">修宪</span></td>
+      <td>宪法 V1.2</td>
+      <td>1–2 周</td>
+      <td>按 §06 清单完成 12 处修订；新增隐私章与实现规范附录；团队逐条评审签字。四条最高原则不动，其余条款按本报告裁定措辞。</td>
+    </tr>
+    <tr>
+      <td><span class="cell-main">Phase 1</span><span class="cell-sub">文档体系重构</span></td>
+      <td>四层文档树</td>
+      <td>2–3 周（可与 Phase 2 并行）</td>
+      <td>宪法 → 《神经系统实现规范》（Deep Blue 提升）→ 《产品框架》+《隐私章》（克劳德5 拆解）→ 《硬件规格书》（手镯.txt 重写）。旧文档归档只读。</td>
+    </tr>
+    <tr>
+      <td><span class="cell-main">Phase 2</span><span class="sub">部署验证</span></td>
+      <td>EVK 选型报告</td>
+      <td>4–6 周</td>
+      <td>两条芯片路线（QRB4210 / 新平台）各拿 EVK 实测四项关键事实；同步验证 Sensor Hub + Linux 双域通信链路（rpmsg / shared memory）。</td>
+    </tr>
+    <tr>
+      <td><span class="cell-main">Phase 3</span><span class="sub">状态机清单</span></td>
+      <td>事件规格表 V1</td>
+      <td>4–6 周（与 Phase 2 并行）</td>
+      <td>执行 Deep Blue 第 21 章：逐事件定义「触发源 → MODE → L0 条件 → L1 分类 → 租约 → 上下文 → 本地判断 → 上云与否 → 介入阈值 → 通道 → 确认 → 观察 → 记忆更新 → 误报处理」。这张表完成日，就是硬件 / 模型 / 功耗预算可以从能力倒推出来的时点。</td>
+    </tr>
+  </table>
+  <p class="wide ref">依赖关系：Phase 0 → Phase 1 / Phase 3 → Phase 2（选型依赖事件规格表的能力指标）；Phase 2 与 Phase 3 可并行。</p>
+</section>
+
+<!-- ================= 10 ================= -->
+<section class="ch" id="s10">
+  <div class="kicker">SECTION 10 · RISKS &amp; OPEN QUESTIONS</div>
+  <h2>开放问题与风险清单</h2>
+  <table>
+    <tr><th style="width:5%">#</th><th style="width:26%">风险 / 开放问题</th><th style="width:12%">等级</th><th>说明与建议动作</th></tr>
+    <tr><td class="ref">R1</td><td><span class="cell-main">微信聊天记录读取的合规路径</span></td><td><span class="b b-drop">最高</span></td><td>冷启动与社交图谱的核心数据源，但微信无公开 API；root / 逆向 / 无障碍方案均违反平台条款且有法律风险。可行路径：手机伴侣 App + 用户主动授权导出（聊天记录备份文件解析）、通知监听级轻量同步、或降级为「通话 + 日程 + 通讯录 + 消息通知」级数据。建议立即做合规专项，这决定冷启动体验的上限。</td></tr>
+    <tr><td class="ref">R2</td><td><span class="cell-main">常听录音的他人知情同意</span></td><td><span class="b b-drop">高</span></td><td>设备记录的不只是用户自己，还有对话对方。Bee 的处理（实时处理、不留存音频）是当前可辩护形态；建议宪法隐私章直接采纳「不留存原始音频、只留转写」为默认。</td></tr>
+    <tr><td class="ref">R3</td><td><span class="cell-main">巨头竞品时间窗</span></td><td><span class="b b-drop">高</span></td><td>Amazon 已收购 Bee 并保持 $49.99 定价与常听形态；预期大厂会在 12–24 个月内推同类。差异化护城河应锚定宪法优势：三棵树认知分离 + 跨领域记忆 + 主动陪伴——这些是「摘要型助手」做不到的，而不是拼硬件。</td></tr>
+    <tr><td class="ref">R4</td><td><span class="cell-main">电池与「终生伴侣」承诺的差距</span></td><td><span class="b b-align">中</span></td><td>现有规格待机 ~20h、日常 15–18h（供应商数据待验证），意味着每天一充。要么产品叙事接受「每晚摘下充电 = AI 睡觉」，要么硬件方案权衡。建议作为产品决策而非工程决策明确下来。</td></tr>
+    <tr><td class="ref">R5</td><td><span class="cell-main">骨传导贴耳交互的人体工学</span></td><td><span class="b b-align">中</span></td><td>「抬腕贴耳听骨传导」的音量、环境噪音下的可懂度、公共场合的心理接受度都需要真机测试；这是宪法 6.8 交互系统的物理前提。</td></tr>
+    <tr><td class="ref">R6</td><td><span class="cell-main">摄像头的社会接受度</span></td><td><span class="b b-align">中</span></td><td>腕上侧置摄像头比 Bee（无屏无摄像头）更激进，公共场合拍摄他人有礼仪与法律风险。建议首版硬件保留模组位但默认禁用，先以「环境描述」封闭测试。</td></tr>
+    <tr><td class="ref">R7</td><td><span class="cell-main">「主动开口」的分寸感</span></td><td><span class="b b-align">中</span></td><td>首夜惊艳时刻是最大卖点，也是最大翻车点：说错时机、说错人名、引用超出授权范围，任何一条都会把「惊艳」变「惊吓」。建议冷启动首周内 AI 主动开口次数上限写入实现规范，并 A/B 验证话术分寸。</td></tr>
+    <tr><td class="ref">R8</td><td><span class="cell-main">本地模型与云端成本模型</span></td><td><span class="b b-align">中</span></td><td>每次租约上云都是真金白银；重度用户月调用量 × 单价的成本曲线需要在 Phase 2 事件规格表完成后测算，可能反过来约束 Attention 阈值设计。</td></tr>
+  </table>
+
+  <div class="final">
+    <div class="kicker">FINAL VERDICT</div>
+    <p style="max-width:900px">这份宪法值得作为最高准则来执行：它的四条原则在全部审计中没有被任何一份补充文档真正挑战过，反而处处被证实（三棵树分离拦住了「用户画像」违宪，介入预算拦住了「过度主动」，UNKNOWN 状态拦住了「瞎猜」）。15 项冲突全部可以在宪法框架内裁决，其中 12 项是下层文档对齐、3 项需要修宪（秒级日志重定义、硬件章重写、隐私章新增）。Deep Blue 是最值得整体保留的资产——把它从参考资料提升为宪法的实现规范附录，是这个体系重构里性价比最高的一步。</p>
+  </div>
+
+  <div class="colophon">
+    AIOS CONSTITUTION REVIEW · V1.1 → V1.2 PROPOSAL<br>
+    基准文档：AIOS 宪法 V1.1（2026-09-08）· 审计对象：Deep Blue V1.0 / 腕上AI终端框架 V1.0 / 赛博具身伴侣白皮书 V4.0（未完稿）<br>
+    外部事实核验：Qualcomm 官方文档与供应商 SOM 资料（QCS4290 Android 变体 / QRB4210 Yocto / Qualcomm Linux 6.6 LTS）· Amazon Bee 公开报道<br>
+    本报告中所有续航、存储增量为量级估算，标注处需工程实测后替换
+  </div>
+</section>
+
+</div>
+</body>
+</html>
