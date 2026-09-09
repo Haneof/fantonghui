@@ -24,6 +24,10 @@
 
 9. `09_FIRST_SPRINT_TASKS.md` —— 当前 Sprint 的具体开发任务。
 
+10. `AIOS_PROJECT_MASTER_PROMPT_V1.0.md` —— 项目主控 Prompt：角色、权限、任务格式与验收纪律。
+
+规范文档总数为 12 份：Constitution + Master Prompt + 00~09。
+
 ## 先做什么
 
 第一阶段不要做手环硬件，不要先做完整 UI，不要先做领域 App。

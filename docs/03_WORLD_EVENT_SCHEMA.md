@@ -48,7 +48,7 @@
 
   },
 
-  "relationships": [],
+  "relationship_ids": [],
 
   "evidence": []
 

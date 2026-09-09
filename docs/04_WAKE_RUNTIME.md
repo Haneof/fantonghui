@@ -173,7 +173,7 @@ Safety 走独立硬规则，不受普通阈值限制。
 必须证明：
 
 1. 10,000 条模拟事件可以在本地完成预处理。
-2. 大模型调用次数远低于事件数量。
+2. AI 调用比例统一按照 §11 定义的 expensive_model_call_count / semantic_event_count 计算；§11 为唯一验收口径。
 3. 同一个事件连续重复不会产生重复唤醒。
 4. 趋势事件可以穿透单点噪声。
 5. 未知场景不会因为无模板而自动丢弃。
@@ -185,8 +185,10 @@ Lease 唯一管理进程位于 `core/attention/lease`。Attention 负责正常�
 
 首版预算：
 - `MICRO_WAKE`: 2s / 256 output tokens / 1 local-model call / 0 expensive-model calls
-- `AI_WAKE`: 30s / 2048 tokens / 2 expensive-model calls
-- `EMERGENCY_WAKE`: 60s / 4096 tokens / 3 expensive-model calls
+- `AI_WAKE`: 30s / 2048 output tokens / 2 expensive-model calls
+- `EMERGENCY_WAKE`: 60s / 4096 output tokens / 3 expensive-model calls
+
+`token_budget` 在 V0.1 只计 output tokens;total tokens 与 input tokens 只做 telemetry 统计,不作为 Lease 主限额。保留 `context_budget` 扩展点,本 Sprint 不实施。
 
 统计必须同时输出：
 - `semantic_event_count`

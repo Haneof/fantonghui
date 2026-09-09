@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import importlib
 import re
+import tempfile
 import sys
 import unittest
 from pathlib import Path
@@ -25,22 +26,24 @@ class TestRuntimeSkeleton(unittest.TestCase):
             with self.subTest(contract=name):
                 importlib.import_module(mod)
 
-    def test_skeleton_classes_declare_contract_and_refuse_to_run(self):
-        """骨架阶段每个 Runtime 必须:声明契约来源 + 拒绝被当成已实现使用。"""
-        targets = [
-            ("core.perception.perception_runtime", "PerceptionRuntime"),
-            ("core.event.event_runtime", "EventRuntime"),
-            ("core.world.world_runtime", "WorldRuntime"),
-            ("core.world.state_runtime", "StateRuntime"),
-            ("core.attention.lease", "LeaseManager"),
-            ("core.policy.safety", "SafetyRuntime"),
-        ]
-        for mod_name, cls_name in targets:
+    def test_sprint1_runtimes_are_live(self):
+        """Sprint 1 Task 2-8 覆盖的 Runtime 必须已实现(可实例化,不再抛 NotImplementedError)。"""
+        live = [("core.perception.perception_runtime", "PerceptionRuntime"),
+                ("core.event.event_runtime", "EventRuntime"),
+                ("core.world.world_runtime", "WorldRuntime"),
+                ("core.world.state_runtime", "StateRuntime"),
+                ("core.world.entity_runtime", "EntityRuntime")]
+        for mod_name, cls_name in live:
             with self.subTest(cls=cls_name):
                 cls = getattr(importlib.import_module(mod_name), cls_name)
                 self.assertTrue(cls.contract, f"{cls_name} 未声明契约来源")
-                with self.assertRaises(NotImplementedError):
-                    cls()
+                cls(tempfile.mkdtemp(prefix="aios-live-")) if cls_name != "StateRuntime" else cls()
+
+    def test_out_of_sprint_runtimes_are_still_skeleton(self):
+        """Sprint 2/3/4 的 Runtime 必须仍然拒绝被调用(09 禁止事项 3)。"""
+        from tools import forbidden_scan as fs
+
+        self.assertEqual(fs.check_skeleton_intact(), [], "有 Sprint 2/3/4 的骨架被提前实装了")
 
     def test_every_runtime_method_is_guarded(self):
         cls = getattr(importlib.import_module("core.attention.wake"), "WakeRuntime")

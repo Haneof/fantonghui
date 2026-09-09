@@ -12,25 +12,29 @@
 
 ### Task 3
 
-实现 Event 输入和持久化。
+实现 Event 输入和 JSONL 持久化。
 
 ### Task 4
 
-实现 Entity。
+实现 Event 去重（最小实现）。去重属于 Event Runtime 既定职责（02 §1），实现在 `core/event/event_runtime.py`，不得放入其他目录。
 
 ### Task 5
 
-实现 World State。
+实现 Entity。
 
 ### Task 6
 
-实现 Event -> World Update。
+实现 World State。
 
 ### Task 7
 
-实现 World Change Delta。
+实现 Event -> World Update。
 
 ### Task 8
+
+实现 World Change Delta。
+
+### Task 9
 
 做一个模拟器，能够按时间线播放用户的一天。
 
@@ -53,6 +57,22 @@
 09:15 再次谈价格
 
 ```
+
+## Sprint 1 禁止事项
+
+1. 不得修改 AIOS Constitution V1.2-r1。
+
+2. 不得自行改变 Runtime 边界。
+
+3. 不得提前开发 Sprint 2/3。
+
+4. 不得接入大模型。
+
+5. 不得用 Simulator 绕过 Perception Runtime。
+
+6. 不得将去重实现到不属于 Event Runtime 的目录。
+
+7. 不得自行宣布 READY/PASS，必须返回真实测试结果。
 
 ## Sprint 2：Memory（对应 Phase 2）
 
@@ -84,7 +104,7 @@
 
 ### Task 1
 
-实现事件去重。
+去重策略调优 + 与 Event Fusion 联动（最小实现已在 Sprint 1 Task 4 落地）。
 
 ### Task 2
 

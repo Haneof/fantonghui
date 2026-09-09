@@ -50,7 +50,9 @@ Hardware / RTOS / Linux
 
 |  Relevance Runtime           |
 
-|  Attention / Wake Runtime    |
+|  Attention Runtime           |
+
+|  Wake / Lease Runtime        |
 
 |  AI Runtime                  |
 

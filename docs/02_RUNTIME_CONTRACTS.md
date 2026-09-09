@@ -118,11 +118,13 @@ Simulator 阶段允许使用 Mock Perception Adapter；它可以直接把测试�
 
 首版 Simulator 初始预算：
 
-- `MICRO_WAKE`: 2000ms / 256 tokens / 1 local-model call / 0 expensive-model calls。
+- `MICRO_WAKE`: 2000ms / 256 output tokens / 1 local-model call / 0 expensive-model calls。
 
-- `AI_WAKE`: 30000ms / 2048 tokens / 2 expensive-model calls。
+- `AI_WAKE`: 30000ms / 2048 output tokens / 2 expensive-model calls。
 
-- `EMERGENCY_WAKE`: 60000ms / 4096 tokens / 3 expensive-model calls。
+- `EMERGENCY_WAKE`: 60000ms / 4096 output tokens / 3 expensive-model calls。
+
+`token_budget` 在 V0.1 只计 output tokens;total tokens 与 input tokens 只作为 telemetry 上报,不作为 Lease 主限额。保留 `context_budget` 扩展点,V0.1 不实施。
 
 抢占规则：`EMERGENCY_WAKE` 可以抢占普通 lease；普通 lease 不能抢占 Emergency。用户主动唤醒属于高优先级普通 AI Wake，但不能抢占 Emergency。
 
