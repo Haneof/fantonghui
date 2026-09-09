@@ -1,24 +1,30 @@
 """PerceptionRuntime —— 契约来源: 02 §0 Perception / 宪法 6.1 感知系统.
 
-Sprint 1 只做"最小合同":把 raw signal 变成符合 schemas/event.json 的 Semantic Event。
-真实 VAD/ASR/Vision/IMU 适配器接入时,替换 MOCK_SEMANTICS 与 register_adapter 的适配器即可,
-本类的对外接口(ingest_signal / emit_semantic_event)不变。
+职责边界(02 §0,越界即违反 09 禁止事项 2):
+    负责: 输入适配(Raw Signal 合同)、基础语义化、感知置信度、短生命周期 raw_ref。
+    不负责: Relevance、Attention、Wake、AI 判断、World 最终状态、Action、建议。
 
-隐私约束(宪法 12.2):原始数据只存在于 _transient 短生命周期缓冲区,事件发出即清除;
-事件里只保留 raw_ref 引用。
+主链: Raw Signal -> ingest_signal -> Semantic Event(schemas/event.json 强校验)。
+本模块不 import EventRuntime/WorldRuntime/任何模型或网络库;真实 VAD/ASR/Vision/IMU
+适配器接入时只需换 register_adapter 的实现,对外接口(ingest_signal / emit_semantic_event
+/ drain)不变。
+
+隐私(宪法 12.2): payload 只进 _transient 短生命周期缓冲,事件发出即清除;
+事件里只留 raw_ref 指针,且 raw_ref 带上 signal_id 以便回溯来源而不留原文。
 """
 from __future__ import annotations
 
 import itertools
-import re
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping, Protocol
 
 _ROOT = Path(__file__).resolve().parents[2]
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
+from core.perception.raw_signal import MODALITIES, PerceptionInputError, RawSignal  # noqa: E402
+from core.perception.semantics import UNKNOWN_TYPE, classify, resolve_entities  # noqa: E402
 from tools.mini_jsonschema import validate  # noqa: E402
 
 #: 由感知层铸造的事件 id 登记处。EventRuntime 只接受这里登记过的 id,
@@ -38,86 +44,99 @@ def is_minted(eid: str) -> bool:
 
 
 def reset_id_space() -> None:
-    """回放/测试用:重置 id 计数,保证同一时间线得到同一批 id。"""
+    """回放/测试用:重置 id 计数,保证同一时间线得到同一批 id(确定性验收 A-2)。"""
     global _seq
     _seq = itertools.count(1)
     _MINTED.clear()
 
 
-#: Sprint 1 的 Mock 语义规则表(确定性规则,不引入任何模型)。
-MOCK_SEMANTICS: list[tuple[re.Pattern[str], str, str, float]] = [
-    (re.compile(r"到公司|到达|抵达"), "arrival", "gps", 0.98),
-    (re.compile(r"进入|到场"), "person_enter", "mic", 0.90),
-    (re.compile(r"提出降价|砍价|再次谈价格|谈价格"), "price_negotiation", "mic", 0.93),
-    (re.compile(r"沉默|不说话"), "silence", "imu", 0.75),
-    (re.compile(r"打开|查看"), "document_open", "screen", 0.95),
-    (re.compile(r"合同"), "contract_discussion", "mic", 0.90),
-]
+class PerceptionAdapter(Protocol):
+    """适配器合同: 只会"吐出 raw signal",不做语义化、不碰 Event/World。"""
 
-#: Mock 实体解析表。真实实现由 Identity Runtime 异步绑定(02 §5),此处仅占位。
-MOCK_ENTITIES = {"张总": "person_017", "小王": "person_021", "合同": "contract_003", "公司": "place_004"}
-
-UNKNOWN_SOURCE = "simulator"
-UNKNOWN_CONFIDENCE = 0.40
+    def read(self) -> list[Any]:
+        ...
 
 
 class PerceptionRuntime:
     """把 raw signal 语义化为标准 Semantic Event(02 §0)。"""
 
     contract = "02 §0 Perception"
+    #: 对外暴露的合法模态集合,方便测试与文档对齐(不是第二套 schema)。
+    modalities: tuple[str, ...] = MODALITIES
 
     def __init__(self, date: str = "2026-09-09", timezone: str = "+08:00") -> None:
         self.date = date
         self.timezone = timezone
-        self.adapters: list[Any] = []
+        self.adapters: list[PerceptionAdapter] = []
         self._transient: dict[str, Any] = {}
+        self._seen_signals: set[str] = set()
         self.emitted = 0
         self.unknown = 0
+        self.rejected = 0
+        self.rejections: list[str] = []
 
-    def register_adapter(self, adapter: Any) -> "PerceptionRuntime":
+    # ---------------------------------------------------------------- 输入适配
+    def register_adapter(self, adapter: PerceptionAdapter) -> "PerceptionRuntime":
         """接入 mock 或真实(VAD/ASR/Vision/IMU/Phone)适配器。"""
         self.adapters.append(adapter)
         return self
 
-    def _iso(self, hhmm: str) -> str:
-        parts = (hhmm or "").strip().split(":")
-        hh = parts[0].rjust(2, "0") if parts and parts[0] else "00"
-        mm = parts[1].rjust(2, "0") if len(parts) > 1 and parts[1] else "00"
-        return f"{self.date}T{hh}:{mm}:00{self.timezone}"
+    def drain(self) -> list[dict]:
+        """从已注册适配器拉取全部 raw signal 并语义化。"""
+        return [self.ingest_signal(sig) for adapter in self.adapters for sig in adapter.read()]
 
-    def _resolve_entities(self, text: str) -> list[str]:
-        return [eid for name, eid in MOCK_ENTITIES.items() if name in text]
+    def ingest_signal(self, raw: Any) -> dict:
+        """标准输入边界:非法输入明确抛错(禁止静默吞错),合法输入产出 Semantic Event。"""
+        try:
+            signal = RawSignal.from_dict(raw)
+        except PerceptionInputError as exc:
+            self.rejected += 1
+            self.rejections.append(exc.code)
+            raise
+        if signal.signal_id in self._seen_signals:
+            self.rejected += 1
+            self.rejections.append("DUPLICATE_SIGNAL_ID")
+            raise PerceptionInputError("DUPLICATE_SIGNAL_ID",
+                                       f"signal_id {signal.signal_id!r} 已被本实例消费过,不得重复语义化",
+                                       "signal_id")
+        self._seen_signals.add(signal.signal_id)
+        return self.emit_semantic_event(signal)
 
-    def emit_semantic_event(self, raw: dict) -> dict:
-        """单个 raw signal -> Semantic Event。未知输入不丢弃,降为低置信度事件(08 E)。"""
-        text = str(raw.get("text", "")).strip()
-        etype, source, conf = "unrecognized", str(raw.get("channel", UNKNOWN_SOURCE)), UNKNOWN_CONFIDENCE
-        for rx, name, src, c in MOCK_SEMANTICS:
-            if rx.search(text):
-                etype, source, conf = name, str(raw.get("channel", src)), c
-                break
-        else:
+    # ---------------------------------------------------------------- 语义化
+    def emit_semantic_event(self, signal: RawSignal | Mapping[str, Any]) -> dict:
+        """单个 Raw Signal -> Semantic Event。未命中规则降为低置信度事件,不丢弃(08 E)。"""
+        sig = signal if isinstance(signal, RawSignal) else RawSignal.from_dict(signal)
+        text = sig.semantic_text
+        etype, conf, channel = classify(sig.modality, text)
+        if etype == UNKNOWN_TYPE:
             self.unknown += 1
 
-        entities = list(raw.get("entities") or self._resolve_entities(text))
-        location = raw.get("location_id") or next((e for e in entities if e.startswith("place_")), None)
+        entities = resolve_entities(text)
+        location = next((e for e in entities if e.startswith("place_")), None)
         eid = issue_event_id()
-        self._transient[eid] = raw.get("payload", text)  # 原始数据只进短生命周期缓冲区
+        self._transient[eid] = dict(sig.payload)  # 原始数据只进短生命周期缓冲区
         event = {
             "id": eid,
-            "timestamp": self._iso(str(raw.get("at", ""))),
-            "source": source,
+            "timestamp": self._iso(sig.timestamp),
+            "source": channel or sig.source,
             "type": etype,
             "content": text,
             "entities": entities,
             "location_id": location,
             "confidence": conf,
-            "raw_ref": f"perception://temp/{eid}",
+            "raw_ref": f"perception://temp/{eid}?signal_id={sig.signal_id}",
         }
         self._check(event)
         self.purge_raw(eid)  # 事件发出即销毁原始体(宪法 12.2 录音/图像即删)
         self.emitted += 1
         return event
+
+    def _iso(self, stamp: str) -> str:
+        """把 HH:MM[:SS] 补成带日期与时区的 ISO-8601;已是 ISO 的原样通过。"""
+        if "T" in stamp:
+            return stamp
+        hh, mm, ss = (*stamp.split(":"), "0", "0")[:3]
+        return f"{self.date}T{int(hh):02d}:{int(mm):02d}:{int(ss):02d}{self.timezone}"
 
     @staticmethod
     def _check(event: dict) -> dict:
@@ -127,9 +146,7 @@ class PerceptionRuntime:
             raise ValueError(f"感知输出不符合 event schema: {errs}")
         return event
 
-    def ingest_signal(self, raw: dict) -> dict:
-        return self.emit_semantic_event(raw)
-
+    # ---------------------------------------------------------------- 隐私
     def purge_raw(self, eid: str) -> None:
         self._transient.pop(eid, None)
 
@@ -137,9 +154,14 @@ class PerceptionRuntime:
         """必须恒为 0:任何发出过的事件都不应再持有原始体。"""
         return len(self._transient)
 
-    def drain(self) -> list[dict]:
-        """从已注册适配器拉取全部 raw signal 并语义化。"""
-        return [self.emit_semantic_event(sig) for adapter in self.adapters for sig in adapter.read()]
+    def stats(self) -> dict:
+        """遥测:漏斗计数。注意这里不产生任何判断语义,只是数数。"""
+        return {
+            "emitted": self.emitted,
+            "unknown": self.unknown,
+            "rejected": self.rejected,
+            "raw_still_held": self.raw_still_held(),
+        }
 
 
 def _load(name: str) -> dict:

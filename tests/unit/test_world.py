@@ -60,7 +60,9 @@ class TestWorldUpdate(WorldCase):
         self.assertIsNotNone(self.world.entities.get("person_017"))
 
     def test_unrecognized_event_changes_nothing_but_is_not_dropped(self):
-        ev = PerceptionRuntime().ingest_signal({"at": "09:40", "text": "用户在阳台浇花"})
+        ev = PerceptionRuntime().ingest_signal({
+            "signal_id": "sig-water-01", "timestamp": "09:40", "source": "simulator",
+            "modality": "text", "payload": {"text": "用户在阳台浇花"}})
         before = self.world.current_state()
         self.assertIsNone(self.world.apply_update(ev))
         self.assertEqual(self.world.current_state(), before)
