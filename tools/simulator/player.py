@@ -47,7 +47,20 @@ def run(scenario: Path, var_dir: Path, date: str, noise: int = 0, fresh: bool = 
 
     entities = EntityRuntime(var_dir / "world")
     world = WorldRuntime(var_dir / "world", entities)
+    #: 计数是跨运行的累计值(resume 从台账恢复),因此"本轮"必须用增量,否则第二次运行
+    #: 会把上次的账报成本次的成果。
+    before_run = (world.updated, world.no_change, world.stale_skipped, world.replay_skipped,
+                  world.rejected, world.attempted)
     changes = [c for c in (world.apply_update(ev) for ev in accepted) if c is not None]
+    after_run = (world.updated, world.no_change, world.stale_skipped, world.replay_skipped,
+                 world.rejected, world.attempted)
+    run_delta = dict(zip(("applied", "no_slot_change", "stale", "replay_skipped", "rejected",
+                          "attempted"), (b - a for a, b in zip(before_run, after_run))))
+
+    ledger = world.update_ledger()
+    conservation = world.conservation()
+    trace_problems = world.verify_traceability({e["id"] for e in store.all_events()})
+    conservation_problems = world.verify_conservation() + world.verify_ledger()
 
     replay = world.replay(store.all_events(), var_dir / "replay")
     replay_changes = replay.all_changes()
@@ -63,8 +76,17 @@ def run(scenario: Path, var_dir: Path, date: str, noise: int = 0, fresh: bool = 
         "duplicate_dropped": store.stats()["duplicate_dropped"],
         "unknown_kept": perception.unknown,
         "raw_still_held": perception.raw_still_held(),
+        "run_delta": run_delta,
         "world_updates": world.updated,
         "world_no_change": world.no_change,
+        "world_attempted": world.attempted,
+        "world_stale": world.stale_skipped,
+        "world_replay_skipped": world.replay_skipped,
+        "world_rejected": world.rejected,
+        "ledger": ledger,
+        "conservation": conservation,
+        "trace_problems": trace_problems,
+        "conservation_problems": conservation_problems,
         "changes": changes,
         "state": world.current_state(),
         "entities": entities.all_entities(),
@@ -89,13 +111,33 @@ def report(r: dict, scenario: Path, var_dir: Path) -> None:
     print(f"[1] raw signal                     : {r['raw_signals']}")
     print(f"[2] Semantic Event (perception mint): {r['semantic_event_count']}  (其中未知场景保留 {r['unknown_kept']} 条,未丢弃)")
     print(f"[3] Event Runtime 去重后落库        : {r['semantic_event_count']}  (窗口内重复丢弃 {r['duplicate_dropped']} 条)")
-    print(f"[4] Event -> World Update          : {r['world_updates']} 次改写世界 (另有 {r['world_no_change']} 次无槽位变化)")
+    d = r["run_delta"]
+    print(f"[4] Event -> World Update          : 本轮 applied={d['applied']}  "
+          f"no_slot_change={d['no_slot_change']}  stale={d['stale']}  "
+          f"replay_skipped={d['replay_skipped']}  rejected={d['rejected']}  (attempted={d['attempted']})")
+    print(f"      跨运行累计(从 updates.jsonl 恢复)  : applied={r['world_updates']}  "
+          f"no_change={r['world_no_change']}  attempted={r['conservation']['attempted']}")
     print(f"[5] World Change Delta              : {len(r['changes'])} 条")
+    print(f"[6] World Update 台账             : {r['world_attempted']} 次尝试全部有下落\n"
+          f"      applied={r['conservation']['applied']}  no_rule={r['conservation']['no_rule']}  "
+          f"no_slot_change={r['conservation']['no_slot_change']}  stale={r['world_stale']}  "
+          f"replay_skipped={r['world_replay_skipped']}  rejected={r['world_rejected']}")
     print()
     print("世界变化序列:")
     for c in r["changes"]:
         print(f"  {c['window']['start'][11:16]}  {c['id']}  {c['change_type']:<24} "
               f"slots={sorted(c['after'])} evidence={','.join(c['evidence_events'])}")
+    print()
+    print("Event -> World Update 台账(每一条尝试的下落):")
+    for ln in r["ledger"]:
+        slots = ",".join(sorted((ln.get("update") or {}).get("slots", {}))) or "-"
+        print(f"  {ln['id']}  {str(ln['event_id']):<9} {str(ln['rule'] or '-'):<22} "
+              f"{ln['disposition']:<16} change={ln['change_id'] or '-':<9} slots={slots}")
+        if ln.get("note"):
+            print(f"        note: {ln['note']}")
+    print()
+    print(f"可追溯性核对(World Change -> Event): {'全部通过' if not r['trace_problems'] else r['trace_problems']}")
+    print(f"守恒/台账自检                        : {'全部通过' if not r['conservation_problems'] else r['conservation_problems']}")
     print()
     print("当前 World State:")
     print("  " + json.dumps(r["state"], ensure_ascii=False, sort_keys=True))
