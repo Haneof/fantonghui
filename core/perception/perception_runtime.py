@@ -5,9 +5,10 @@
     不负责: Relevance、Attention、Wake、AI 判断、World 最终状态、Action、建议。
 
 主链: Raw Signal -> ingest_signal -> Semantic Event(schemas/event.json 强校验)。
-本模块不 import EventRuntime/WorldRuntime/任何模型或网络库;真实 VAD/ASR/Vision/IMU
-适配器接入时只需换 register_adapter 的实现,对外接口(ingest_signal / emit_semantic_event
-/ drain)不变。
+本模块不 import EventRuntime/WorldRuntime/任何模型或网络库;事件 id 的登记册放在中立
+设施 tools/provenance.py,所以 Event Runtime 验证出处时不需要依赖本模块。真实
+VAD/ASR/Vision/IMU 适配器接入时只需换 register_adapter 的实现,对外接口(ingest_signal /
+emit_semantic_event / drain)不变。
 
 隐私(宪法 12.2): payload 只进 _transient 短生命周期缓冲,事件发出即清除;
 事件里只留 raw_ref 指针,且 raw_ref 带上 signal_id 以便回溯来源而不留原文。
@@ -26,28 +27,28 @@ if str(_ROOT) not in sys.path:
 from core.perception.raw_signal import MODALITIES, PerceptionInputError, RawSignal  # noqa: E402
 from core.perception.semantics import UNKNOWN_TYPE, classify, resolve_entities  # noqa: E402
 from tools.mini_jsonschema import validate  # noqa: E402
+from tools.provenance import EventProvenance, default_provenance  # noqa: E402
 
-#: 由感知层铸造的事件 id 登记处。EventRuntime 只接受这里登记过的 id,
-#: 用于机械执行 09 禁止事项第 5 条(不得绕过 Perception Runtime)。
-_MINTED: set[str] = set()
-_seq = itertools.count(1)
+# ---------------------------------------------------------------------------
+# 事件 id 的铸造权。登记册本身是中立设施(tools/provenance.py),不放在本模块里,
+# 因为 Event Runtime 需要验证出处却不得反向依赖 Perception Runtime。
+# 下面三个模块级函数只是"进程默认登记册"的兼容外壳:新代码请用
+# PerceptionRuntime(provenance=...) 显式注入同一个实例给双方。
+# ---------------------------------------------------------------------------
 
 
 def issue_event_id() -> str:
-    eid = f"evt_{next(_seq):03d}"
-    _MINTED.add(eid)
-    return eid
+    """用进程默认登记册铸造一个事件 id(等价于 default_provenance.mint())。"""
+    return default_provenance.mint()
 
 
 def is_minted(eid: str) -> bool:
-    return eid in _MINTED
+    return default_provenance.is_minted(eid)
 
 
 def reset_id_space() -> None:
-    """回放/测试用:重置 id 计数,保证同一时间线得到同一批 id(确定性验收 A-2)。"""
-    global _seq
-    _seq = itertools.count(1)
-    _MINTED.clear()
+    """回放/测试用:重置默认登记册,保证同一时间线得到同一批 id(确定性验收 A-2)。"""
+    default_provenance.reset()
 
 
 class PerceptionAdapter(Protocol):
@@ -64,9 +65,12 @@ class PerceptionRuntime:
     #: 对外暴露的合法模态集合,方便测试与文档对齐(不是第二套 schema)。
     modalities: tuple[str, ...] = MODALITIES
 
-    def __init__(self, date: str = "2026-09-09", timezone: str = "+08:00") -> None:
+    def __init__(self, date: str = "2026-09-09", timezone: str = "+08:00",
+                 provenance: EventProvenance | None = None) -> None:
         self.date = date
         self.timezone = timezone
+        #: 铸造权。装配时应把同一个实例交给 Event Runtime,双方共用一份登记册。
+        self.provenance = provenance if provenance is not None else default_provenance
         self.adapters: list[PerceptionAdapter] = []
         self._transient: dict[str, Any] = {}
         self._seen_signals: set[str] = set()
@@ -113,7 +117,7 @@ class PerceptionRuntime:
 
         entities = resolve_entities(text)
         location = next((e for e in entities if e.startswith("place_")), None)
-        eid = issue_event_id()
+        eid = self.provenance.mint()
         self._transient[eid] = dict(sig.payload)  # 原始数据只进短生命周期缓冲区
         event = {
             "id": eid,

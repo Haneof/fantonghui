@@ -12,10 +12,11 @@ JSONL 持久化、raw_ref lineage 保留、窗口去重(Task 4 的最小实现)�
 
 09 禁止事项第 6 条: 去重只能待在这个目录里,tests/unit/test_prohibitions.py 扫仓强制。
 
-对 Perception 的唯一依赖是 is_minted(纯谓词,读 id 登记册),用于机械执行 09 禁止事项 5
-(不得绕过 Perception 伪造事件)。本模块绝不调用感知流水线(register_adapter /
-ingest_signal / emit_semantic_event / drain),也不读 Raw Signal —— 该边界由
-tests/unit/test_event_runtime.py::TestBoundaries 用 AST + monkeypatch 双重锁死。
+Event provenance(09 禁止事项第 5 条): 只接受"合法感知路径铸造登记过"的 event id。
+证明的来源是中立登记册 tools/provenance.py,由调用方把同一个实例交给 Perception 和本
+Runtime —— 本模块不 import、不调用、也不动态加载任何 Perception 代码;Runtime 之间
+零依赖,方向只有 Perception -> 登记册 <- Event Runtime。该边界由
+tests/unit/test_event_runtime.py::TestBoundaries 用 AST + 注入隔离测试锁死。
 """
 from __future__ import annotations
 
@@ -30,8 +31,8 @@ _ROOT = Path(__file__).resolve().parents[2]
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
-from core.perception.perception_runtime import is_minted  # noqa: E402
 from tools.mini_jsonschema import validate  # noqa: E402
+from tools.provenance import EventProvenance, default_provenance  # noqa: E402
 
 #: Raw Signal 的特征字段。出现任何一个就说明调用方把感知层输入直接喂给了 Event Store。
 RAW_MARKERS = ("signal_id", "modality", "payload")
@@ -69,12 +70,15 @@ class EventRuntime:
     contract = "02 §1 Event"
 
     def __init__(self, var_dir: str | Path, dedupe_window_s: float = 120.0,
-                 schema: dict | None = None, resume: bool = True) -> None:
+                 schema: dict | None = None, resume: bool = True,
+                 provenance: EventProvenance | None = None) -> None:
         self.dir = Path(var_dir)
         self.dir.mkdir(parents=True, exist_ok=True)
         self.path = self.dir / "events.jsonl"
         self.dropped_path = self.dir / "dropped.jsonl"
         self.dedupe_window_s = dedupe_window_s
+        #: 出处证明。默认用进程级登记册;装配层应显式注入与感知层同一实例。
+        self.provenance = provenance if provenance is not None else default_provenance
         self._schema = schema or _load("event.json")
         self._events: list[dict] = []
         self._recent: list[tuple[dt.datetime, tuple]] = []
@@ -114,9 +118,10 @@ class EventRuntime:
             self._reject("ORIGIN_NOT_PERCEPTION",
                          f"只接受来自 Perception Runtime 的事件,收到 origin={origin!r}(09 禁止事项 5)", "origin")
         eid = event.get("id")
-        if not isinstance(eid, str) or not is_minted(eid):
+        if not self.provenance.is_minted(eid):
             self._reject("ID_NOT_MINTED",
-                         f"事件 id {eid!r} 不是 Perception Runtime 铸造登记的,拒绝入库(09 禁止事项 5)", "id")
+                         f"事件 id {eid!r} 未在 provenance 登记册中(不是合法感知路径铸造),"
+                         f"拒绝入库(09 禁止事项 5)", "id")
         errs = validate(dict(event), self._schema)
         if errs:
             self._reject("SCHEMA_INVALID", f"不符合 schemas/event.json: {errs}")

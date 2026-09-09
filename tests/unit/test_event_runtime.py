@@ -337,13 +337,29 @@ class TestBoundaries(Base):
                 mods += [a.name for a in node.names]
         self.assertEqual(sorted(set(mods) & banned), [], f"Event Runtime 越界 import: {sorted(set(mods) & banned)}")
 
-    def test_only_is_minted_is_taken_from_perception(self):
+    def test_no_runtime_import_of_perception(self):
+        """FIX-01: Event Runtime 对 core.* 必须零依赖,provenance 走中立登记册。"""
         import ast  # noqa: PLC0415
 
+        mods = []
         for node in ast.walk(ast.parse(self.SRC)):
-            if isinstance(node, ast.ImportFrom) and (node.module or "").startswith("core.perception"):
-                self.assertEqual([a.name for a in node.names], ["is_minted"],
-                                 "只允许读 id 登记册,不得引用感知流水线的任何入口")
+            if isinstance(node, ast.ImportFrom) and node.module:
+                mods.append(node.module)
+            elif isinstance(node, ast.Import):
+                mods += [a.name for a in node.names]
+        self.assertEqual([m for m in mods if m.startswith("core.")], [],
+                         f"Event Runtime 依赖了 Runtime 模块: {[m for m in mods if m.startswith('core.')]}")
+        self.assertEqual([m for m in mods if "perception" in m], [], "仍有 perception 引用")
+        self.assertIn("tools.provenance", mods, "出处验证必须来自中立登记册,不是别的 Runtime")
+
+    def test_no_dynamic_import_escape(self):
+        """禁止用 sys.path / importlib / __import__ / exec 变相加载 Perception。"""
+        for token in ("importlib", "__import__", "import_module", "exec(", "eval("):
+            self.assertNotIn(token, self.SRC, f"出现 {token}:属于绕过静态边界检查")
+        for ln, line in enumerate(self.SRC.splitlines(), 1):
+            if "sys.path" in line:
+                self.assertNotIn("perception", line, f"event_runtime.py:{ln} 用 sys.path 指向感知层")
+        self.assertNotIn("core.perception", self.SRC, "注释里也不留点路径,防止被当成依赖 grep 不出真相")
 
     def test_ingest_works_with_perception_pipeline_disabled(self):
         """把感知的四个入口全打断,Event Store 仍能写读 —— 证明它没在调用 Perception。"""
@@ -395,3 +411,51 @@ class TestBoundaries(Base):
 
             with self.assertRaises(NotImplementedError):
                 getattr(importlib.import_module(ref[0]), ref[1])()
+
+
+class TestProvenanceIsolation(Base):
+    """FIX-01 的核心安全性质: 登记册是唯一证明,换一份登记册就必须全部拒。"""
+
+    def test_shared_injected_registry_accepts(self):
+        from tools.provenance import EventProvenance  # noqa: PLC0415
+
+        reg = EventProvenance(prefix="inj")
+        p = PerceptionRuntime(date="2026-09-09", provenance=reg)
+        p.register_adapter(MockSimulatorAdapter(SCENARIO))
+        events = p.drain()
+        rt = EventRuntime(self.var / "shared", provenance=reg)
+        self.assertEqual(sum(rt.ingest(e) is not None for e in events), 7)
+        self.assertEqual(rt.verify_persistence(), [])
+        self.assertEqual(events[0]["id"], "inj_001", "id 必须由注入的登记册铸造")
+
+    def test_foreign_registry_is_rejected(self):
+        from tools.provenance import EventProvenance  # noqa: PLC0415
+
+        other = EventProvenance(prefix="oth")
+        rt = self.runtime()
+        rejected = []
+        for ev in self.events:
+            with self.assertRaises(EventIngestError) as ctx:
+                rt.ingest({**ev, "id": other.mint() if ev is self.events[0] else "oth_forged"})
+            rejected.append(ctx.exception.code)
+        self.assertEqual(set(rejected), {"ID_NOT_MINTED"})
+        self.assertEqual(rt.count(), 0, "别人的登记册不能成为本 Store 的入库理由")
+
+    def test_registry_has_no_public_backdoor(self):
+        """登记册的公开面只有 mint/is_minted/reset/snapshot,没有"补登记任意 id"的入口。
+
+        如实说明威胁模型: Python 没有真封装,`reg._minted.add(...)` 这种私有写入是拦不住的
+        (下面第三段断言就是在记录这个事实,而不是假装它能被拦)。本机制防的是
+        "绕过感知流水线顺手编 id"这类结构性越界,不是防同进程内的恶意代码。
+        要真正做到不可伪造,需要签名/HMAC 之类外部信任根 —— 那属于架构裁决,不在 FIX-01。
+        """
+        from tools.provenance import EventProvenance  # noqa: PLC0415
+
+        public = {n for n in dir(EventProvenance) if not n.startswith("_")}
+        self.assertEqual(public, {"is_minted", "mint", "reset", "snapshot"})
+        reg = EventProvenance(prefix="nb")
+        for name in ("register", "add", "trust", "mark", "verify", "allow"):
+            self.assertFalse(hasattr(reg, name), f"出现了 {name}() 就等于给伪造留了门")
+        self.assertEqual(reg.snapshot(), ())
+        reg.mint()
+        self.assertEqual(reg.snapshot(), ("nb_001",), "登记只能通过 mint 发生")

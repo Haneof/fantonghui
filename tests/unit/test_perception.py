@@ -53,6 +53,18 @@ class TestSemanticEventOutput(unittest.TestCase):
         self.assertEqual(set(ev), {"id", "timestamp", "source", "type", "content",
                                    "entities", "location_id", "confidence", "raw_ref"})
 
+    def test_provenance_registry_is_injectable(self):
+        """FIX-01: id 登记册可注入,且不得污染进程默认登记册。"""
+        from tools.provenance import EventProvenance  # noqa: PLC0415
+
+        reg = EventProvenance(prefix="pr")
+        p = pr.PerceptionRuntime(provenance=reg)
+        ev = p.ingest_signal(raw("到公司", at="09:00", signal_id="sig-prov-1"))
+        self.assertEqual(ev["id"], "pr_001")
+        self.assertTrue(reg.is_minted(ev["id"]))
+        self.assertFalse(pr.is_minted(ev["id"]), "注入实例必须与默认实例隔离")
+        self.assertEqual(len(reg), 1)
+
     def test_ids_are_minted_by_perception_only(self):
         events = fresh().drain()
         self.assertEqual([e["id"] for e in events], [f"evt_{i:03d}" for i in range(1, 8)])
@@ -168,7 +180,7 @@ class TestBoundariesAndQuality(unittest.TestCase):
                    for m in re.findall(r"^[ \t]*(?:from|import)\s+([A-Za-z_][\w.]*)", src, re.M)}
         allowed = {"__future__", "itertools", "re", "sys", "pathlib", "typing", "dataclasses", "json",
                    "core.perception", "core.perception.raw_signal", "core.perception.semantics",
-                   "tools.mini_jsonschema"}
+                   "tools.mini_jsonschema", "tools.provenance"}
         self.assertTrue(imports <= allowed, f"引入了计划外依赖: {sorted(imports - allowed)}")
 
     def test_adapter_has_no_runtime_calls(self):
