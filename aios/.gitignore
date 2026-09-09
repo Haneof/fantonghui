@@ -12,6 +12,11 @@ api_keys.json
 *.log
 nohup.out
 run/health.json
+# 01_os/code/run/ 下的运行期产物（*.db 与 *.log 已被上面的无锚定规则覆盖）
+**/run/world_state.json
+**/run/health.json
+**/run/entry_queue.db
+**/run/entity_store.db
 
 # ===== Python =====
 __pycache__/

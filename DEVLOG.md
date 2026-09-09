@@ -282,3 +282,26 @@
   5. 08 C 要求的身体状态趋势（HR 110→145）在 `world_state.json` 里没有对应槽位，本任务未实现（提前做就要改 schema，属越界）。
   6. `World Change` 目前只能承载单事件窗口（`window.start == window.end`）。多事件共同证明一个 change 的结构能力已具备（`make_world_update` 接受事件序列），但调用方是 Event 的 cluster/fusion（Sprint 3 Task 1/3），本轮不接。
 - **未完成项**：`core/world/` 之外的 Runtime 未触碰；`fusion.py`/`patterns.py` 仍是骨架；Entity 的 Identity Resolution 与 Relationship 建立仍靠 mock/上层调用；`confidence`/同刻排序/120s 窗口/默认分支等前序待裁决项继续挂账。
+
+---
+
+### [2026-09-10] Task 5（主线收拢）— Core Simulator 的 World/State 能力吸收进 `aios/01_os`
+
+- **任务**：架构师任务书"将已验证的 Core Simulator 能力正式收拢进 AIOS 主实现 `aios/01_os`，避免形成第二套 AIOS"。八个阶段：只读审计 → 判定保留 → 只解决 World/State → 不迁移整个 core → 主线测试 A–I → 不删 `core/` → 不清理 130+ 文件 → 一个 commit。
+- **开工前处置的一次环境事故（重要）**：本轮开始沙箱**又**重建了工作区（`git reflog`：`clone → checkout`），且远端**默认分支已改为 `aios`**，clone 落在 `02a072c`（旧 main）上，导致 `git ls-files aios` = 0、`HEAD:aios` 不存在。处置与上次相同且更严谨：先 `git fetch` 取 `refs/heads/aios`，逐 blob 比对证明磁盘 == `4c2b7e0`（**223/223 一致，0 缺失 0 不同，未跟踪文件 0**），再 `git reset --mixed 4c2b7e0`（只改记账、不写文件），随后 `Ran 192 tests OK`。同时核实：`origin/aios:aios` 与 `4c2b7e0:aios` 是**同一个 tree 对象 `4a30472`** → 我手上的 `aios/` 就是主线当前内容，不存在在过期副本上补功能的风险。
+- **审计读取范围**：8 份 Canonical 文档 + `STATUS.md`/`NEXT_TASK.md`（在 `aios` 分支根目录，我方分支无此二文件）+ `core/world/{world,state,entity}_runtime.py` + `tools/simulator/player.py` + `tests/unit/test_world_update.py` + 主线 `aios/01_os/code/{bus,aios_sdk,aiosd,services×15,simulator,tests}` + `schemas/*.proto.md` + `tasks/contracts*.md` + `docs/OS总体架构设计_V0.1.md`（§3.2 服务表 / §S3 / §13.2）。
+- **判定结果**：主线**不存在**任何 World/State 实现（`grep -rn "world" code/services/*.py` = 0 命中），`stated.py`/`entityd.py` 是逐字相同的 23 行空壳 → 走 C 分支（在既有服务内补齐），**D 分支为空 → 删除文件清单 = NONE**（未删、未停用任何文件；`core/` 一行未删）。
+- **commit**：本条 + 代码合为一笔（架构师"本任务一个 commit"）
+- **修改文件**：`aios/01_os/code/services/stated.py`（空壳→实装）、`aios/01_os/code/services/entityd.py`（轻量配合）、`aios/01_os/code/tests/test_s1_t5.py`（新增 22 项）、`aios/01_os/schemas/{event,world_state,world_change}.json`（canonical 逐字节副本）、`aios/01_os/tasks/plans/T29_s1_t5_world_update.md`（任务书+验收记录）、`aios/.gitignore`（补 `**/run/…` 四条，原 `run/health.json` 规则锚定错位匹配不到实际产物）
+- **执行命令**：`python3 tests/test_s1_t5.py` / `--fast` / `python3 services/stated.py --replay-jsonl <f>` / 实跑 `python3 aiosd/aiosd.py` + `simulator/simd.py --script /tmp/t29_day.json` / `python3 -m py_compile`（15 服务+bus+sdk+aiosd+simd+测试）/ arena 线 `unittest discover`+`forbidden_scan`+`schema_check`+`player`
+- **测试数字**：主线 `Task 5 验收结果: 22/22 项通过`（`--fast` 18/18；含真总线集成 G/G2/G3 与真进程重启 H）；arena 线回归 `Ran 192 tests … OK`、`forbidden_scan` 禁止事项 1-7 exit 0、`schema_check SPEC-CONFORMANCE OK`、`player` 回放一致。
+- **原始输出摘要（红项原样登记）**：
+  1. `verify_conservation()` 报 `attempted=2 但各下落合计=3` → **实现 bug**：applied 路径既 `self.stats[UPDATE_APPLIED] += 1` 又被 `_ledger()` 计一次（双计）。改为"disposition 计数只由 `_ledger` 负责"。
+  2. `AttributeError: 'tuple' object has no attribute 'fetchone'` → 我误以为 `_query_one` 返回游标；改为 `(self._query_one(...) or (0,))[0]`。
+  3. `N1 FAIL` → 我的**测试算错**：用"当天已吸收过的 evt_d02 + 旧时间戳"验 stale，但它会先被幂等拦成 `replay_skipped`（引擎优先级是对的）。改为用未见过的 `evt_stale_1` 验 stale，并在测试里写清这条优先级是刻意的。
+  4. `G3 FAIL` → 实跑日志暴露 `table entities has 8 columns but 7 values were supplied`（`entityd` 的 INSERT 少一个 `?`）。修复时顺带把 `INSERT` 改成显式列名。
+  5. 修完 G3 后 `G 真总线一天时间线` 反而 FAIL，原因码 `127.0.0.1:7800 已被占用` → 是我上一条调试命令用 `pkill -f "bus/aios_busd.py"` **匹配到了自己所在的 shell**，命令被 180s 超时打断并留下孤儿总线。按 PID `kill -9` 清理后 22/22 全绿。**教训已落到测试里**：`test_s1_t5` 的 finally 在 G/H 失败时保留 `run/_t5_stack.log` 尾部（原先无条件删除，会把现场删掉）。
+  6. 主线 `run/` 下 `bus_stats.json`/`lease_stats.json` 等**是被 git 跟踪的**，任何实跑都会改写它们 → 已 `git checkout -- aios/01_os/code/run/` 还原，`git status` 干净后才提交。
+- **主线运行证据**：`aiosd` 拉起 bus + 15 服务 → `stated {"state":"up","restarts":0,"last_hb":1.4s}`；`simd` 播放 09 示例日 7 条 → `run/world_state.json` 快照九槽位齐（`location={id:place_004}`/`mode=WORK`/`people=[person_017]`/`active_situations=[negotiation]`/`user={talking:true,topic:price}`/`timestamp=09:15:00`）、`world_change` v1..v7、`applied_event` 7 行；台账 `applied=7 / replay_skipped=26` —— 26 次重复投递（三路主题 + hublinkd 启动重放）**一次都没重复改变世界**；`entity_store.db` 三条 UNKNOWN 占位 `confidence=0.0`。
+- **发现的冲突（6 条，全部只登记未擅自处置）**：① 语义类型词表归属（03 `type` 自由字符串 vs `event.proto.md` 的 `SPEECH/MOTION/…`；`perceptiond` 不做语义分类，我没在 stated 里复制那套正则）；② 持久化介质（docs/OS §3.2"内存+快照文件" vs `NEXT_TASK`"SQLite 快照+版本"，我两者都做）；③ `NEXT_TASK` 把 World Change 排到 Task 6，本任务已产出并发布 `world.change`；④ 主线 `test_m0..m3` 依赖 `taskkill`、`gate_rules.py` 硬编码 `C:\Users\Administrator\…` 绝对路径 → Linux/WSL2 跑不了，属"禁止改动的既有测试"，仅登记；⑤ MODE 双源（stated 规则 vs modemgrd 空壳，现让 `mode_at_time` 优先）；⑥ `STATUS.md`/`NEXT_TASK.md` 不在本会话分支，状态行更新交指挥官。
+- **未完成项**：Windows 侧未验证（沙箱只有 Linux，`NEXT_TASK §6` 的"双环境"一项如实标 ❌）；`stated` 未接 modemgrd（空壳）；Entity 身份解析未做（属后续 Sprint）；`core/` 的处置（保留/合并/转参考/删除）按任务书留给架构师单独决定。
