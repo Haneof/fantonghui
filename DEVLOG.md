@@ -151,3 +151,57 @@
 - 待架构师裁决: ①`confidence` 0..1 是否写进 docs/03 + schema；②相同 timestamp 的排序键
   （到达序 vs id）是否升为 Contract；③`dropped.jsonl` 留痕是否是 Event Store 的正式产物；
   ④Raw Signal 特征字段判定（`signal_id/modality/payload`）作为"拒收原始输入"的判据是否可接受。
+
+## 2026-09-09 17:12 · Sprint 1 / Task 3 FIX-01 — 解耦 Event→Perception 反向依赖 + 分支并入
+
+- 架构裁决: Task 3 **❌ FAIL → 需 FIX**。两条实质理由:
+  ① `core/event` 直接 `from core.perception... import is_minted` = 真实运行时反向依赖;
+  ② `origin="perception"` 只是调用方自述(声明),`is_minted` 才是证明 → 要解决的是
+     provenance / mint authority,不是 origin 字符串。
+  另两条登记但不阻断: tests/unit/perception 路径偏差(保持现状,不做形式主义重构);
+  source fallback 只是实现约定(暂不写进 docs/02)。治理要求: 从现在起一任务=一 commit。
+  架构师原话登记: "不能把'测试全绿'当成架构正确的充分条件"。
+- commit: `5c761d4` (FIX 本体) + `e6007b0` (merge, 见下)
+- 修改文件: 5 —— `tools/provenance.py`(新,中立登记册) /
+  `core/event/event_runtime.py` / `core/perception/perception_runtime.py` /
+  `tests/unit/test_event_runtime.py` / `tests/unit/test_perception.py`
+- 方案: Perception --mint()--> EventProvenance <--is_minted()-- Event Runtime。
+  放 `tools/` 是沿用 `tools/mini_jsonschema.py` 既有先例(两 Runtime 共用中立设施),
+  不进 core/、不新增 Runtime、不占契约编号。双方 `provenance=` 可注入,默认共享进程级实例。
+  公开面只有 mint/is_minted/reset/snapshot,无"补登记"后门(测试锁死);
+  并如实写明 Python 无私有封装 → 该机制防结构性绕过,不是防同进程恶意代码(需签名才是,
+  属架构裁决,未做)。
+- 执行命令: 冒烟(默认登记册/注入隔离/跨册拒绝/伪造拒绝) ;
+  `python3 -m unittest tests.unit.test_event_runtime tests.unit.test_perception` ;
+  `python3 -m unittest discover -s tests -t . -v` ; `python3 tools/forbidden_scan.py` ;
+  `python3 tools/schema_check.py` ; `python3 tools/simulator/player.py --fresh --noise 3` ;
+  `git grep -n "core.perception" -- core/event` ;
+  `git grep -nE "importlib|__import__|sys.path.*perception|import_module" -- core/event` ;
+  `git grep -n "core.event" -- core/perception`
+- 测试结果: 定向 `Ran 37 / ok 37 / exit 0`;全套 **Ran 124 / ok 124 / exit 0**(96→119→124,
+  历史测试删除 0 项);spec-check exit 0;forbidden scan exit 0(未改该脚本);player exit 0
+  (漏斗 raw=10→event=7→去重后=7→World Update=7→Change=7 未变)
+- 原始输出摘要: 三查全空(`core/event→perception` exit 1、动态 import exit 1、
+  `core/perception→core.event` exit 1);冒烟四行
+  `默认登记册 7/7 / 注入同一登记册 7/7 / 换登记册后全部被拒 7/7 / 伪造 id: ID_NOT_MINTED`
+- 本轮红项(我写歪的断言,未蒙混): `test_registry_has_no_backdoor` 断言
+  `reg._minted.add(...)` 应抛 AttributeError → `AssertionError: AttributeError not raised`。
+  处置: 改为 `test_registry_has_no_public_backdoor`,断言"公开面无补登记入口 + 登记只能经 mint()",
+  并把拦不住私有写入这一事实写进测试文档串。
+- 既有断言放松(报备): `test_perception.test_only_stdlib_and_local_imports` 白名单加
+  `tools.provenance`(Perception 现在要用中立登记册,必然结果)。
+- 分支事件(重要): push 被拒 → 远端有架构师 17:05 推的 `c68e8a6
+  "feat(aios): AIOS 腕上AI操作系统全量代码与文档"`(136 files, +26034, 0 deletions,
+  新增 `aios/` 131 文件 + `reports/` 5 份 HTML)。分叉点 `9e95b24`。
+  `git merge-tree` 预演干净 → 停止并上报(未擅自动历史)。架构师裁"远端并入本分支":
+  执行 `git merge --no-ff` → `e6007b0`,无 rebase/无 force push/无改写历史。
+  合并后回归仍 124/124,三查仍为空。远端已同步 `e6007b0`。
+- 已知并存(未裁决,不阻断): `aios/01_os/schemas/event.proto.md` 自称 Event 唯一权威,
+  与 `docs/03` + `schemas/*.json` 并存;`aios/01_os/code/api_pool/gemini_pool.py` 属云端 LLM,
+  且 `tools/forbidden_scan.py` 只扫 core/tools/adapters 故不会命中;`aios/01_os/code/run/bench1k/`
+  把基准数据放进了 git。架构师裁决: "先不管,继续 Task 4" → 已按此登记,未纳入扫描、未修改。
+- 未完成项: `tools/forbidden_scan.py` 禁止#5 文案仍写"is_minted…绕过 Perception Runtime"
+  (语义对、措辞过时,改它越出本次窄边界,待批准);player 仍用默认登记册;
+  Task 3 前 4 项待裁决(confidence min/max、同刻排序键、dropped.jsonl 地位、
+  Raw Signal 判据)仍挂;`docs/02 §1` 的窗口聚合/空间关联/Entity 关联未实现(属 Sprint 3)。
+- 待架构师裁决: 上述文案改动 + Task 3 最终复核(现在可以做了:124/124 且边界三查为空)。
