@@ -244,3 +244,41 @@
 仍然成立的实质结论（现在可复验）：① `aios/01_os/schemas/event.proto.md` 里确有第二套 `message Event` 定义；② `aios/` 代码路径与 Core 契约不同但引用了云端 LLM；③ 基准数据确已入 git：`git ls-files aios/01_os/code/run` = 28 个文件 / 2.4M（其中 `answers_big_cmd.jsonl`、`results*.jsonl`、`results_2b.jsonl.bak`）；④ 密钥未入仓（`git ls-files aios | grep -ciE 'api_keys|\.env$'` = 0）。
 
 成因（不是借口，供架构师判断风险）：本轮开始时沙箱被重建（见上一条"发现的冲突 2"），磁盘回到提交内容；我上一轮的 aios 审计是在**重建前的工作副本**上跑的，那批数字如今无法从仓库复现。**纪律教训：只引用能被 `git ls-tree` / `git ls-files` 复现的路径与计数；`grep` 命中工作副本 ≠ 已入库。** 今后 aios/ 相关结论一律附"可复现命令"。
+
+---
+
+### [2026-09-10] Task 5 — Event → World Update → World State
+
+- **任务**：按架构师本轮任务书执行 Task 5（对应 `docs/09` Sprint 1 的 **Task 7** "实现 Event -> World Update" + Task 8 的 change 基础数据；`docs/09` 里编号 5 是"实现 Entity"，已按你给的指令文本执行并在下方"冲突"第 3 条登记）。要求：不得重做 Task 4、不得新建第二套 Event Schema、LLM 不得进入 Event→World 必经路径、不得让模型成为 World State 的唯一来源。
+- **commit**：`dd5810d`（父 `96f4fa0`，即上一轮推上去的远端尖端 —— 本轮基线正确，无需修记账）
+- **修改文件**（3 个，**schema/docs/宪法/Event Runtime 零改动**）：
+  | 文件 | 变化 |
+  |---|---|
+  | `core/world/world_runtime.py` | 重写内部实现：World Update 边界对象 + 规则表补齐 + 台账/守恒/追溯/幂等/恢复 |
+  | `tools/simulator/player.py` | 新增 `[6]` 台账打印与两项自检；`[4]` 口径改为"本轮增量 + 累计"；`replay()` 用 `resume=False` |
+  | `tests/unit/test_world_update.py` | 新增 44 项（案例 A–F + 结构契约 + 边界 + decoy 变异） |
+  `git diff --stat`：`world_runtime.py +516/-57`、`player.py +44/-…`、测试新增 519 行；`git diff core/event core/perception schemas docs adapters 既有测试` **为空**。
+- **执行命令**：`python3 -m unittest discover -s tests -t .` / `python3 tools/forbidden_scan.py` / `python3 tools/schema_check.py` / `python3 tools/simulator/player.py --fresh --noise 3` 与不带 `--fresh` 的第二次运行 / 三段一次性取证脚本（未入库）
+- **测试与门禁数字**：`Ran 192 tests in 0.349s / OK / exit 0`（148 → 192，+44，**历史测试 0 删 0 改**）；`forbidden_scan: 扫描 44 个源文件, 禁止事项 1-7 全部通过 / exit 0`；`schema_check: SPEC-CONFORMANCE OK / exit 0`；`player: 回放一致性 一致 / exit 0`
+- **原始输出摘要（红项全部原样登记）**：
+  1. **实现 bug，被自己的测试抓到**：`test_D_stale_event_cannot_walk_the_world_backwards` → `AssertionError: {'id': 'chg_002', ... 'after': {'people': ['person_017','person_021']}} is not None`。根因：我重写 `_merge()` 时丢了 `after["timestamp"] = timestamp`，世界时间永不前进 ⇒ `stale` 判断 `if before["timestamp"] and …` 永远不成立。处置：恢复 timestamp 前进（且**只在真的应用时**前进），并补断言 `state["timestamp"] == 09:15`。
+  2. `ERROR: AttributeError: 'TestBoundaryOfWorldPath' object has no attribute 'var'` —— 我把用临时目录的测试放进了未继承 `Base` 的类。改继承。
+  3. `AttributeError: 'WorldRuntime' object has no attribute 'all_events'` —— 我在测试里写了一行自己臆造的 API（`{... if 0}` 的废逻辑）。删除，换成"真实证据 id 必须通过 + 伪造 id 必须被抓"两条断言。
+  4. `FAIL: test_world_calls_no_model_or_llm_apis — ['world_runtime.py:llm']` —— 全文子串扫描命中了**我自己 docstring 里"LLM 不在必经路径上"这句话**。处置不是删掉那句话让测试变绿，而是把检查改成 **AST 标识符级**（变量名/属性名/被导入模块名），prose 不参与判定。
+  5. `TypeError: Path.write_text() got an unexpected keyword argument 'content'` + decoy 测试里我把 `fs.check_no_model_or_network()` 断言成"必须为空"（应为"必须非空命中"）—— 两处测试自身错误，改正后 decoy 证明两个边界扫描不是空转。
+  6. 草稿里我自己留下的垃圾：第一版 `world_runtime.py` 含一个 `_rule_price` 占位残函数与底部 `from typing import Sequence`；`_record()` 里曾用 `line["rule"] = note` 塞私货、写过 `self.rejected += 0` 的空转行。均在提交前自查清除（台账现在有独立 `note` 字段与独立台账序号）。
+  7. **报告口径缺陷**：第二次运行 player（同 `var` 目录）输出 `[4] 7 次改写世界` 而 `[5] World Change Delta: 0 条` —— 因为 `updated` 是 `resume()` 从台账恢复的**跨运行累计值**，player 却按"本轮"打印。已改为 `[4]` 报本轮增量、累计值单列，并在测试 `test_pipeline_counters_reported_by_the_player_are_real` 里锁住 player 计数与 World 真实计数一致。
+- **实际运行证据（架构师可自行复现：`python3 tools/simulator/player.py --fresh --noise 3`）**：
+  - 7 条事件 → 7 次 World Update 全部 `applied`，`no_rule=0 no_slot_change=0 stale=0 replay_skipped=0 rejected=0`，`applied == changes == updated == 7`；台账 `wuplog_0001..0007` 逐条给出 `event_id / rule / change_id / slots`。
+  - 单条事件取证：`evt_002 person_enter` → World Update `{rule: PARTICIPANT_ENTER, source_events:[evt_002], window:{09:05,09:05}, slots:{people:[person_017]}, trace:{raw_refs:[perception://temp/…]}}` → World State `people: [] -> ["person_017"]`，Change 里 `before/after/evidence_events` 齐全。
+  - 重放：同一 `evt_002` 再投 → 返回 `None`，下落 `replay_skipped`，台账变成 `['applied','replay_skipped']`，World State 一字未动，Change 条数不变；对**已落盘的 `var/run/world` 重启进程**再投 `evt_001` 同样被跳过（幂等跨重启成立）。
+  - 端到端不变式：`verify_traceability(库内 id) == []`、`verify_conservation() == []`、`verify_ledger() == []`。
+  - `expensive_model_call_count = 0`（08 B 口径 0.00%）：**这条链路上根本没有模型**，不是"被过滤掉了"。
+- **发现的冲突（登记，未擅自处置）**：
+  1. `02 §1` 把 "World Update Request" 列为 **Event Runtime 的输出**，而 `02 §2` 把"维护现在世界是什么样"归给 **World Runtime**。归属有歧义。我**没有移动 Runtime 边界**：World Update 定义为 World 侧的边界对象（由 World 从已入库 Event 派生），Event Runtime 一字未改。请裁决是否要把"请求打包"上移到 Event Runtime。
+  2. `schemas/world_state.json` 的 `mode` 无 enum、`location/user/environment` 是自由 object。我只能在 Runtime 里用常量 + 校验钉住（`MODES`、槽位类型、`additionalProperties:false` 已由 schema 保证），**没有私加 schema 约束**（与 `confidence` 同一口径）。是否把 MODE 枚举、`location.id` 必填写入 schema，待裁决。
+  3. 任务编号：`docs/09` 的 Sprint 1 Task 5 = "实现 Entity"，"Event -> World Update" 是 Task 7。本轮任务书称 TASK 5。我按任务书文本执行，未回头补做 docs 编号意义上的 Task 5 全部内容（Entity 只做到 `ensure()` + 关系一等对象，**Identity Resolution 仍是 mock 表**）。
+  4. `active_situations` 只能开不能关：现有 Event 类型里没有"场景/会话结束"，我没有为了测试方便发明新事件语义。任务/目标维度用 `task_assigned/task_done/goal_set/goal_done` + `task_*/goal_*` 实体 id 接通（值不解析自由文本）。是否规定这类事件类型，待裁决。
+  5. 08 C 要求的身体状态趋势（HR 110→145）在 `world_state.json` 里没有对应槽位，本任务未实现（提前做就要改 schema，属越界）。
+  6. `World Change` 目前只能承载单事件窗口（`window.start == window.end`）。多事件共同证明一个 change 的结构能力已具备（`make_world_update` 接受事件序列），但调用方是 Event 的 cluster/fusion（Sprint 3 Task 1/3），本轮不接。
+- **未完成项**：`core/world/` 之外的 Runtime 未触碰；`fusion.py`/`patterns.py` 仍是骨架；Entity 的 Identity Resolution 与 Relationship 建立仍靠 mock/上层调用；`confidence`/同刻排序/120s 窗口/默认分支等前序待裁决项继续挂账。
