@@ -229,3 +229,18 @@
   - **诚实结论**：`stored` 那一层的压缩率几乎完全由"合成流的重复密度 × 120s 窗口"决定（同一套代码 1/36 vs 1/4），**不是架构的功劳**；`change` 层（1375/4794 = 0.287）才是逻辑产生的（只在槽位真变化时产 Change）。Perception 本身不做过滤（by design），所以 raw→event = 1:1。`expensive_model_call_count = 0` 是因为 **Wake 尚未实现**，不是被过滤出来的。此台架未入库（属 Task 4 之外），如需长期化见待裁决。
 - **未完成项**：`fusion.py` / `patterns.py` 仍是骨架（本次只钉 `event_runtime.py` 的去重契约）；`core/world/world_runtime.py` 的 Change 判定仍是"整块槽位值比较"。
 - **待架构师裁决（新增）**：① `120s` 窗口是否正式升为 Contract 值（现为实现默认值）；② 是否把压缩率台架升格为 `tools/bench/compression.py` 入库，作为 Sprint 3 的 Relevance/Awake 验收底座（我倾向要，因为它暴露了"stored 层压缩是数据属性"这一事实，能防止后续拿假压缩率邀功）；③ 是否把 GitHub 默认分支从旧 `main` 改为工作分支（见上冲突 2）。**Task 4 不宣布 PASS，等待验收。**
+
+### [2026-09-10] 更正（append-only，不改写上面对话原文）— 本人上一轮 aios/ 审计中有未经核实的推断
+
+写 Task 4 日志时按当前提交内容复核 aios/，发现我在 **Task 3 完成报告 / 上一轮 DEVLOG 条目**里给出的若干 aios 事实**不成立于仓库内容**，逐条更正如下：
+
+| 我先前说过 | 现在可核实的真相 |
+|---|---|
+| “aios/ 里 `core/event/dedup.py` 是第二套 Deduplication 实现” | **不成立**：仓库内不存在该文件。`grep -rniE 'dedup\|去重' aios --include='*.py'` 仅 3 个文件命中，且都是 bench 判分按 qid 去重(`grade_2b_4b.py`)、断点续跑去重(`run_1k.py`)、`hublinkd.py` 注释里"memoryd 按 id 幂等去重"。**aios/ 没有与 Core 竞争的事件去重实现** |
+| “41 个文件出现 `AsyncLLMClient` / `llm_chat_completion`” | **数字错**：当前提交内容里命中 **0**。真实存在的云端 LLM 入口是 `aios/01_os/code/api_pool/gemini_pool.py`（`generativelanguage.googleapis.com`，`gemini-flash-latest`，密钥 `run/api_keys.json` 被 aios/.gitignore 排除）；广口径 `openai\|gemini` 命中 6 个文件 |
+| 路径 `aios/01_os/contracts/event.proto.md`、`aios/01_os/services/llm_adapter/adapters/llm_client.py`、`.../event_dedup/tests/test_dedup.py`、`aios/01_os/run/bench1k/real_100.jsonl` | **这些路径在 `c68e8a6` 的提交内容里都不存在**（真实布局是 `aios/01_os/schemas/event.proto.md`、`aios/01_os/code/services/*.py`、`aios/01_os/code/run/bench1k/*.jsonl`）。我当时是从被截断的 commit 文件清单**推断**出来的，还写了"已入 git"——这是本 sprint 明令禁止的"看起来正确"，我违反了 |
+| “aios/ 144 个文件全部落地” | 144 是 commit 输出里的插入文件统计行；`git ls-tree -r c68e8a6` 下 `aios/` 前缀可数 125 条 + 6 条 CJK 引号路径 = **131**，与 `git ls-files aios \| wc -l` = 131 相符 |
+
+仍然成立的实质结论（现在可复验）：① `aios/01_os/schemas/event.proto.md` 里确有第二套 `message Event` 定义；② `aios/` 代码路径与 Core 契约不同但引用了云端 LLM；③ 基准数据确已入 git：`git ls-files aios/01_os/code/run` = 28 个文件 / 2.4M（其中 `answers_big_cmd.jsonl`、`results*.jsonl`、`results_2b.jsonl.bak`）；④ 密钥未入仓（`git ls-files aios | grep -ciE 'api_keys|\.env$'` = 0）。
+
+成因（不是借口，供架构师判断风险）：本轮开始时沙箱被重建（见上一条"发现的冲突 2"），磁盘回到提交内容；我上一轮的 aios 审计是在**重建前的工作副本**上跑的，那批数字如今无法从仓库复现。**纪律教训：只引用能被 `git ls-tree` / `git ls-files` 复现的路径与计数；`grep` 命中工作副本 ≠ 已入库。** 今后 aios/ 相关结论一律附"可复现命令"。
