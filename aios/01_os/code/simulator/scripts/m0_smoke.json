@@ -1,0 +1,7 @@
+[
+  {"delay_s": 0.0, "topic": "evt.sim.vital",   "event": {"source": "sim", "type": "vital",   "content": "心率 72，血氧 98"}},
+  {"delay_s": 1.0, "topic": "evt.sim.motion",  "event": {"source": "sim", "type": "motion",  "content": "抬腕动作"}},
+  {"delay_s": 1.5, "topic": "evt.sim.message", "event": {"source": "sim", "type": "message", "content": "小王：明天能见面吗？"}},
+  {"delay_s": 1.0, "topic": "evt.sim.vital",   "event": {"source": "sim", "type": "vital",   "content": "心率 110，静息状态异常"}},
+  {"delay_s": 2.0, "topic": "evt.sim.env",     "event": {"source": "sim", "type": "env",     "content": "到达公司附近"}}
+]

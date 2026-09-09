@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>AIOS 门控 v2 · 对比机制设计（用户裁定版）</title>
+<style>
+  body { font-family: "Microsoft YaHei", sans-serif; background: #f7f6f2; color: #1a1d21; margin: 0; padding: 40px 20px; line-height: 1.75; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .kicker { font-size: 12px; letter-spacing: .25em; color: #b8433a; font-weight: 700; }
+  h1 { font-size: 28px; margin: 6px 0 4px; }
+  .sub { color: #6b675f; font-size: 14px; margin-bottom: 28px; }
+  h2 { font-size: 19px; margin: 32px 0 10px; padding-left: 10px; border-left: 4px solid #b8433a; }
+  table { width: 100%; border-collapse: collapse; background: #fff; font-size: 14px; margin: 12px 0; }
+  th, td { border: 1px solid #e3ded4; padding: 8px 12px; text-align: left; }
+  th { background: #2b2b28; color: #f5f2ea; }
+  .win { color: #1e5c3c; font-weight: 800; }
+  .layer { background: #fff; border: 1px solid #e3ded4; border-radius: 10px; padding: 14px 18px; margin: 10px 0; }
+  .layer b.t { color: #b8433a; }
+  .arrow { text-align: center; color: #b8433a; font-size: 18px; margin: -4px 0; }
+  .note { background: #fdf8ec; border: 1px solid #eedcae; border-radius: 8px; padding: 10px 14px; font-size: 13.5px; margin: 12px 0; }
+  .ok { background: #edf7f1; border: 1px solid #bfe0cd; border-radius: 8px; padding: 10px 14px; font-size: 13.5px; margin: 12px 0; }
+  .kpi { display: inline-block; background: #fff; border: 1px solid #e3ded4; border-radius: 10px; padding: 10px 16px; margin: 4px 8px 4px 0; }
+  .kpi .v { font-size: 22px; font-weight: 800; color: #b8433a; }
+  .kpi .l { font-size: 12px; color: #6b675f; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="kicker">AIOS · T28 · 门控 v2 设计书（用户裁定版）</div>
+<h1>对比机制四层漏斗：本地只整理，模型不思考</h1>
+<div class="sub">裁定时间 2026-09-09 ｜ 第一层已实测 636 题 100% ｜ 设计冻结</div>
+
+<h2>实测对决（同一套 636 道门控题）</h2>
+<table>
+<tr><th>门控机制</th><th>准确率</th><th>说明</th></tr>
+<tr><td><b>对比机制规则引擎（本方案）</b></td><td class="win">100.0%</td><td>阈值/基线/模式对比，&lt;1ms/条，零模型成本</td></tr>
+<tr><td>大模型理解式判断</td><td>91.7%</td><td>准但贵，且不该干这活</td></tr>
+<tr><td>本地 1.5B 理解式判断</td><td>31.9%</td><td>≈瞎猜</td></tr>
+<tr><td>本地 2B 理解式判断</td><td>28.6%</td><td>≈瞎猜</td></tr>
+</table>
+
+<h2>四层漏斗</h2>
+<div class="layer"><b class="t">L0 记录层</b>（已有 = T23）：<b>只记录，不思考</b>。hublinkd 持久化队列 + SQLite，一条不丢。</div>
+<div class="arrow">▼</div>
+<div class="layer"><b class="t">L1 对比层</b>（本任务核心）：规则引擎 &lt;1ms/条，输出三态 IGNORE 留档 / LOCAL 本地凝缩 / ESCALATE 打包证据叫醒大模型。<br>
+<b>身体</b>：个人基线（滚动 7 天静息均值±σ）+ 绝对安全带 + 运动语境豁免；<br>
+<b>消费</b>：SQL 求和 + 日/周偏离度（如当日 &gt; 3× 滚动均值）+ 大额绝对阈值 + 行为模式（连续 N 天深夜）；<br>
+<b>话语</b>：联系人分级 + 模式规则（上级施压/承诺动词/资金词/关系词）+ 频率突增。</div>
+<div class="arrow">▼</div>
+<div class="layer"><b class="t">L2 小模型层</b>（可选，默认关闭）：只接 L1 分不清的模糊带（预计 &lt;10%），做判断题式三分类。上不上线由 Regret 数据说话。</div>
+<div class="arrow">▼</div>
+<div class="layer"><b class="t">L3 大模型层</b>（被动唤醒）：只收<b>证据包</b>——SQL 求和结果 + 基线对比表 + 原始事件 + 触发原因。不做过滤、不做计算。</div>
+<div class="note">误报/漏报 → <b>Regret 反馈环</b> → 阈值自动收紧/放宽（evolutiond 已有对账骨架）。全量触发日志落盘。</div>
+
+<h2>关键裁定</h2>
+<table>
+<tr><th>裁定</th><th>理由</th></tr>
+<tr><td>个人基线 &gt; 全局固定带</td><td>心率 65 对基线 55 的人正常、对基线 80 的人异常——固定带只做绝对安全兜底（&lt;40 / &gt;150）</td></tr>
+<tr><td>AI 不计算，只读结果</td><td>千题实测：任何 LLM 做精确求和都会翻车；统计由 memoryd SQL 直出，证据包放现成表格</td></tr>
+<tr><td>非对称阈值</td><td>漏报（真异常没叫）代价 &gt; 误报（多叫一次）——初始偏敏感，Regret 环收紧</td></tr>
+<tr><td>本地模型新岗位</td><td>门控出局；保留小时凝缩 + 格式规整（其及格区：求和 65% / 峰值 78%）</td></tr>
+</table>
+
+<h2>成本账：大模型不参与底层数据过滤</h2>
+<div class="kpi"><div class="v">349 条/天</div><div class="l">底层数据量（31,399 条 / 90 天）</div></div>
+<div class="kpi"><div class="v">&lt;1ms/条</div><div class="l">规则引擎单条成本（零模型调用）</div></div>
+<div class="kpi"><div class="v">10-17 次/天</div><div class="l">按 3-5% 触发率 → 大模型日均介入次数</div></div>
+<div class="kpi"><div class="v">97%+</div><div class="l">底层数据被 L0-L1 消化，永不到达大模型</div></div>
+
+<div class="ok"><b>验收标准：</b>① 规则引擎 T6 ≥95%（✅ 已 100%）② 真实总线注入扰动，误报率 &lt;5% ③ Regret 环自动回调阈值（模拟 10 次误报后收紧）④ 证据包帧格式冻结 ⑤ L2 仅当模糊带 &gt;10% 时评估启用（默认关）。</div>
+<div class="note"><b>诚实边界：</b>636 题题面自带显式数值/称呼/模式词，是规则的主场（所以 100%）；真实世界无显式特征的自由文本会有残余——这正是 L2/L3 与"默认 LOCAL 留档"存在的意义，残余率上线后由触发日志统计。</div>
+
+</div>
+</body>
+</html>
