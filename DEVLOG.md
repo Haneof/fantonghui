@@ -107,3 +107,47 @@
 - 发现的冲突: 本轮无新增；披露一项事实：unittest 的 verbose 输出走 **stderr**，stdout 为 0 字节，故审计材料里 stdout 空、stderr 全文
 - 未完成项: 无（导出任务本身不含实现）
 - 待架构师裁决: A–M 全部判定 + 上一条 ①–⑤
+
+## 2026-09-09 16:44 · Sprint 1 / Task 3 — Event Runtime 最小可运行实现
+
+- commit: `984792c feat(sprint1/task3): Event Runtime contract gates, resume, ordering, lineage`
+  （本条日志单独成提交，保持"一任务=一代码 commit"以便 bisect/revert；前置裁决：Task 2 ✅ PASS）
+- 修改文件: 2
+  - `core/event/event_runtime.py`（重写：闸门/恢复/顺序/lineage/留痕）
+  - `tests/unit/test_event_runtime.py`（10 → 33 项，原 10 项一字未改）
+- 执行命令:
+  `python3 -m unittest tests.unit.test_event_runtime -v` ;
+  `python3 -m unittest discover -s tests -t . -v` ;
+  `python3 tools/schema_check.py` ; `python3 tools/forbidden_scan.py` ;
+  `python3 tools/simulator/player.py --fresh --noise 3` ; `git status --short`
+- 测试结果: Event 定向 Ran 33 / ok 33 / exit 0；全套 **Ran 119 / ok 119 / failures 0 / errors 0 / exit 0**
+  （96 → 119，净增 23；未删任何历史测试，未改任何既有断言）；spec-check exit 0；forbidden scan exit 0；player exit 0
+- 原始输出摘要:
+  `Ran 119 tests in 0.159s / OK`
+  `扫描 43 个源文件,宪法 sha256[:12]=9bb96cf0f0b3 / 禁止事项 1-7: 全部通过`
+  落盘：`var/run/events/events.jsonl`(7 条) + `var/run/events/dropped.jsonl`(3 条留痕,
+  `reason=DUPLICATE_WITHIN_WINDOW`)；lineage 实例
+  `"raw_ref":"perception://temp/evt_001?signal_id=sim-negotiation_timeline-001"`
+  player 漏斗不变：raw=10 → event=7 → 去重后=7 → World Update=7 → Change=7
+- 本轮实现的关键决策:
+  1. Event Store 对 Perception 的唯一依赖是 `is_minted` 纯谓词（09 禁止事项 5 的闸门），
+     并新增 AST 测试锁死"names 只允许 is_minted"+ monkeypatch 把感知四个入口打断仍能写读，
+     以此同时满足"不得绕过 Perception"与"不得调用 Perception"两条要求。
+  2. 相同 timestamp 用"到达顺序"而非 id 二次排序，理由是可回放性；已写成测试。
+  3. 去重丢弃改为写 `dropped.jsonl` 留痕：满足"不得静默丢失"，且不改 02 的去重语义。
+  4. `resume()` 默认开启：重启后去重窗口也从磁盘重建（否则重放会二次入库）。
+     副作用：不带 `--fresh` 重跑 player 会把整条时间线判为重复（此前是重复追加，更坏）。
+- 发现的冲突:
+  1. **`confidence` 区间无规范约束**——`schemas/event.json` 只有 `type: number`，无
+     `minimum/maximum`，故 `confidence: 12` 会被 Store 收下。0..1 目前只由 Perception 侧
+     保证。修它=改 schema（本任务禁止项 17），因此我把它写成显式测试
+     `test_confidence_range_is_a_spec_gap_not_our_invention`，让缺口可见而非被掩盖。
+  2. **字段命名**：任务书用 `event_id / entity_ids / attributes`，canonical 是
+     `id / entities / content(+location_id)`，且 `additionalProperties:false` 明确拒绝
+     `attributes`。按"不得重新定义第二套 Schema"服从现有 schema，`schemas/**` 零改动。
+  3. **02 §1 的三项职责尚未实现**：时间窗口聚合、空间关联、Entity 关联、Event Cluster /
+     World Update Request 输出——Task 3 明确不做 Event→World，Fusion/Patterns 保持骨架。
+- 未完成项: 上述 1、3；以及 `patterns.py`/`fusion.py` 属 Sprint 3 Task 1。
+- 待架构师裁决: ①`confidence` 0..1 是否写进 docs/03 + schema；②相同 timestamp 的排序键
+  （到达序 vs id）是否升为 Contract；③`dropped.jsonl` 留痕是否是 Event Store 的正式产物；
+  ④Raw Signal 特征字段判定（`signal_id/modality/payload`）作为"拒收原始输入"的判据是否可接受。
