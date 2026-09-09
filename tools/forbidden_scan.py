@@ -27,8 +27,17 @@ FORBIDDEN_IMPORTS = re.compile(
     r"urllib\.parse|socket|grpc|ollama|transformers|torch|llama_cpp|mistralai|cohere)\b"
 )
 
-#: 禁止 #6: 去重只属于 Event Runtime(02 §1)。
-DEDUPE_DEFS = re.compile(r"^\s*def (dedupe|is_duplicate)\b", re.M)
+#: 扫描器自身。规则 c/d 是"源码里出现某字面量即违规",而本文件正是这些字面量的定义处,
+#: 属于自指而非实现,故仅对 c/d 豁免;a/b(定义与调用点)对本文件照样生效。
+SELF = Path(__file__).resolve()
+
+#: 禁止 #6: 去重只属于 Event Runtime(02 §1),且全仓只能有一套(Task 4 第 7 项)。
+DEDUPE_DEFS = re.compile(r"^\s*def (dedupe|is_duplicate|fingerprint)\b", re.M)
+DEDUPE_CALLS = re.compile(r"\.(dedupe|is_duplicate|fingerprint)\(")
+LEDGER_TOKEN = "dropped.jsonl"
+#: Task 4 明确禁止的方向: 语义相似度/模糊匹配判重(那等于把 LLM 或模型偷偷请回来)。
+SIMILARITY_TOKENS = ("difflib", "SequenceMatcher", "levenshtein", "similarity",
+                     "embedding", "cosine", "fuzzy")
 
 #: 禁止 #3: 以下子系统必须仍是骨架(Sprint 2/3/4 才实现)。
 MUST_STAY_SKELETON = [
@@ -72,10 +81,38 @@ def check_no_model_or_network() -> list[str]:
 
 
 def check_dedupe_home() -> list[str]:
-    bad = []
+    """禁止#6 + Task 4 第 7 项: 全仓只允许 core/event/ 这一套去重。
+
+    四条机械规则,避免"再写一个 dedupe"变成双重去重:
+      a) 定义去重/判重函数只能出现在 core/event/
+      b) 调用 .dedupe/.is_duplicate/.fingerprint 只能出现在 core/event/
+      c) 读写 dropped.jsonl 留痕只能出现在 core/event/(留痕格式只有一套)
+      d) core/ 任何位置出现语义相似度/模糊匹配判重 -> 直接违规(禁把模型请回来)
+    """
+    bad: list[str] = []
     for p in sources():
-        if DEDUPE_DEFS.search(p.read_text(encoding="utf-8")) and not p.relative_to(ROOT).as_posix().startswith("core/event/"):
-            bad.append(f"禁止#6 去重实现出现在 Event Runtime 之外: {p.relative_to(ROOT)}")
+        rel = p.relative_to(ROOT).as_posix()
+        src = p.read_text(encoding="utf-8")
+        in_event = rel.startswith("core/event/")
+        if DEDUPE_DEFS.search(src) and not in_event:
+            bad.append(f"禁止#6 去重实现出现在 Event Runtime 之外: {rel}")
+        if DEDUPE_CALLS.search(src) and not in_event:
+            bad.append(f"Task4#7 第二处去重调用点(会造成双重去重): {rel}")
+        if p.resolve() != SELF and LEDGER_TOKEN in src and not in_event:
+            bad.append(f"Task4#7 留痕文件被 Event Runtime 之外读写: {rel}")
+    for p in CODE_DIRS:
+        for q in (ROOT / p).rglob("*.py"):
+            if q.resolve() == SELF:
+                continue
+            src = q.read_text(encoding="utf-8")
+            hits = [tok for tok in SIMILARITY_TOKENS if tok.lower() in src.lower()]
+            if hits:
+                bad.append(f"Task4 禁止语义相似度判重(等于把模型请回来): "
+                           f"{q.relative_to(ROOT)} 命中 {hits}")
+    defs = [q.relative_to(ROOT).as_posix() for q in (ROOT / "core/event").rglob("*.py")
+            if DEDUPE_DEFS.search(q.read_text(encoding="utf-8"))]
+    if len(defs) != 1:
+        bad.append(f"Task4#7 判重实现必须恰好一处,实得 {len(defs)}: {defs}")
     return bad
 
 
