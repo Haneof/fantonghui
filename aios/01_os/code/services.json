@@ -1,0 +1,20 @@
+{
+  "bus": {"script": "bus/aios_busd.py"},
+  "services": [
+    {"name": "hublinkd", "script": "services/hublinkd.py", "always_on": true, "order": 1},
+    {"name": "stated", "script": "services/stated.py", "always_on": false, "order": 2},
+    {"name": "safetyd", "script": "services/safetyd.py", "always_on": true, "order": 3},
+    {"name": "privacyd", "script": "services/privacyd.py", "always_on": true, "order": 4},
+    {"name": "modemgrd", "script": "services/modemgrd.py", "always_on": false, "order": 5},
+    {"name": "attentiond", "script": "services/attentiond.py", "always_on": false, "order": 6},
+    {"name": "perceptiond", "script": "services/perceptiond.py", "always_on": false, "order": 7},
+    {"name": "entityd", "script": "services/entityd.py", "always_on": false, "order": 8},
+    {"name": "memoryd", "script": "services/memoryd.py", "always_on": false, "order": 9},
+    {"name": "cognitiond", "script": "services/cognitiond.py", "always_on": false, "order": 10},
+    {"name": "decisiond", "script": "services/decisiond.py", "always_on": false, "order": 11},
+    {"name": "abilityd", "script": "services/abilityd.py", "always_on": false, "order": 12},
+    {"name": "interactd", "script": "services/interactd.py", "always_on": false, "order": 13},
+    {"name": "evolutiond", "script": "services/evolutiond.py", "always_on": false, "order": 14},
+    {"name": "modelrouterd", "script": "services/modelrouterd.py", "always_on": false, "order": 15}
+  ]
+}

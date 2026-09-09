@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIOS 操作系统架构蓝图 · V0.1</title>
+<style>
+  :root{
+    --bg:#f4f6f8;
+    --ink:#1a232c;
+    --ink-2:#48555f;
+    --ink-3:#7c8a94;
+    --hair:#d6dde3;
+    --hair-2:#e4eaee;
+    --accent:#2b5d73;
+    --accent-ink:#1f4657;
+    --warm:#8a5a2f;
+    --mono:ui-monospace,"SF Mono","Cascadia Code",Consolas,"Courier New",monospace;
+    --sans:"PingFang SC","Microsoft YaHei","Noto Sans SC","Source Han Sans SC",sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased}
+  .page{max-width:1180px;margin:0 auto;padding:0 48px 120px}
+  .cover{padding:84px 0 52px;border-bottom:1px solid var(--hair)}
+  .cover .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--accent);text-transform:uppercase;margin-bottom:24px}
+  .cover h1{font-size:50px;line-height:1.12;letter-spacing:-.02em;font-weight:600;max-width:840px}
+  .cover h1 span{color:var(--ink-3)}
+  .cover .sub{margin-top:20px;font-size:16.5px;color:var(--ink-2);max-width:760px;line-height:1.75}
+  .cover .meta{display:flex;flex-wrap:wrap;margin-top:42px;border:1px solid var(--hair);background:#fafbfc}
+  .cover .meta div{padding:13px 24px;border-right:1px solid var(--hair);font-size:13px}
+  .cover .meta div:last-child{border-right:none}
+  .cover .meta b{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--ink-3);font-weight:400;margin-bottom:4px}
+  .toc{padding:42px 0 48px;border-bottom:1px solid var(--hair)}
+  .toc .toc-title{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--ink-3);margin-bottom:20px}
+  .toc-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 64px}
+  .toc a{display:flex;align-items:baseline;gap:14px;padding:9px 0;color:var(--ink-2);text-decoration:none;border-bottom:1px solid var(--hair-2);font-size:14px}
+  .toc a:hover{color:var(--accent)}
+  .toc a .no{font-family:var(--mono);font-size:12px;color:var(--accent);min-width:26px}
+  section.ch{padding:60px 0 16px}
+  .ch .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--accent);margin-bottom:13px}
+  .ch h2{font-size:29px;font-weight:600;letter-spacing:-.01em;margin-bottom:8px}
+  .ch .lede{color:var(--ink-2);font-size:15.5px;max-width:880px;margin-bottom:32px}
+  h3{font-size:18.5px;font-weight:600;margin:40px 0 14px}
+  h3 .h3no{font-family:var(--mono);font-size:13px;color:var(--accent);font-weight:400;margin-right:10px}
+  p{margin:0 0 15px;max-width:880px}
+  strong{font-weight:600}
+  .note{border:1px solid var(--hair);background:#fafbfc;padding:17px 22px;margin:22px 0;max-width:880px;font-size:14px;color:var(--ink-2)}
+  .note b{color:var(--ink)}
+  .plain{border:1px solid var(--hair);border-left:3px solid var(--accent);background:#f7fafb;padding:17px 22px;margin:22px 0;max-width:880px;font-size:14px}
+  .plain .p-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:var(--accent);display:block;margin-bottom:7px}
+  table{width:100%;border-collapse:collapse;margin:22px 0 34px;font-size:13.5px}
+  th{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-align:left;color:var(--ink-3);font-weight:400;padding:10px 14px;border-bottom:1px solid var(--ink)}
+  td{padding:11px 14px;border-bottom:1px solid var(--hair-2);vertical-align:top;line-height:1.55}
+  tr:hover td{background:#fafbfc}
+  td .cm{font-weight:500}
+  td .cs{display:block;font-size:12.5px;color:var(--ink-3);margin-top:3px}
+  code{font-family:var(--mono);font-size:.92em;background:#e9eef2;padding:1px 6px}
+  .b{display:inline-block;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;padding:2px 9px;border:1px solid;white-space:nowrap}
+  .b-a{color:var(--accent-ink);border-color:var(--accent);background:#eef4f6}
+  .b-w{color:#7a4a26;border-color:#bd8a55;background:#f9f3ea}
+  .b-n{color:#3c4a5a;border-color:#8fa3b8;background:#eef3f8}
+  figure{margin:34px 0 38px;border:1px solid var(--hair);background:#fafbfc;padding:26px}
+  figure svg{display:block;width:100%;height:auto}
+  figcaption{margin-top:16px;font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:.04em}
+  .flow{border:1px solid var(--hair);background:#fafbfc;padding:20px 24px;margin:22px 0;font-family:var(--mono);font-size:12.5px;line-height:2;color:var(--ink-2);overflow-x:auto;white-space:pre}
+  .colophon{margin-top:72px;padding-top:22px;border-top:1px solid var(--hair);font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:.04em;line-height:2}
+  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--hair);border:1px solid var(--hair);margin:28px 0 36px}
+  .stat-row div{background:#fafbfc;padding:18px 22px}
+  .stat-row b{display:block;font-size:12.5px;color:var(--ink-3);font-weight:400;margin-top:5px;font-family:var(--mono);letter-spacing:.06em}
+  .num-big{font-family:var(--mono);font-size:32px;color:var(--accent);font-weight:400}
+  @media (max-width:900px){
+    .page{padding:0 22px 80px}
+    .cover h1{font-size:34px}
+    .toc-grid{grid-template-columns:1fr}
+    .stat-row{grid-template-columns:1fr 1fr}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="cover">
+  <div class="kicker">AIOS · OPERATING SYSTEM BLUEPRINT</div>
+  <h1>操作系统架构蓝图<span>　V0.1 · 开工版</span></h1>
+  <p class="sub">把《AIOS 宪法》翻译成可以开工的操作系统图纸：进程怎么划分、数据怎么流动、三棵树怎么存、功耗怎么管、隐私怎么执行。M0–M3 全部在 PC 上开发，不等硬件。每章末附大白话。</p>
+  <div class="meta">
+    <div><b>体系身份</b>宪法 V1.2 实现层设计</div>
+    <div><b>进程规模</b>16 个服务 · 4 常驻</div>
+    <div><b>开发方式</b>PC 模拟事件源先行</div>
+    <div><b>日期</b>2026-09-08</div>
+  </div>
+</div>
+
+<div class="toc">
+  <div class="toc-title">CONTENTS</div>
+  <div class="toc-grid">
+    <a href="#s1"><span class="no">01</span>总体形态：两个世界 + 一个远端</a>
+    <a href="#s2"><span class="no">02</span>16 个服务：公司的组织架构</a>
+    <a href="#s3"><span class="no">03</span>事件流：系统的脊柱</a>
+    <a href="#s4"><span class="no">04</span>三棵树：三个保险柜</a>
+    <a href="#s5"><span class="no">05</span>租约：算力零花钱</a>
+    <a href="#s6"><span class="no">06</span>隐私守卫：门卫兼海关</a>
+    <a href="#s7"><span class="no">07</span>可靠性与技术选型</a>
+    <a href="#s8"><span class="no">08</span>里程碑 M0–M4 与仓库结构</a>
+    <a href="#s9"><span class="no">09</span>模型调用与认知更新协议</a>
+  </div>
+</div>
+
+<!-- ============ 01 ============ -->
+<section class="ch" id="s1">
+  <div class="kicker">SECTION 01 · TOPOLOGY</div>
+  <h2>总体形态：两个世界 + 一个远端</h2>
+  <p class="lede">手镯内部住着两个"世界"：永不合眼的反射世界（超低功耗，管"有没有动静"）和按需起床的认知世界（Linux 主体，管"这是什么事、要不要管"）。真正烧脑的事问云端。</p>
+
+  <figure>
+    <svg viewBox="0 0 1060 640" xmlns="http://www.w3.org/2000/svg" font-family="PingFang SC, Microsoft YaHei, sans-serif">
+      <!-- zones -->
+      <rect x="20" y="64" width="300" height="520" fill="#eef2ee" stroke="#c4ccc2"/>
+      <rect x="340" y="64" width="440" height="520" fill="#edf1f5" stroke="#c4ccd4"/>
+      <rect x="800" y="64" width="240" height="520" fill="#f5f1ea" stroke="#ccc4b4"/>
+      <text x="36" y="92" font-size="13" fill="#3f6b4f" font-weight="600">反射世界 · Sensor Hub（RTOS）</text>
+      <text x="36" y="111" font-size="11" fill="#7c8a94">永不停 · &lt;7mW · 只喊"有动静"</text>
+      <text x="356" y="92" font-size="13" fill="#2b5d73" font-weight="600">认知世界 · 主 SoC（Linux）</text>
+      <text x="356" y="111" font-size="11" fill="#7c8a94">租约唤醒 · 16 个服务 · AIOS 主体</text>
+      <text x="816" y="92" font-size="13" fill="#8a6d2f" font-weight="600">远端</text>
+      <text x="816" y="111" font-size="11" fill="#7c8a94">最小充分上下文</text>
+
+      <!-- reflex world content -->
+      <g font-size="12" fill="#1a232c">
+        <rect x="36" y="130" width="268" height="52" fill="#fff" stroke="#3f6b4f" stroke-width="1.3"/>
+        <text x="50" y="151" font-weight="600">L0 信号检测</text>
+        <text x="50" y="169" font-size="10.5" fill="#48555f">VAD · IMU · 抬腕 · 跌倒 · 生理阈值</text>
+        <rect x="36" y="194" width="268" height="52" fill="#fff" stroke="#3f6b4f" stroke-width="1.3"/>
+        <text x="50" y="215" font-weight="600">L1 事件分类</text>
+        <text x="50" y="233" font-size="10.5" fill="#48555f">事件归类 · MODE 快速通道 · 升级阈值</text>
+        <rect x="36" y="258" width="268" height="52" fill="#fff" stroke="#8a5a2f" stroke-width="1.3"/>
+        <text x="50" y="279" font-weight="600" fill="#8a5a2f">Safety 反射（特权线）</text>
+        <text x="50" y="297" font-size="10.5" fill="#48555f">撞击/跌倒/体征异常 → 直接救命动作</text>
+        <rect x="36" y="330" width="268" height="120" fill="#fff" stroke="#c4ccc2" stroke-dasharray="5 3"/>
+        <text x="50" y="352" font-weight="600">IMU 说话检测（待验证）</text>
+        <text x="50" y="372" font-size="10.5" fill="#48555f">用户开口时腕部微振动特征</text>
+        <text x="50" y="390" font-size="10.5" fill="#48555f">辅助判定"是本人在说话"</text>
+        <text x="50" y="410" font-size="10.5" fill="#8a5a2f">工程假设 · EVK 实测后才可承诺指标</text>
+        <text x="50" y="432" font-size="10.5" fill="#48555f">麦克风 VAD 为主路径，IMU 为增强</text>
+      </g>
+
+      <!-- linux world: service groups -->
+      <g font-size="11.5" fill="#1a232c">
+        <!-- aiosd -->
+        <rect x="356" y="130" width="408" height="46" fill="#fff" stroke="#2b5d73" stroke-width="1.5"/>
+        <text x="370" y="149" font-weight="600">aiosd · 总管家（常驻）</text>
+        <text x="370" y="167" font-size="10.5" fill="#48555f">服务生命周期 · 看门狗 · 配置中心 · 崩溃自动重启</text>
+        <!-- cross layer -->
+        <rect x="356" y="188" width="198" height="88" fill="#fff" stroke="#8a5a2f" stroke-width="1.3"/>
+        <text x="368" y="208" font-weight="600" fill="#8a5a2f">横跨层（3）</text>
+        <text x="368" y="227" font-size="11">safetyd · 保命（常驻）</text>
+        <text x="368" y="244" font-size="11">attentiond · 租约发放</text>
+        <text x="368" y="261" font-size="11">modemgrd · 场景权威源</text>
+        <!-- nine systems 1 -->
+        <rect x="566" y="188" width="198" height="88" fill="#fff" stroke="#2b5d73" stroke-width="1.3"/>
+        <text x="578" y="208" font-weight="600">九大系统（上）</text>
+        <text x="578" y="227" font-size="11">perceptiond · 感知</text>
+        <text x="578" y="244" font-size="11">entityd · 实体</text>
+        <text x="578" y="261" font-size="11">stated · 状态</text>
+        <!-- nine systems 2 -->
+        <rect x="356" y="288" width="198" height="105" fill="#fff" stroke="#2b5d73" stroke-width="1.3"/>
+        <text x="368" y="308" font-weight="600">九大系统（中）</text>
+        <text x="368" y="327" font-size="11">memoryd · 人生树唯一写者</text>
+        <text x="368" y="344" font-size="11">cognitiond · 认知树唯一写者</text>
+        <text x="368" y="361" font-size="11">decisiond · 非对称阈值</text>
+        <text x="368" y="378" font-size="11">evolutiond · 成长树唯一写者</text>
+        <!-- nine systems 3 -->
+        <rect x="566" y="288" width="198" height="105" fill="#fff" stroke="#2b5d73" stroke-width="1.3"/>
+        <text x="578" y="308" font-weight="600">九大系统（下）</text>
+        <text x="578" y="327" font-size="11">abilityd · 能力插件</text>
+        <text x="578" y="344" font-size="11">interactd · 五级介入通道</text>
+        <text x="578" y="364" font-size="10.5" fill="#48555f">记忆/认知/成长 = 三个库</text>
+        <text x="578" y="381" font-size="10.5" fill="#48555f">分文件物理隔离</text>
+        <!-- support -->
+        <rect x="356" y="405" width="408" height="88" fill="#fff" stroke="#2b5d73" stroke-width="1.3" stroke-dasharray="5 3"/>
+        <text x="370" y="425" font-weight="600">支撑层（3）</text>
+        <text x="370" y="444" font-size="11">hublinkd · 与反射世界通信桥（常驻）</text>
+        <text x="370" y="461" font-size="11">privacyd · 授权状态机 + 上云审查（常驻）</text>
+        <text x="370" y="478" font-size="11">modelrouterd · 本地小模型 / 云端调度（租约）</text>
+        <!-- local model -->
+        <rect x="356" y="505" width="408" height="56" fill="#f0f4f7" stroke="#2b5d73" stroke-width="1.3"/>
+        <text x="370" y="527" font-weight="600">本地小模型（1.5B 量化 · llama.cpp）</text>
+        <text x="370" y="545" font-size="10.5" fill="#48555f">意图识别 · 隐私过滤 · 摘要生成 · 简单响应 · RAG 检索</text>
+      </g>
+
+      <!-- remote -->
+      <g font-size="11.5" fill="#1a232c">
+        <rect x="816" y="130" width="208" height="88" fill="#fff" stroke="#8a6d2f" stroke-width="1.3"/>
+        <text x="830" y="152" font-weight="600">云端 L3 · 大脑</text>
+        <text x="830" y="171" font-size="10.5" fill="#48555f">复杂推理 · 深度对话</text>
+        <text x="830" y="188" font-size="10.5" fill="#48555f">进：最小充分上下文</text>
+        <text x="830" y="205" font-size="10.5" fill="#48555f">出：结构化决策</text>
+        <rect x="816" y="230" width="208" height="88" fill="#fff" stroke="#8a6d2f" stroke-width="1.3"/>
+        <text x="830" y="252" font-weight="600">手机器官（伴侣 App）</text>
+        <text x="830" y="271" font-size="10.5" fill="#48555f">冷启动授权导入</text>
+        <text x="830" y="288" font-size="10.5" fill="#48555f">聊天/日程/消费增量</text>
+        <text x="830" y="305" font-size="10.5" fill="#48555f">紧急通信备份</text>
+      </g>
+
+      <!-- arrows -->
+      <g stroke="#7c8a94" stroke-width="1.3" fill="none">
+        <path d="M304 160 C 328 160, 330 240, 356 260" marker-end="url(#a1)"/>
+        <path d="M304 220 C 326 220, 330 200, 356 196" marker-end="url(#a1)"/>
+        <path d="M340 284 C 348 330, 350 400, 356 440" marker-end="url(#a1)" stroke="#8a5a2f"/>
+        <path d="M764 300 C 784 300, 790 240, 816 220" marker-end="url(#a1)"/>
+        <path d="M764 440 C 788 440, 795 340, 816 320" marker-end="url(#a1)"/>
+      </g>
+      <g font-size="10" fill="#7c8a94">
+        <text x="262" y="146">事件流</text>
+        <text x="268" y="238">租约反馈</text>
+        <text x="286" y="345" fill="#8a5a2f">特权线</text>
+        <text x="778" y="286">脱敏后</text>
+        <text x="782" y="426">授权同步</text>
+      </g>
+      <defs>
+        <marker id="a1" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#7c8a94"/></marker>
+      </defs>
+      <text x="22" y="42" font-size="15" fill="#1a232c" font-weight="600">图 1 · AIOS 部署总图：两个世界 + 一个远端，16 个服务各就各位</text>
+      <text x="22" y="616" font-size="11" fill="#7c8a94">实线 = 常驻激活 · 虚线 = 待验证或可选 · 跨区箭头 = 事件升级 / 租约 / 脱敏上云 / 授权同步</text>
+    </svg>
+    <figcaption>FIG.01 — 反射世界只做"有没有动静"的判断；认知世界按租约起床干活；Safety 有一条不经过任何审批的特权线。</figcaption>
+  </figure>
+
+  <div class="plain"><span class="p-label">大白话</span>
+  手镯里住着两个"人"：一个永不合眼的保安，住在电费极便宜的门房里，只负责喊"有动静"；一个聪明但耗电的管家，听见保安喊了才起床干活，干完接着睡。真正烧脑的事，打电话问云端的老教授。保安还有一条特权线：真出人命的事，他不叫管家，直接打急救电话。
+  </div>
+</section>
+
+<!-- ============ 02 ============ -->
+<section class="ch" id="s2">
+  <div class="kicker">SECTION 02 · SERVICES</div>
+  <h2>16 个服务：公司的组织架构</h2>
+  <p class="lede">1 个总管 + 9 个部门（宪法九大系统）+ 3 个不管具体业务但谁都管得着的横跨角色 + 3 个后勤 = 16 个进程。每个部门只干一件事，部门之间只靠"事件总线"这个内部邮件系统传话。</p>
+
+  <div class="stat-row">
+    <div><span class="num-big">16</span><b>进程总数</b></div>
+    <div><span class="num-big">4</span><b>常驻（永不睡）</b></div>
+    <div><span class="num-big">4</span><b>半常驻</b></div>
+    <div><span class="num-big">8</span><b>租约唤醒</b></div>
+  </div>
+
+  <table>
+    <tr><th style="width:15%">分组</th><th style="width:20%">服务</th><th>干什么</th><th style="width:13%">状态</th></tr>
+    <tr><td rowspan="1"><span class="cm">管理</span></td><td><code>aiosd</code></td><td>总管家：拉起/监控/重启所有服务，谁倒了 1 秒内扶起来</td><td><span class="b b-a">常驻</span></td></tr>
+    <tr><td rowspan="9"><span class="cm">九大系统</span><span class="cs">宪法第 6 章</span></td><td><code>perceptiond</code> 感知</td><td>语音转文字管线；"谁在说话"先记录后绑定、可修正</td><td><span class="b b-n">租约</span></td></tr>
+    <tr><td><code>entityd</code> 实体</td><td>人/地/物/组织/关系的客观档案，不存任何 AI 判断</td><td><span class="b b-n">租约</span></td></tr>
+    <tr><td><code>stated</code> 状态</td><td>"此刻快照"：在哪、什么场景、身体怎样、可否打扰</td><td><span class="b b-n">半常驻</span></td></tr>
+    <tr><td><code>memoryd</code> 记忆</td><td><strong>人生树唯一写者</strong>：日志落盘、分级摘要、主题索引</td><td><span class="b b-n">租约</span></td></tr>
+    <tr><td><code>cognitiond</code> 认知</td><td><strong>认知树唯一写者</strong>：猜测/假设/预测/未知，全部带置信度</td><td><span class="b b-n">租约</span></td></tr>
+    <tr><td><code>decisiond</code> 决策</td><td>该不该管/何时管/怎么管；安全/社交/金融三套阈值</td><td><span class="b b-n">租约</span></td></tr>
+    <tr><td><code>abilityd</code> 能力</td><td>能力插件注册表：发现/加载/权限校验/调用分发</td><td><span class="b b-n">按需</span></td></tr>
+    <tr><td><code>interactd</code> 交互</td><td>五级介入通道选择、振动语义、消息排队</td><td><span class="b b-n">半常驻</span></td></tr>
+    <tr><td><code>evolutiond</code> 进化</td><td><strong>成长树唯一写者</strong>：判断对账、教训归档、策略可回退</td><td><span class="b b-n">租约</span></td></tr>
+    <tr><td rowspan="3"><span class="cm">横跨层</span><span class="cs">宪法第 5 章</span></td><td><code>safetyd</code> 安全</td><td>保命优先，唯一可中断一切流程的服务</td><td><span class="b b-w">常驻</span></td></tr>
+    <tr><td><code>attentiond</code> 注意力</td><td>租约发放者：算力预算审核、超时回收、全量统计</td><td><span class="b b-n">半常驻</span></td></tr>
+    <tr><td><code>modemgrd</code> 场景</td><td>MODE 权威源：工作/睡眠/运动…广播给所有系统</td><td><span class="b b-n">半常驻</span></td></tr>
+    <tr><td rowspan="3"><span class="cm">支撑层</span></td><td><code>hublinkd</code> 通信桥</td><td>跟门房保安传话的唯一通道：事件进、租约出</td><td><span class="b b-a">常驻</span></td></tr>
+    <tr><td><code>privacyd</code> 隐私守卫</td><td>授权状态机、上云安检、脱敏管道、首夜引用校验</td><td><span class="b b-a">常驻</span></td></tr>
+    <tr><td><code>modelrouterd</code> 模型路由</td><td>本地小模型/云端调度；断网降级本地+未解决队列</td><td><span class="b b-n">租约</span></td></tr>
+  </table>
+
+  <div class="plain"><span class="p-label">大白话</span>
+  把 AIOS 想成一家小公司：九个部门各管一滩事；三个"钦差"（保命的、批预算的、判场景的）不属于任何部门但谁都管得着；三个后勤管传话、管隐私安检、管请哪个模型干活。部门之间不许直接翻对方抽屉，只能发内部邮件（事件总线）。每人的工作记忆都写在账本上而不是脑子里，所以谁请假倒了，扶起来就能接着干。
+  </div>
+</section>
+
+<!-- ============ 03 ============ -->
+<section class="ch" id="s3">
+  <div class="kicker">SECTION 03 · EVENT SPINE</div>
+  <h2>事件流：系统的脊柱</h2>
+  <p class="lede">整个系统像一本"只记真事"的流水账。C1 修正案的两条铁律：无事件不记录；事件一旦产生不允许丢失。</p>
+
+  <h3><span class="h3no">3.1</span>两条铁律</h3>
+  <p><strong>无事件，不记录：</strong>没有检测到声音/动作/数据，就不写任何东西。时间戳只标在真实发生的事件上——"几点几分几秒说了什么话"能查，沉默的时段在时间轴上自然空白。没有"0.1 秒无输入"这种垃圾记录。</p>
+  <p><strong>语音转文字，不存语音档案：</strong>检测到说话 → 转成文字 → 带秒级时间戳落盘。原始音频只在转写需要的几秒内过一下手，不长期保存。</p>
+
+  <h3><span class="h3no">3.2</span>"谁在说话"的异步绑定</h3>
+  <div class="flow">现在   「14:23:07 有人说了一句话」          speaker = unknown（先记下来）
+         ↓ 实体系统积累线索（声纹、上下文、对话往复）
+之后   「这句话 87% 是小王说的」              绑定写入认知树 = 推断，不是事实
+更正   用户说"那不是小王" → 推断降置信
+       → 人生树追加更正条目（原记录不删改，全链条可追溯）
+铁律   用户确认过的才算事实；AI 猜的永远带着"我有多确定"</div>
+
+  <h3><span class="h3no">3.3</span>IMU 说话检测（设计已纳入，指标待验证）</h3>
+  <p>用户开口时，手腕上的 IMU 能捕捉到身体传导的微振动——这为"是本人在说话"提供了不依赖麦克风的旁证。架构上已把它设为一级输入源（<code>IMU_SPEAKER</code>），与麦克风 VAD 互补。但要诚实标注：<strong>这是需要真机实测的工程假设</strong>，准确率在 EVK 验证前不做任何承诺；麦克风路径独立成立，IMU 验证失败不影响架构成立。</p>
+
+  <h3><span class="h3no">3.4</span>摄像头通道：拍照 → 描述 → 删图（已确认纳入）</h3>
+  <p>摄像头是第七条输入通道，管线遵循宪法 6.4.2：事件驱动快照（用户主动拍或场景触发，不持续录像）→ 视觉模型生成文字描述 → 描述作为 VISUAL_SCENE 事件落盘 → <strong>图片立即删除</strong>。图片只活在"描述生成"的那几秒，任何存储介质不留长期图片。默认走本地小视觉模型；高价值时刻可请求云端视觉模型，但图片临时上传需用户单独授权、分析即删。描述里涉及他人身份的，按推断处理（认知树，带置信度），不写成事实。</p>
+
+  <div class="plain"><span class="p-label">大白话</span>
+  账本只记真发生的事。谁说的话一开始不知道，就先记"有个人说了话"；后面慢慢猜出来是谁，猜的过程和把握多大都记在案；用户说是猜错了，就再记一笔更正。拍照也一样：照片过完"描述"这一遭就碎掉，账本里只留文字。账本永远保留"当时不知道 → 后来猜的 → 猜对猜错"的全程，永远不会把猜的写成真的。
+  </div>
+</section>
+
+<!-- ============ 04 ============ -->
+<section class="ch" id="s4">
+  <div class="kicker">SECTION 04 · THREE TREES</div>
+  <h2>三棵树：三个保险柜</h2>
+  <p class="lede">宪法原则二的物理落地：三个独立数据库文件，各配唯一一把钥匙（写者），跨柜只许报编号（ID 引用），不许把纸条拿走。</p>
+
+  <table>
+    <tr><th style="width:18%">保险柜</th><th style="width:22%">文件 / 钥匙</th><th style="width:26%">里面放什么</th><th>写入规则</th></tr>
+    <tr><td><span class="cm">🌳 人生树</span><span class="cs">事实</span></td><td><code>life_tree.db</code><span class="cs">memoryd 独占写</span></td><td>客观发生了什么：事件日志、摘要、主题索引</td><td>只增不改（写错了也是追加一条更正，像刻石头）</td></tr>
+    <tr><td><span class="cm">🌳 认知树</span><span class="cs">推断</span></td><td><code>cognitive_tree.db</code><span class="cs">cognitiond 独占写</span></td><td>AI 的猜测/假设/预测/未知，每条带置信度+证据链</td><td>可更新可推翻；矛盾证据必须标 CONFLICT，不许静默吞掉</td></tr>
+    <tr><td><span class="cm">🌳 成长树</span><span class="cs">经验</span></td><td><code>growth_tree.db</code><span class="cs">evolutiond 独占写</span></td><td>判断对账、教训、策略版本链</td><td>教训不能凭一次就定终身；策略可回退</td></tr>
+  </table>
+
+  <div class="note"><b>系统级 bug 定义：</b>任何下游（决策、交互、上云）把认知树的数据当人生树的事实用——即"把猜测当确定"——decisiond 校验直接拒绝。这是写进验收标准的硬约束，不是口号。</div>
+
+  <div class="plain"><span class="p-label">大白话</span>
+  为什么要三个柜子分着放？如果"事实"和"AI 的猜测"放一个抽屉，时间一长 AI 会把自己猜的当成真的，系统越用越蠢。所以：记事的柜子只许刻石头（只加不改）；猜想法的柜子每张纸条必须写"我有多确定、依据是哪几条事实"；复盘教训的柜子记"上次怎么错的、下次怎么改"。想引用别柜的东西？报编号，纸条不许拿走。
+  </div>
+</section>
+
+<!-- ============ 05 ============ -->
+<section class="ch" id="s5">
+  <div class="kicker">SECTION 05 · LEASE</div>
+  <h2>租约：算力零花钱</h2>
+  <p class="lede">算力像零花钱，不白给。管家（认知世界）每次起床干活都要拿"起床券"（租约），attentiond 是发放零花钱的预算员。</p>
+
+  <table>
+    <tr><th style="width:30%">规则</th><th>说明</th></tr>
+    <tr><td><span class="cm">一次事件一个租约链</span></td><td>默认 30 秒预算；感知→认知→决策链式申请，总额封顶防雪崩</td></tr>
+    <tr><td><span class="cm">超时强制回收</span></td><td>钱花完事没办完 → 事件标记"未解决"进队列，下次有预算再续</td></tr>
+    <tr><td><span class="cm">用户召唤免审核</span></td><td>双击/召唤 = 最高优先级，直接发券（宪法"用户一级触发"落地）</td></tr>
+    <tr><td><span class="cm">保命免审核 + 上浮</span></td><td>SAFETY 事件直接发券且预算上浮</td></tr>
+    <tr><td><span class="cm">省电 ≠ 关闭感知</span></td><td>省电模式 = 提高"叫管家"的门槛；保安（反射世界）永不睡</td></tr>
+    <tr><td><span class="cm">充电时段干重活</span></td><td>摘要压缩、主题树重建、策略对账排在充电+空闲窗口，不占日常预算</td></tr>
+  </table>
+
+  <div class="plain"><span class="p-label">大白话</span>
+  预算员批 30 秒的"起床券"，管家拿券办事，办完接着睡。看电量就像看账本：今天叫了管家多少次、每次花多久、超时几次。省电模式不是开除保安，是提高叫管家的门槛——保命的喊声永远随叫随到。晚上充电的时候，管家把白天攒的流水账整理成日报周报。
+  </div>
+</section>
+
+<!-- ============ 06 ============ -->
+<section class="ch" id="s6">
+  <div class="kicker">SECTION 06 · PRIVACY</div>
+  <h2>隐私守卫：门卫兼海关</h2>
+  <p class="lede">privacyd 是宪法新增隐私章的执行者：每种数据的"同意书"分开签、随时能反悔；出网数据过安检；AI 主动开口前还要过一道"引用合规"检查。</p>
+
+  <div class="flow">授权状态机（每类数据源独立）
+  未授权 ──▶ 已授权 ──▶ 已暂停 ──▶ 已撤销     任何状态用户可随时切换
+  未授权的数据在入口直接丢弃，不留内容只留计数
+
+上云安检（三选一）
+  ① 拒绝出网   原始语音 / 未脱敏对话 / 高敏生理 —— 永远扣下
+  ② 脱敏放行   摘要 + 指代替换（"小王"→"联系人A"）
+  ③ 原样放行   仅限用户显式点名的主动请求
+
+首夜"惊艳时刻"约束
+  AI 主动开口引用的内容 → 必须来自已授权源 + 引用粒度不超范围
+  interactd 生成主动消息前，先问 privacyd："这些我能引用吗？"</div>
+
+  <div class="plain"><span class="p-label">大白话</span>
+  隐私守卫是个海关：同意书一类一签，随时反悔；给云端老教授寄信只寄"解题需要的最少几张纸"；语音原件和没脱敏的聊天永远扣关。AI 晚上想主动关心你之前，还得先问门卫一句："我要引用的这些话，用户同意过我用吗？"——这就是"惊艳"和"惊吓"之间那道闸门。
+  </div>
+</section>
+
+<!-- ============ 07 ============ -->
+<section class="ch" id="s7">
+  <div class="kicker">SECTION 07 · RELIABILITY &amp; STACK</div>
+  <h2>可靠性与技术选型</h2>
+
+  <table>
+    <tr><th style="width:26%">风险</th><th>对策</th></tr>
+    <tr><td>任一服务崩溃</td><td>aiosd 看门狗 1 秒内自动重启；服务无状态化，状态全在库和事件流里</td></tr>
+    <tr><td>设备重启 / 断电</td><td>事件先落盘再处理；重启后从持久化队列断点续跑</td></tr>
+    <tr><td>反射世界死机</td><td>认知世界侧心跳监控告警 + 硬件看门狗强制复位</td></tr>
+    <tr><td>时钟漂移</td><td>NTP + 单调时钟双轨；时间戳以"发生时刻"为准，不因处理延迟改变</td></tr>
+    <tr><td>存储写满</td><td>最老日志先归档压缩；摘要永不删；写满前预警</td></tr>
+    <tr><td>事件洪峰</td><td>环形缓冲削峰；同类事件可合并</td></tr>
+  </table>
+
+  <table>
+    <tr><th style="width:24%">层</th><th style="width:26%">首选</th><th>为什么</th></tr>
+    <tr><td>反射世界 OS</td><td>Zephyr RTOS</td><td>物联网界的主流选择；与主 SoC 的通信通道成熟度是 EVK 关键验证项</td></tr>
+    <tr><td>认知世界语言</td><td>Rust（C++ 备选）</td><td>16 个小服务，Rust 的内存安全收益大；模型推理走 llama.cpp</td></tr>
+    <tr><td>事件总线</td><td>Unix socket + protobuf</td><td>薄层自研，不上重型中间件；进程内可模拟测试</td></tr>
+    <tr><td>存储</td><td>SQLite（WAL）×3 库</td><td>全世界跑得最多的数据库；三树三文件，整体可加密</td></tr>
+    <tr><td>本地模型</td><td>llama.cpp</td><td>1.5B 量化档位按 NPU 实测定</td></tr>
+    <tr><td>服务管理</td><td>aiosd 自研</td><td>嵌入式场景 systemd 太重</td></tr>
+  </table>
+  <div class="note"><b>选型原则：</b>都选"够用就好、社区靠谱、出了问题查得资料多"的。每一条等真板子到手实测打勾再定稿。</div>
+</section>
+
+<!-- ============ 08 ============ -->
+<section class="ch" id="s8">
+  <div class="kicker">SECTION 08 · ROADMAP</div>
+  <h2>里程碑 M0–M4 与仓库结构</h2>
+  <p class="lede">M0–M3 全部在 PC 上以"假保安"（模拟事件源）开发，不依赖硬件——这是先攻 OS 的最大有利条件。板子哪天到货，把假保安换成真保安。</p>
+
+  <table>
+    <tr><th style="width:12%">里程碑</th><th style="width:30%">目标</th><th>验收标准</th></tr>
+    <tr><td><span class="cm">M0</span><span class="cs">当前阶段</span></td><td>16 服务空壳 + 事件总线 + 总管家管理闭环</td><td>任意两服务可收发事件；kill -9 任意服务 1 秒内自动重启</td></tr>
+    <tr><td><span class="cm">M1</span></td><td>事件流 + 人生树（模拟一天事件量）</td><td>任意时刻"几点几分几秒发生了什么"可查、可钻取、可按主题检索</td></tr>
+    <tr><td><span class="cm">M2</span></td><td>认知 + 决策 + 租约 + 隐私审查</td><td>猜测被当事实用时校验拒绝；租约超时强制回收且计数</td></tr>
+    <tr><td><span class="cm">M3</span></td><td>五级介入通道 + 进化闭环 + 本地模型接入</td><td>模拟介入反馈驱动阈值变化，且策略可回退</td></tr>
+    <tr><td><span class="cm">M4</span><span class="cs">等硬件 EVK</span></td><td>双域联调：真 Sensor Hub → 全链路</td><td>端到端延迟与功耗达标（目标值由硬件能力指标表提供）</td></tr>
+  </table>
+
+  <div class="flow">D:\手镯开发\AIOS\
+├── 00_宪法\        最高准则 + V1.2 修订状态 + 评审记录
+├── 01_os\          ← 当前主攻
+│   ├── docs\         OS总体架构设计_V0.1.md（本蓝图母本）
+│   ├── schemas\      event / trees / lease / intervention 四份接口契约
+│   ├── services\     16 服务注册表
+│   └── ROADMAP.md    里程碑与验收标准
+├── 02_hardware\    空目录：EVK 验证清单 + 接口契约已备好
+├── 03_ui\          空目录：等 interactd API 稳定后开工
+└── 04_apps\        空目录：等 abilityd 接口冻结后开工
+
+规矩：接口图纸只存一份，在 01_os\schemas\；硬件/UI/应用来插插座，
+     要改插座形状，四个团队坐下来一起改。</div>
+
+  <div class="plain"><span class="p-label">大白话</span>
+  硬件、UI、应用三个团队的"插座长什么样"已经画好放在图纸柜（schemas）里。他们以后做的每块东西插上就能用；要改插座，得大家一起改图纸。前四个阶段全在电脑上干，不用等手镯板子——先用假保安骗管家起床，把公司流程跑顺。
+  </div>
+</section>
+
+<!-- ============ 09 ============ -->
+<section class="ch" id="s9">
+  <div class="kicker">SECTION 09 · MODEL PROTOCOL</div>
+  <h2>模型调用与认知更新协议</h2>
+  <p class="lede">大模型以什么身份进入你的世界、怎么快速掌握情况、什么时候更新认知、有没有自己的记忆树——四个问题一次讲清。</p>
+
+  <h3><span class="h3no">9.1</span>身份：无身份、无状态的外聘专家</h3>
+  <p>宪法 8.1 的落地：模型只是算力供应商。每次调用从零开始（不记得上一次），结束什么都不带走（输出经审核入树）。</p>
+
+  <h3><span class="h3no">9.2</span>工作包：模型每次进门拿到的五件套</h3>
+  <table>
+    <tr><th style="width:15%">件</th><th style="width:40%">内容</th><th>来源 · 耗时</th></tr>
+    <tr><td><span class="cm">A 身份指令</span></td><td>AIOS 人格 + 此刻角色（"你是健康教练"）</td><td>人格模板 + 领域指令 · 预置</td></tr>
+    <tr><td><span class="cm">B 世界快照</span></td><td>MODE、时间位置、体征、情绪推断</td><td>stated 常备 · 毫秒级</td></tr>
+    <tr><td><span class="cm">C 事件链</span></td><td>本次租约的事件 + 前因关联</td><td>事件流环形缓冲 · 毫秒级</td></tr>
+    <tr><td><span class="cm">D 检索记忆</span></td><td>相关人生树摘要 + 关键条目 + 认知树现有判断（带置信度）</td><td>RAG 主题树索引 · 亚秒级</td></tr>
+    <tr><td><span class="cm">E 任务格式</span></td><td>本次问题 + 结构化输出约束（结论/置信度/证据/未知项）</td><td>调用方 · 预置</td></tr>
+  </table>
+  <div class="note"><b>Token 预算：</b>工作包首版 4k–8k token，按相关性裁剪。模型永远不读全量人生——读"相关切片"就够。分层摘要（小时/天/周）就是为此设计的。</div>
+
+  <h3><span class="h3no">9.3</span>认知更新：证据驱动，不是任务驱动</h3>
+  <table>
+    <tr><th style="width:16%">级别</th><th style="width:32%">触发时机</th><th>更新什么 · 执行者</th></tr>
+    <tr><td><span class="cm">实时增量</span></td><td>新证据事件到达（租约内）</td><td>说话人置信度、Belief 微调 · cognitiond</td></tr>
+    <tr><td><span class="cm">事后对账</span></td><td>一次介入/判断闭环</td><td>对错 → 置信度修正 → 教训入成长树 · evolutiond</td></tr>
+    <tr><td><span class="cm">慢速批处理</span></td><td>充电 + 空闲窗口</td><td>趋势、新假设、矛盾清算 · cognitiond + evolutiond</td></tr>
+  </table>
+  <p><strong>主语纠偏：不是"模型更新自己的认知"，是"系统更新对世界的认知"。</strong>模型输出 ≠ 直接入树——模型说"张总更在意交付"，cognitiond 记为 Belief 候选，置信度由证据强度计算，不是模型自报多少就信多少。模型是证人，不是法官。</p>
+
+  <h3><span class="h3no">9.4</span>归属：模型没有自己的记忆树</h3>
+  <p>三棵树是 AIOS 的系统资产，唯一写者是 memoryd / cognitiond / evolutiond 三个守护进程。模型输出按类型分流：事实核对后入人生树、推断带置信度入认知树、复盘教训入成长树。换模型，树不变。</p>
+
+  <h3><span class="h3no">9.5</span>为什么宪法规定"算力层不拥有记忆"</h3>
+  <p>先澄清：宪法 4.2 里"不拥有记忆"的主语是<strong>算力层的模型实例</strong>，不是用户眼中的"AI"。用户眼中的 AI = AIOS 整体，它有记忆——三棵树就是记忆层。你提的"任务日志接力、下一个模型接着写"正是系统的真实设计，宪法只是把日志的产权从模型手里收归系统：</p>
+  <table>
+    <tr><th style="width:20%">理由</th><th>一句话</th></tr>
+    <tr><td><span class="cm">可更换性</span></td><td>记忆长在模型会话里 → 换模型 = 失忆，护城河寄存在供应商服务器</td></tr>
+    <tr><td><span class="cm">防污染</span></td><td>模型会幻觉；拥有写入权则错误滚雪球——写入权在系统手里，模型只有建议权</td></tr>
+    <tr><td><span class="cm">隐私产权</span></td><td>记忆 = 用户人生数据，必须留在用户控制的设备里；云端只收最小充分上下文</td></tr>
+    <tr><td><span class="cm">无限上下文的解法</span></td><td>全量塞 prompt = 无限账单 + 无限噪声；正确解法 = 树（无限存储）+ 分层摘要 + RAG + 工作包（有限注意力）</td></tr>
+  </table>
+
+  <div class="plain"><span class="p-label">大白话</span>
+  云端大模型就是外聘专家：每次上门，AIOS 递一页"今日简报"（现在什么场景、刚发生什么、相关的几段旧事、这次要解决什么），他给完意见就走，什么都不带走。意见也不是直接归档——档案员先核对证据、算好把握多大，再写进档案柜。专家换了人，档案柜还在，下一个专家凭同样的档案照样接班。证人有资格提供证词，没资格拥有档案柜。
+  </div>
+
+  <div class="colophon">
+    AIOS OS BLUEPRINT · V0.2 · 2026-09-09<br>
+    母本：01_os/docs/OS总体架构设计_V0.1.md（仓库内为唯一权威源）· 上位文档：AIOS 宪法 V1.2（待批准）<br>
+    已裁决输入：C1 修正案（秒级时间戳+事件驱动 / 语音转文字 / IMU 说话检测待验证 / 异步人物绑定）· C2（宪法不锁芯片）· C4–C11（功能轴与功耗轴正交）· 摄像头通道（拍照→描述→删图，2026-09-09 确认）
+  </div>
+</section>
+
+</div>
+</body>
+</html>
