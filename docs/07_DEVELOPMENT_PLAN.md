@@ -52,6 +52,8 @@
 
 验收：能从“去年某月某日”钻取到具体事件；事实与摘要可追溯。
 
+> **阶段顺序裁决：Phase 2 Memory 不跳过。Memory 必须在 Phase 3 Wake 之前完成。原因：Relevance/Attention 的历史重要性、用户基线、行为偏离和 AI Wake 后的上下文都依赖可查询的长期记忆。**
+
 ## Phase 3 —— Relevance + Attention + Wake
 
 这是解决原始“消息过滤”问题的关键阶段。

@@ -22,6 +22,8 @@
 
 8. `08_ACCEPTANCE_TESTS.md` —— 每阶段用什么测试证明底座真的跑通。
 
+9. `09_FIRST_SPRINT_TASKS.md` —— 当前 Sprint 的具体开发任务。
+
 ## 先做什么
 
 第一阶段不要做手环硬件，不要先做完整 UI，不要先做领域 App。

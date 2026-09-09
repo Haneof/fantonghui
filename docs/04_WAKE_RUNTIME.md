@@ -178,3 +178,21 @@ Safety 走独立硬规则，不受普通阈值限制。
 4. 趋势事件可以穿透单点噪声。
 5. 未知场景不会因为无模板而自动丢弃。
 6. AI Wake 后可以创建 Active Watch。
+
+## 11. Lease 与统计口径（V0.1-r1）
+
+Lease 唯一管理进程位于 `core/attention/lease`。Attention 负责正常请求，Safety 可发起 Emergency 请求，Lease Manager 统一签发/抢占/回收。
+
+首版预算：
+- `MICRO_WAKE`: 2s / 256 output tokens / 1 local-model call / 0 expensive-model calls
+- `AI_WAKE`: 30s / 2048 tokens / 2 expensive-model calls
+- `EMERGENCY_WAKE`: 60s / 4096 tokens / 3 expensive-model calls
+
+统计必须同时输出：
+- `semantic_event_count`
+- `expensive_model_call_count`
+- `ai_wake_session_count`
+- `micro_wake_count`
+- `emergency_wake_count`
+
+过滤验收的核心比例为：`expensive_model_call_count / semantic_event_count <= 1%`。

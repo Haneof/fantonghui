@@ -1,32 +1,36 @@
-# AIOS Core 第一开发冲刺任务单
+# AIOS Core 第一开发冲刺任务单 V0.1-r1
 
-## Sprint 1：只做“世界”
+## Sprint 1：Event + World（对应 Phase 1）
 
 ### Task 1
 
-建立项目目录和统一 schema。
+建立项目目录、Runtime 骨架和统一 schema。
 
 ### Task 2
 
-实现 Event 输入和持久化。
+实现 Perception Runtime 的最小合同与 Simulator Adapter：Simulator 可注入 mock raw signal，并由适配器产出 Semantic Event；不接真实硬件、不接真实 ASR/视觉模型。
 
 ### Task 3
 
-实现 Entity。
+实现 Event 输入和持久化。
 
 ### Task 4
 
-实现 World State。
+实现 Entity。
 
 ### Task 5
 
-实现 Event -> World Update。
+实现 World State。
 
 ### Task 6
 
-实现 World Change Delta。
+实现 Event -> World Update。
 
 ### Task 7
+
+实现 World Change Delta。
+
+### Task 8
 
 做一个模拟器，能够按时间线播放用户的一天。
 
@@ -50,7 +54,33 @@
 
 ```
 
-## Sprint 2：解决过滤问题
+## Sprint 2：Memory（对应 Phase 2）
+
+### Task 1
+
+实现 RAW semantic event log。
+
+### Task 2
+
+实现 hourly/daily/weekly/monthly/quarterly/half-yearly/yearly/3year 摘要链。
+
+### Task 3
+
+实现 time index。
+
+### Task 4
+
+实现 entity index。
+
+### Task 5
+
+实现 domain/topic index。
+
+### Task 6
+
+确保事实、摘要、原始语义事件可追溯。
+
+## Sprint 3：Relevance + Attention + Wake（对应 Phase 3）
 
 ### Task 1
 
@@ -62,7 +92,7 @@
 
 ### Task 3
 
-实现事件聚类。
+实现事件聚类 / Temporal Pattern。
 
 ### Task 4
 
@@ -84,7 +114,15 @@
 
 实现 Wake。
 
-## Sprint 3：接入 AI
+### Task 9
+
+实现 Active Watch。
+
+### Task 10
+
+实现 Lease Manager。
+
+## Sprint 4：AI Runtime（对应 Phase 4）
 
 ### Task 1
 

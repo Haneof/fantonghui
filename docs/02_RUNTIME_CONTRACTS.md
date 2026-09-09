@@ -1,4 +1,16 @@
-# AIOS Runtime Contracts V0.1
+# AIOS Runtime Contracts V0.1-r1
+
+## 0. Perception Runtime
+
+输入：设备/传感器/手机/Simulator 的原始信号。
+
+输出：标准 Semantic Event。
+
+负责：输入适配、低成本感知、专用模型调用、感知置信度、短生命周期 raw_ref。
+
+不负责：Relevance、Attention、Wake、AI 决策。
+
+Simulator 阶段允许使用 Mock Perception Adapter；它可以直接把测试输入转成 Semantic Event，但必须通过 Perception Runtime 的标准接口。真实 VAD/ASR/Vision/IMU 适配器后续接入。
 
 ## 1. Event Runtime
 
@@ -90,7 +102,33 @@
 
 注意：它不是 LLM 分类器。
 
-## 8. Wake Runtime
+## 8. Lease Runtime
+
+位置：`core/attention/lease`。Lease 是算力资源调度对象，不属于 Policy。
+
+- 正常 Attention 产生 lease request。
+
+- Safety 可以产生 `EMERGENCY_WAKE` 请求。
+
+- 最终由 Lease Manager 统一签发、抢占、续期和回收。
+
+- Lease 是组合预算，不使用单一计量单位。首版包含 `wall_clock_ms + token_budget + model_call_budget`。
+
+- 未来可增加 CPU/GPU/NPU/energy budget。
+
+首版 Simulator 初始预算：
+
+- `MICRO_WAKE`: 2000ms / 256 tokens / 1 local-model call / 0 expensive-model calls。
+
+- `AI_WAKE`: 30000ms / 2048 tokens / 2 expensive-model calls。
+
+- `EMERGENCY_WAKE`: 60000ms / 4096 tokens / 3 expensive-model calls。
+
+抢占规则：`EMERGENCY_WAKE` 可以抢占普通 lease；普通 lease 不能抢占 Emergency。用户主动唤醒属于高优先级普通 AI Wake，但不能抢占 Emergency。
+
+Lease 到期必须硬回收，不允许任务自行无限续租。
+
+## 9. Wake Runtime
 
 输入：Attention candidate
 
@@ -98,7 +136,7 @@
 
 Wake 是资源调度，而不是语义理解。
 
-## 9. AI Runtime
+## 10. AI Runtime
 
 被唤醒后：
 
@@ -124,7 +162,7 @@ Wake 是资源调度，而不是语义理解。
 
 模型不拥有上述持久状态。
 
-## 10. Capability Runtime
+## 11. Capability Runtime
 
 AI 不能直接访问硬件/应用。
 
@@ -132,13 +170,13 @@ AI 不能直接访问硬件/应用。
 
 `AI -> Capability -> Permission -> Safety -> Adapter -> External World`
 
-## 11. Interaction Runtime
+## 12. Interaction Runtime
 
 负责消息队列、振动语义、抬腕、触摸、语音、骨传导等交互协议。
 
 AI 负责内容；Interaction Runtime 负责通信机制。
 
-## 12. Evolution Runtime
+## 13. Evolution Runtime
 
 保存：
 
