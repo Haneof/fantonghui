@@ -205,3 +205,27 @@
   Task 3 前 4 项待裁决(confidence min/max、同刻排序键、dropped.jsonl 地位、
   Raw Signal 判据)仍挂;`docs/02 §1` 的窗口聚合/空间关联/Entity 关联未实现(属 Sprint 3)。
 - 待架构师裁决: 上述文案改动 + Task 3 最终复核(现在可以做了:124/124 且边界三查为空)。
+
+---
+
+### [2026-09-10] Task 4 — Event Deduplication 契约固化
+
+- **任务**：按架构师裁决执行"契约固化"7 项；明确**不**新增第二套去重实现、**不**做语义相似度/"意思差不多"判重。
+- **commit**：`d544105`（父 `8c3d833`）
+- **修改文件**：`core/event/event_runtime.py`(M)、`tools/forbidden_scan.py`(M)、`tests/unit/test_dedupe_contract.py`(新增, 24 项) —— 共 3 个文件，**新增去重算法 0 行**
+- **执行命令**：`python3 -m unittest discover -s tests -t .` / `python3 tools/forbidden_scan.py` / `python3 tools/schema_check.py` / 一次性台架 `/tmp/bench.py`（真实管线，未入库）/ `git add … && git commit && git push origin arena/…`
+- **测试与门禁数字**：`Ran 148 tests … OK`（124 → 148，+24，历史测试 0 删）；`forbidden_scan` exit 0（扫描 44 文件，禁止事项 1–7 全通过）
+- **原始输出摘要（红→绿）**：
+  - `test_dropped_record_fields …`：`AssertionError: Items in the first set but the second: 'dropped_at_event' / Items in the second …: 'reason'` → **我的实现写的是 reason，是测试把字段名写错了**；同时我原本还断言"键顺序也是契约"，而 `_append` 用 `sort_keys=True` 必然规范化顺序 → **顺序当契约是假契约**，改为 frozenset 集合语义并改正测试字段名。
+  - `test_module_fingerprint …`：`AttributeError: 'function' object has no attribute '__func__'` → 类属性经解析已是普通函数；改为 `EventRuntime.fingerprint is fingerprint`（真断言，不是放宽）。
+  - `test_three_at_same_instant …`：`AssertionError: [1, 2] != [1, 1]` → **是我算错了**：120s 窗口下第 2 条被丢后窗口不刷新，第 3 条距第 1 条 0s 仍 ≤120s，故应丢 2 条。实现正确，测试改对了。
+  - 扫描器扩展后首跑 `tools/forbidden_scan.py` exit 1：`[3] 读写 'dropped.jsonl' 的文件不在 core/event/ : tools/forbidden_scan.py`、`[4] core/** 出现语义相似度/模糊匹配工具 … : tools/forbidden_scan.py` → **门禁把自己定义了这些字面量当成违规**。处置：仅对"字面量规则"豁免扫描器自身文件（def/调用规则仍查它），并用 4 个 decoy 变异测试（在 `core/world`、`core/memory`、`core/event` 造第二套实现）证明它没有被调瞎 → 转绿。
+- **发现的冲突（两条）**：
+  1. **`aios/` 与"全仓唯一实现"的正面冲突仍在**（架构师已裁"暂不纳入 Core 验收体系"，本任务按其指示**未触碰** `aios/`）：机械计数 `aios/` 内 LLM 调用点 41 个文件、`difflib`/相似度 1 个文件（`aios/01_os/services/event_dedup/tests/test_dedup.py`，其 `core/event/dedup.py` 本体不在版本控制内）。`tools/forbidden_scan.py` 的 `CODE_DIRS` 仍只扫 `core|tools|adapters`，故这些不会被门禁命中 —— 如实登记，不擅自扩范围。
+  2. **沙箱工作区被重建，导致一次 git 记账错位（重要，非代码问题）**：本轮开始时环境重新 `clone` 了仓库；因 GitHub **默认分支仍是旧项目 `main`（`02a072c`）** 且 clone 是单分支，HEAD 被落到 `02a072c`，索引变成旧项目的树。我第一次的 Task 4 提交 `d1c05a0` 因此被压在**错误基线**上（`git push` 被拒、`git merge-tree` 报 `refusing to merge unrelated histories`）。处置：先逐 blob 比对证明**磁盘内容零丢失**（`8c3d833` 的 221 个文件全部在位，差异恰好只有 Task 4 的 3 个文件），再用 `git reset --mixed 8c3d833`（只改 HEAD/索引、不写任何文件）把记账拉回远端尖端，重跑全量 148/OK + 扫描器 exit 0 后重新提交为 `d544105` 并推送成功。**未使用 `--hard`、未 amend、未 force push、未删任何文件**；错误基线的 `d1c05a0` 保留在本地 reflog 可查。**风险仍在**：只要默认分支是旧 `main`，每次沙箱重建都可能重复此错位 → 建议架构师考虑把仓库默认分支改为 `arena/01a086b3-fantonghui`，或在 Task 2/3/4 验收后整体并入 `main`。
+- **压缩率实测（一次性台架，真实管线 Perception→Event→Dedup→World，非手工构造）**：
+  - 高密度（2s 间隔、N=50000）：raw 50000 → 语义事件 50000 → 去重后入库 **4794**（丢弃留痕 45206，event→stored = 0.096）→ World 真正变化 **1375**（stored→change = 0.287，无变化尝试 3419）→ 端到端 **1/36**。
+  - 低密度（17s 间隔、N=5000）：5000 → 5000 → 入库 4679（丢 321）→ 变化 1341 → 端到端 **1/4**。
+  - **诚实结论**：`stored` 那一层的压缩率几乎完全由"合成流的重复密度 × 120s 窗口"决定（同一套代码 1/36 vs 1/4），**不是架构的功劳**；`change` 层（1375/4794 = 0.287）才是逻辑产生的（只在槽位真变化时产 Change）。Perception 本身不做过滤（by design），所以 raw→event = 1:1。`expensive_model_call_count = 0` 是因为 **Wake 尚未实现**，不是被过滤出来的。此台架未入库（属 Task 4 之外），如需长期化见待裁决。
+- **未完成项**：`fusion.py` / `patterns.py` 仍是骨架（本次只钉 `event_runtime.py` 的去重契约）；`core/world/world_runtime.py` 的 Change 判定仍是"整块槽位值比较"。
+- **待架构师裁决（新增）**：① `120s` 窗口是否正式升为 Contract 值（现为实现默认值）；② 是否把压缩率台架升格为 `tools/bench/compression.py` 入库，作为 Sprint 3 的 Relevance/Awake 验收底座（我倾向要，因为它暴露了"stored 层压缩是数据属性"这一事实，能防止后续拿假压缩率邀功）；③ 是否把 GitHub 默认分支从旧 `main` 改为工作分支（见上冲突 2）。**Task 4 不宣布 PASS，等待验收。**
