@@ -314,3 +314,12 @@
 - **执行命令**：`git diff --stat aios..arena/01a086b3-fantonghui`、`git diff --name-status`、`git ls-tree`、`python3 -m py_compile aios/01_os/adapters/simulator/mock_adapter.py`、Raw Signal fixture 读取断言。
 - **结果**：迁移文件仅输出 Raw Signal，不 import Event/World Runtime；原路径未删除；Task 5 主线资产已存在于 `aios/01_os`，无需重复复制。
 - **未完成项**：未实现手机/穿戴硬件适配器；未改变 Event/World/Memory/Wake Contract；未修改 Constitution 或 00–09 Canonical 文档。
+
+### [2026-09-10] AIOS 分层骨架：保留 UI / Apps / Hardware 空层
+
+- **任务**：为 AIOS 表层 UI、设置、应用和硬件边界建立可追踪的空目录；当前只推进底层认知/世界运行链，不在表层目录实现业务逻辑。
+- **新增目录**：`aios/03_ui/{shell,display,voice,interaction,settings}`、`aios/04_apps/{education,social,work,health,entertainment}`、`aios/02_hardware/{sensors,wearable,phone}`；每个目录仅放 `.gitkeep`，并补充层级 README。
+- **边界**：UI、App、Hardware 不创建第二套 Memory、Event、Wake 或用户画像；未来均通过 AIOS 认知底座接口接入。
+- **执行命令**：`find aios -maxdepth 2 -type d`；底层验收命令见本任务提交后的原始运行记录。
+- **结果**：表层目录仅作占位，未引入运行时或修改既有 Contract。
+- **未完成项**：UI、设置、App、设备驱动均未实现；当前仍以底层 Event → World → State 验证为优先。
