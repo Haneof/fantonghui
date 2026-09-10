@@ -339,3 +339,10 @@
 - **新增约束**：`Normalization（归一化）` 只提供可比较表示、不删除原始值；`Direction and Trend（方向与趋势）` 记录 delta/direction/slope/duration/volatility；完整对话只清洗确定噪声；AI 事件必须有真实度/知识状态；每次总结必须有递增 `summary_node_id`、`previous_summary_node_id`、`summary_sequence`；未确定事件和关系可以作为自然聊天候选，补充情绪/压力/关系证据但不得变成强制脚本。
 - **执行命令**：`git diff --check`。
 - **结果**：宪法 V1.3-r0 已补正；未修改 Runtime 代码，旧实现与新宪法之间的迁移缺口继续保留并待后续任务逐项实现。
+
+### [2026-09-10] Constitution V1.3-r0 补正：事件锚点关键词召回与上下文筛选
+
+- **补正原因**：事件锚点必须能够通过关键词标签召回，但不能因命中一个词就让 AI 读取该词的全部历史；必须先候选召回，再按当前人物、地点、关系、时间、任务和对话上下文筛选。
+- **新增约束**：Event Anchor（事件锚点）定义为 Timeline Cognition Node（时间轴认知节点）；新增 Keyword Tags（关键词标签）、Keyword Inverted Index（关键词倒排索引）、Anchor Selection（锚点选择）和 Anchor Reprojection（锚点重投影）。`birthday（生日）` 先召回候选，再筛选妈妈相关锚点；未知 ID 解析后更新索引和投影，但不改原始观测与原始锚点版本。
+- **执行命令**：`git diff --check`。
+- **结果**：V1.3-r0 事件锚点定义已修订；未修改 Runtime 代码，索引和上下文筛选属于后续迁移任务。
