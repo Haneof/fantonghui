@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "aios://schemas/world_state.json",
+  "title": "world_state",
+  "description": "03 §World State:某一时刻的世界快照;变化由 world_change 表达。",
+  "type": "object",
+  "properties": {
+    "timestamp": {
+      "type": "string"
+    },
+    "user": {
+      "type": "object"
+    },
+    "location": {
+      "type": "object"
+    },
+    "mode": {
+      "type": "string"
+    },
+    "people": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "environment": {
+      "type": "object"
+    },
+    "active_situations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "active_goals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "pending_tasks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "timestamp",
+    "mode"
+  ],
+  "additionalProperties": false
+}

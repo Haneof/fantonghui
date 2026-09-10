@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "aios://schemas/relationship.json",
+  "title": "relationship",
+  "description": "03 §Relationship:一等对象,关系历史不嵌进 Entity。",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "entity_a": {
+      "type": "string"
+    },
+    "entity_b": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string"
+    },
+    "strength": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string"
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "id",
+    "entity_a",
+    "entity_b",
+    "type",
+    "strength",
+    "status",
+    "evidence"
+  ],
+  "additionalProperties": false
+}

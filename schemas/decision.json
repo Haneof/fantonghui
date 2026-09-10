@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "aios://schemas/decision.json",
+  "title": "decision",
+  "description": "03 §Decision:silent(保持沉默)是合法结果(宪法 6.6)。",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "trigger_change": {
+      "type": "string"
+    },
+    "judgment": {
+      "type": "string"
+    },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "silent",
+          "notify",
+          "suggest",
+          "execute"
+        ]
+      },
+      "minItems": 1
+    },
+    "selected": {
+      "type": "string",
+      "enum": [
+        "silent",
+        "notify",
+        "suggest",
+        "execute"
+      ]
+    },
+    "confidence": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "id",
+    "trigger_change",
+    "judgment",
+    "options",
+    "selected",
+    "confidence"
+  ],
+  "additionalProperties": false
+}

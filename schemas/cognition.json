@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "aios://schemas/cognition.json",
+  "title": "cognition",
+  "description": "03 §Cognition:必须带置信度/证据/last_verified/status(宪法 6.5)。",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string"
+    },
+    "conclusion": {
+      "type": "string"
+    },
+    "confidence": {
+      "type": "number"
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "counter_evidence": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "last_verified": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "REVISED",
+        "INVALIDATED",
+        "CONFLICT"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "type",
+    "conclusion",
+    "confidence",
+    "evidence",
+    "status"
+  ],
+  "additionalProperties": false
+}
