@@ -31,6 +31,9 @@ stated 已产出 world_change（before/after/evidence_events，落库+快照）�
 5. Evidence 输出结构（curve_id/dimension/window/points/derived/explanation/supporting_events/supporting_world_changes——引用 chg_*，禁止第二套 change 协议）
 6. 唯一挂载关系：消费 Canonical Event + World Change，输出只进自己的 Evidence Store
 7. 双消费者声明：Wake Policy（证据包）+ AI Runtime（人格状态地图，Sprint 3 上下文装配）
+8. 交互节奏参数：平线触发窗口（无波动→主动交互的时长）作为 evolutiond 的 strategy key（可版本化/可回滚/可个性化），设上下限地板与天花板，禁止无界漂移
+9. Regret 适用边界：反馈学习只调整社交/节奏类触发，**安全硬规则（EMERGENCY）永久豁免学习**——任何历史反馈不得压低安全唤醒
+10. 情境签名规范：Regret 反馈按“曲线情境签名”（哪些维度偏离、方向、社交上下文）记录，同/相似情境才沉默，禁止全局拉黑触发类型；签名置信度低时不得改变行为（对齐 03 Growth schema 的 confidence/rollback_key）
 - 红线：曲线值 = INFERRED，永不写 World State 事实槽位；不调用任何模型/网络；不做第二套 Identity/MODE/Goal
 - 产出后由 PM 审查冻结，才允许进入 Curve Runtime 编码
 
