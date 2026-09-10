@@ -36,6 +36,7 @@ stated 已产出 world_change（before/after/evidence_events，落库+快照）�
 10. 情境签名规范：Regret 反馈按“曲线情境签名”（哪些维度偏离、方向、社交上下文）记录，同/相似情境才沉默，禁止全局拉黑触发类型；签名置信度低时不得改变行为（对齐 03 Growth schema 的 confidence/rollback_key）
 11. 静默巡检 tick：事件驱动架构对“无事件”失明——新增时钟驱动巡检（定时对比状态快照/曲线窗口），“平线超时”作为一等 Wake 候选条件；巡检零模型、固定周期、可与 attentiond 心跳同节拍
 12. 维度注册制：曲线架构与数据供给解耦——曲线只消费 Canonical Event，不关心来源（手环/手机/聊天/模拟器）；每个维度声明（来源事件类型/打分方式/基线策略）后注册生效，新数据源=新注册项，禁止为接新数据改曲线内核；曲线验证用模拟真值独立进行，不等硬件
+13. **AI 会话事务协议**（防僵尸会话/半提交/重复介入）：①唤醒即记账（session_ledger 落盘 trigger_id/上下文引用/计划）②边走边提交（曲线/状态/记忆更新逐条走总线事件，禁止攒到会话尾）③发言留痕（outbox 带 trigger_id/session_id，interactd 幂等去重）④收据与收尸（正常结束打收据；心跳超时 OPEN 会话标记 ABANDONED，下一任先读半途痕迹再续办/接办，绝不重复已说内容）⑤溢出=优雅断点（中间结论按 INFERRED 落 Self Memory，逼近上限主动收尾，凭收据续传）；安全 EMERGENCY 路径不受本协议延迟影响
 - 红线：曲线值 = INFERRED，永不写 World State 事实槽位；不调用任何模型/网络；不做第二套 Identity/MODE/Goal
 - 产出后由 PM 审查冻结，才允许进入 Curve Runtime 编码
 
