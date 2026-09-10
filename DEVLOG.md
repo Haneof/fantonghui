@@ -332,3 +332,10 @@
 - **保留项**：`docs/AIOS_Constitution_V1.2-r1.md` 原样保留；没有删除旧宪法、旧 Runtime 或既有代码。
 - **执行命令**：`grep -nE '^#|^##|^###' docs/AIOS_Constitution_V1.2-r1.md`、`grep -RInE 'V1.2|Event|Attention|租约' docs aios/01_os`、`git diff --check`。
 - **迁移缺口**：现有 `perceptiond → evt.normalized → stated.py` 仍是旧 Event-first 实现；State Curve、Observation Store、六类 Trigger、AI Interpretation Event、全局查询、关键词超链、定时任务和 AI Self Update 尚未全部实现，后续必须逐项迁移并实测，不能宣称当前代码已符合 V1.3。
+
+### [2026-09-10] Constitution V1.3-r0 补正：变化方向、完整证据、总结节点与内心世界入口
+
+- **补正原因**：架构师进一步明确：曲线触发主要依据上升/下降/突变/持续等方向变化，不是脱离基线的单一原始值；完整对话必须先进入证据链；AI 任务产出必须覆盖事件、关系、历史、总结和自我状态，而不是只更新少数字段。
+- **新增约束**：`Normalization（归一化）` 只提供可比较表示、不删除原始值；`Direction and Trend（方向与趋势）` 记录 delta/direction/slope/duration/volatility；完整对话只清洗确定噪声；AI 事件必须有真实度/知识状态；每次总结必须有递增 `summary_node_id`、`previous_summary_node_id`、`summary_sequence`；未确定事件和关系可以作为自然聊天候选，补充情绪/压力/关系证据但不得变成强制脚本。
+- **执行命令**：`git diff --check`。
+- **结果**：宪法 V1.3-r0 已补正；未修改 Runtime 代码，旧实现与新宪法之间的迁移缺口继续保留并待后续任务逐项实现。
