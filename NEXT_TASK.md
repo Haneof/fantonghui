@@ -1,71 +1,39 @@
-# NEXT TASK · Sprint 1 · Task 5 —— Event → World Update
+# NEXT TASK · Task 5 复验 → Task 6 收尾 → Curve/Evidence 契约冻结
 
-- 签发：总体架构规划与工程审查 Agent ｜ 2026-09-10
-- 执行者：本地 Coding Agent
-- 前置：Task 4（World State，arena 线交付）不重做；本任务在主线 `aios/01_os/` 内补齐可运行的世界状态载体并实现 Event→World Update 管道
-- 状态表依据：根目录 `STATUS.md`
+- 签发：总体架构规划与工程审查 Agent ｜ 2026-09-10 09:45（替代 09-09 版）
+- 前置变化：Task 5（Event→World Update）已由云端 Agent 完成并吸收主线（commit eecfe44，stated.py 554 行实装 + 三 schema + T29 验收记录）
+- 本单不重做 Task 5，只做复验、收尾与下一层契约冻结
 
-## 1. 目标
+## 任务 A · Task 5 双环境复验（本地 Agent，半天）
 
-让 Canonical 主链的前半段真正跑起来：
+1. `git pull` 后在 Windows 跑 `aios/01_os/code/tests/test_s1_t5.py`，记录通过数/失败数/环境/commit
+2. WSL2（/opt/aios 同步后）重跑一遍
+3. 对照 T29 验收记录十二项逐条打勾
+- 禁止：改 stated.py / schemas / 测试文件本身
+- 产出：复验记录追加进 T29 文档；Windows+WSL2 全绿 → Task 5 状态置 ACCEPTED
 
-```text
-Semantic Event（03 规范 JSON）
-  → 规范化适配（总线帧 → canonical Event）
-  → World State 更新（stated 实装）
-  → 持久化 + 确定性回放
-```
+## 任务 B · Task 6 收尾（World Change 广播，1 天）
 
-验收时能演示：注入一份"用户的一天"事件流，World State 随事件正确演化，且**同流重放两次结果逐字节一致**。
+stated 已产出 world_change（before/after/evidence_events，落库+快照），收尾项：
+1. World Change 同步广播到总线主题 `world.change`（帧协议不变，msg 载荷 = canonical world_change.json）
+2. `test_s1_t6.py`：广播内容与落库记录逐字段一致；重复事件不产生重复广播（幂等）
+3. 下游订阅冒烟：memoryd / attentiond 各加一条订阅日志验证可达（不改其逻辑）
+- 允许改：stated.py（仅广播段）、tests/test_s1_t6.py（新增）、T30 任务书
+- 禁止：总线帧协议、已验收服务逻辑、schemas 三件套
 
-## 2. 修改文件范围（允许改/新增）
+## 任务 C · Curve/Evidence Runtime 契约冻结（设计文档，不写业务代码）
 
-| 文件 | 动作 | 内容 |
-|---|---|---|
-| `aios/01_os/code/services/stated.py` | 实装（现为 17 行空壳） | 订阅 `evt.#`；维护 canonical World State（user/location/mode/people/environment/active_situations/active_goals/pending_tasks）；SQLite 持久化（快照+版本）；提供回放接口 |
-| `aios/01_os/schemas/event.json` | 新增 | Canonical 03 Event schema（id/timestamp/source/type/content/entities/location_id/confidence/raw_ref） |
-| `aios/01_os/schemas/world_state.json` | 新增 | Canonical 03 World State schema |
-| `aios/01_os/code/tests/test_s1_t5.py` | 新增 | 本任务验收测试（见 §5） |
-| `aios/01_os/tasks/plans/T29_s1_t5_world_update.md` | 新增 | 任务书 + 验收记录 |
-| `aios/01_os/code/services/entityd.py` | 仅允许轻量配合 | 事件 `entities` 引用的实体缺位时写入 unknown-entity 占位（不做完整 Identity，那属于后续 Sprint） |
+按 PM 二次评审 + 审查 Agent 补正，产出 `aios/01_os/docs/10_CURVE_EVIDENCE_RUNTIME.md`，冻结七项：
+1. 曲线主体（entity_id 引用，禁止自带 Identity）
+2. 维度类型清单（v1：心率/睡眠/消费/社交频率/深夜指数——全部 SQL 可出；文本情绪维度 v2 另立）
+3. 点结构（timestamp/value/source/event_id，未知不填猜测值）
+4. 窗口与基线来源（个人基线 = 滚动窗口统计，禁止全局固定值）
+5. Evidence 输出结构（curve_id/dimension/window/points/derived/explanation/supporting_events/supporting_world_changes——引用 chg_*，禁止第二套 change 协议）
+6. 唯一挂载关系：消费 Canonical Event + World Change，输出只进自己的 Evidence Store
+7. 双消费者声明：Wake Policy（证据包）+ AI Runtime（人格状态地图，Sprint 3 上下文装配）
+- 红线：曲线值 = INFERRED，永不写 World State 事实槽位；不调用任何模型/网络；不做第二套 Identity/MODE/Goal
+- 产出后由 PM 审查冻结，才允许进入 Curve Runtime 编码
 
-## 3. 禁止修改范围
+## 完成后下一任务
 
-- 根目录 00-09 Canonical 文档、`AIOS_Constitution_V1.2-r1.md`、`AIOS宪法.md`
-- `aios/01_os/code/bus/aios_busd.py`（总线帧协议不动——规范化只在 stated 入口做）
-- `aios/01_os/code/aiosd/aiosd.py`（看门狗/编排）
-- 已验收服务：memoryd / cognitiond / decisiond / evolutiond / interactd / modelrouterd / hublinkd / attentiond / privacyd / perceptiond
-- `run/` 全部运行时数据与 `api_keys.json`
-- 任何已存在的测试文件（只许新增，不许改动 test_m0-m3、gate_rules 等）
-- 不删除仓库中任何文件（含 arena 遗留内容）
-
-## 4. 设计约束（来自 Canonical，必须遵守）
-
-1. Event 是事实输入，不写 AI 推断（03 绝对规则）。
-2. 本任务**零 LLM 调用**——纯确定性代码（04 §7：优先确定性算法）。
-3. State 不只存值，要能回答"从什么变成什么"（02 §3）——本任务先保证快照链完整，Delta 输出属 Task 6。
-4. 未知实体/未知场景不得丢弃，允许占位并保留证据（03/08-E）。
-5. 时间戳一律 canonical ISO8601 格式（03）。
-
-## 5. 测试要求（test_s1_t5.py）
-
-1. **单元**：总线帧→canonical Event 规范化（含缺字段/坏 JSON/重复 id 处理）；World State 各字段的更新规则；未知实体占位。
-2. **集成（Canonical 示例日）**：注入 09 文档示例事件流（09:00 到公司 / 09:05 张总进入 / 09:06 谈合同 / 09:08 张总提出降价 / 09:10 用户沉默 / 09:12 打开合同 / 09:15 再次谈价格），校验检查点：`location=公司`、`people 含张总`、`active_situations=合同谈判`。
-3. **回放确定性**：同一事件流重放两遍，最终 World State 序列化哈希一致。
-4. **回归**：`test_m0.py` `test_m1.py` `test_m2.py` `test_m3.py` `gate_rules.py` 全部保持通过。
-5. **双环境**：Windows 与 WSL2（/opt/aios）各跑一遍并记录输出。
-
-## 6. 验收标准（逐条打勾，全过才算过）
-
-- [ ] schemas/event.json、world_state.json 落库且与 03 字段一致
-- [ ] stated.py 实装并常驻：总线在线、心跳正常、health.json 中 state=up
-- [ ] 示例日检查点全部正确
-- [ ] 回放确定性（两遍哈希一致）
-- [ ] 回归测试全绿
-- [ ] 零 LLM 调用（代码审查确认无模型调用路径）
-- [ ] 双环境运行记录写入 T29 验收记录
-- [ ] STATUS.md 中本行状态由"未完成（空壳）"改为"已完成"
-
-## 7. 完成后下一任务
-
-**Sprint 1 · Task 6 —— World Change Delta**：在 stated 输出侧增加 `chg_*` 变更对象（change_type/before/after/entities/evidence_events/confidence，03 Schema），广播到 `world.change` 主题。再往后：Task 7 模拟器时间线播放规范化对接（simd.py 已具备回放能力，做 schema 对接即可）。
+Sprint 2 正式开工（Dedup → Sliding Window → Clustering → Trend → Baseline → Relevance → Attention → Wake 四级），Curve/Evidence Runtime 作为其中 Evidence 层实现——gate_rules 内核换 canonical 四级命名后挂入，636 题回归测试作为守门。

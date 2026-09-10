@@ -85,3 +85,17 @@
 ## 七、红线重申
 
 1. 不重做 Task 4；2. 不重建架构、不建第二套实现；3. 不批量删除 130+ 文件；4. 不改宪法；5. 未通过 Phase 3/4 验收前不得宣称 AIOS 完成。
+
+---
+
+## 增补（2026-09-10 09:45）：Task 5 已完成并吸收进主线（依据 commit eecfe44，已逐项验证）
+
+| 项 | 状态变更 |
+|---|---|
+| World/State Runtime（stated.py） | ~~未完成（空壳）~~ → **MAINLINE_INTEGRATED**：554 行实装，11 条确定性映射，world_state.db 四表，幂等/陈旧/非法三重防护，零模型零网络 tripwire；待双环境复验后 ACCEPTED |
+| Entity Runtime（entityd.py） | 空壳 → 轻量占位（被引用未登记实体落 UNKNOWN，confidence 0.0，不做身份推断）；Identity 正式能力仍 NOT_STARTED |
+| Schema（03 对齐） | 部分完成 → **event.json / world_state.json / world_change.json 三件套落地**（canonical 逐字节副本，测试锁定） |
+| Sprint 1 · Task 5 | ✅ 完成（云端 Agent 执行，含 T29 十二项验收记录）；Sprint 1 剩 T6 收尾（world.change 广播）+ T7 规范化对接 |
+| 下一任务 | 见 NEXT_TASK.md：Task 5 双环境复验 → Task 6 收尾 → **Curve/Evidence Runtime 契约冻结**（七项：主体/维度/点结构/窗口/基线来源/Evidence 输出/world.change 唯一挂载） |
+
+审查附注：PM 二次评审（已读源码）事实核对通过；其 Curve/Evidence 挂载方案采纳，补一条——曲线存储双消费者（Wake 证据包 + AI Runtime 人格状态地图），Sprint 3 上下文装配依赖后者。
