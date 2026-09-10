@@ -305,3 +305,12 @@
 - **主线运行证据**：`aiosd` 拉起 bus + 15 服务 → `stated {"state":"up","restarts":0,"last_hb":1.4s}`；`simd` 播放 09 示例日 7 条 → `run/world_state.json` 快照九槽位齐（`location={id:place_004}`/`mode=WORK`/`people=[person_017]`/`active_situations=[negotiation]`/`user={talking:true,topic:price}`/`timestamp=09:15:00`）、`world_change` v1..v7、`applied_event` 7 行；台账 `applied=7 / replay_skipped=26` —— 26 次重复投递（三路主题 + hublinkd 启动重放）**一次都没重复改变世界**；`entity_store.db` 三条 UNKNOWN 占位 `confidence=0.0`。
 - **发现的冲突（6 条，全部只登记未擅自处置）**：① 语义类型词表归属（03 `type` 自由字符串 vs `event.proto.md` 的 `SPEECH/MOTION/…`；`perceptiond` 不做语义分类，我没在 stated 里复制那套正则）；② 持久化介质（docs/OS §3.2"内存+快照文件" vs `NEXT_TASK`"SQLite 快照+版本"，我两者都做）；③ `NEXT_TASK` 把 World Change 排到 Task 6，本任务已产出并发布 `world.change`；④ 主线 `test_m0..m3` 依赖 `taskkill`、`gate_rules.py` 硬编码 `C:\Users\Administrator\…` 绝对路径 → Linux/WSL2 跑不了，属"禁止改动的既有测试"，仅登记；⑤ MODE 双源（stated 规则 vs modemgrd 空壳，现让 `mode_at_time` 优先）；⑥ `STATUS.md`/`NEXT_TASK.md` 不在本会话分支，状态行更新交指挥官。
 - **未完成项**：Windows 侧未验证（沙箱只有 Linux，`NEXT_TASK §6` 的"双环境"一项如实标 ❌）；`stated` 未接 modemgrd（空壳）；Entity 身份解析未做（属后续 Sprint）；`core/` 的处置（保留/合并/转参考/删除）按任务书留给架构师单独决定。
+
+### [2026-09-10] AIOS 主线适配器迁移审计与保留式迁移
+
+- **任务**：核对 `aios` 与 `arena/01a086b3-fantonghui` 分支；确认 Task 5 的 `stated.py`、`entityd.py`、canonical schemas、T29 计划与测试已由 `origin/aios@012d0db` 收拢到 AIOS 主线；只将仍有主线价值且不重复实现的 Simulator Raw Signal fixtures 迁入 `aios/01_os/adapters/`，不删除原路径。
+- **迁移文件**：`aios/01_os/adapters/README.md`、`aios/01_os/adapters/simulator/mock_adapter.py`、`mock_multimodal.jsonl`、`negotiation_timeline.txt`。
+- **保留项**：原 `adapters/` 文件原样保留；未迁移空的 `phone`/`wearable` 包；未复制 root 文档、`core/`、测试和 World Runtime，避免在 `aios/01_os` 下形成第二套实现。
+- **执行命令**：`git diff --stat aios..arena/01a086b3-fantonghui`、`git diff --name-status`、`git ls-tree`、`python3 -m py_compile aios/01_os/adapters/simulator/mock_adapter.py`、Raw Signal fixture 读取断言。
+- **结果**：迁移文件仅输出 Raw Signal，不 import Event/World Runtime；原路径未删除；Task 5 主线资产已存在于 `aios/01_os`，无需重复复制。
+- **未完成项**：未实现手机/穿戴硬件适配器；未改变 Event/World/Memory/Wake Contract；未修改 Constitution 或 00–09 Canonical 文档。
