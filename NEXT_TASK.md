@@ -51,6 +51,16 @@ stated 已产出 world_change（before/after/evidence_events，落库+快照）�
 - **A5 二级 AI 分身**（后置，Sprint 3+ 预留）：英语教练/娱乐/社交/RPG 等分身共享同一认知底座，各自建各自记忆曲线。约束：persona = identity + 专属曲线视图，依赖 Identity Runtime（entityd）先实装
 - **A6 UI 专区**：屏保/一级 UI（AI 形象）/二级 UI（分身列表）——归 Interaction Runtime（Phase 6），不与曲线域耦合，此处仅作产品愿景记录
 
+## PM 讨论采纳裁决（2026-09-10，指挥官×PM 记忆专题讨论，经审查 Agent 核定）
+
+1. **记忆哲学定稿**：废除“压缩”措辞——记忆是全量语义保留 + 多维索引 + 多层观察（Summary Dimension 为观察视图之一）；金字塔机制不变（实现本就是全保留+溯源），仅文档措辞更新
+2. **三记忆维度**：User Life Memory / AI Self Memory / **AI Attitude（对用户关系模型，独立第三维）**——宪法三树隔离不变量不变，Memory Fabric/三条记忆维度为三棵树的实现视图组织，映射写入规格文档
+3. **AI 进入世界 7 步协议**：Identity → Attitude → Memory Links → User World → World State → Cognition → Think；结尾 Self Memory / Attitude 更新——并入 05 Wake Session 契约（与 A4 合并）
+4. **Anchor Index / Semantic Link / Event Anchor**：列为 Memory Runtime 多维索引的实现载体，Sprint 2-3 实现
+5. **漏斗数字定稿**：30万信号→几万语义事件→几百 World Change→几十候选→几个真唤醒
+6. **治理红线**：升级现有 00-09 为 v0.2 并入上述机制，**禁止另起平行文档集**；讨论记录去重后归档 Git（§62）
+7. **停止概念讨论**：进入规格落地（本文件任务 A/B/C 即首批执行单）
+
 ## 完成后下一任务
 
 Sprint 2 正式开工（Dedup → Sliding Window → Clustering → Trend → Baseline → Relevance → Attention → Wake 四级），Curve/Evidence Runtime 作为其中 Evidence 层实现——gate_rules 内核换 canonical 四级命名后挂入，636 题回归测试作为守门。
