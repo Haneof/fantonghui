@@ -323,3 +323,12 @@
 - **执行命令**：`find aios -maxdepth 2 -type d`；底层验收命令见本任务提交后的原始运行记录。
 - **结果**：表层目录仅作占位，未引入运行时或修改既有 Contract。
 - **未完成项**：UI、设置、App、设备驱动均未实现；当前仍以底层 Event → World → State 验证为优先。
+
+### [2026-09-10] Constitution V1.3-r0：Observation → Trigger → AI Interpretation 修订
+
+- **任务**：根据架构师最新裁决修订 AIOS 宪法；确认 V1.2-r1 的 Event-first / Attention 主观筛选假设不再作为新架构依据，保留 V1.2-r1 为历史版本。
+- **核心修订**：新增唯一 Global Timeline（全局时间轴）、Observation（原始观测）优先、可挂载 Dimension（维度）、六类 Trigger（触发器，含 Safety）、AI 生成 Inference Event（推断事件）、关键词超链、Unknown ID 全局重投影、AI Self Update（AI 自我更新）、按上次总结节点增量总结、App Dimension Mount（应用维度挂载）。明确 attentiond 只做机械阈值触发/派发，Lease 只做资源预算，不做主观相关性判断。
+- **修改文件**：`docs/AIOS_Constitution_V1.3-r0.md`（新增完整修订正文）、`aios/00_宪法/readme.md`、`docs/00_START_HERE.md`、`docs/AIOS_PROJECT_MASTER_PROMPT_V1.0.md`。
+- **保留项**：`docs/AIOS_Constitution_V1.2-r1.md` 原样保留；没有删除旧宪法、旧 Runtime 或既有代码。
+- **执行命令**：`grep -nE '^#|^##|^###' docs/AIOS_Constitution_V1.2-r1.md`、`grep -RInE 'V1.2|Event|Attention|租约' docs aios/01_os`、`git diff --check`。
+- **迁移缺口**：现有 `perceptiond → evt.normalized → stated.py` 仍是旧 Event-first 实现；State Curve、Observation Store、六类 Trigger、AI Interpretation Event、全局查询、关键词超链、定时任务和 AI Self Update 尚未全部实现，后续必须逐项迁移并实测，不能宣称当前代码已符合 V1.3。

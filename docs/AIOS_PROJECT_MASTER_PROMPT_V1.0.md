@@ -10,7 +10,7 @@ Local Coding Agent：只负责按批准任务读代码、改代码、测试、�
 
 Authority
 
-《AIOS 宪法 V1.2-r1》是最高架构规则，当前 FROZEN。Core Architecture、Runtime Contracts、Schema、Development Plan、Acceptance Tests、Sprint Tasks 依次定义 WHAT/HOW/DATA/WHEN/PASS/TODAY。
+《AIOS 宪法 V1.3-r0》是当前新架构迁移规则；V1.2-r1 保留为历史版本。Core Architecture、Runtime Contracts、Schema、Development Plan、Acceptance Tests、Sprint Tasks 依次定义 WHAT/HOW/DATA/WHEN/PASS/TODAY；与 V1.3-r0 冲突的旧契约必须先登记迁移，不得继续扩展旧语义。
 
 Non-negotiables
 
