@@ -68,6 +68,7 @@ P13 PC Simulator → Phone → Wearable integration
 | P0-T2 | P0 | 删除旧 Constitution / 旧架构入口 | ✅ 完成 | V1.2/V1.3/V1.4-r0 不再作为仓库入口 |
 | P0-T3 | P0 | 建立唯一开发任务表 | ✅ 完成 | 本文件成为唯一任务状态账本 |
 | P0-T4 | P0 | 清理旧 NEXT_TASK / STATUS / DEVLOG 入口 | ✅ 完成 | 不再有旧状态表误导 Agent |
+| P0-T5 | P0 | 删除根目录重复旧 adapters/schemas/tests | ✅ 完成 | Runtime/Schema/Test 只保留 `aios/01_os/` 主线版本 |
 | P1-T1 | P1 | Observation Contract 冻结 | ⬜ 待开发 | schema + tests |
 | P1-T2 | P1 | Global Timeline Runtime | ⬜ 待开发 | Event/Observation 按时间稳定落轴、可查询 |
 | P1-T3 | P1 | Timeline Evidence Reference | ⬜ 待开发 | 每个事实可回溯来源 |
@@ -137,7 +138,7 @@ P13 PC Simulator → Phone → Wearable integration
 - **变更**：删除旧 `core/` 第二套 Runtime；删除 V1.2/V1.3/V1.4-r0 Constitution；删除旧架构入口文档与旧 `NEXT_TASK.md` / `STATUS.md` / `DEVLOG.md`。
 - **保留**：`docs/AIOS_Constitution_V1.4-r1.md` 作为唯一有效宪法；`aios/01_os/` 作为唯一 OS 实现主线。
 - **主要 Commit**：`b9424035057c48a3a331e99bbc9527e1659da655`
-- **结果**：PASS（Git ref 已更新至该清场提交）
+- **结果**：PASS
 
 ### 2026-09-12 · P0 文档治理对齐
 
@@ -148,13 +149,14 @@ P13 PC Simulator → Phone → Wearable integration
 ### 2026-09-12 · P0 任务账本建立
 
 - **变更**：建立 `AIOS_DEVELOPMENT_TASKS.md`，定义 P0–P13 开发路线、任务状态、验收规则和变更记录规则。
-- **结果**：PASS
 - **Commit**：`319412926df4e8fca436343ad3b3323b32100c35`
-
-### 2026-09-12 · P0 任务账本更新
-
-- **变更**：登记上述清场与治理变更，确认下一任务为 P1-T1。
 - **结果**：PASS
+
+### 2026-09-12 · P0 根目录重复资产清理
+
+- **变更**：删除根目录旧 `adapters/`、`schemas/`、`tests/`。这些内容与 `aios/01_os/` 中的主线资产重复，其中根 `schemas/` 仍包含旧 `cognition/decision/memory/growth/relationship` 三棵树模型，容易诱导 Agent 回到旧架构。
+- **Commit**：`e765426ca68352b9b51d0a976b59f30ea0720680`
+- **结果**：PASS（`aios` 已更新）
 
 ---
 
