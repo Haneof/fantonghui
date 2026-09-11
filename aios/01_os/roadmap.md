@@ -1,62 +1,98 @@
-# 01_os · 开发路线图
+# AIOS 01_os · V1.4 开发路线图
 
-**当前阶段：M0 骨架跑通（PC 模拟开发，不依赖硬件）**
+> 当前有效架构：AIOS Constitution V1.4-r0。
+> 当前目标：先把 Observation → Trigger → AI Session → Inference Event → Help → Outcome 这条 OS 主链跑通。
 
-## 里程碑
+## M0 · 骨架与契约
 
-### M0 · 骨架跑通（当前）
-- [ ] aiosd 服务管理器：拉起/监控/重启 16 个服务
-- [ ] 事件总线薄层库（Unix domain socket + protobuf）
-- [ ] 16 个服务空壳进程，全部通过总线收发心跳事件
-- [ ] schemas/ 下 Event/Lease/三棵树 schema 冻结为 V0.1
-- **验收：** kill -9 任意服务，1 秒内自动重启；任意两服务可收发事件
+- [ ] Observation Contract
+- [ ] Global Timeline
+- [ ] Dimension Registry
+- [ ] Trigger Contract
+- [ ] AI Session Contract
+- [ ] Inference Event Contract
+- [ ] Outcome / Self Update Contract
+- [ ] Interaction Contract
 
-### M1 · 事件流 + 人生树
-- [ ] hublinkd 模拟事件源（可回放录制的事件序列）
-- [ ] perceptiond 转写管线（PC 上以文件回放代替真实音频）
-- [ ] memoryd 原始日志落盘 + 秒级时间戳查询 + 小时摘要
-- [ ] 三棵树物理隔离存储验证（三库分文件、跨库只许 ID 引用）
-- **验收：** 灌入模拟一天事件量，任意时刻"几点几分几秒发生了什么"可查、可钻取、可按主题索引
+**验收：** 所有对象都能挂到同一时间轴；Observation 与 Inference Event 分离；Trigger 不产生语义结论。
 
-### M2 · 认知 + 决策 + 租约
-- [ ] cognitiond：Belief/Hypothesis/Prediction/Unknown 四类认知对象 + 置信度状态机
-- [ ] attentiond：租约发放/超时回收/未解决队列
-- [ ] decisiond：三套非对称阈值（安全/社交/金融）+ 介入预算
-- [ ] privacyd：授权状态机 + 上云审查点（模拟云端）
-- **验收：** 注入模拟事件流，INFERRED 被当 KNOWN 使用时校验拒绝；租约超时强制回收且计数
+## M1 · Observation + Timeline
 
-### M3 · 交互 + 进化
-- [ ] interactd：五级介入通道（PC 上以日志代替真实振动/骨传导）
-- [ ] evolutiond：介入反馈对账（接受/忽略/否定 → 阈值调整）+ 策略回退
-- [ ] modelrouterd：本地小模型接入（llama.cpp）+ 云端降级策略
-- **验收：** 模拟介入反馈驱动 Intervention Regret 闭环，阈值可变且可回退
+- [ ] 多模态 Mock Observation
+- [ ] 时间统一与 provenance
+- [ ] 原始证据保存/回放
+- [ ] Dimension Point
+- [ ] 曲线方向、斜率、持续时间、波动、持久偏离
 
-### M4 · 上真机（等 02_hardware EVK）
-- [ ] hublinkd 对接真实 rpmsg/共享内存通道
-- [ ] 双域联调：Sensor Hub 真实事件 → 全链路
-- [ ] 功耗与延迟实测对照预算表
-- **验收：** 端到端延迟与功耗达标（目标值由 02_hardware 能力指标表提供）
+**验收：** 同一批输入可稳定回放；原始证据不被推断覆盖。
 
-## 依赖关系
+## M2 · Trigger Runtime
 
-```
-M0 ──▶ M1 ──▶ M2 ──▶ M3 ──▶ M4（依赖硬件 EVK）
-```
+- [ ] threshold
+- [ ] curve change
+- [ ] keyword/entity hit
+- [ ] inactivity
+- [ ] schedule
+- [ ] user trigger
+- [ ] safety trigger
+- [ ] Trigger audit
 
-M0–M3 严格在 PC 上开发与验收；M4 的所有硬件依赖由 02_hardware 目录并行推进。
+**验收：** Trigger 只负责机械唤醒，不做“是不是谈判/焦虑”等语义判断。
 
-## 服务开发顺序（M0 内部）
+## M3 · AI Runtime
 
-aiosd → 事件总线库 → hublinkd（模拟源）→ memoryd → 其余服务按依赖序
+- [ ] AI Session
+- [ ] 按任务选择读取范围
+- [ ] Identity / Unknown ID
+- [ ] Inference Event
+- [ ] Cognition
+- [ ] Help-First / Intent-First
+- [ ] AI Self Update
 
-## M2.5/M3.5 深化阶段状态（2026-09-09 封账）
+**验收：** AI 能从触发窗口进入用户世界，引用证据并生成可追溯的事件/认知。
 
-- [x] 海量数据压测：31,399 条 / 829 条秒 / kill -9 零丢失
-- [x] LLM 双通道：本地 llama.cpp（0.5B/1.5B/2B）+ 云端 Gemini 池
-- [x] 递归摘要金字塔：六跳全通（分钟→小时→日→周‖月→季）
-- [x] 千题基准：大模型 90.6% vs 本地 2B 31.1% / 1.5B 33.5%；判分器 3 bug 修正
-- [x] WSL2 迁移：Linux 原生栈 15/15 服务在线 + 事件入持久化队列（2026-09-09）
-- [ ] Qwen3.5-4B 基准：⏸挂起（运行时兼容性存疑）
-- [ ] 门控 v2 / 小时摘要切真模型 / Linux 转发周期验证：待做
+## M4 · Capability + Safety
 
-**结论性认知：** 本地小模型 = 底层提炼 + 格式规整（求和 65%、峰值 78%）；门控与认知必须云端或规则前置；统计聚合走 SQL；本地参数量升级路线性价比证伪。
+- [ ] Capability Registry
+- [ ] Permission / Confirmation
+- [ ] Safety Runtime
+- [ ] Action
+- [ ] Outcome
+
+**验收：** 高风险动作不能绕过权限；安全事件可越过普通干预预算。
+
+## M5 · 3D / UI
+
+- [ ] 3D Body
+- [ ] UI State
+- [ ] Gesture Event
+- [ ] Haptic / Voice / Display abstraction
+- [ ] Mock OS State 驱动
+
+**验收：** UI 不拥有 AI、Memory、Timeline、Trigger；真实 Runtime 接入时不需要重写 UI 核心。
+
+## M6 · Phone Adapter
+
+- [ ] 通知
+- [ ] 日历
+- [ ] 位置
+- [ ] 用户授权的聊天/通讯数据
+- [ ] App 观测
+- [ ] 相册描述
+
+## M7 · Wearable Adapter
+
+- [ ] IMU
+- [ ] Mic
+- [ ] Camera
+- [ ] 生理传感器
+- [ ] Display
+- [ ] Haptic
+
+## 重要约束
+
+1. 新代码只进入 `aios/01_os/`。
+2. `core/` 视为历史验证资产，不再继续扩张。
+3. 本地小模型不得承担复杂语义判断；本地只做机械检测、清洗、格式处理和资源控制。
+4. 三棵树不再作为底层物理存储架构。
+5. 所有 App 共享同一个 AI、同一条 Global Timeline，不建立第二套大脑。
