@@ -5,8 +5,12 @@
   - strategy_versions 表：阈值策略版本链（active 唯一，可回退）
 - 订阅：evt.intervention、sys.interact.feedback、sys.evolve.rollback
 - 阈值模型（内存 + strategy_versions 落库）：按 risk_class 维护（0-1，越高越谨慎）
-  初值 SOCIAL=0.5 / FINANCIAL=0.8 / SAFETY=0.1
-  accepted→-0.05(下限 0.05)；rejected→+0.15(上限 0.95)；ignored→中性 +0.02
+  初值与步长**全部来自 policies_v0.json**（经 code/policy.py 唯一入口读取，代码内无兜底默认值）：
+  evolve.prior.social=0.5 / prior.financial=0.8 / prior.safety=0.1 / prior.unknown=0.5
+  evolve.delta.accepted=-0.05 / delta.rejected=+0.15 / delta.ignored=+0.02
+  夹逼区间 evolve.tune_floor=0.05 / tune_ceiling=0.95
+- 安全类豁免（§4.2-6 / 验收 F）：risk_class=SAFETY 时**不做阈值调整**，只记 growth 账。
+  接线前实测：连续 100 次 rejected 把 SAFETY 从 0.1 学到 0.95——安全介入被「嫌烦」学成沉默，属 P0 违宪
 - 三棵树物理隔离：本服务只写 growth_tree.db（人生树 memoryd / 认知树 cognitiond）
 """
 import json
@@ -18,16 +22,30 @@ import uuid
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from aios_sdk.aios_sdk import AIOSService
+import policy
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(ROOT, "run", "growth_tree.db")
 
-# 阈值初值（0-1，越高越谨慎）
-DEFAULT_THRESHOLDS = {"SOCIAL": 0.5, "FINANCIAL": 0.8, "SAFETY": 0.1}
-DEFAULT_UNKNOWN = 0.5          # 未知 risk_class 的兜底阈值
-THRESHOLD_LOW = 0.05
-THRESHOLD_HIGH = 0.95
-FEEDBACK_DELTA = {"accepted": -0.05, "rejected": +0.15, "ignored": +0.02}
+# 策略数字一律走注册表（T1/T2）。本文件不再保留任何数值字面量当默认值：
+# 注册表缺失时 policy 当场报错，宁可不开跑，也不要一份「备用默认值」把写死偷偷带回来。
+RISK_PRIOR = {"SOCIAL": "evolve.prior.social", "FINANCIAL": "evolve.prior.financial",
+              "SAFETY": "evolve.prior.safety"}
+FEEDBACK_KNOB = {"accepted": "evolve.delta.accepted", "rejected": "evolve.delta.rejected",
+                 "ignored": "evolve.delta.ignored"}
+KNOB_CLAMP_LOW, KNOB_CLAMP_HIGH = "evolve.tune_floor", "evolve.tune_ceiling"
+KNOB_SAFETY_EXEMPT = "evolve.safety_regret_exempt"
+KNOB_CACHE_MAX = "evolve.intervention_cache_max"
+KNOB_PRIOR_UNKNOWN = "evolve.prior.unknown"
+
+
+def prior(risk_class):
+    """某 risk_class 的起始谨慎度（现读注册表，改完下次调用就跟）。"""
+    return policy.get(RISK_PRIOR.get(risk_class, KNOB_PRIOR_UNKNOWN))
+
+
+def default_thresholds():
+    return {rc: prior(rc) for rc in RISK_PRIOR}
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS growth (
@@ -56,7 +74,7 @@ svc = AIOSService("evolutiond",
 
 _conn = None
 _state = {
-    "thresholds": dict(DEFAULT_THRESHOLDS),  # risk_class -> 当前阈值（内存模型）
+    "thresholds": default_thresholds(),      # risk_class -> 当前阈值（初值取自注册表）
     "interventions": {},                     # intervention_id -> {risk_class, channel, priority, ts}
     "last": {},                              # 最近一次介入（兜底映射）
 }
@@ -84,7 +102,7 @@ def seed_and_load(state, conn):
     """补齐初值版本（缺则插 active=1），并从 DB 恢复当前 active 阈值到内存。
     重启后经此恢复上次策略状态（内存 + 落库一致）。
     """
-    for rc, thr in DEFAULT_THRESHOLDS.items():
+    for rc, thr in default_thresholds().items():
         row = conn.execute("SELECT 1 FROM strategy_versions WHERE strategy_key=? LIMIT 1",
                            (rc,)).fetchone()
         if row is None:
@@ -98,9 +116,17 @@ def seed_and_load(state, conn):
 
 
 # ---------------- 阈值对账核心 ----------------
-def _clamp(cur, feedback):
-    delta = FEEDBACK_DELTA.get(feedback, FEEDBACK_DELTA["ignored"])
-    return round(max(THRESHOLD_LOW, min(THRESHOLD_HIGH, cur + delta)), 2)
+def _clamp(cur, feedback, risk_class=None):
+    """反馈 → 新阈值。步长与夹逼区间全部现读注册表（改了不重启，下一次调节就生效）。
+
+    安全类豁免：risk_class=SAFETY 且 evolve.safety_regret_exempt 为真时原值返回——
+    「用户嫌烦」不得把安全介入学成沉默（V1.4 §4.2-6；验收 F 要求 100 次后与第一天逐位相同）。
+    """
+    if risk_class == "SAFETY" and policy.get(KNOB_SAFETY_EXEMPT):
+        return round(cur, 2)
+    delta = policy.get(FEEDBACK_KNOB.get(feedback, "evolve.delta.ignored"))
+    low, high = policy.get(KNOB_CLAMP_LOW), policy.get(KNOB_CLAMP_HIGH)
+    return round(max(low, min(high, cur + delta)), 2)
 
 
 def apply_feedback(state, conn, intervention_id, feedback, risk_class, meta=None, now=None):
@@ -108,14 +134,15 @@ def apply_feedback(state, conn, intervention_id, feedback, risk_class, meta=None
     - state["thresholds"]：内存阈值；risk_class 由调用方从 evt.intervention 缓存解析。
     - 每次变更：growth 表一条 + strategy_versions 新行（active=1，旧行 active=0）。
     """
-    feedback = feedback if feedback in FEEDBACK_DELTA else "ignored"
+    feedback = feedback if feedback in FEEDBACK_KNOB else "ignored"
     now = now if now is not None else time.time()
     meta = meta or {}
     thresholds = state["thresholds"]
     risk_class = risk_class or "UNKNOWN"
 
-    old = thresholds.get(risk_class, DEFAULT_UNKNOWN)
-    new = _clamp(old, feedback)
+    old = thresholds.get(risk_class, prior(risk_class))
+    exempt = (risk_class == "SAFETY" and bool(policy.get(KNOB_SAFETY_EXEMPT)))
+    new = _clamp(old, feedback, risk_class)
     thresholds[risk_class] = new
     was_correct = 1 if feedback == "accepted" else 0
 
@@ -127,15 +154,17 @@ def apply_feedback(state, conn, intervention_id, feedback, risk_class, meta=None
          json.dumps({"channel": meta.get("channel", ""), "priority": meta.get("priority", "")},
                     ensure_ascii=False),
          str(intervention_id or ""), feedback, feedback, was_correct,
-         _ERROR_ANALYSIS.get(feedback, ""), _LESSON.get(feedback, ""),
-         "%s:%s->%s" % (risk_class, old, new), new, now))
+         _ERROR_ANALYSIS.get(feedback, ""),
+         ("安全类豁免 Regret：阈值保持 %s 不动（§4.2-6）" % old) if exempt else _LESSON.get(feedback, ""),
+         "%s:%s->%s%s" % (risk_class, old, new, "(safety_exempt)" if exempt else ""), new, now))
 
     conn.execute("UPDATE strategy_versions SET active=0 WHERE strategy_key=?", (risk_class,))
     conn.execute("INSERT INTO strategy_versions "
                  "(strategy_key, threshold, reason, created_at, active) VALUES (?,?,?,?,1)",
-                 (risk_class, new, "feedback:%s" % feedback, now))
+                 (risk_class, new, ("feedback:%s:safety_exempt" if exempt else "feedback:%s") % feedback, now))
     conn.commit()
-    return {"risk_class": risk_class, "threshold": new, "was_correct": bool(was_correct)}
+    return {"risk_class": risk_class, "threshold": new, "was_correct": bool(was_correct),
+            "safety_exempt": exempt}
 
 
 def rollback(state, conn, strategy_key):
@@ -148,7 +177,7 @@ def rollback(state, conn, strategy_key):
         "WHERE strategy_key=? AND active=1 ORDER BY version_id DESC LIMIT 1",
         (strategy_key,)).fetchone()
     if active_row is None:
-        return {"rolled_back": False, "threshold": thresholds.get(strategy_key, DEFAULT_UNKNOWN)}
+        return {"rolled_back": False, "threshold": thresholds.get(strategy_key, prior(strategy_key))}
 
     prev_row = conn.execute(
         "SELECT version_id, threshold FROM strategy_versions "
@@ -174,9 +203,10 @@ def on_event(topic, from_svc, msg):
                 "ts": msg.get("ts", time.time())}
         _state["interventions"][iid] = meta
         _state["last"] = meta
-        # 防膨胀：缓存超 1000 条丢弃最旧一半
-        if len(_state["interventions"]) > 1000:
-            for k in list(_state["interventions"].keys())[:500]:
+        # 防膨胀：超上限丢弃最旧一半（上限 = evolve.intervention_cache_max，注册表可配）
+        cap = int(policy.get(KNOB_CACHE_MAX))
+        if len(_state["interventions"]) > cap:
+            for k in list(_state["interventions"].keys())[:cap // 2]:
                 _state["interventions"].pop(k, None)
     elif topic == "sys.interact.feedback":
         req_id = str(msg.get("req_id", uuid.uuid4()))
@@ -218,12 +248,14 @@ def _selftest():
         pass
     conn.commit()
 
-    st = {"thresholds": dict(DEFAULT_THRESHOLDS)}
+    st = {"thresholds": default_thresholds()}
     seed_and_load(st, conn)
 
     fails = []
+    tally = {"n": 0}          # 计数实算：以前这里硬写 15/15，加断言也不会变——假计数比没计数更糟
 
     def check(name, got, want):
+        tally["n"] += 1
         ok = (got == want)
         print(("PASS " if ok else "FAIL ") + name)
         if not ok:
@@ -262,12 +294,22 @@ def _selftest():
     # growth 对账行：rejected + accepted 两条
     check("growth 行数=2", conn.execute("SELECT COUNT(*) FROM growth").fetchone()[0], 2)
 
-    # 边界：rejected 上限 0.95 / accepted 下限 0.05
-    stb = {"thresholds": {"FINANCIAL": 0.9, "SAFETY": 0.08}}
+    # 边界：rejected 撞天花板 / accepted 撞地板（用 FINANCIAL、SOCIAL 测——SAFETY 已豁免学习，拿它测边界是错的口径）
+    stb = {"thresholds": {"FINANCIAL": 0.9, "SOCIAL": 0.06}}
     r3 = apply_feedback(stb, conn, "i-3", "rejected", "FINANCIAL", {})
-    check("rejected 上限 0.95", r3["threshold"], 0.95)
-    r4 = apply_feedback(stb, conn, "i-4", "accepted", "SAFETY", {})
-    check("accepted 下限 0.05", r4["threshold"], 0.05)
+    check("rejected 撞天花板 0.95", r3["threshold"], 0.95)
+    r4 = apply_feedback(stb, conn, "i-4", "accepted", "SOCIAL", {})
+    check("accepted 撞地板 0.05", r4["threshold"], 0.05)
+
+    # 验收 F 的核心断言（本批补）：安全类被反复嫌烦也不许漂移，但账必须照记
+    sts = {"thresholds": {"SAFETY": prior("SAFETY")}}
+    day1 = sts["thresholds"]["SAFETY"]
+    for i in range(100):
+        apply_feedback(sts, conn, "s-%d" % i, "rejected", "SAFETY", {})
+    check("100 次嫌烦后 SAFETY 阈值仍等于第一天", sts["thresholds"]["SAFETY"], day1)
+    n_exempt_rows = conn.execute(
+        "SELECT COUNT(*) FROM growth WHERE strategy_update LIKE '%safety_exempt%'").fetchone()[0]
+    check("豁免期间 growth 照记 100 条", n_exempt_rows >= 100, True)
 
     # 无上一版本时 rollback 不翻车
     r0 = rollback({"thresholds": {"GHOST": 0.5}}, conn, "GHOST")
@@ -280,9 +322,9 @@ def _selftest():
     conn.close()
 
     if fails:
-        print("SELFTEST FAILED: %s" % fails)
+        print("SELFTEST FAILED: %s（共 %d 项，通过 %d 项）" % (fails, tally["n"], tally["n"] - len(fails)))
         sys.exit(1)
-    print("SELFTEST PASSED (15/15)")
+    print("SELFTEST PASSED (%d/%d)" % (tally["n"], tally["n"]))
 
 
 if __name__ == "__main__":

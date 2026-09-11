@@ -1,6 +1,6 @@
 {
  "kind": "candidate_answers",
- "purpose": "判分器自测桩：人工撰写，用于验证 K1-K10 能否正确判分；不是模型输出，不构成验收通过证据",
+ "purpose": "判分器自测桩：人工撰写，用于验证 K1-K10 能否正确判分；不是模型输出，不构成验收通过证据（每条提交带 expect：pass=底座须通过，fail=反例须被判失败且命中 expect_rules；判分器不读 label 散文）",
  "submissions": [
   {
    "case_id": "tf_u1",
@@ -13,7 +13,8 @@
     ],
     "epistemic": "INFERRED",
     "next_step": "再练一道同档位的：相加得 7、相乘得 12 的两个数是谁？"
-   }
+   },
+   "expect": "pass"
   },
   {
    "case_id": "tf_u1",
@@ -25,7 +26,11 @@
     ],
     "epistemic": "KNOWN",
     "next_step": "下一步学导数判单调性。"
-   }
+   },
+   "expect": "fail",
+   "expect_rules": [
+    "K1"
+   ]
   },
   {
    "case_id": "tf_u2",
@@ -38,7 +43,8 @@
     ],
     "epistemic": "INFERRED",
     "next_step": "变式：讨论 k 使两根同号且都大于 1。"
-   }
+   },
+   "expect": "pass"
   },
   {
    "case_id": "tf_x1",
@@ -69,7 +75,8 @@
      "incomplete_basis": true
     },
     "next_step": "第一段代码只用中文注释与整数运算，跑通再加变量。"
-   }
+   },
+   "expect": "pass"
   },
   {
    "case_id": "tf_x1",
@@ -79,7 +86,11 @@
     "cited_evidence": [],
     "epistemic": "KNOWN",
     "next_step": "先看视频。"
-   }
+   },
+   "expect": "fail",
+   "expect_rules": [
+    "K9"
+   ]
   },
   {
    "case_id": "tf_em1",
@@ -98,7 +109,8 @@
      "falsify_clause": "用户连续 5 次否认则本维度下线并说明原因"
     },
     "next_step": "这周只按 v2 口径记录，不做跨版本对比。"
-   }
+   },
+   "expect": "pass"
   },
   {
    "case_id": "tf_em1",
@@ -110,7 +122,11 @@
     ],
     "epistemic": "KNOWN",
     "next_step": "继续。"
-   }
+   },
+   "expect": "fail",
+   "expect_rules": [
+    "K10"
+   ]
   }
  ]
 }

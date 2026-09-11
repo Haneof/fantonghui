@@ -8,8 +8,9 @@
   },
   "change_protocol": "改 default/floor/ceiling = 改本文件 + 过 policy_scan + 走 evolutiond 版本链；改 T0 结构不变量（One AIOS/One AI/One Clock/缺数≠零/App 不建大脑）= 必须修宪，不接受代码里顺手改",
   "not_a_config_store": "本表只登记「可调的东西」及其边界；运行期生效值存 settingsd/evolutiond 版本链，禁止各服务自建第二份 config",
-  "version": "v0",
-  "signed": "2026-09-11 最高项目决策者（依指挥官「哪怕标记了也可能要改」的纠正而建）"
+  "version": "v0.1",
+  "signed": "2026-09-11 最高项目决策者（依指挥官「哪怕标记了也可能要改」的纠正而建）",
+  "notes": "第四批接线：evolutiond/hublinkd 全部策略数字搬进注册表，读取入口唯一（code/policy.py）；SAFETY 豁免 Regret 为验收 F 补上机械保证"
  },
  "knobs": [
   {
@@ -351,7 +352,7 @@
    "audit": "event",
    "desc": "evolutiond 把 AI 自调后的介入率夹到 [floor, ceiling]。现值 0.05 硬写在服务里（已认领为待接线）。人可以把地板调高，AI 不能自己抬。",
    "rationale": "指挥官纪律：连夹逼区间本身也是可调旋钮，不得写死；但它决定 AI 自我调节的自由度，所以 owner 含 user",
-   "code_const": "services/evolutiond.py:THRESHOLD_LOW"
+   "wired_in": "services/evolutiond.py:_clamp"
   },
   {
    "id": "evolve.tune_ceiling",
@@ -370,7 +371,7 @@
    "audit": "event",
    "desc": "同上，上界。防止 AI 把介入率一路调到 100% 变成骚扰机器，或调到 0 变成沉默机器。",
    "rationale": "有天花板与地板才有『可自动但不可无界漂移』",
-   "code_const": "services/evolutiond.py:THRESHOLD_HIGH"
+   "wired_in": "services/evolutiond.py:_clamp"
   },
   {
    "id": "bus.batch_window_s",
@@ -389,7 +390,7 @@
    "audit": "log",
    "desc": "事件入持久队列的 IO 节流窗口：攒够 0.5s 或够一批发一次。调大省 IO 涨延迟，调小降延迟涨写放大。",
    "rationale": "这是吞吐/时延的权衡旋钮，属策略不属协议；已认领为待接线",
-   "code_const": "services/hublinkd.py:BATCH_WINDOW"
+   "wired_in": "services/hublinkd.py:EntryQueue.persist"
   },
   {
    "id": "bus.batch_size",
@@ -408,7 +409,7 @@
    "audit": "log",
    "desc": "单批最大事件数；与 batch_window_s 二者先到先flush。实测 829 条/秒是在 20/0.5s 这组默认值下得到的，改它须重跑压测。",
    "rationale": "登记的同时把性能结论的口径钉住：换默认值就等于换了被测配置",
-   "code_const": "services/hublinkd.py:BATCH_SIZE"
+   "wired_in": "services/hublinkd.py:EntryQueue.persist"
   },
   {
    "id": "dim.grace_period_s",
@@ -427,6 +428,272 @@
    "audit": "event",
    "desc": "生产者断供后维持原 state 的宽限期；到期自动 STALE 并触发一次『还要不要接/换个源』的对话",
    "rationale": "宽限期太短会因设备掉线误杀长期曲线，太长会拿旧值冒充现在（docs/11 §8 禁止静默用旧值）；给 AI 界内调权换工程弹性，红线是到期必转 STALE，不是到期日"
+  },
+  {
+   "id": "evolve.prior.social",
+   "cn": "社交类介入谨慎度初值",
+   "unit": "ratio",
+   "default": 0.5,
+   "floor": 0.0,
+   "ceiling": 1.0,
+   "owner": [
+    "user"
+   ],
+   "ai_may_relax": false,
+   "safety_linked": false,
+   "hot_effect": "next_adjust",
+   "audit": "event",
+   "desc": "evolutiond 各 risk_class 的起始谨慎度（越高越少介入）。已从代码常量搬进注册表。",
+   "rationale": "初值决定学习起点，属策略；它是被学出来的那个量本身，给 AI 自调无意义，故 owner 只有 user",
+   "wired_in": "services/evolutiond.py",
+   "within": [
+    "evolve.tune_floor",
+    "evolve.tune_ceiling"
+   ]
+  },
+  {
+   "id": "evolve.prior.financial",
+   "cn": "财务类介入谨慎度初值",
+   "unit": "ratio",
+   "default": 0.8,
+   "floor": 0.0,
+   "ceiling": 1.0,
+   "owner": [
+    "user"
+   ],
+   "ai_may_relax": false,
+   "safety_linked": false,
+   "hot_effect": "next_adjust",
+   "audit": "event",
+   "desc": "钱的事默认谨慎：宁可少说，不可说错。",
+   "rationale": "高风险域用高初值是产品立场不是算法必然，所以要可改",
+   "wired_in": "services/evolutiond.py",
+   "within": [
+    "evolve.tune_floor",
+    "evolve.tune_ceiling"
+   ]
+  },
+  {
+   "id": "evolve.prior.safety",
+   "cn": "安全类介入谨慎度初值",
+   "unit": "ratio",
+   "default": 0.1,
+   "floor": 0.0,
+   "ceiling": 0.95,
+   "owner": [
+    "user"
+   ],
+   "ai_may_relax": false,
+   "safety_linked": true,
+   "hot_effect": "next_adjust",
+   "audit": "event",
+   "desc": "摔倒/生理异常必须几乎无脑介入，初值取 0.1（谨慎度很低 = 容易开口）。",
+   "rationale": "T2 边界项：AI 无权改自己安全门的起点；若你认为人也不该改，应升为 T0 并从注册表移出（已列待拍板）",
+   "user_confirm": {
+    "required": true,
+    "cost_notice": "调高 = 安全介入更不容易发生（漏报代价）；调低 = 打扰上升"
+   },
+   "wired_in": "services/evolutiond.py",
+   "within": [
+    "evolve.tune_floor",
+    "evolve.tune_ceiling"
+   ]
+  },
+  {
+   "id": "evolve.delta.accepted",
+   "cn": "反馈 accepted 的谨慎度增量",
+   "unit": "ratio",
+   "default": -0.05,
+   "floor": -0.5,
+   "ceiling": 0.0,
+   "owner": [
+    "ai",
+    "user"
+   ],
+   "ai_may_relax": true,
+   "safety_linked": false,
+   "hot_effect": "next_adjust",
+   "audit": "event",
+   "desc": "accepted → 下调谨慎度（更愿意同类介入）。必须 ≤ 0，否则「被认可反而更谨慎」逻辑倒置。",
+   "rationale": "符号约束（≤0）是结构、数值（0.05）是策略：用 floor/ceiling 把符号钉住，数值仍可动",
+   "wired_in": "services/evolutiond.py"
+  },
+  {
+   "id": "evolve.delta.rejected",
+   "cn": "反馈 rejected 的谨慎度增量",
+   "unit": "ratio",
+   "default": 0.15,
+   "floor": 0.0,
+   "ceiling": 0.5,
+   "owner": [
+    "ai",
+    "user"
+   ],
+   "ai_may_relax": true,
+   "safety_linked": false,
+   "hot_effect": "next_adjust",
+   "audit": "event",
+   "desc": "rejected → 上调谨慎度（同类少打扰）。必须 ≥ 0。",
+   "rationale": "步长太大一次就能把安全门关掉，所以有天花板",
+   "wired_in": "services/evolutiond.py"
+  },
+  {
+   "id": "evolve.delta.ignored",
+   "cn": "反馈 ignored 的谨慎度增量",
+   "unit": "ratio",
+   "default": 0.02,
+   "floor": 0.0,
+   "ceiling": 0.2,
+   "owner": [
+    "ai",
+    "user"
+   ],
+   "ai_may_relax": true,
+   "safety_linked": false,
+   "hot_effect": "next_adjust",
+   "audit": "event",
+   "desc": "ignored → 微上调，压低低价值介入。",
+   "rationale": "被忽略不等于被否定，步长必须最小，否则用户懒得点拒绝就会把 AI 学哑",
+   "wired_in": "services/evolutiond.py"
+  },
+  {
+   "id": "evolve.safety_regret_exempt",
+   "cn": "安全类豁免 Regret 学习",
+   "unit": "bool",
+   "default": true,
+   "floor": false,
+   "ceiling": true,
+   "owner": [
+    "user"
+   ],
+   "ai_may_relax": false,
+   "safety_linked": true,
+   "hot_effect": "next_adjust",
+   "audit": "event",
+   "desc": "risk_class=SAFETY 时不做阈值调整（只记 growth 账），落实 §4.2-6 与验收 F：连续 100 次「嫌烦」后安全阈值必须与第一天完全一致。",
+   "rationale": "本批实测发现：接线前 SAFETY 从 0.1 被 100 次 rejected 学到 0.95 = 安全介入可被学成沉默，属 P0 违宪",
+   "user_confirm": {
+    "required": true,
+    "cost_notice": "关掉豁免 = 允许用户反馈把安全介入学到沉默（违宪，须重述理由）"
+   },
+   "wired_in": "services/evolutiond.py"
+  },
+  {
+   "id": "evolve.intervention_cache_max",
+   "cn": "介入元数据内存缓存上限",
+   "unit": "count",
+   "default": 1000,
+   "floor": 50,
+   "ceiling": 200000,
+   "owner": [
+    "ai",
+    "user"
+   ],
+   "ai_may_relax": true,
+   "safety_linked": false,
+   "hot_effect": "immediate",
+   "audit": "log",
+   "desc": "intervention_id→risk_class 内存映射条数上限；超限丢最旧一半后，后续反馈只能落到「最近一条」兜底，对账会张冠李戴。",
+   "rationale": "这是内存/准确率权衡（丢弃策略本身写死在代码里，上限是旋钮），属策略不属协议",
+   "wired_in": "services/evolutiond.py"
+  },
+  {
+   "id": "bus.retention_h",
+   "cn": "入口队列已转发保留时长",
+   "unit": "h",
+   "default": 24,
+   "floor": 1,
+   "ceiling": 720,
+   "owner": [
+    "ai",
+    "user"
+   ],
+   "ai_may_relax": true,
+   "safety_linked": false,
+   "hot_effect": "next_tick",
+   "audit": "log",
+   "desc": "hublinkd entry_queue 里 forwarded=1 的事件保留多久后清理。",
+   "rationale": "保留期是隐私与重放能力的权衡，必须可配",
+   "wired_in": "services/hublinkd.py"
+  },
+  {
+   "id": "bus.replay_interval_s",
+   "cn": "启动重放轮询间隔",
+   "unit": "s",
+   "default": 3.0,
+   "floor": 0.5,
+   "ceiling": 600.0,
+   "owner": [
+    "ai",
+    "user"
+   ],
+   "ai_may_relax": true,
+   "safety_linked": false,
+   "hot_effect": "next_tick",
+   "audit": "log",
+   "desc": "未转发事件的兜底重放周期；调长省 CPU，调短降低卡队时间。",
+   "rationale": "纯运维权衡，任何固定值都只是为了跑起来",
+   "wired_in": "services/hublinkd.py"
+  },
+  {
+   "id": "bus.cleanup_interval_s",
+   "cn": "清理线程周期",
+   "unit": "s",
+   "default": 60.0,
+   "floor": 5.0,
+   "ceiling": 86400.0,
+   "owner": [
+    "ai",
+    "user"
+   ],
+   "ai_may_relax": true,
+   "safety_linked": false,
+   "hot_effect": "next_tick",
+   "audit": "log",
+   "desc": "过期已转发事件的清理周期。",
+   "rationale": "清理比转发慢几个数量级即可：太密是白耗 IO，太疏会让已转发事件在库里堆成重放噪声（与 retention_h 联动）",
+   "wired_in": "services/hublinkd.py"
+  },
+  {
+   "id": "evolve.prior.unknown",
+   "cn": "未知 risk_class 兜底谨慎度",
+   "unit": "ratio",
+   "default": 0.5,
+   "floor": 0.0,
+   "ceiling": 1.0,
+   "owner": [
+    "user"
+   ],
+   "ai_may_relax": false,
+   "safety_linked": false,
+   "hot_effect": "next_adjust",
+   "audit": "event",
+   "desc": "收到不认识的 risk_class 时的中性初值，避免「未知=最激进」。",
+   "rationale": "兜底值同样是人定的立场，必须可配",
+   "wired_in": "services/evolutiond.py",
+   "within": [
+    "evolve.tune_floor",
+    "evolve.tune_ceiling"
+   ]
+  },
+  {
+   "id": "bus.startup_grace_s",
+   "cn": "hublinkd 启动等待总线就绪",
+   "unit": "s",
+   "default": 1.5,
+   "floor": 0.0,
+   "ceiling": 60.0,
+   "owner": [
+    "ai",
+    "user"
+   ],
+   "ai_may_relax": true,
+   "safety_linked": false,
+   "hot_effect": "next_tick",
+   "audit": "log",
+   "desc": "重放线程开跑前等总线连接建立的宽限期。",
+   "rationale": "纯工程时序，写死只会让快机器白等、慢机器不够等",
+   "wired_in": "services/hublinkd.py"
   }
  ],
  "waivers": [

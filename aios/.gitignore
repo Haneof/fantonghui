@@ -16,6 +16,8 @@ nohup.out
 # （教训见 DEVLOG 2026-09-10 Task 5 执行记录第 6 条）。
 # 例外：run/ 下的基准结果与 run/bench1k/ 全部是已验收里程碑的证据，保留跟踪。
 **/run/*.json
+# 策略运行态（覆盖值与审计流水）：每次 set 都变，入库必然脏
+**/run/policy/
 !**/run/benchmark_*.json
 !**/run/gate_benchmark_*.json
 # 基准目录只挡中间产物，不挡 questions/results 等证据

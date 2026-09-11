@@ -309,8 +309,31 @@ def main():
     else:
         print(f"  SKIP 同题 case {len(same_task)} 个、已有底座式答案 {len(base_same)} 个，"
               f"K3 不判（不得以部分数据宣称通过）")
-    print("\n" + ("全部判据通过 ✓" if not errs and all(r['ok'] for r in results) else "存在未通过项 ❌"))
-    return 0 if (not errs and results and all(r["ok"] for r in results)) else 1
+    # 结论按 expect 算：反例"被判失败"是通过，不是未通过项（旧写法把反例算成失败，逐条对、总结错）
+    exp_pass = exp_pass_ok = exp_fail = exp_fail_ok = 0
+    for srec, r in zip(sub["submissions"], results):
+        want = srec.get("expect")
+        if want not in ("pass", "fail"):
+            errs.append(f"{r['case_id']}: 提交缺 expect 字段（只能是 pass/fail，不许让判分器猜 label）")
+            continue
+        if want == "pass":
+            exp_pass += 1
+            exp_pass_ok += 1 if r["ok"] else 0
+            if not r["ok"]:
+                errs.append(f"{r['case_id']} 底座式未通过：{[v['rule'] for v in r['violations']]}")
+        else:
+            exp_fail += 1
+            hit = {v["rule"].split("_")[0] for v in r["violations"]}
+            want_rules = set(srec.get("expect_rules") or [])
+            good = (not r["ok"]) and (not want_rules or want_rules <= hit)
+            exp_fail_ok += 1 if good else 0
+            if not good:
+                errs.append(f"{r['case_id']} 反例未按预期失败（应命中 {sorted(want_rules)}，实得 {sorted(hit)}）")
+    print(f"\n  结论：底座 {exp_pass_ok}/{exp_pass} 通过 ｜ 反例 {exp_fail_ok}/{exp_fail} 按预期被判失败"
+          f"（反例被抓住 = 判分器有效，不是缺陷）")
+    ok = (not errs) and results and exp_pass and exp_pass_ok == exp_pass and exp_fail_ok == exp_fail
+    print(("全部判据按预期收口 ✓" if ok else "存在与预期不符项 ❌（详见 errs）"))
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":

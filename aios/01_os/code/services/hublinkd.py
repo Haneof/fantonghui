@@ -15,12 +15,18 @@ import uuid
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from aios_sdk.aios_sdk import AIOSService
+import policy
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 QDB = os.path.join(ROOT, "run", "entry_queue.db")
-BATCH_SIZE = 20
-BATCH_WINDOW = 0.5
-RETENTION_H = 24
+# 攒批与清理节奏属 T1 策略：全部现读注册表，本文件不留数值字面量。
+# 「829 条/秒」这个已记录的性能结论，口径 = bus.batch_size=20 / bus.batch_window_s=0.5；改这两个数须重跑压测。
+KNOB_BATCH_SIZE = "bus.batch_size"
+KNOB_BATCH_WINDOW_S = "bus.batch_window_s"
+KNOB_RETENTION_H = "bus.retention_h"
+KNOB_REPLAY_INTERVAL_S = "bus.replay_interval_s"
+KNOB_CLEANUP_INTERVAL_S = "bus.cleanup_interval_s"
+KNOB_STARTUP_GRACE_S = "bus.startup_grace_s"
 
 svc = AIOSService("hublinkd", subscribe=["evt.sim.#", "evt.raw.#", "sys.test.#"])
 
@@ -46,9 +52,10 @@ CREATE INDEX IF NOT EXISTS idx_q_fwd ON entry_queue(forwarded);
     def persist(self, ev):
         with self._lock:
             self._batch.append(ev)
-            if len(self._batch) >= BATCH_SIZE or time.time() - self._last_commit >= BATCH_WINDOW:
+            if (len(self._batch) >= int(policy.get(KNOB_BATCH_SIZE))
+                    or time.time() - self._last_commit >= float(policy.get(KNOB_BATCH_WINDOW_S))):
                 self._flush_locked()
-            # 注：批量窗口内（≤20 条 / ≤0.5s）崩溃最多丢未提交批，v0 可接受损耗
+            # 注：一个批量窗口内崩溃最多丢未提交批（窗口 = batch_size / batch_window_s，可配），v0 可接受损耗
 
     def _flush_locked(self):
         for ev in self._batch:
@@ -74,7 +81,8 @@ CREATE INDEX IF NOT EXISTS idx_q_fwd ON entry_queue(forwarded);
                     "UPDATE entry_queue SET forwarded=1, forwarded_at=? WHERE id=?", (now, i))
             self._conn.commit()
 
-    def cleanup(self, hours=RETENTION_H):
+    def cleanup(self, hours=None):
+        hours = float(policy.get(KNOB_RETENTION_H)) if hours is None else hours
         with self._lock:
             self._conn.execute(
                 "DELETE FROM entry_queue WHERE forwarded=1 AND forwarded_at < ?",
@@ -82,7 +90,9 @@ CREATE INDEX IF NOT EXISTS idx_q_fwd ON entry_queue(forwarded);
             self._conn.commit()
 
 
-Q = EntryQueue(QDB)
+# 模块级不产生任何副作用：以前 `Q = EntryQueue(QDB)` + 两条线程 + svc.run() 全写在 import 路径上，
+# 结果任何测试只要 import 本模块就会真起服务并 sys.exit(1)，把测试进程带走。改为 _main() 内装配。
+Q = None
 
 def normalize(msg):
     ev = dict(msg or {})
@@ -108,11 +118,22 @@ def on_event(topic, from_svc, msg):
         if svc.publish("evt.stream", ev):           # 【后转发】
             Q.mark([ev["id"]])
 
+def _build_queue(path=None):
+    """装配（含建库）与测试注入点：测试传自己的路径，绝不碰真实 run/。"""
+    return EntryQueue(path or QDB)
+
+
+def _wire(q):
+    global Q
+    Q = q
+    svc.on_event = on_event
+
+
 svc.on_event = on_event
 
 # ---------- 启动重放线程 ----------
 def replay_loop():
-    time.sleep(1.5)                                 # 等总线连接建立
+    time.sleep(float(policy.get(KNOB_STARTUP_GRACE_S)))   # 等总线连接建立（可配）
     while True:
         try:
             pend = Q.pending()
@@ -125,20 +146,27 @@ def replay_loop():
                 Q.mark(done)
         except Exception as e:
             svc.log(f"[异常] 重放: {e}")
-        time.sleep(3)
+        time.sleep(float(policy.get(KNOB_REPLAY_INTERVAL_S)))
 
-threading.Thread(target=replay_loop, daemon=True).start()
 
 # ---------- 清理线程 ----------
 def cleanup_loop():
     while True:
-        time.sleep(60)
+        time.sleep(float(policy.get(KNOB_CLEANUP_INTERVAL_S)))
         try:
             Q.cleanup()
         except Exception:
             pass
 
-threading.Thread(target=cleanup_loop, daemon=True).start()
 
-svc.log("服务启动（M2.5 · 入口持久化队列：先落盘后转发，重启零丢失）")
-svc.run()
+def main():
+    global Q
+    Q = _build_queue()
+    threading.Thread(target=replay_loop, daemon=True).start()
+    threading.Thread(target=cleanup_loop, daemon=True).start()
+    svc.log("服务启动（M2.5 · 入口持久化队列：先落盘后转发，重启零丢失）")
+    svc.run()
+
+
+if __name__ == "__main__":
+    main()

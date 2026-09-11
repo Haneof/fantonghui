@@ -19,6 +19,8 @@
   RULE-5 魔法数字：服务/总线/SDK 的模块级常量名命中策略特征词（INTERVAL|TIMEOUT|WINDOW|THRESHOLD|
          BUDGET|LIMIT|MAX_|MIN_|_HZ|_MS|_S）且值为数值字面量 ⇒ 必须已登记或在 waivers 里说明理由
   RULE-6 每条旋钮必须写 rationale 与 hot_effect（否则改了不知道何时生效、为什么这么定，登记表就会烂掉）
+  RULE-7 交叉区间：旋钮可声明 "within": [下界id, 上界id]，其 default 必须落在两者当前默认值之间
+         （例：三条 evolve.prior.* 必须落在 evolve.tune_floor/tune_ceiling 之间——否则初值一进来就被夹住，学习失效）
 """
 from __future__ import annotations
 
@@ -30,7 +32,9 @@ import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))                      # code/
-REGISTRY = os.path.join(HERE, "policies_v0.json")
+# 与 policy.py 同一份环境变量入口：否则"检查别人不许写死"的工具自己把路径写死了，
+# 而且无法用改过的注册表对扫描器做反例测试（下面 tests/test_s2_t_policy.py 的 RULE-7 用例就靠它）
+REGISTRY = os.environ.get("AIO_POLICIES") or os.path.join(HERE, "policies_v0.json")
 SCAN_DIRS = ["services", "bus", "aios_sdk", "aiosd", "simulator", "bench", "tests"]
 HOT_EFFECTS = {"immediate",          # 改完立刻影响下一条
                "next_window",         # 下一个采样/聚合窗口起效
@@ -38,7 +42,9 @@ HOT_EFFECTS = {"immediate",          # 改完立刻影响下一条
                "next_tick",            # 下一次巡检 tick 起效
                "next_session",         # 下一次 AI 会话起效
                "next_adjust"}          # 下一次 AI 自调时起效（夹逼区间这类不能中途换）
-ID_PREFIX = r"(?:sample|duty|safety|agg|retain|summarize|trigger|dim|privacy|budget)"
+# 引用检测的前缀集合**从注册表推导**，不手写白名单：
+# 曾经手写过一份，漏了 evolve/bus 两族，结果接线完成后 RULE-4 依旧报「1 个被引用」——
+# 执行器自己写死清单，就会在被检查对象扩张时静默失明。这是本文件最重要的一条实现纪律。
 MAGIC_NAME = re.compile(r"(INTERVAL|TIMEOUT|WINDOW|THRESHOLD|BUDGET|LIMIT|CAP|SIZE|MAX_|MIN_|_HZ$|_MS$|_S$)")
 REQUIRED = ("id", "cn", "unit", "default", "floor", "ceiling", "owner",
             "ai_may_relax", "safety_linked", "hot_effect", "audit", "desc", "rationale")
@@ -57,6 +63,7 @@ def num(x):
 def check_registry(doc):
     errs, warns, infos = [], [], []
     knobs = doc.get("knobs", [])
+    by_id_local = {k.get("id"): k for k in knobs}
     seen = set()
     declared = set()
     for kb in knobs:
@@ -93,11 +100,29 @@ def check_registry(doc):
                 errs.append(f"RULE-2 {kid} 安全底线必须由人显式确认（缺 user_confirm）")
         if "ai" in owner and kb.get("audit") in (None, "none"):
             errs.append(f"RULE-3 {kid} 允许 AI 自调但 audit={kb.get('audit')}（改动必须留痕可回滚）")
+    for kb in knobs:                                    # RULE-7 旋钮之间的区间依赖也要机器校验
+        kid, within = kb.get("id", "?"), kb.get("within")
+        if not within:
+            continue
+        if len(within) != 2:
+            errs.append(f"RULE-7 {kid} within 必须写 [下界id, 上界id]")
+            continue
+        lo_k, hi_k = by_id_local.get(within[0]), by_id_local.get(within[1])
+        for nm, ref in (("下界", lo_k), ("上界", hi_k)):
+            if ref is None:
+                errs.append(f"RULE-7 {kid} 的 {nm}引用了未登记旋钮 {within[0] if nm=='下界' else within[1]}")
+        if lo_k and hi_k and not (lo_k["default"] <= kb.get("default") <= hi_k["default"]):
+            errs.append(f"RULE-7 {kid} default={kb.get('default')} 落在 [{lo_k['id']}={lo_k['default']}, "
+                        f"{hi_k['id']}={hi_k['default']}] 之外（区间改了一个忘了另一个 = 口径漂移）")
     return errs, warns, infos, seen, {k["id"]: k for k in knobs}, declared
 
 
-def scan_sources(waives, declared):
+def scan_sources(waives, declared, prefixes):
     refs, magic = {}, []
+    q1, q2 = chr(34), chr(39)                 # 引号用 chr 拼，避免正则里的引号地狱
+    cls = "[" + q1 + q2 + "]"
+    # 段数不限：`sample.hr_hz` 与 `evolve.prior.social` 都得认（只写两段式正则会让三段 id 双向失明）
+    id_pat = re.compile(cls + "((?:" + "|".join(sorted(prefixes)) + ")" + r"(?:\.[a-z_0-9]+)+)" + cls)
     for d in SCAN_DIRS:
         base = os.path.join(HERE, d)
         if not os.path.isdir(base):
@@ -109,8 +134,11 @@ def scan_sources(waives, declared):
                 path = os.path.join(root, fn)
                 rel = os.path.relpath(path, HERE)
                 txt = open(path, encoding="utf-8").read()
-                for m in re.finditer(r"[\x22\x27](" + ID_PREFIX + r"\.[a-z_0-9]+)[\x22\x27]", txt):
-                    refs.setdefault(m.group(1), set()).add(rel)
+                for m in id_pat.finditer(txt):
+                    pid = m.group(1)
+                    if "." not in pid[1:]:          # 只写了前缀不算引用
+                        continue
+                    refs.setdefault(pid, set()).add(rel)
                 try:
                     tree = ast.parse(txt)
                 except SyntaxError:
@@ -158,7 +186,8 @@ def main():
 
     doc = load_registry()
     errs, warns, infos, seen_ids, by_id, declared = check_registry(doc)
-    refs, magic = scan_sources(doc.get("waivers", []), declared)
+    prefixes = sorted({i.split(".", 1)[0] for i in seen_ids if "." in i})
+    refs, magic = scan_sources(doc.get("waivers", []), declared, prefixes)
 
     for pid, where in sorted(refs.items()):
         if pid not in seen_ids:
