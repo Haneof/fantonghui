@@ -1,36 +1,53 @@
-# AIOS 文档入口（V1.4）
+# AIOS 文档入口
 
-> 当前有效架构：**AIOS Constitution V1.4-r0**。
+> **当前唯一有效架构：AIOS Constitution V1.4-r1**。
 >
-> 旧 V1.2 / V1.3、旧 Core、旧 Runtime 只能作为历史参考，不得作为新代码设计依据。
+> 旧 Constitution、旧 Core、旧 Runtime 文档已经从当前分支删除，不再作为历史代码入口或设计依据。
 
-## 开发者阅读顺序
+## 开发者唯一阅读顺序
 
-1. `AIOS_Constitution_V1.4-r0.md` — 最高架构准则
-2. `OS_ARCHITECTURE_V1.4.md` — OS 实现架构
-3. `RUNTIME_CONTRACTS_V1.4.md` — Runtime 接口边界
-4. `DATA_MODEL_V1.4.md` — Observation / Timeline / Dimension / Trigger / AI 数据模型
-5. `DEVELOPMENT_PLAN_V1.4.md` — 当前开发顺序
-6. `ACCEPTANCE_V1.4.md` — 验收标准
+1. `docs/AIOS_Constitution_V1.4-r1.md` — 唯一有效宪法
+2. `docs/05_AI_RUNTIME.md` — AI Cognitive Runtime
+3. `docs/06_REPOSITORY_LAYOUT.md` — 当前仓库结构
+4. `docs/07_DEVELOPMENT_PLAN.md` — 架构开发计划
+5. `docs/08_ACCEPTANCE_TESTS.md` — 验收标准
+6. `AIOS_DEVELOPMENT_TASKS.md` — **唯一实时任务状态表**
+7. `AIOS_PROJECT_EXECUTION_MASTER_V1.0.md` — 工程治理规则
 
-## 当前主线
-
-产品 OS 主线只允许在：
+## 唯一产品 OS 主线
 
 ```text
 aios/01_os/
 ```
 
-进行新开发。
+所有新的 OS Runtime、Schema、Simulator、Tests 必须进入这条主线。
 
-## 明确禁止
+## 当前规范主链
 
-- 不得继续在根目录旧 `00_*`～`09_*` 文档上设计新 Runtime。
-- 不得继续扩展旧 `core/` 作为第二套 OS。
-- 不得把 Semantic Event 当作底层第一公民；底层第一公民是 Observation。
-- 不得在本地用小模型做复杂语义筛选；本地 Runtime 只做机械检测、清洗、记录、触发和资源控制。
-- 不得让 UI 建立自己的 AI、Memory、Timeline 或 Wake Runtime。
+```text
+Observation
+  → Global Timeline
+  → Dynamic Dimension Curves
+  → Trigger
+  → AI Session
+  → Identity Bootstrap
+  → Autonomous Context Construction
+  → Cognitive Runtime
+  → Help / Decision / Action / Silence
+  → Outcome
+  → Cognitive Delta
+  → AI Self Update
+  → Persistent Cognition / Session Handoff
+```
 
-## 历史资产
+## 核心硬规则
 
-旧文档和旧代码不会因为失效而自动删除历史价值。需要复用算法时，必须先证明它与 V1.4 不冲突，再迁移到 `aios/01_os/`。
+- AI Instance 接入 AIOS 后，**第一步必须建立自己的身份**。
+- Identity Bootstrap 之后，AIOS **不得规定固定 Dimension 阅读顺序**。
+- Dimension 是 Global Timeline 上的动态观察视角/时间曲线，不是静态字段或标签表。
+- User / World Dimensions 与 AI Dimensions 共用唯一 Global Timeline，并行演化。
+- Observation / Evidence / Cognition / Hypothesis / Prediction / Outcome 必须保持可区分和可追溯。
+- Local Runtime 不替 AI 做复杂语义判断。
+- UI 不拥有独立 AI、Memory、Timeline、Trigger 或 Cognition。
+- Simulator 的 Expected Intent 对被测 AI 隐藏。
+- 每次代码变更必须更新 `AIOS_DEVELOPMENT_TASKS.md` 并提供测试/验收证据。
