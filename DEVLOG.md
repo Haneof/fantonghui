@@ -400,3 +400,27 @@
 - **本轮我写崩过两次，都如实记**：① K10 的 detail 里在同种引号内嵌引号 → f-string 提前闭合 `SyntaxError`（改「」）；② K3 判据我写成"`base` 含全部案例数 == 同题案例数"，加了 tf_x1/tf_em1 后条件永假、K3 被静默 SKIP——**这属于"测试悄悄不跑了"那类最危险缺陷**，修成先按 `problem_ref` 取同题集再比，并对"不判"打显式 SKIP 说明。教训：**加判据必须同时加反例桩**，否则不知道它有没有在咬。
 - **登记冲突（未擅自处置）**：① `dim.value` 的 `INSUFFICIENT` 判定需要 `min_n`，但 03 schema 里没有样本量字段，属任务 A 补 schema；② `transfer_belief` 落 cognition 树要加一类记录子型，`cognitiond` 现只接受 `sys.cognition.assert` 的扁平 statement——是否扩表待裁决；③ `llm_scored` rubric 每次打分都花大模型调用，与 §13.1「不为算而算」冲突：我建议按天/按事件批算而非逐观测算，需指挥官定；④ `04_apps` 空壳期间 K6/T 的"App 无大脑"只能静态扫描，真跑要等 App。
 - **未完成项**：`dimensiond` 未创建（任务 I，且须排在任务 A 之后——没有时间轴与 Observation，注册表就是空壳表单）；`answers_sample.json` 仍是人工桩，K/T/U/V 均未真正通过；1000 题新规范、`settingsd`、`safetyd` 实装均未开工；Windows 侧仍未验证。
+
+---
+
+### [2026-09-11] 第四批：参数注册表 + 采样占空比契约（回答"没有任何东西写死"）
+
+- **任务**：指挥官裁定「我们的开发过程，没有任何东西是写死的，哪怕你标记了，也可能会改」，并给出采集策略（按时间段总结、触发频率 AI 可调或设置里调、安全除外）与真问题（身体指数是主动采集，每秒都有数据，难道让传感器不停检测？）。要求：把它变成可执行的东西，不是新口号。
+- **开工第一件事**：`git log --oneline -1` 与 `git status` 对齐 → `65623a3`，工作树干净，才动手。
+- **先认错再动手**：上一批我把 `≤6/≤40`、`≤0.5`、"红线 R1-R4" 写成了铁律——**默认值伪装成物理定律，就是文档层面的写死**。修法不是删数字，是每个数字配"默认值 + [floor,ceiling] + owner + 改了会怎样 + 怎么回滚"。
+- **产出**：
+  1. `code/policies_v0.json`：**23 个旋钮**（sample/duty/agg/retain/summarize/trigger/dim/privacy/budget/evolve/bus 十族）+ 4 条豁免（含明确标为"故意不可调"的：`observedd.RESIDENT_MS=180000` 常驻确认窗口、`aios_busd.MAX_PAYLOAD_BYTES` 属帧协议、`safetyd` 阈值属安全底线待实装、docs/08 §V-⑤ 的 100 次属测试夹具）。每根带 owner / ai_may_relax / safety_linked / hot_effect / audit / rationale。
+  2. `code/policy_scan.py`：RULE-1..6 机械校验器（`--json/--strict`，有退出码）。立场不是"代码里不许有数字"，是**策略性数字必须有户口或有豁免理由**。
+  3. `docs/12_POLICY_AND_SAMPLING_V0.md`：Part A 可变性三层（T0 结构不变量 / T1 政策默认值 / T2 安全底线）+ 变更协议；Part B 四道闸门 + 三层频率（L-A 常驻免费 / L-B 按需提频 / L-C 人配合）+ `miss_profile` 漏报声明义务。
+  4. 判分器去写死：`bench/check_teaching_fit.py` 的置信度封顶改从注册表读，取不到直接拒绝跑；夹具与注册表不一致 → `K9_夹具与注册表口径不一致`。
+- **执行命令与实测输出（原样）**：
+  - `python3 policy_scan.py` → `=== AIOS 参数注册表扫描（v0，23 个旋钮）=== ✓ RULE-1/2/3/4/5/6 全部通过：23 个旋钮有户口，1 个已被代码引用，安全底线 2 条 AI 无权放宽`；`--json` → `ok=True knobs=22→23 errors=0`；EXIT=0。
+  - **扫描器首跑抓到主线代码 3 处真写死（不是我编的例子）**：`services/evolutiond.py:28 THRESHOLD_LOW=0.05` / `:29 THRESHOLD_HIGH=0.95`（用在 `:103` 的 clamp——**AI 自调介入率的夹逼区间本身被写死**，正是指挥官点名"AI 有权调"那一类）；`services/hublinkd.py:21 BATCH_SIZE=20` / `:22 BATCH_WINDOW=0.5`（`len>=BATCH_SIZE or age>=BATCH_WINDOW` 决定"829 条/秒"这个结论的测试配置）。处置：登记为 `evolve.tune_floor/tune_ceiling`、`bus.batch_size/batch_window_s`，用 `code_const` 字段认领"我就是这个常量的户口"，**没有改这两个服务的逻辑**（属已验收件，接线归 NEXT_TASK 任务 J）。
+  - `python3 bench/check_teaching_fit.py --grade bench/answers_sample.json` → 首行 `✓ 判分口径来自注册表：trigger.insufficient_cap.default=0.5（owner=['ai','user']，AI 可在 [0.2, 0.8] 内调）`；4 底座式 PASS、3 反例 FAIL（与第三批同一组结论，未因接注册表而变）。
+  - **验证"检测真的会咬"**：把夹具 cap 临时改 0.4 → `[FAIL] tf_x1 底座式 · K9_夹具与注册表口径不一致: 判分阈值改了但夹具没跟着改`；还原后计数归 0。**第一次 sed 因为 JSON 里是 `": 0.4"` 带空格而没匹配上，等于测了个寂寞——已重做**；一个不触发的检测比不加检测更危险。
+  - 回归：`python3 tests/test_s1_t5.py --fast` → 见下；`python3 -m py_compile` 全绿；`python3 -m unittest discover -s archive/legacy_core_simulator/tests -t archive/legacy_core_simulator` → 192 tests OK。
+- **我这一批自己写坏并被工具抓到的两处（原样登记）**：
+  1. 手写 JSON 断在一次 ASCII 引号（`"可配"` 写进了字符串值）→ `Expecting ',' delimiter: line 18`。改为用 python `json.dump` 生成，文档字符串统一用「」。**教训：大 JSON 不许手写。**
+  2. 我给 `hot_effect` 发明了枚举外的值 `next_adjust` → 扫描器当场报 `RULE-6 非法`。**校验器不认创作者，这正是它该有的样子**；把 `next_adjust`（"下一次 AI 自调时起效"，夹逼区间这类不能中途换）补进枚举并写明语义。
+- **登记冲突（未擅自处置）**：① 可变性三层目前只在 `docs/01 §2` 硬规则 + 12 号契约文档里，**没有进 V1.4 正文**（§七-4 禁改正文），是否升为 V1.5 修宪条款待指挥官拍板；② `policies_v0.json` 该由谁下发（`services.json` 加 `policy` 段 vs `aiosd` 统一下发）属架构裁决，任务 J 开工前须定，我倾向前者因为它已被验收链路覆盖；③ 用户覆盖的"粘住"语义要求 AI 改不动用户钉住的值，现 `evolutiond` 没有这个优先级概念，要它配合得改已验收件；④ `sample.hr_hz` 等真机侧参数最终由 OS（Android/HealthKit）决定，我们只能"请求"，注册表里有 `owner` 但没有"被系统拒绝"的回执通道。
+- **未完成项**：任务 J（接线）与任务 K（占空比执行器）一项未开工——**接线前"参数可调"这句话是假的，看板 #22 就是这条**；`safety.fall_detect_hz` 只有注册项、`safetyd` 是 stub；`duty` 提频只有契约没有执行器；教育场景三项（优先级/数据源/Windows）指挥官仍未答，沿用自决：不插队演示型竖切、先模拟器、Windows 挂账；K/T/U/V 仍靠人工桩，未真跑。

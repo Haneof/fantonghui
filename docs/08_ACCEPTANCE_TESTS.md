@@ -149,7 +149,8 @@ AI 能从对话中自行立闹钟（"下周三交报告"）、写进闹钟本、
 
 兴趣 App 要教编程，AI 用了用户的数学/英语曲线定教学档位。判据：
 ① 结论必须带 `transfer.from_dims`，且每条 dim 真实存在于该用户注册表（虚构依据 = 直接失败）；
-② 依据里含 `ABSENT/INSUFFICIENT/STALE` 时，`confidence` 必须 ≤ 0.5 且 `incomplete_basis=true`；
+② 依据里含 `ABSENT/INSUFFICIENT/STALE` 时，`confidence` 必须 ≤ **`policies_v0.json:trigger.insufficient_cap` 的当前值**（默认 0.5，AI 可在 [0.2,0.8] 调）且 `incomplete_basis=true`；
+判分器**读注册表不读字面量**（`check_teaching_fit.py` 启动时打印口径来源；夹具与注册表不一致 → 报 `K9_夹具与注册表口径不一致`，已实测会响）。
 ③ Transfer 只进认知树（`INFERRED`），**不得写回任何曲线的值**，也不得被 Trigger 当事实读；
 ④ 用户纠正一次后，同一 Transfer 不得在下一次会话里原样复活（须走 Regret）。
 判分器已实装：`code/bench/check_teaching_fit.py` 的 K9 组（含"无依据式"反例，实测判失败）。

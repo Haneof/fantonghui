@@ -1,0 +1,454 @@
+{
+ "_meta": {
+  "purpose": "AIOS 可调参数注册表 v0 —— 回答指挥官的纪律：「没有任何东西是写死的」。本表是唯一合法的旋钮清单：阈值、频率、窗口、上限、保留期、置信度封顶都在此登记，服务代码不得自带魔法数字。",
+  "mutability_tiers": {
+   "T1_ai_tunable": "owner 含 ai：AI 可在 [floor, ceiling] 内自调，每次调节留痕（audit）且可回滚；用户设置值优先且粘住",
+   "T1_user_only": "owner 只含 user：只有人在设置面能改（影响体感与省电的全局节奏）",
+   "T2_safety_floor": "safety_linked=true：AI 与自动学习无权放宽（ai_may_relax=false）；用户可改但须显式确认 + 说明代价 + 永久留痕，不得被 Regret 静默压低"
+  },
+  "change_protocol": "改 default/floor/ceiling = 改本文件 + 过 policy_scan + 走 evolutiond 版本链；改 T0 结构不变量（One AIOS/One AI/One Clock/缺数≠零/App 不建大脑）= 必须修宪，不接受代码里顺手改",
+  "not_a_config_store": "本表只登记「可调的东西」及其边界；运行期生效值存 settingsd/evolutiond 版本链，禁止各服务自建第二份 config",
+  "version": "v0",
+  "signed": "2026-09-11 最高项目决策者（依指挥官「哪怕标记了也可能要改」的纠正而建）"
+ },
+ "knobs": [
+  {
+   "id": "sample.hr_hz",
+   "cn": "身体指数采样频率",
+   "unit": "Hz",
+   "default": 0.0033,
+   "floor": 0.00028,
+   "ceiling": 25,
+   "owner": [
+    "ai",
+    "user"
+   ],
+   "ai_may_relax": true,
+   "safety_linked": false,
+   "hot_effect": "next_window",
+   "audit": "event",
+   "desc": "心率/血氧这类【主动供数】的基础频率。default = 每 5 分钟一次，不是每秒。硬件能力上限 25Hz，但那是 IMU 的量级，不该给心率常开。",
+   "rationale": "每秒一值 = 86400 点/天/维度，90 天曲线 778 万点，谁也不需要；省电是穿戴设备的第一约束"
+  },
+  {
+   "id": "duty.hr_active_hz",
+   "cn": "触发窗口内提频",
+   "unit": "Hz",
+   "default": 0.1,
+   "floor": 0.016,
+   "ceiling": 1,
+   "owner": [
+    "ai",
+    "user"
+   ],
+   "ai_may_relax": true,
+   "safety_linked": false,
+   "hot_effect": "immediate",
+   "audit": "event",
+   "desc": "存在活跃触发窗口（运动中/深夜未睡/正在谈价/教育 App 学习中）时临时提到每 10s 一次，窗口结束按冷却回落。【提频只能由 Trigger 状态驱动，AI 不得凭空提频。】",
+   "rationale": "短时脉冲（20 秒心动过速）在 5 分钟采样下必漏——用按需提频换回这类事件，而不是靠常开"
+  },
+  {
+   "id": "duty.escalate_confirm_s",
+   "cn": "提频确认延迟",
+   "unit": "s",
+   "default": 20,
+   "floor": 0,
+   "ceiling": 300,
+   "owner": [
+    "ai",
+    "user"
+   ],
+   "ai_may_relax": true,
+   "safety_linked": false,
+   "hot_effect": "immediate",
+   "audit": "log",
+   "desc": "触发条件须持续这么久才提频，防一次抖动就把传感器拉满",
+   "rationale": "防抖；与 §4.2-1 方向判定共用窗口"
+  },
+  {
+   "id": "duty.deescalate_cooldown_s",
+   "cn": "降频冷却",
+   "unit": "s",
+   "default": 120,
+   "floor": 10,
+   "ceiling": 3600,
+   "owner": [
+    "ai",
+    "user"
+   ],
+   "ai_may_relax": true,
+   "safety_linked": false,
+   "hot_effect": "immediate",
+   "audit": "log",
+   "desc": "窗口结束后过冷却才回落，避免在边界上反复提降",
+   "rationale": "每次提降都有唤醒成本，抑制振荡"
+  },
+  {
+   "id": "duty.imu_edge_only",
+   "cn": "IMU 只在跳变时上报",
+   "unit": "bool",
+   "default": true,
+   "floor": false,
+   "ceiling": true,
+   "owner": [
+    "user"
+   ],
+   "ai_may_relax": false,
+   "safety_linked": false,
+   "hot_effect": "next_window",
+   "audit": "event",
+   "desc": "IMU 25Hz 原始流由硬件侧做特征提取，只上抛【静止/步行/运动/久坐开始/久坐结束】这类边沿事件。这是把 25Hz 变回每天几百条的关键——它是数据模型，不是省电技巧。",
+   "rationale": "被动信号天然事件化；主动信号必须事件化后才进得了时间轴"
+  },
+  {
+   "id": "safety.fall_detect_hz",
+   "cn": "跌倒/撞击检测最低频率",
+   "unit": "Hz",
+   "default": 25,
+   "floor": 25,
+   "ceiling": 200,
+   "owner": [
+    "user"
+   ],
+   "ai_may_relax": false,
+   "safety_linked": true,
+   "hot_effect": "immediate",
+   "audit": "event",
+   "desc": "T2 安全底线：floor == ceiling 是故意的，它不接受【自动】区间。AI 与省电策略都不得调低；人要改必须显式确认并看到漏报风险上升的说明。",
+   "rationale": "任何省电优先的实现，只要允许自动降频，就一定会在某天深夜把跌倒检测降到漏报",
+   "user_confirm": "required_with_cost_notice"
+  },
+  {
+   "id": "agg.curve_point_s",
+   "cn": "曲线点聚合窗口",
+   "unit": "s",
+   "default": 300,
+   "floor": 60,
+   "ceiling": 3600,
+   "owner": [
+    "ai",
+    "user"
+   ],
+   "ai_may_relax": true,
+   "safety_linked": false,
+   "hot_effect": "next_window",
+   "audit": "event",
+   "desc": "【曲线点密度 ≠ 采样密度】：曲线存窗口统计（均值/分位/极值/样本数），不是每秒一个原始点。",
+   "rationale": "指挥官问的「每秒都有数据怎么办」主答案在此：聚合把洪流变成可比较的点，原始流只活在短保留期里"
+  },
+  {
+   "id": "retain.obs_raw_h",
+   "cn": "原始观测保留时长",
+   "unit": "h",
+   "default": 48,
+   "floor": 6,
+   "ceiling": 720,
+   "owner": [
+    "ai",
+    "user"
+   ],
+   "ai_may_relax": true,
+   "safety_linked": false,
+   "hot_effect": "next_window",
+   "audit": "event",
+   "desc": "原始心率/IMU 流的短保留期；到期只删原始、留聚合与 obs_id 骨架（溯源不断链）",
+   "rationale": "宪法 §2.3 生命周期 + 全仓存不下"
+  },
+  {
+   "id": "retain.agg_d",
+   "cn": "聚合点保留天数",
+   "unit": "d",
+   "default": 90,
+   "floor": 7,
+   "ceiling": 1825,
+   "owner": [
+    "user"
+   ],
+   "ai_may_relax": false,
+   "safety_linked": false,
+   "hot_effect": "next_window",
+   "audit": "event",
+   "desc": "个人基线要有历史可比性，聚合点保留期不得被 AI 缩短",
+   "rationale": "AI 若能缩短历史，就能靠删数据来「改善」误报率——这条路必须堵死"
+  },
+  {
+   "id": "summarize.cadence_s",
+   "cn": "时间段总结节奏",
+   "unit": "s",
+   "default": 3600,
+   "floor": 300,
+   "ceiling": 86400,
+   "owner": [
+    "ai",
+    "user"
+   ],
+   "ai_may_relax": true,
+   "safety_linked": false,
+   "hot_effect": "next_cycle",
+   "audit": "event",
+   "desc": "按时间段总结一次（指挥官确认口径）：默认 1 小时。AI 可依事件密度与上下文调整——忙时密一点，闲时稀一点。",
+   "rationale": "逐条总结等于让大模型读全量，违背漏斗；完全不总结等于没有记忆"
+  },
+  {
+   "id": "summarize.min_events",
+   "cn": "一次总结的最小事件数",
+   "unit": "count",
+   "default": 12,
+   "floor": 1,
+   "ceiling": 500,
+   "owner": [
+    "ai",
+    "user"
+   ],
+   "ai_may_relax": true,
+   "safety_linked": false,
+   "hot_effect": "next_cycle",
+   "audit": "log",
+   "desc": "窗口内事件不足则顺延并留 skipped_reason，不为凑数空转一次模型调用",
+   "rationale": "省算力，且避免把「今天什么都没有」写成一条伪总结"
+  },
+  {
+   "id": "trigger.flatline_window_s",
+   "cn": "平线触发窗口",
+   "unit": "s",
+   "default": 18000,
+   "floor": 1800,
+   "ceiling": 172800,
+   "owner": [
+    "ai",
+    "user"
+   ],
+   "ai_may_relax": true,
+   "safety_linked": false,
+   "hot_effect": "next_tick",
+   "audit": "event",
+   "desc": "多久没变化算「平静得值得主动说句话」。思维导图里的 3-5 小时只是示例值，【不是全系统固定值】；每人不同，孤独感强的更短。必须落在地板与天花板之间，禁止无界漂移。",
+   "rationale": "事件驱动架构对「没有事件」是失明的，必须有时钟驱动的巡检兜底"
+  },
+  {
+   "id": "trigger.insufficient_cap",
+   "cn": "依据不全时置信度封顶",
+   "unit": "ratio",
+   "default": 0.5,
+   "floor": 0.2,
+   "ceiling": 0.8,
+   "owner": [
+    "ai",
+    "user"
+   ],
+   "ai_may_relax": true,
+   "safety_linked": false,
+   "hot_effect": "immediate",
+   "audit": "log",
+   "desc": "验收 T/U 的封顶值：依据含 ABSENT/INSUFFICIENT/STALE 时 Transfer 置信度上限。判分器读本表，不写死。",
+   "rationale": "把「依据不足」变成可校验的数字，而不是靠 AI 自己心虚"
+  },
+  {
+   "id": "dim.max_new_per_quarter",
+   "cn": "每季可新增维度数",
+   "unit": "count",
+   "default": 6,
+   "floor": 0,
+   "ceiling": 24,
+   "owner": [
+    "ai",
+    "user"
+   ],
+   "ai_may_relax": true,
+   "safety_linked": false,
+   "hot_effect": "immediate",
+   "audit": "event",
+   "desc": "防爆护栏是【默认值不是铁律】：AI 判断该用户情况复杂可以上调，但上调要留痕；天花板 24 是量级约束。",
+   "rationale": "自注册能力要保住，爆炸风险用可调上限管就够"
+  },
+  {
+   "id": "dim.max_total",
+   "cn": "维度总量上限",
+   "unit": "count",
+   "default": 40,
+   "floor": 8,
+   "ceiling": 200,
+   "owner": [
+    "ai",
+    "user"
+   ],
+   "ai_may_relax": true,
+   "safety_linked": false,
+   "hot_effect": "immediate",
+   "audit": "event",
+   "desc": "超限须先提议下线旧维度（附热值与理由），不得静默丢弃新维度",
+   "rationale": "挂载能力越强越需要配额，但配额归设置面管"
+  },
+  {
+   "id": "dim.stale_after_s",
+   "cn": "曲线判为过期的时限",
+   "unit": "s",
+   "default": 86400,
+   "floor": 3600,
+   "ceiling": 2592000,
+   "owner": [
+    "ai",
+    "user"
+   ],
+   "ai_may_relax": true,
+   "safety_linked": false,
+   "hot_effect": "immediate",
+   "audit": "log",
+   "desc": "外部源（车/秤）断供多久后曲线转 STALE。年度型维度用 periodic_exempt 单独算，不吃这个值。",
+   "rationale": "生日一年一次，用统一 24h 过期会把最有价值的提醒误杀掉"
+  },
+  {
+   "id": "privacy.mic_window_s",
+   "cn": "单次拾音窗口",
+   "unit": "s",
+   "default": 90,
+   "floor": 10,
+   "ceiling": 600,
+   "owner": [
+    "user"
+   ],
+   "ai_may_relax": false,
+   "safety_linked": true,
+   "hot_effect": "immediate",
+   "audit": "event",
+   "desc": "声音/对话属【被动采集】：数据自己来时才记。但常开麦涉及他人隐私与功耗，AI 无权延长窗口或改为常开。",
+   "rationale": "被动 ≠ 无限时长；常开麦必须由人明确决定并承担可见代价",
+   "user_confirm": "required"
+  },
+  {
+   "id": "budget.ai_session_ms",
+   "cn": "单次 AI 会话算力预算",
+   "unit": "ms",
+   "default": 15000,
+   "floor": 2000,
+   "ceiling": 120000,
+   "owner": [
+    "ai",
+    "user"
+   ],
+   "ai_may_relax": true,
+   "safety_linked": false,
+   "hot_effect": "next_session",
+   "audit": "event",
+   "desc": "租约的纯机械配额部分（批多少毫秒、何时回收），与触发条件无关，不设语义评审",
+   "rationale": "宪法 §4.3：预算只是配额"
+  },
+  {
+   "id": "evolve.tune_floor",
+   "cn": "AI 自调介入率的地板",
+   "unit": "ratio",
+   "default": 0.05,
+   "floor": 0.0,
+   "ceiling": 0.95,
+   "owner": [
+    "ai",
+    "user"
+   ],
+   "ai_may_relax": true,
+   "safety_linked": false,
+   "hot_effect": "next_adjust",
+   "audit": "event",
+   "desc": "evolutiond 把 AI 自调后的介入率夹到 [floor, ceiling]。现值 0.05 硬写在服务里（已认领为待接线）。人可以把地板调高，AI 不能自己抬。",
+   "rationale": "指挥官纪律：连夹逼区间本身也是可调旋钮，不得写死；但它决定 AI 自我调节的自由度，所以 owner 含 user",
+   "code_const": "services/evolutiond.py:THRESHOLD_LOW"
+  },
+  {
+   "id": "evolve.tune_ceiling",
+   "cn": "AI 自调介入率的天花板",
+   "unit": "ratio",
+   "default": 0.95,
+   "floor": 0.05,
+   "ceiling": 1.0,
+   "owner": [
+    "ai",
+    "user"
+   ],
+   "ai_may_relax": true,
+   "safety_linked": false,
+   "hot_effect": "next_adjust",
+   "audit": "event",
+   "desc": "同上，上界。防止 AI 把介入率一路调到 100% 变成骚扰机器，或调到 0 变成沉默机器。",
+   "rationale": "有天花板与地板才有『可自动但不可无界漂移』",
+   "code_const": "services/evolutiond.py:THRESHOLD_HIGH"
+  },
+  {
+   "id": "bus.batch_window_s",
+   "cn": "hublinkd 攒批时长",
+   "unit": "s",
+   "default": 0.5,
+   "floor": 0.0,
+   "ceiling": 5.0,
+   "owner": [
+    "ai",
+    "user"
+   ],
+   "ai_may_relax": true,
+   "safety_linked": false,
+   "hot_effect": "immediate",
+   "audit": "log",
+   "desc": "事件入持久队列的 IO 节流窗口：攒够 0.5s 或够一批发一次。调大省 IO 涨延迟，调小降延迟涨写放大。",
+   "rationale": "这是吞吐/时延的权衡旋钮，属策略不属协议；已认领为待接线",
+   "code_const": "services/hublinkd.py:BATCH_WINDOW"
+  },
+  {
+   "id": "bus.batch_size",
+   "cn": "hublinkd 攒批条数",
+   "unit": "count",
+   "default": 20,
+   "floor": 1,
+   "ceiling": 5000,
+   "owner": [
+    "ai",
+    "user"
+   ],
+   "ai_may_relax": true,
+   "safety_linked": false,
+   "hot_effect": "immediate",
+   "audit": "log",
+   "desc": "单批最大事件数；与 batch_window_s 二者先到先flush。实测 829 条/秒是在 20/0.5s 这组默认值下得到的，改它须重跑压测。",
+   "rationale": "登记的同时把性能结论的口径钉住：换默认值就等于换了被测配置",
+   "code_const": "services/hublinkd.py:BATCH_SIZE"
+  },
+  {
+   "id": "dim.grace_period_s",
+   "cn": "外部源断供宽限期",
+   "unit": "s",
+   "default": 86400,
+   "floor": 0,
+   "ceiling": 604800,
+   "owner": [
+    "ai",
+    "user"
+   ],
+   "ai_may_relax": true,
+   "safety_linked": false,
+   "hot_effect": "next_cycle",
+   "audit": "event",
+   "desc": "生产者断供后维持原 state 的宽限期；到期自动 STALE 并触发一次『还要不要接/换个源』的对话",
+   "rationale": "宽限期太短会因设备掉线误杀长期曲线，太长会拿旧值冒充现在（docs/11 §8 禁止静默用旧值）；给 AI 界内调权换工程弹性，红线是到期必转 STALE，不是到期日"
+  }
+ ],
+ "waivers": [
+  {
+   "where": "bus/aios_busd.py:MAX_FRAME",
+   "tier": "T0",
+   "reason": "传输层缓冲上限，非认知策略；改动需同改 SDK，属协议变更走 contracts"
+  },
+  {
+   "where": "aiosd/aiosd.py:0.5s 健康落盘/看门狗扫描",
+   "tier": "T0",
+   "reason": "进程监督节拍，与认知无关；scan_interval_s 已可从 aios_config.json 配"
+  },
+  {
+   "where": "services/attentiond.py:0.2s 租约过期扫描",
+   "tier": "T1_pending",
+   "reason": "租约回收实现节拍，非策略阈值；任务 B 重写时一并登记"
+  },
+  {
+   "where": "code/tests/**",
+   "tier": "T0",
+   "reason": "判分器与验收裁判不属运行策略；其中阈值一律要求引用本表（policy_scan RULE-4）"
+  }
+ ]
+}

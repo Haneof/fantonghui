@@ -21,6 +21,20 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FIXTURE = os.path.join(HERE, "teaching_fit_v1.jsonl")
+POLICIES = os.path.join(os.path.dirname(HERE), "policies_v0.json")   # 判分口径跟着旋钮走，不写死
+
+
+def load_policy_cap(knob_id="trigger.insufficient_cap"):
+    """从参数注册表取置信度封顶。取不到就报错——宁可判分器不跑，也不用一个悄悄写死的默认数。"""
+    try:
+        with open(POLICIES, encoding="utf-8") as f:
+            doc = json.load(f)
+    except OSError as e:
+        raise SystemExit(f"判分器需要 {POLICIES}：{e}")
+    for kb in doc.get("knobs", []):
+        if kb.get("id") == knob_id:
+            return float(kb["default"]), kb
+    raise SystemExit(f"policies_v0.json 里找不到旋钮 {knob_id}（判分口径失去依据）")
 TEMPLATE = os.path.join(HERE, "template_v0.txt")
 
 SPEC_KEYS = ("version", "acceptance", "task_id", "problem", "prompt_template_file",
@@ -57,7 +71,7 @@ def hit_levels(text: str, ladder):
     return out
 
 
-def grade_case(case: dict, output: dict, spec: dict, label: str = ""):
+def grade_case(case: dict, output: dict, spec: dict, label: str = "", cap_from_registry: float = 0.5):
     """返回一条判分结果。violation 为空 = 该条通过。"""
     ladder = spec["tier_ladder"]
     truth, wm = case["truth"], case["world_model"]
@@ -133,7 +147,12 @@ def grade_case(case: dict, output: dict, spec: dict, label: str = ""):
             incomplete = [x.get("dim_id") for x in froms
                           if x.get("dim_id") in dec
                           and dec[x["dim_id"]]["state"] in spec.get("bad_transfer_states", [])]
-            cap = truth.get("transfer_confidence_cap_when_incomplete")
+            cap = cap_from_registry
+            fixture_cap = truth.get("transfer_confidence_cap_when_incomplete")
+            if fixture_cap is not None and abs(float(fixture_cap) - cap) > 1e-9:
+                v.append({"rule": "K9_夹具与注册表口径不一致", "fixture": fixture_cap,
+                          "registry_default": cap,
+                          "detail": "判分阈值改了但夹具没跟着改（或反之）——口径漂移比没判更糟"})
             if incomplete and cap is not None:
                 conf = tr.get("confidence")
                 if conf is None or conf > cap or not tr.get("incomplete_basis"):
@@ -178,7 +197,7 @@ def check_template_anti_cheat(spec: dict):
     return errs
 
 
-def selfcheck(spec: dict, cases: list):
+def selfcheck(spec: dict, cases: list, cap: float = 0.5):
     errs = []
     if spec is None:
         return ["夹具缺 spec 行"]
@@ -240,7 +259,10 @@ def main():
     args = ap.parse_args()
 
     spec, cases = load_fixture(args.fixture)
-    errs = selfcheck(spec, cases)
+    cap, cap_kb = load_policy_cap()
+    errs = selfcheck(spec, cases, cap)
+    print(f"  ✓ 判分口径来自注册表：trigger.insufficient_cap.default={cap}"
+          f"（owner={cap_kb['owner']}，AI 可在 [{cap_kb['floor']}, {cap_kb['ceiling']}] 内调）")
     print(f"=== 验收 K 夹具自检（{len(cases)} 个世界模型）===")
     for e in errs:
         print(f"  ❌ {e}")
@@ -261,7 +283,7 @@ def main():
         for k in OUT_KEYS:
             if k not in srec["output"]:
                 print(f"  ❌ {cid} 输出缺字段 {k}（不合 §5.4 结构化产出契约）")
-        r = grade_case(by_case[cid], srec["output"], spec, srec.get("label", ""))
+        r = grade_case(by_case[cid], srec["output"], spec, srec.get("label", ""), cap)
         results.append(r)
         print(f"  [{'PASS' if r['ok'] else 'FAIL'}] {r['case_id']}  {r['label']}  "
               f"档位命中={r['level_found']['min']}..{r['level_found']['max']}")

@@ -102,7 +102,7 @@ AI 自己注册"情绪/压力/思想"这类无外界接口的维度，风险不�
 | 提案 | `dim_propose{family, axis, why, expected_producers[], rubric 草案, 预计打扰度, 退出条件}` —— 提案本身进时间轴，可回放 |
 | 审批 | 用户可见（设置面"AI 给我建的档案"一栏），**一键否决 + 一键删除**；未批准的维度不得开始打分（可先 `shadow` 试运行只算不用于决策） |
 | 版本 | 走 `evolutiond.strategy_versions`：可回滚、留痕；禁止第二套配置存储 |
-| 防爆炸 | 每 subject 每季度新增 ≤ 6 条；总量 ≤ 40 条；超限必须先下线旧维度（按热值与建议理由） |
+| 防爆炸 | 每 subject 每季度新增 ≤ `dim.max_new_per_quarter`（默认 6）；总量 ≤ `dim.max_total`（默认 40）；超限必须先下线旧维度（按热值与建议理由）。**默认值不是天条**：登记于 `code/policies_v0.json`，AI 可在界内调、用户可覆盖，见 `12_POLICY_AND_SAMPLING_V0.md` Part A |
 | 热值衰减 | 久无供数即降级为 `STALE → SUSPENDED`；**必须支持 `periodic_exempt`**（生日/纪念日/年检一类一年只活跃一次的维度，衰减会误杀最有价值的提醒） |
 | 自毁 | 触发 §5 的 `falsify_clause` 或用户连续否证 → 下线并在下次 AI Session 里说明"我为什么放弃了这条判断" |
 
@@ -133,11 +133,12 @@ AI 自己注册"情绪/压力/思想"这类无外界接口的维度，风险不�
 {"producer_id":"vehicle_oem_x","transport":"push_http|pull_cron","auth_scope":["car/fuel_level","car/mileage"],
  "fields":[{"name":"fuel_level","unit":"%","freq_s":600,"retention_d":90,"redact":"none"},
            {"name":"trip_geo","unit":"geo","freq_s":60,"retention_d":7,"redact":"coarse"}],
- "grace_period_s":86400,"on_break":"state=STALE_then_ask_user","consent":"per_scope",
+ "grace_period_s":86400,          // = policies_v0.json:dim.grace_period_s 默认值，可配
+ "on_break":"state=STALE_then_ask_user","consent":"per_scope",
  "dims_to_create":["producer/subject/car/fuel_level","producer/subject/car/drive_hours_today"]}
 ```
 
-- 授权粒度到 `scope`；断供进 `grace_period` 后自动 `STALE`，并**触发一次"要不要继续接/换个源"的对话**，禁止静默用旧值。
+- 授权粒度到 `scope`；断供进 `grace_period`（默认 `dim.grace_period_s`=24h，可配）后自动 `STALE`，并**触发一次"要不要继续接/换个源"的对话**，禁止静默用旧值。
 - 接入即注册维度（§1 第 4 条）：曲线内核不为任何新品牌改代码。
 - 场景合法性自检（宪法第十章）：`drive_hours_today` 提醒休息 = 安全类，允许主动打断；"油耗高是不是该保养" = 建议类，走最低打扰通道，**不得**因为"数据有"就一直说。
 
