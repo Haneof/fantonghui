@@ -4,81 +4,65 @@
 
 **AIOS Constitution V1.4-r1** 是当前 AIOS 唯一有效 Constitution。
 
-V1.4-r0 为上一补丁版本；V1.3-r0、V1.2-r1 及更早版本仅作为历史资料保留，不得作为新代码、新 Runtime、新任务的架构依据。
+旧 Constitution、旧 `core/` Runtime、旧架构入口已经从 `aios` 分支删除。不要从 Git 历史恢复它们作为当前设计依据。
 
-当前 V1.4-r1 重点补齐：
+## 开发者第一入口
 
-- Identity First：AI Instance 接入后必须先认识自己是谁。
-- Autonomous Cognition：除 Identity Bootstrap 外，不规定固定 Dimension 读取路线。
-- 两组并行长期认知：User / World Dimensions + AI Dimensions，共享 Global Timeline。
-- Cognitive Runtime：Session、Context Construction、Continuation、Persistence。
-- Cognitive Delta：记录一次 Session 真正发生的认知变化。
-- Session Handoff：让下一个 AI Instance 无需从零重读历史即可继续。
-- Cognitive Optimization：通过隐藏 Expected Intent + Simulator + Structured Telemetry + Regression 优化认知机制。
+先读：
 
-## 实际开发依据
+1. `docs/AIOS_Constitution_V1.4-r1.md`
+2. `AIOS_DEVELOPMENT_TASKS.md`
+3. `docs/05_AI_RUNTIME.md`
+4. `docs/06_REPOSITORY_LAYOUT.md`
+5. `docs/07_DEVELOPMENT_PLAN.md`
+6. `docs/08_ACCEPTANCE_TESTS.md`
 
-1. `AIOS_Constitution_V1.4-r1.md` —— 当前唯一有效宪法。
-2. `01_CORE_ARCHITECTURE.md` —— AIOS 底座分层。
-3. `02_RUNTIME_CONTRACTS.md` —— Runtime 输入、输出、边界和接口。
-4. `03_WORLD_EVENT_SCHEMA.md` —— 世界事件与认知对象格式。
-5. `04_WAKE_RUNTIME.md` —— 机械唤醒与上下文进入机制。
-6. `05_AI_RUNTIME.md` —— AI 如何进入世界、建立身份并保持认知连续性。
-7. `06_REPOSITORY_LAYOUT.md` —— 代码仓库结构。
-8. `07_DEVELOPMENT_PLAN.md` —— 开发顺序。
-9. `08_ACCEPTANCE_TESTS.md` —— 阶段验收。
-10. `09_FIRST_SPRINT_TASKS.md` —— 当前 Sprint 任务。
-11. `AIOS_PROJECT_MASTER_PROMPT_V1.0.md` —— 项目主控 Prompt。
+## 当前唯一产品主线
 
-## 先做什么
+```text
+aios/01_os/
+```
 
-第一阶段不要做手环硬件，不要先做完整 UI，不要先做领域 App。
-
-先在 Windows/Linux PC 上做 `AIOS Core Simulator`，跑通：
+## 当前规范主链
 
 ```text
 Reality / Observation
     → Global Timeline
-    → Dimensions
+    → User / World Dimensions + AI Dimensions
     → Trigger
+    → AI Session
     → Identity Bootstrap
-    → Autonomous AI Cognition
-    → Capability / Action / Silence
+    → Autonomous Context Construction
+    → Cognitive Runtime
+    → Help / Decision / Action / Silence
     → Outcome
     → Cognitive Delta
-    → Persistent Update / Handoff
+    → AI Self Update
+    → Persistent Cognition / Handoff
 ```
 
-## 一个最重要的工程结论
+## 两条不可混淆的概念
 
-AIOS 不让低层模型替 AI 做复杂世界理解，也不让 Runtime 把 AI 的思维过程硬编码成固定 Dimension 顺序。
+### Dimension Curve
 
-低层负责：
+Dimension 是基于唯一 Global Timeline 的动态观察视角；Dimension Point 是带时间、证据、来源、置信度的时间锚点。Dimension 不是静态字段、标签集合或当前快照。
 
-- 原始输入接入
-- Observation
-- 清洗 / 归一化
-- 确定性机械检测
-- Global Timeline
-- Trigger
+### Cognitive Mechanism
 
-AI Runtime 负责：
+Cognitive Mechanism 是 AI 认识世界、选择信息、形成假设、交叉验证和决定是否帮助的机制。除 Identity First 外，AIOS 不规定固定的 Dimension 阅读顺序。
 
-- Identity Bootstrap
-- 自主选择相关 World / User / AI Dimensions
-- Evidence 查询
-- 跨时间 / 跨维度 / 跨关系推理
-- 用户意图理解
-- 帮助 / 决策 / 行动 / 沉默
-- Cognitive Delta
-- Session Handoff
+## Identity First
 
-Simulator 负责：
+任何 AI Instance 进入 AIOS 后必须先完成身份建立：
 
-- Hidden Expected Intent
-- Structured Cognitive Trace / Telemetry
-- Failure Diagnosis
-- Mechanism Optimization
-- Regression
+- 我是谁
+- 我是运行在 AIOS 中的 AI Instance，而不是 AIOS 本身
+- 当前 Session / Wake Reason
+- 当前角色、责任、权限和能力
+- 持久认知位于 AIOS，不等于当前 LLM Context
 
-**最终目标不是让 AIOS “记住更多”，而是让 AI 越来越懂这个人，并且能像一个真正有连续人格和关系的 AI 一样，在正确的时候提供真正有价值的帮助。**
+完成后，AI 才开始自主认识当前世界。
+
+## 最终工程目标
+
+AIOS 的目标不是堆积 Memory、Tools 或 App，而是建立一个持续运行的个人世界，让 AI 能基于长期世界、关系、经验、人格与结果，越来越懂用户，并在正确的时候提供真正有价值的帮助。
