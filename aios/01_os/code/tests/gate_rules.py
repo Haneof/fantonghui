@@ -1,17 +1,27 @@
 # -*- coding: utf-8 -*-
 """门控 v2 · 对比机制规则引擎 —— 在千题基准 T6（636 题）上实测
 规则只看事件文本，做阈值/模式对比，不让任何模型"思考"。
+
+V1.4 定位（2026-09-11 修宪后）：本文件是 §4.3 attentiond 四件机械事的**规则内核原型**——
+纯阈值/模式对比、零语义判断、零模型，故合宪。Sprint 2 迁移方向：把 rule_gate() 挂进
+attentiond 的 Threshold/Curve Direction Trigger，并以本文件 636 题作守门回归。
+
+可移植性：原 ROOT 为 Windows 绝对路径硬编码（Linux/WSL2 跑不了，DEVLOG 2026-09-10 冲突④
+已登记），现由 __file__ 推导；跑批段移入 main()，使 rule_gate 可被 import 而无副作用。
 """
 import json
+import os
 import re
 import sys
 
-ROOT = r"C:\Users\Administrator\.openclaw-autoclaw\workspace\aios\01_os\code"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # code/
+BENCH_DIR = os.path.join(ROOT, "run", "bench1k")
 sys.path.insert(0, ROOT)
 
-Q = json.load(open(ROOT + r"\run\bench1k\questions.json", encoding="utf-8"))
-T6 = [q for q in Q if q["type"] == "T6"]
 
+def load_t6():
+    with open(os.path.join(BENCH_DIR, "questions.json"), encoding="utf-8") as f:
+        return [q for q in json.load(f) if q["type"] == "T6"]
 
 def rule_gate(text):
     """对比机制门控：返回 IGNORE / LOCAL / ESCALATE
@@ -57,46 +67,52 @@ def rule_gate(text):
     return "LOCAL"                               # 默认：留档不吵（漏报由复核环兜底）
 
 
-# ---- 跑 636 题 ----
-by_case = {}
-all_sc = []
-misses = []
-for q in T6:
-    m = re.search(r"事件：(.+)", q["q"], re.S)
-    ev = m.group(1).strip() if m else (q["ctx"][0] if q["ctx"] else q["q"])
-    pred = rule_gate(ev)
-    want = q["truth"]["label"]
-    sc = 1.0 if pred == want else 0.0
-    all_sc.append(sc)
-    # 归类到基准情境（用模式前缀）
-    norm = re.sub(r"\d+", "N", ev)[:14]
-    by_case.setdefault(norm, []).append((pred, want))
-    if pred != want and len(misses) < 12:
-        misses.append((q["qid"], ev[:60], pred, want))
+def main():
+    T6 = load_t6()
+    # ---- 跑 636 题 ----
+    by_case = {}
+    all_sc = []
+    misses = []
+    for q in T6:
+        m = re.search(r"事件：(.+)", q["q"], re.S)
+        ev = m.group(1).strip() if m else (q["ctx"][0] if q["ctx"] else q["q"])
+        pred = rule_gate(ev)
+        want = q["truth"]["label"]
+        sc = 1.0 if pred == want else 0.0
+        all_sc.append(sc)
+        # 归类到基准情境（用模式前缀）
+        norm = re.sub(r"\d+", "N", ev)[:14]
+        by_case.setdefault(norm, []).append((pred, want))
+        if pred != want and len(misses) < 12:
+            misses.append((q["qid"], ev[:60], pred, want))
 
-print(f"=== 对比机制规则引擎 · T6 门控 636 题实测 ===")
-print(f"准确率: {sum(all_sc)/len(all_sc)*100:.1f}%（小模型 1.5B: 31.9% / 2B: 28.6% / 大模型: 91.7%）")
-print(f"\n判错样例（最多 12 条）:")
-for qid, ev, pred, want in misses:
-    print(f"  {qid} | {ev} | 规则={pred} 标准={want}")
+    print(f"=== 对比机制规则引擎 · T6 门控 636 题实测 ===")
+    print(f"准确率: {sum(all_sc)/len(all_sc)*100:.1f}%（小模型 1.5B: 31.9% / 2B: 28.6% / 大模型: 91.7%）")
+    print(f"\n判错样例（最多 12 条）:")
+    for qid, ev, pred, want in misses:
+        print(f"  {qid} | {ev} | 规则={pred} 标准={want}")
 
-# 混淆分析
-from collections import Counter
-conf = Counter()
-for q in T6:
-    m = re.search(r"事件：(.+)", q["q"], re.S)
-    ev = m.group(1).strip() if m else ""
-    pred, want = rule_gate(ev), q["truth"]["label"]
-    if pred != want:
-        conf[(re.sub(r'\d+', 'N', ev)[:16], want, pred)] += 1
-print("\n错误集中点（情境 → 标准 vs 规则）:")
-for (ev, want, pred), n in conf.most_common(8):
-    print(f"  {n:3d} 题 | {ev} | 标准={want} 规则={pred}")
+    # 混淆分析
+    from collections import Counter
+    conf = Counter()
+    for q in T6:
+        m = re.search(r"事件：(.+)", q["q"], re.S)
+        ev = m.group(1).strip() if m else ""
+        pred, want = rule_gate(ev), q["truth"]["label"]
+        if pred != want:
+            conf[(re.sub(r'\d+', 'N', ev)[:16], want, pred)] += 1
+    print("\n错误集中点（情境 → 标准 vs 规则）:")
+    for (ev, want, pred), n in conf.most_common(8):
+        print(f"  {n:3d} 题 | {ev} | 标准={want} 规则={pred}")
 
-# 存结果
-json.dump({"gate_rules_accuracy": round(sum(all_sc) / len(all_sc) * 100, 1),
-           "n": len(all_sc),
-           "confusion": [{"case": k, "want": w, "pred": p, "n": n} for (k, w, p), n in conf.most_common()]},
-          open(ROOT + r"\run\bench1k\gate_rules_result.json", "w", encoding="utf-8"),
-          ensure_ascii=False, indent=1)
-print("\n已存 gate_rules_result.json")
+    # 存结果
+    json.dump({"gate_rules_accuracy": round(sum(all_sc) / len(all_sc) * 100, 1),
+               "n": len(all_sc),
+               "confusion": [{"case": k, "want": w, "pred": p, "n": n} for (k, w, p), n in conf.most_common()]},
+              open(os.path.join(BENCH_DIR, "gate_rules_result.json"), "w", encoding="utf-8"),
+              ensure_ascii=False, indent=1)
+    print("\n已存 gate_rules_result.json")
+
+
+if __name__ == "__main__":
+    main()

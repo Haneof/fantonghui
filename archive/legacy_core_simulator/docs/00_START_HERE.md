@@ -2,7 +2,7 @@
 
 ## 你现在到底需要什么
 
-不要修改《AIOS 宪法 V1.2-r1》。它继续作为最高原则文件。
+《AIOS 宪法 V1.3-r0》是当前新架构迁移依据；V1.2-r1 保留为历史版本，不删除。代码尚未全部迁移的部分必须登记为缺口，不得伪称符合新架构。
 
 从今天开始，实际开发以本套文件为准：
 
@@ -21,6 +21,12 @@
 7. `07_DEVELOPMENT_PLAN.md` —— 从 PC Simulator 到手机、手环的开发顺序。
 
 8. `08_ACCEPTANCE_TESTS.md` —— 每阶段用什么测试证明底座真的跑通。
+
+9. `09_FIRST_SPRINT_TASKS.md` —— 当前 Sprint 的具体开发任务。
+
+10. `AIOS_PROJECT_MASTER_PROMPT_V1.0.md` —— 项目主控 Prompt：角色、权限、任务格式与验收纪律。
+
+规范文档总数为 12 份：Constitution + Master Prompt + 00~09。
 
 ## 先做什么
 

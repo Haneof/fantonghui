@@ -1,5 +1,14 @@
 # -*- coding: utf-8 -*-
 """attentiond · 注意力引擎（M2 · T15 算力租约发放/回收 v0）
+
+⚠ V1.4 迁移缺口 P0（宪法 §4.3 原文点名，2026-09-11 批准生效）：
+  本实现仍是纯租约引擎——只会发租约、不会做阈值触发，与 §4.3 冲突。
+  宪法原文：「在重写完成前，任何『租约审核代替触发』的行为一律视为违宪实现。」
+  最终形态只承担四件机械事：Threshold/Curve Direction Trigger、Wake Dispatch、
+  Trigger Window、Trigger Audit；不得做主观判断，算力预算只是机械配额，不设语义评审。
+  重写完成前不得在本文件上扩展语义职责。守门回归内核见 code/tests/gate_rules.py
+  （纯规则零模型；2026-09-11 在 Linux 实测 636 题 100.0%，结果与 Windows 时代证据逐字节相同）。
+  逐服务边界标注总表：services/README_V1.4_BOUNDARY.md
 契约：tasks/contracts_m2.md §T15
 - 租约表（内存）：{lease_id: {event_id, deadline, state}}，state ∈ ACTIVE/RELEASED/EXPIRED
 - 订阅 evt.stream / sys.lease.request / sys.lease.release

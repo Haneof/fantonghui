@@ -6,17 +6,24 @@ api_keys.json
 *_secret*
 .env
 
-# ===== 运行时数据（体积大且可再生） =====
+# ===== 运行时数据（体积大且可再生）=====
 *.db
 *.db-*
 *.log
 nohup.out
-run/health.json
-# 01_os/code/run/ 下的运行期产物（*.db 与 *.log 已被上面的无锚定规则覆盖）
-**/run/world_state.json
-**/run/health.json
-**/run/entry_queue.db
-**/run/entity_store.db
+
+# 01_os/code/run/ 一级的运行态：每次实跑都会改写，入库必然造成脏工作区
+# （教训见 DEVLOG 2026-09-10 Task 5 执行记录第 6 条）。
+# 例外：run/ 下的基准结果与 run/bench1k/ 全部是已验收里程碑的证据，保留跟踪。
+**/run/*.json
+!**/run/benchmark_*.json
+!**/run/gate_benchmark_*.json
+# 基准目录只挡中间产物，不挡 questions/results 等证据
+**/run/bench1k/*.bak
+**/run/bench1k/_dump*
+**/run/bench1k/_gen*
+**/run/bench1k/all_q.txt
+**/run/bench1k/*_readable.txt
 
 # ===== Python =====
 __pycache__/

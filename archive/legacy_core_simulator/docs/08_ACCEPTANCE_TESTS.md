@@ -26,7 +26,7 @@
 
 - 单点异常不能直接制造大量 Wake。
 
-建议首版验收目标：AI 调用次数 <= 输入事件数的 1%，后续根据真实 workload 再调。
+首版验收目标：`expensive_model_call_count / semantic_event_count <= 1%`。其中 denominator = 进入 Event Runtime 的 Semantic Event 总数；numerator = 实际触发强推理/云端大模型的模型调用次数。`MICRO_WAKE`、DSP、规则和专用感知模型不计入该 numerator，但必须单独报告 `ai_wake_session_count`、`micro_wake_count`、`emergency_wake_count`，防止用“一个 AI session 多次调用模型”规避统计。
 
 ## C. 趋势测试
 

@@ -346,3 +346,23 @@
 - **新增约束**：Event Anchor（事件锚点）定义为 Timeline Cognition Node（时间轴认知节点）；新增 Keyword Tags（关键词标签）、Keyword Inverted Index（关键词倒排索引）、Anchor Selection（锚点选择）和 Anchor Reprojection（锚点重投影）。`birthday（生日）` 先召回候选，再筛选妈妈相关锚点；未知 ID 解析后更新索引和投影，但不改原始观测与原始锚点版本。
 - **执行命令**：`git diff --check`。
 - **结果**：V1.3-r0 事件锚点定义已修订；未修改 Runtime 代码，索引和上下文筛选属于后续迁移任务。
+
+---
+
+### [2026-09-11] V1.4-r0 批准生效 + 与宪法不相干内容的保留式清理
+
+- **任务**：指挥官裁决「V1.4-r0 生效」+「你作为最高指挥官，清理和我们最新宪法不相干的无用文件和代码，为接下来的重构项目做准备」。执行口径：**归档而非删除**，且"不相干"必须由宪法条款定义，不由执行者好恶定义。
+- **裁决依据（逐条对宪法）**：§12.4（一个 Runtime 只有一个 Owner，不得同时在 `core/` 和 `aios/01_os` 复制实现）→ 移走 V1.2 旧线整簇；§12.1（V1.2/V1.3 原文件保留不改写）→ 未删任何宪法，V1.4 只动状态行；§12.3（World State/Change/Memory/Cognition/Privacy/Interaction 基础可保留，须重标边界）→ 15 服务一个没删，改为集中标注；§4.4+§12.7（OS 总体架构 V0.1 四项设计冻结）→ 加冻结横幅；§12.5（UI/App/Hardware 保持空壳）→ `02_hardware`/`03_ui`/`04_apps` 占位**原样保留**，空壳是宪法要求而非无用文件；§4.3+§12.8（attentiond 为 P0 违宪件）→ 唯一被加代码级横幅的文件。
+- **修改文件**：新增 `archive/README.md`（裁决记录+清单+复现命令）、`archive/legacy_core_simulator/`（`core/`1946 行+`tests/`192 项+`tools/`+`adapters/`+`schemas/`9 份+冻结快照 `docs/`）、`archive/superseded_docs/`（3 份被取代治理文档）、`archive/reports_v1.2/`（5 份 HTML）；`aios/01_os/code/services/README_V1.4_BOUNDARY.md`（19 载体逐个标 KEEP/COMPAT/FROZEN/SHELL/P0）、`aios/01_os/code/tests/FROZEN.md`、`docs/README_V14_CONFORMANCE.md`（00-09 条款级 VOID/KEEP/REVISE 索引）、`schemas/README.md`；重写根 `STATUS.md`（V1.4 迁移看板 14 项）与 `NEXT_TASK.md`（任务 A-E）；`docs/00_START_HERE.md`（权威顺序）；`aios/.gitignore`；`attentiond.py` 头部横幅；`OS总体架构设计_V0.1.md` 横幅；V1.4 第 3-4 行 + 文末【生效批准记录】。删除仅 `run/bench1k/` 6 个派生物（`*.bak`/`_dump*`/`_gen_b2.py`/`all_q.txt`/`*_readable.txt`）。净变化 119 files / +1100 / -10667（减的全部是移动到 archive 的）。
+- **实测证据（全部本沙箱真跑，非引用）**：
+  1. 主线全量：`cd aios/01_os/code && python3 tests/test_s1_t5.py` → **22/22 项通过**（含 G 真总线一天时间线、G2 跨主题幂等、G3 entityd UNKNOWN、H 真进程重启后快照仍在且重放不重复改写）。`--fast` 18/18。→ **STATUS 冲突 1/5 结案依据**，V1.3 时代留 ❌ 的"双环境复验"Linux 半边今日可签。
+  2. 归档包自包含复现：`python3 -m unittest discover -s archive/legacy_core_simulator/tests -t archive/legacy_core_simulator` → **Ran 192 tests OK**；`tools/schema_check.py` → SPEC-CONFORMANCE OK；`tools/forbidden_scan.py` → 禁止事项 1-7 全部通过（宪法 sha256 `9bb96cf0f0b3`）；`tools/simulator/player.py --fresh --noise 3` → 7 事件全 applied、`expensive_model_call_count=0`、ratio 0.00%、回放一致。**旧线取证链一行未断。**
+  3. 主线全量 `py_compile`：50 个 .py 全过。
+  4. 宪法正文完整性：`排除第 3-4 行后 sha256[:16]` 批准前 `5fd1adec64f19e8c` == 批准后 `5fd1adec64f19e8c`，且脚本比对 `正文逐字节相同: True`（HEAD 版 vs 现版）。
+- **本轮发现并修复的两个自伤（如实登记）**：
+  1. **回归**：把根 `schemas/` 当纯重复归档掉后，主线 `test_s1_t5.py` S1 项崩了（`FileNotFoundError: /home/user/fantonghui/schemas/event.json`）。根因：那三份"逐字节相同"的副本不是冗余，是 S1 断言的**参照物**（`CANON_SCHEMA_DIR = ROOT/../../../schemas`）。修法：从归档包**复制**（非移动）三份回根 `schemas/` 并写 `README.md` 说明"参照物不是实现"，归档包保留 9 份不动——否则旧线 `test_schemas.py`「九份 schema 等于 Canonical set」会崩。教训：**"内容与主线相同"不等于"主线不需要它"**，归档前必须查引用面（我当时只查了 `*.py` 的 import，没查测试里当数据读的路径）。
+  2. 归档后旧线 192 项首跑 12 ERROR → 9 FAIL+1 ERROR 两次变化，暴露一个此前没人写下来的事实：那套测试的 `ROOT = parents[2]` 历史上读的是**活动的 `docs/`（V0.1-r1）**，不是根目录 00-09（V0.1）。若把归档包 docs 冻结成根目录旧副本，契约编号/schema 集合/wake 枚举全对不上。修法：归档包 `docs/` 放**当初通过时那一版**（V0.1-r1 快照），使其自包含且可复现。
+- **`.gitignore` 修复验证**：22/22 完整实跑（起真总线、真进程、写 run/ 快照）后 `git status` 意外改动 **0 条**（此前每次实跑都会改写被跟踪的 `bus_stats.json`/`lease_stats.json` 等 8 份，DEVLOG 2026-09-10 Task 5 第 6 条记录过这个坑）。基准证据 14 份仍保持跟踪。
+- **可移植性修复**：`gate_rules.py`（Sprint 2 守门内核，§4.3 重写要 import 它）的 `ROOT = r"C:\Users\Administrator\..."` 硬编码 + 反斜杠拼路径改为 `__file__` 推导，并把跑批段移进 `main()` 使 `rule_gate` 可 import 无副作用。实跑：**636 题 100.0%**，且重写的 `run/bench1k/gate_rules_result.json` 与 Windows 时代证据**逐字节相同** → 跨环境复现成立，不是"在 Linux 上重算了个新数"。
+- **未越界做的事（有意留下的边界）**：① 不改 `test_m0…m35`（依赖 `taskkill`，Windows-only；改它=改已验收裁判，需指挥官单独点头，已登记为 STATUS 新增 C）；② 不重写 00-09 一个字，只做条款级索引，待批准 v0.2 原地升版；③ 不改宪法正文；④ 不删 `core/` 一行；⑤ 三个空壳（abilityd/modemgrd/safetyd）只在登记表标注，未动代码——safetyd 的实装是 NEXT_TASK 任务 C，不在清理权范围内。
+- **未完成项**：Windows 侧仍未验证（沙箱只有 Linux）；V1.4 的 14 项 P0/P1 缺口一项未开工（本单是清理与标注，不是迁移）；`docs/00-09 → v0.2` 待批准；1000 题新规范未起草。

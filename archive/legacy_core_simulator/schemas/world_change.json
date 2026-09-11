@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "aios://schemas/world_change.json",
+  "title": "world_change",
+  "description": "03 §World Change:必须显式表达 before/after(02 §3)。",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "window": {
+      "type": "object",
+      "properties": {
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "additionalProperties": false
+    },
+    "change_type": {
+      "type": "string"
+    },
+    "before": {
+      "type": "object"
+    },
+    "after": {
+      "type": "object"
+    },
+    "entities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidence_events": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "confidence": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "id",
+    "window",
+    "change_type",
+    "before",
+    "after",
+    "evidence_events",
+    "confidence"
+  ],
+  "additionalProperties": false
+}

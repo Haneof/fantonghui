@@ -48,7 +48,7 @@
 
   },
 
-  "relationships": [],
+  "relationship_ids": [],
 
   "evidence": []
 
@@ -112,6 +112,66 @@
 
 ```
 
+## Memory
+
+```json
+
+{
+
+  "id": "mem_001",
+
+  "timestamp": "2026-09-09T22:10:01+08:00",
+
+  "level": "RAW_LOG",
+
+  "location": "place_004",
+
+  "entities": ["person_017"],
+
+  "domain": "WORK",
+
+  "type": "EVENT",
+
+  "content": "张总提出合同价格问题",
+
+  "importance": 0.72,
+
+  "tags": ["contract", "price"],
+
+  "linked_memories": ["mem_002"]
+
+}
+
+```
+
+`level` 枚举：`RAW_LOG / HOURLY / DAILY / WEEKLY / MONTHLY / QUARTERLY / HALF_YEARLY / YEARLY / 3YEAR`。
+
+## Relationship
+
+Relationship 是独立的一等对象。Entity 不永久嵌入完整 Relationship，仅保存 relationship IDs。
+
+```json
+
+{
+
+  "id": "rel_001",
+
+  "entity_a": "user",
+
+  "entity_b": "person_017",
+
+  "type": "CLIENT",
+
+  "strength": 0.82,
+
+  "status": "ACTIVE",
+
+  "evidence": ["evt_021", "evt_044"]
+
+}
+
+```
+
 ## Cognition
 
 ```json
@@ -129,6 +189,8 @@
   "evidence": ["evt_021", "evt_044"],
 
   "counter_evidence": ["evt_087"],
+
+  "last_verified": "2026-09-08",
 
   "status": "ACTIVE"
 
@@ -164,6 +226,8 @@
 
 ```
 
+Cognition `status` 枚举：`ACTIVE / REVISED / INVALIDATED / CONFLICT`。
+
 ## Decision
 
 ```json
@@ -195,3 +259,11 @@
 - Growth 不覆盖原始判断和结果。
 
 - 每个推断必须能够追溯到证据。
+
+## Canonical naming rule
+
+`raw_ref` 是标准 Event 契约中的唯一原始数据引用字段。它只能引用短生命周期的原始感知数据，不表示把原始音频/图像长期存储；`raw_data` 如存在，只允许存在于感知适配器内部瞬态对象，不得进入标准 Event。
+
+## Canonical schema set
+
+标准对象共 9 个：`event / entity / relationship / world_state / memory / world_change / cognition / decision / growth`。
