@@ -67,3 +67,45 @@
 ## 完成后顺序
 
 Observation/Timeline（A）→ Trigger 实装（B）+ Safety（C）→ Dimension Registry 与五维度注册（心率/睡眠/消费/社交频率/深夜指数，全部 SQL 可出）→ Inference Event + 关键词倒排索引与锚点选择（§6、§8.2）→ Unknown ID 重投影（§7）→ 定时自治闹钟本（§5.8）→ 1000 题规范重定义（§13.4）→ 之后才轮到 UI/App/Hardware（§12.5 保持空壳）。
+
+---
+
+# 追加批次（2026-09-11 第二批）：指挥官表述"我要的效果"→ 六项裁定
+
+> 指挥官原话要点：①我们是跑在 Linux 上的操作系统 ②以多维可挂载曲线认知为核心 ③上为 App 服务、下接全部外界数据、持续维护用户世界模型 ④像谷歌框架之于安卓 ⑤**AIOS 不等于曲线这一块，它还包括 UI/交互/设置等整个系统结构** ⑥效果示例：教育 App 里大模型当老师，因为透彻了解用户，用他已经会的东西教，而不是用微积分教只会加减乘除的人。
+> 第 ⑤ 点是本轮真正的增量：此前整个项目把 AIOS 当成"L1-L2 底座"，**没有为"系统结构"负责**。
+
+## 裁定
+
+| # | 裁定 | 依据与实测 | 落点 |
+|---|---|---|---|
+| D1 | AIOS = 跑在 Linux 之上的**用户认知系统服务层**，不是内核、不是曲线模块；分五层 L0-L4 | `docs/01_CORE_ARCHITECTURE.md` V0.2 §1-§2；§3 给出"OS 必备件 17 项：谁提供/谁自建/只定契约"清单 | 01 V0.2 |
+| D2 | 19 条散落 `sys.*` 主题升格为**有编号有鉴权的 Syscall 表 v0（22 条）**，App 只能走它 | 实测：`grep -rhoE '"sys\.[a-z._]+"'` = 19 条无版本无鉴权；SDK 只有 `publish()`，App 问不到任何东西 | `aios/01_os/docs/10_AIOS_SYSCALLS_V0.md` |
+| D3 | 新增两个**此前完全空白**的子系统：`settingsd`（设置面=用户主权面）与统一审计；配额/保留期进 L0 契约 | `grep -rni "settings\|设置\|audit\|审计\|quota" aios/01_os/code --include=*.py` → 设置 0、审计 0、配额 2（仅租约语境） | 任务 G |
+| D4 | 教育场景固化为**验收 K（微积分反例）**，且要求"同模型同模板、只换世界模型，输出必须显著分叉" | 判分器已实装可跑：`bench/check_teaching_fit.py --grade` → 通用大模型式被判 K1 超纲×2 + K4 虚构证据 + K5 冒充事实，K3 极差 2 PASS | `docs/08` V0.2 §K + `code/bench/` |
+| D5 | 批一个**只读 Dev 面板**（`aios_console.py`）作为验收夹具，解决"底座看不到效果"；它不是产品 UI，不违反 §12.5 | 实跑真栈（aiosd 起 bus+15 服务 + 播放已验收 G 段同一份 DAY）：在线 15/15、九槽位快照、applied 7 / replay_skipped 14 / rejected 1 合计 22（守恒成立）、L3 源授权 sim=已授权、V1.4 迁移进度红项 | 已在主线 |
+| D6 | 负面清单写死：不写内核/驱动/文件系统/网络栈/桌面/输入法/应用商店/多模型编排平台 | 01 V0.2 §9 | 宪法外的执行边界 |
+
+## 任务 F · Syscall 表第一步：SDK 有"问"的能力（1 天）
+
+实测直接证明缺口：本轮写 demo 驱动时，`AIOSService` 无"只发不收"的公开入口，被迫调私有方法 `drv._connect()`（`aios_console` 演示脚本第 12 行注释已记录）。
+1. `aios_sdk` 加 `call(name, args, timeout=2.0)` → `{"t":"call"}` + `sys.reply.<name>.<req_id>` 应答；错误码闭集 `E_*`；未连接/超时不得静默成功
+2. 表内 8 条"现有/归并"项登记进 `services.json` 旁的 `syscalls.json`（名称→归属服务→是否需授权），加一致性测试：订阅了 `sys.*` 却没登记表内条目 = 失败
+3. `test_s1_t5` 类验收从"读快照文件"升级为"走 call()"（新增并行路径，不改老断言）
+- 禁止：不新建第二套 IPC；不改总线帧协议
+
+## 任务 G · 设置面与审计（settingsd，2 天）
+
+按 10 号文档 §三 的八组键（维度控制/触发控制/安全例外/记忆控制/AI 人格/隐私上云/配额保留/App 挂载）：
+1. 每项 `(key,value,version,changed_by,changed_at,rollback_key)`，与 `evolutiond.strategy_versions` 同构，**不建第二套配置存储**
+2. 安全底线项：`settings.set` 直接 `E_AUTH` 拒绝（服务端兜底，UI 灰化只是体验）——同时满足验收 S
+3. `consent.export` / `consent.revoke`：撤销后被删记忆不得再被锚点/索引引用，但原始观测与其锚点版本一字不改（验收 Q/M）
+4. 审计：每次 call 落 `audit_id`，`aios_console.py` 增一节显示"谁读了什么"（只读面板已有位置）
+
+## 任务 H · 验收 K 接上真答案（随 AI Session 实装）
+
+判分器已可跑（`--selfcheck` 绿）。AI Session（任务 B 之后）能产出 §5.4 结构化输出时：把 `answers_sample.json` 换成真模型产物重跑，**K1-K7 全过才算底座起作用**。桩文本必须删除或明确标 `is_stub=true`，禁止拿桩当验收证据。
+
+## 修正后的推进顺序
+
+D1-D6 已落文档 → **任务 D（半天，关旧尾巴）→ 任务 A（Observation/Timeline 契约）→ 任务 B（attentiond 重写）+ C（safetyd）→ 任务 F（SDK call）→ 任务 G（设置面）**。任务 F/G 不得排在 A/B 之前：没有可设置的运行时对象，设置面就是空壳表单。

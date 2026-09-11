@@ -366,3 +366,23 @@
 - **可移植性修复**：`gate_rules.py`（Sprint 2 守门内核，§4.3 重写要 import 它）的 `ROOT = r"C:\Users\Administrator\..."` 硬编码 + 反斜杠拼路径改为 `__file__` 推导，并把跑批段移进 `main()` 使 `rule_gate` 可 import 无副作用。实跑：**636 题 100.0%**，且重写的 `run/bench1k/gate_rules_result.json` 与 Windows 时代证据**逐字节相同** → 跨环境复现成立，不是"在 Linux 上重算了个新数"。
 - **未越界做的事（有意留下的边界）**：① 不改 `test_m0…m35`（依赖 `taskkill`，Windows-only；改它=改已验收裁判，需指挥官单独点头，已登记为 STATUS 新增 C）；② 不重写 00-09 一个字，只做条款级索引，待批准 v0.2 原地升版；③ 不改宪法正文；④ 不删 `core/` 一行；⑤ 三个空壳（abilityd/modemgrd/safetyd）只在登记表标注，未动代码——safetyd 的实装是 NEXT_TASK 任务 C，不在清理权范围内。
 - **未完成项**：Windows 侧仍未验证（沙箱只有 Linux）；V1.4 的 14 项 P0/P1 缺口一项未开工（本单是清理与标注，不是迁移）；`docs/00-09 → v0.2` 待批准；1000 题新规范未起草。
+
+---
+
+### [2026-09-11] 第二批：系统形态裁定（AIOS ≠ 曲线模块）+ 验收 K 判分器 + 只读面板
+
+- **任务**：指挥官表述"我要的效果"（Linux 上的 OS / 曲线认知为核心 / 上为 App 下接万物 / 像谷歌框架之于安卓 / AIOS 还包括 UI·交互·设置等整个系统结构 / 教育 App 用已会的教）。我作为最高项目决策者，把这段表述转成可核对的形态定义、契约与判分器，并明确"一个 OS 该有什么、哪些我们绝不造"。
+- **开工前拦下的一次环境事故（第三次同型，见 STATUS §九）**：`git status` 把上一轮已提交内容显示为"未提交的删除"。先诊断再动手：`.git/shallow` mtime=13:25、reflog 只有 `clone→checkout`、本地分支被建在浅克隆边界 `5c3b6b4`；`git ls-remote` 证远端 `arena/01a0906c-fantonghui = c3763c6` 完好、磁盘 96 个归档文件逐个存在 → 丢的只是记账。处置：`git fetch` → **先证伪 `git diff <commit>` 里那批"删除"是陈旧索引假象**（`git diff` 只遍历索引内路径，`archive/**` 未被跟踪故显示为删除，非真删）→ `git reset --mixed FETCH_HEAD`（只改记账不写文件）→ 归档包复跑 `Ran 192 tests OK`。
+- **修改文件**：`docs/01_CORE_ARCHITECTURE.md`（V0.1-r1 → **V0.2** 系统形态：一句话定位 + 三条否定、五层图、**OS 必备件 17 项决策表**、四条不变量、教育场景八步端到端、实现距离表、Syscall 裁定、两个风险裁决、负面清单）、`docs/06_REPOSITORY_LAYOUT.md`（V0.2：目录即架构 + 新增代码落位判定表 + run/ 体积规则）、`docs/08_ACCEPTANCE_TESTS.md`（增补 **K 教学适配★ / L 调用面完整性 / M 设置面主权 / N 漏斗预算（取代旧 B 的 ≤1%） / O 方向触发 / P 关键词召回后筛选 / Q Unknown 重投影 / R 定时自治 / S 安全豁免学习**）、`docs/README_V14_CONFORMANCE.md`（对齐实情：01/06/08 已升版，其余未改一字）、`aios/01_os/docs/10_AIOS_SYSCALLS_V0.md`（新增，22 条调用表 + 设置面八组键）、`aios/01_os/code/aios_console.py`（新增只读面板）、`aios/01_os/code/bench/{teaching_fit_v0.jsonl,template_v0.txt,answers_sample.json,check_teaching_fit.py}`（新增）、`archive/docs_v0.1_snapshot/`（V0.1 快照）。**未删一行主线代码，未改宪法正文，未动已验收服务逻辑。**
+- **实测证据（全部真跑）**：
+  1. 判分器：`python3 bench/check_teaching_fit.py` → 夹具自检 ✓（spec/case/档位词表/模板反作弊一致）；`--grade bench/answers_sample.json` → `[PASS] tf_u1 底座式 档位 0..0`、`[FAIL] tf_u1 通用大模型式 档位 2..3`（违规原文：`K1_超纲 出现 2 档（公式推导）`、`K1_超纲 出现 3 档（高等数学）`、`K4_虚构证据 cited=['obs_999'] 可用证据=['chg_004','obs_001','obs_007']`、`K5_冒充事实 epistemic=KNOWN expect=INFERRED`）、`[PASS] tf_u2 底座式`、`[PASS] K3 各用户命中档位=[0,2] 极差 2`。判分**零模型零网络零相似度计算**（档位标记词确定性命中，遵守"禁止用 difflib/模糊匹配做判断"）
+  2. 只读面板：起真栈（`aiosd` 拉 bus + 15 服务）+ 播放**与已验收 G 段同一份 DAY**（`from test_s1_t5 import DAY`，避免自造演示数据）→ `在线 15/15 心跳最旧 1.2s 队列积压=0`；九槽位 `mode=WORK location=place_004 people=person_017 user=talking,topic=price environment=artifact=contract_003 active_situations=negotiation`；漏斗 `已吸收事件=7 World Change=7 实体 3 条(UNKNOWN 占位 3)` + `applied 7 / replay_skipped 14 / rejected 1 合计 22`（守恒不变式在活栈上成立）；`chg_00005 USER_SILENCE 09:10 user=talking=True → talking=False (证据 1)` 这类 before→after 带证据可直接读；L3 `源授权：sim=已授权`；末节 8 行 V1.4 迁移状态含 4 个红项。**面板自身零写权限**（SQLite `mode=ro` URI），跑完 `git status` 无意外改动
+  3. 回归：`tests/test_s1_t5.py --fast` → **18/18**；`aios_console.py` 与 `bench/*.py` 全量 `py_compile` OK；无栈时优雅降级（缺 health.json/快照不崩、不假报 0）
+- **原始错误与自纠（原样登记）**：
+  1. `aios_console.py` 首跑 `TypeError: not enough arguments for format string` —— `_ro_query` 返回 `fetchall()` 的**列表套元组**，我却把整个列表喂给 `%`。修为取 `ents[0]` 并把格式化拆出 f-string
+  2. 我第一版补丁为了躲嵌套引号写出了 `f'{d[chr(39)+chr(39)]}' if False else ...` 这种垃圾——自查后重写为局部变量 `ent_txt`，不留投机写法进仓库
+  3. `state_sha=—` 假报：快照 json 里没有 `state_sha` 字段，我误以为该读文件。改为从 `world_state` 表 `ORDER BY version DESC LIMIT 1` 取真值（现显示 `9f29d77caee1`，与 R1 回放一致性测试同一个 sha）
+  4. `[丢弃] 总线未连接，publish sys.privacy.set` —— `AIOSService.__init__` 不连接，`_connect()` 只在 `run()` 里调用；只发不收的驱动没有公开入口，被迫调私有方法。**这不是我的错，是 SDK 的真实缺口**，已固化为 NEXT_TASK 任务 F（补 `call()`）并在 demo 脚本注释里写明缘由
+  5. CJK 宽度：`f"{st:<22}"` 按字符数补齐，中文行全错位 → 加 `dlen()`（CJK 计 2 格）+ `pad()`，面板与分隔线全部对齐
+- **发现的冲突（登记，未擅自处置）**：① 00-09 其余 6 份仍是 V1.2 措辞，与 01 V0.2 的"五层/零语义"表述并存期间，实现者可能照旧文档写代码——已用 `README_V14_CONFORMANCE.md` 逐条标 VOID，但**根治要等 v0.2 第二批**；② `Syscall 表 v0` 与主线 `contracts.md §2/§3`（冻结契约）在"帧类型"上不同名（现有只有 pub/sub，没有 `t:"call"`），实现任务 F 时需裁决是加帧类型还是在 `pub` 上盖 reply 主题——**我没有私自扩总线协议**（帧协议属禁改项）；③ 验收 K 的档位词表是中文关键词命中，多语言/同义改写场景会漏判，正式口径须改由结构化输出字段声明档位（`tier_used`）而非从散文里猜；④ `04_apps/education` 目前空壳，K6（App 无大脑）只能做静态扫描，真跑要等 App 落地。
+- **未完成项**：任务 A/B/C/D/F/G/H 一项未开工（本轮是形态定义、契约与判分器，不是迁移施工）；`settingsd`/`dimensiond`/`observedd` 未创建；Windows 侧仍未验证；`answers_sample.json` 是人工桩，K 尚未真正通过；00-09 其余 6 份待 v0.2 第二批。

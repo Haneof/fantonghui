@@ -8,7 +8,7 @@
 
 | 文档 | 节 | V1.4 判定 | 取代者 / 说明 |
 |---|---|---|---|
-| `01_CORE_ARCHITECTURE` | §2 总体结构、§3 核心对象（以 Event 为中心） | **REVISE** | V1.4 §1.2 的底层主对象是**唯一 Global Timeline**，Event 降级为"AI 的解释结果"（§11 表第 4 行）。核心对象须补：Observation / Dimension Point / Trigger / Inference Event / Summary Node / Task / Outcome / AI Self Update |
+| `01_CORE_ARCHITECTURE` | §2 总体结构、§3 核心对象（以 Event 为中心） | **已升 V0.2** | V1.4 §1.2 的底层主对象是**唯一 Global Timeline**，Event 降级为"AI 的解释结果"（§11 表第 4 行）。核心对象须补：Observation / Dimension Point / Trigger / Inference Event / Summary Node / Task / Outcome / AI Self Update |
 | `01` | §3 World / State / Memory / Cognition / Growth 的对象定义 | KEEP | §12.3 明确这些基础可保留；语义仍成立 |
 | `02_RUNTIME_CONTRACTS` | §0 Perception Runtime（"输出标准 Semantic Event"） | **VOID** | V1.4 §11 第 1 行改判：底层先输出 **Observation**。perceptiond 现有语义补全属兼容层（见 `code/services/README_V1.4_BOUNDARY.md`） |
 | `02` | §1 Event Runtime | **REVISE** | 只作为兼容适配层存在（§12.2）；新代码不得以其为唯一底层输入 |
@@ -26,11 +26,11 @@
 | `04` | §5 Active Watch | **REVISE** | 升级为 §4.2-3 Inactivity Trigger（个性化安静/陪伴窗口）+ §5.8 定时任务自治；仍是主线缺口（旧验收 F 未完成，现由 P0 清单接管） |
 | `05_AI_RUNTIME` | §2 AI Wake Session 10 步 | **REVISE** | 须并入 §5.9「AI 介入标准顺序」——先看自己记忆树/Attitude 再看曲线，顺序不可乱；并补 §5.4 完整产出、§5.3 `summary_node_id` 增量总结 |
 | `05` | §4 十类结构化输出 | **REVISE** | 改判为 §5.2 Inference Event（带真实度与知识状态，§5.5）；10 类枚举待 v0.2 重列 |
-| `06_REPOSITORY_LAYOUT` | 仓库布局要求（`aios-core/core/{...}`） | **VOID** | STATUS 冲突 1 已裁「`aios/01_os` 为唯一实现主线」，V1.4 §12.4 进一步禁止 `core/` 与主线并存；根目录 `core/` 簇已归档 `archive/legacy_core_simulator/` |
+| `06_REPOSITORY_LAYOUT` | 仓库布局要求（`aios-core/core/{...}`） | **已升 V0.2** | STATUS 冲突 1 已裁「`aios/01_os` 为唯一实现主线」，V1.4 §12.4 进一步禁止 `core/` 与主线并存；根目录 `core/` 簇已归档 `archive/legacy_core_simulator/` |
 | `06` | "文档规范位置 / 规范文件与仓库路径规则" | KEEP | 文档集中放 `docs/`、代码放 `aios/01_os/code/` 的规矩不变 |
 | `07_DEVELOPMENT_PLAN` | Phase 0-10 推进顺序 | KEEP | 「先底层闭环、UI/App/Hardware 靠后」与 §12.5 一致 |
 | `07` | Phase 1/3 各阶段内容 | **REVISE** | 内容须换成 Observation → Trigger → AI Interpretation → Memory/Curve；Phase 3 的 Relevance/Attention/Wake 三段并成 Trigger 一段 |
-| `08_ACCEPTANCE_TESTS` | A-J 十项 | KEEP+扩充 | 骨架仍有效。B 的「AI 调用 ≤1%」口径须换：V1.4 漏斗为 30 万信号→几万语义事件→几百 World Change→几十候选→几个真唤醒（PM 裁决 5）；须新增 5 项：曲线方向触发、关键词召回后上下文筛选、Unknown ID 重投影不改原始观测、定时自治闹钟本、安全底线不被 Regret 放宽 |
+| `08_ACCEPTANCE_TESTS` | A-J 十项 | **已升 V0.2** | 骨架仍有效。B 的「AI 调用 ≤1%」口径须换：V1.4 漏斗为 30 万信号→几万语义事件→几百 World Change→几十候选→几个真唤醒（PM 裁决 5）；须新增 5 项：曲线方向触发、关键词召回后上下文筛选、Unknown ID 重投影不改原始观测、定时自治闹钟本、安全底线不被 Regret 放宽 |
 | `09_FIRST_SPRINT_TASKS` | Sprint 1 Task 1-9 | KEEP（历史验收） | Task 5 已验收并吸收主线（`test_s1_t5.py`）；不重做 Task 4 的红线继续有效 |
 | `09` | Sprint 2 及以后划分 | **VOID** | 被 V1.4 的 P0 缺口清单取代，见根目录 `NEXT_TASK.md` |
 | `09` | Sprint 1 禁止事项 1-7 | 部分 KEEP | "禁止在低层调用大模型/网络"仍有效且更严（本地模型零语义）；其机械执行器 `forbidden_scan.py` 已随 `core/` 簇归档，V1.4 下须重指向新宪法后重建 |
@@ -38,6 +38,12 @@
 
 ## 冻结与修订的边界（避免误会）
 
-- 本索引**没有**修改 00-09 任何一个字：它们保持原样，等指挥官批准 v0.2 修订时一次性改。
+- **已升 V0.2（2026-09-11，最高项目决策者签发）**：`01_CORE_ARCHITECTURE`（系统形态五层 + OS 必备件清单 + 教学场景端到端）、
+  `06_REPOSITORY_LAYOUT`（目录即架构 + 落位判定表）、`08_ACCEPTANCE_TESTS`（增补验收 K-S）。V0.1 快照存 `archive/docs_v0.1_snapshot/`。
+  这三份是**原地升版**（PM 治理裁决 6：禁止另起平行文档集），不是新文档。
+- 其余 6 份（00、02、03、04、05、07、09）**本索引未改一字**：等 v0.2 后续批次统一改。
 - "VOID" 的含义是"不得再作为实现依据"，不是"文档作废"——它仍是理解既有代码（M0-M3.5 为什么长这样）的说明书。
-- 下一步若做 v0.2：按 PM 治理裁决 6「升级现有 00-09 并入新机制，**禁止另起平行文档集**」，在本目录下原地升版，不新建编号文档。
+- 待办批次：`02`（把 §6 Relevance / §7 Attention / §8 Lease / §9 Wake 四节合并重写为 Trigger 一节）、
+  `03`（补 Observation/DimensionPoint/TriggerRecord/InferenceEvent/SummaryNode 五份 schema）、
+  `04`（整份由 §4.2 六类 Trigger 取代后仅作历史）、`05`（并入 §5.9 介入顺序与 §5.4 完整产出）、
+  `07`（Phase 1/3 内容替换）、`09`（Sprint 2 起按 STATUS 看板重排）。
