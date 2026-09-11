@@ -109,3 +109,33 @@ Observation/Timeline（A）→ Trigger 实装（B）+ Safety（C）→ Dimension
 ## 修正后的推进顺序
 
 D1-D6 已落文档 → **任务 D（半天，关旧尾巴）→ 任务 A（Observation/Timeline 契约）→ 任务 B（attentiond 重写）+ C（safetyd）→ 任务 F（SDK call）→ 任务 G（设置面）**。任务 F/G 不得排在 A/B 之前：没有可设置的运行时对象，设置面就是空壳表单。
+
+---
+
+# 追加批次（2026-09-11 第三批）：App=专业方向的处理环境，认知全在 AIOS
+
+指挥官补充定义：一个教育 App 入口内含数学/化学/英语多条曲线；`interest_app` 教编程时 AI 用数学与英语曲线定教法；
+社交/购物/娱乐等任何 App 开发出来即底层数据共通；情绪/压力/思想由 AI 自己注册曲线量化；买车后汽车数据"留好接口"接进来。
+据此固化契约 `aios/01_os/docs/11_DIMENSION_MODEL_V0.md`（维度身份四段式、状态机、rubric、Transfer、SourceManifest、治理上限）。
+
+## 任务 I · dimensiond（Dimension Registry + 曲线内核）实装（3 天，排在任务 A 之后）
+
+1. 新服务 `code/services/dimensiond.py` + 独立库 `run/dimensiond.db`：`dim_meta / curve_point / rubric / transfer_belief / dim_proposal / source_manifest` 六表
+2. `dim_id = producer/subject/family/axis` 四段式解析与注册制校验；`state ∈ {ABSENT,INSUFFICIENT,LIVE,STALE,SUSPENDED}` 为**必填显式字段**（禁止用 null/缺字段/0 隐式表达未知）
+3. 供数只有一条路：`obs.attach → Observation → dimensiond 按 rubric 聚合 → curve_point`。**App 侧不得直接写 value**（违 §9.1 与 11 号文档 §3，评审打回项）
+4. 趋势由内核统一算：`delta / direction / slope / span / volatility`（§3.4）；UI 与 App 不得自算斜率
+5. 基线一律个人滚动窗口，禁止全局固定值；`rubric_version` 变更必须产生 `series_break` 标记
+6. 治理：季度新增 ≤6 / 总量 ≤40、`periodic_exempt` 豁免衰减、`falsify_clause` 自毁、审批走 `evolutiond.strategy_versions`（不建第二套配置存储）
+7. `statistical` 类维度必须实现**复算接口**：`recompute(dim_id, window)` 与库内值不一致即报错（不许静默取平均）
+- 允许新增：`dimensiond.py`、`code/rubrics/*.md`、`tests/test_s2_t2_dimension.py`
+- 禁止改：`stated.py` 的守恒不变式、总线帧协议、`gate_rules.rule_gate` 判分口径
+- **验收**（把 docs/08 的判据变成跑得出的测试）：
+  `test_s2_t2_dimension.py` 至少覆盖 ①ABSENT 不返回 0 而返回 state=ABSENT ②同一批 obs 两次 recompute 值全等 ③跨 rubric 版本查询必带 series_break ④App 调 `curve.point.write` 被 `E_AUTH` 拒绝 ⑤断供超 grace → state=STALE 且旧值不进入"当前"查询 ⑥Transfer 写回曲线被拒绝 ⑦注册第 41 条维度被上限拦下并给出建议下线项 ⑧零模型零网络 tripwire=0（除 `llm_scored` 类 rubric 走 `sys.model.request` 外，且必须落 basis_obs）
+- 同步把判分器接上：`code/bench/check_teaching_fit.py` 的 K8/K9/K10 组已实装并可跑（当前用人工桩验证判分有效；真答案待 AI Session 实装，见任务 H）
+
+## 新增红线（写进 STATUS 第七节同批生效）
+
+- **R1**：任何 App 计算并上报"用户水平/等级/画像分"= 违宪。App 只报观测，档位由 AIOS 按 rubric 算。
+- **R2**：`ABSENT` 与 `0` 是两个不同的东西。任何"没有数据 → 按最低档处理"的代码路径，一律视为缺陷而非保守策略。
+- **R3**：AI 自注册的维度必须可证伪（带退出条件）；不能证伪的自造曲线禁止上线。
+- **R4**：换 rubric 版本必须打断点标记；把跨口径区间的趋势画成连续线 = 对用户说谎。

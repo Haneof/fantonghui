@@ -120,3 +120,27 @@
 - 判定：**远端 `refs/heads/arena/01a0906c-fantonghui = c3763c6` 完好，磁盘文件全部在**（归档包 96 个文件、关键 9 文件逐个 `stat` 确认）；丢的只是 git 记账。
 - 处置：`git fetch` 取回 `c3763c6` → 先证实 `git diff <commit>` 里那批"删除"是**陈旧索引假象**（`git diff` 只遍历索引内路径，故 `archive/**` 被当作删除）→ `git reset --mixed`（只改索引与 HEAD，**不写任何文件**）→ 复验归档包 **192 tests OK**。
 - 与 DEVLOG 2026-09-10 那次同型（当时是 `clone` 落在旧 main 上、223/223 blob 比对后 reset）。**教训升级**：本轮开始前必须先 `git fetch + rev-parse FETCH_HEAD` 对比远端，确认 HEAD 未回退，再动手写文件。
+
+## 十、同日第三批：维度模型契约（指挥官定义 App=处理环境）
+
+契约已冻结 `aios/01_os/docs/11_DIMENSION_MODEL_V0.md`（维度身份四段式 `producer/subject/family/axis`、
+曲线状态机、App 只报观测/AIOS 算曲线、rubric 版本与断点、Transfer Belief、SourceManifest、治理上限）。
+判分器同步扩到 K1-K10（新增 K8 缺曲线、K9 迁移依据、K10 口径可查），实跑证明它会判错不误伤：
+
+```
+[PASS] tf_u1 底座式   [FAIL] tf_u1 通用大模型式（K1×2 + K4 + K5）
+[PASS] tf_x1 底座式   [FAIL] tf_x1 无依据式（K8_未声明未知 + K8_把缺数讲成差 + K9_未声明依据）
+[PASS] tf_em1 底座式  [FAIL] tf_em1 自欺式（K5 + K10_口径未声明）
+[PASS] K3 同题只换世界模型：档位 [0, 2] 极差 2
+```
+
+看板续表（#15-#17 见第八节）：
+
+| # | 缺口 | 宪法/契约条款 | 优先级 | 证据 |
+|---|---|---|---|---|
+| 18 | Dimension Registry 与曲线内核（含状态机、rubric、series_break、复算接口） | 11 号文档 §1-§5；V1.4 §3.2 | **P0** | 无 `dimensiond`；`grep Dimension Registry` = 0 |
+| 19 | `transfer_belief` 一等对象（跨域迁移可声明、可降档、可纠正） | 11 号文档 §7；验收 T | P1 | 全仓 `Transfer` 0 命中 |
+| 20 | `source_manifest` 外部源接入与断供降级（车/家电/第三方健康） | 11 号文档 §8；验收 W | P1 | 只有 simulator，无外部 producer 注册路径 |
+| 21 | AI 自注册维度治理（提案→审批→上限→热值衰减带 `periodic_exempt`→自毁） | 11 号文档 §6；验收 V | P1 | 无 `dim_propose`；`evolutiond` 版本链可复用但未接 |
+
+新增四条红线 R1-R4（见 `NEXT_TASK.md` 第三批）：App 禁止自算档位上报；`ABSENT ≠ 0`；自造维度必须可证伪；换 rubric 必须打断点。

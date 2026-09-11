@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-"""验收 K（教学适配 · 微积分反例）的**机械判分器** —— 见 docs/08_ACCEPTANCE_TESTS.md V0.2 §K
+"""验收 K/T/U/V 的**机械判分器**（教学适配 · 微积分反例 + 缺曲线 + 跨域迁移 + 自注册口径） —— 见 docs/08_ACCEPTANCE_TESTS.md V0.2 §K
 
 两个模式：
     python3 bench/check_teaching_fit.py                    # 夹具自检（不判模型，只查一致性）
-    python3 bench/check_teaching_fit.py --grade <file.json> # 判候选答案 K1/K2/K4/K5/K3
+    python3 bench/check_teaching_fit.py --grade <file.json> # 判候选答案 K1/K2/K4/K5/K3 + K8/K9/K10
 
 设计纪律：
 - 判分**零模型、零网络、零模糊匹配**：只用档位标记词表做确定性命中。文本相似度一律不用
@@ -20,7 +20,7 @@ import os
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-FIXTURE = os.path.join(HERE, "teaching_fit_v0.jsonl")
+FIXTURE = os.path.join(HERE, "teaching_fit_v1.jsonl")
 TEMPLATE = os.path.join(HERE, "template_v0.txt")
 
 SPEC_KEYS = ("version", "acceptance", "task_id", "problem", "prompt_template_file",
@@ -102,6 +102,61 @@ def grade_case(case: dict, output: dict, spec: dict, label: str = ""):
         v.append({"rule": "K5_冒充事实", "epistemic": got, "expect": req,
                   "detail": "能力档位属推断结论，标 KNOWN 即把推断当事实（违反三树隔离）"})
 
+    # ---- K8 缺曲线是一等信息（docs/11 §2）：ABSENT 不得被讲成"不会/零基础" ----
+    absent = set(truth.get("absent_dims", []))
+    declared = set(output.get("unknowns") or [])
+    fam_kw = spec.get("family_keywords", {})
+    for fam in sorted(absent):
+        kw = fam_kw.get(fam, fam)
+        if kw in field:
+            if fam not in declared:
+                v.append({"rule": "K8_未声明未知", "dim_family": fam,
+                          "detail": f"文本谈到「{kw}」，但该曲线 state=ABSENT（从没测过）。"
+                                     f"必须在 unknowns[] 里显式承认；把没测过当不会=最贵的一类 bug"})
+            zero = [m for m in spec.get("zero_like_markers", []) if m in field]
+            if zero:
+                v.append({"rule": "K8_把缺数讲成差", "markers": zero,
+                          "detail": "对 ABSENT 域使用了零基础/不会一类的降格表述（11 号文档明令禁止）"})
+    # ---- K9 跨域迁移必须声明依据，且缺数必须降档（docs/11 §7） ----
+    if truth.get("must_declare_transfer"):
+        tr = output.get("transfer")
+        dec = {d["dim_id"]: d for d in wm.get("declarable_dims", [])}
+        if not tr:
+            v.append({"rule": "K9_未声明依据",
+                      "detail": "跨域教学结论没带 transfer（从哪条曲线推来的）——等于凭对话字面猜档位"})
+        else:
+            froms = tr.get("from_dims", []) or []
+            ghost = [x.get("dim_id") for x in froms if x.get("dim_id") not in dec]
+            if ghost:
+                v.append({"rule": "K9_虚构依据曲线", "dims": ghost,
+                          "detail": f"引用了不存在的依据；该用户可声明的曲线 = {sorted(dec)}"})
+            incomplete = [x.get("dim_id") for x in froms
+                          if x.get("dim_id") in dec
+                          and dec[x["dim_id"]]["state"] in spec.get("bad_transfer_states", [])]
+            cap = truth.get("transfer_confidence_cap_when_incomplete")
+            if incomplete and cap is not None:
+                conf = tr.get("confidence")
+                if conf is None or conf > cap or not tr.get("incomplete_basis"):
+                    v.append({"rule": "K9_缺数未降档", "incomplete_dims": incomplete,
+                              "detail": f"依据里有 ABSENT/INSUFFICIENT/STALE 的曲线，confidence 必须 ≤{cap}"
+                                        f" 且标 incomplete_basis=true（当前 {conf}）"})
+    # ---- K10 AI 自注册维度：口径必须可查、换尺子必须留断点、必须可证伪（docs/11 §5） ----
+    if truth.get("must_cite_rubric"):
+        ref = output.get("rubric_ref")
+        if not ref:
+            v.append({"rule": "K10_口径未声明",
+                      "detail": "情绪/压力这类 AI 自注册维度的结论未带 rubric_ref，"
+                                "数字不可复核、不可跨时间比较"})
+        else:
+            if ref.get("rubric_version") != truth.get("expected_rubric_version"):
+                v.append({"rule": "K10_版本不符", "rubric_version": ref.get("rubric_version"),
+                          "expect": truth.get("expected_rubric_version")})
+            if truth.get("crosses_series_break") and not ref.get("series_break_ack"):
+                v.append({"rule": "K10_换尺子未打断点",
+                          "detail": f"区间跨越 v{truth.get('break_version')}→v{truth.get('expected_rubric_version')} "
+                                    f"口径变更却画成连续趋势：「用户变好了」可能只是换了公式"})
+            if truth.get("require_falsify_clause") and not ref.get("falsify_clause"):
+                v.append({"rule": "K10_不可证伪", "detail": "自注册维度必须带退出条件（用户连续否证即下线），否则是装饰品"})
     return {"case_id": case["case_id"], "user_id": case["user_id"], "label": label,
             "level_found": {"min": min_level, "max": max_level,
                             "tiers": {str(l): hits[l] for l in levels}},
@@ -142,6 +197,8 @@ def selfcheck(spec: dict, cases: list):
                 errs.append(f"标记词 `{m}` 同时属于 {seen[m]} 档与 {r['level']} 档（判分会自相矛盾）")
             seen[m] = r["level"]
     ids = [c["case_id"] for c in cases]
+    if not spec.get("zero_like_markers"): errs.append("spec 缺 zero_like_markers（K8 无从判起）")
+    if not spec.get("bad_transfer_states"): errs.append("spec 缺 bad_transfer_states（K9 无从判起）")
     if len(ids) != len(set(ids)):
         errs.append("case_id 重复")
     for c in cases:
@@ -157,8 +214,19 @@ def selfcheck(spec: dict, cases: list):
                 errs.append(f"{c['case_id']} truth.{k}={val} 越出档位阶梯 0..{max(lv)}")
         if not c.get("evidence_events"):
             errs.append(f"{c['case_id']} 无 evidence_events（K4 无从判起）")
-        if c.get("problem_ref") != spec.get("task_id"):
-            errs.append(f"{c['case_id']} problem_ref 与 spec.task_id 不一致")
+        if c.get("problem_ref") not in spec.get("task_ids", [spec.get("task_id")]):
+            errs.append(f"{c['case_id']} problem_ref 不在 spec.task_ids 内")
+        dec = c.get("world_model", {}).get("declarable_dims", [])
+        states = set(spec.get("curve_states", []))
+        for d in dec:
+            if "dim_id" not in d or d.get("state") not in states:
+                errs.append(f"{c['case_id']} declarable_dims 条目不合法：{d}")
+        fam_of = {d["dim_id"].split("/")[2] for d in dec if d.get("dim_id", "").count("/") == 3}
+        for fam in c.get("truth", {}).get("absent_dims", []):
+            if fam not in fam_of:
+                errs.append(f"{c['case_id']} absent_dims={fam} 没有对应的 declarable_dims 登记（夹具自相矛盾）")
+        if c.get("truth", {}).get("must_declare_transfer") and not dec:
+            errs.append(f"{c['case_id']} 要求声明 transfer 却没有 declarable_dims（无从判定真伪）")
     if len({c["user_id"] for c in cases}) != len(cases):
         errs.append("不同 case 必须对应不同世界模型（K3 差异可测的前提）")
     errs += check_template_anti_cheat(spec)
@@ -201,13 +269,15 @@ def main():
             print(f"        · {viol['rule']}: {viol.get('detail', viol)}")
 
     # K3 差异可测：同一模型同一模板，仅世界模型不同 → 两个用户的档位必须显著分叉
-    base = {}
-    for srec, r in zip([x for x in sub["submissions"]], results):
-        if "底座式" in srec.get("label", ""):
-            base[srec["case_id"]] = r["level_found"]["max"]
-    print("\n  --- K3 差异可测（底座是否真的在起作用）---")
-    if len(base) == len(cases) and len(cases) >= 2:
-        vals = [base[c["case_id"]] for c in cases]
+    # K3 只在"同一道题、不同世界模型"之间比：跨题比较档位极差没有意义
+    same_task = [c for c in cases if c.get("problem_ref") == spec.get("task_id")]
+    base = {r["case_id"]: r["level_found"]["max"]
+            for srec, r in zip(sub["submissions"], results) if "底座式" in srec.get("label", "")}
+    on_task = {c["case_id"] for c in same_task}
+    base_same = {k: v for k, v in base.items() if k in on_task}
+    print("\n  --- K3 差异可测（同一道题、只换世界模型）---")
+    if len(base_same) == len(on_task) and len(same_task) >= 2:
+        vals = [base_same[c["case_id"]] for c in same_task]
         spread = max(vals) - min(vals)
         ok = spread >= 1
         print(f"  [{'PASS' if ok else 'FAIL'}] 各用户命中档位 = {vals}，极差 {spread}"
@@ -215,7 +285,8 @@ def main():
         if not ok:
             errs.append("K3 差异不可测：两个用户答案同档位——底座没有产生差别")
     else:
-        print(f"  SKIP 仅 {len(base)}/{len(cases)} 个 case 有『底座式』答案，K3 不判（不得以部分数据宣称通过）")
+        print(f"  SKIP 同题 case {len(same_task)} 个、已有底座式答案 {len(base_same)} 个，"
+              f"K3 不判（不得以部分数据宣称通过）")
     print("\n" + ("全部判据通过 ✓" if not errs and all(r['ok'] for r in results) else "存在未通过项 ❌"))
     return 0 if (not errs and results and all(r["ok"] for r in results)) else 1
 

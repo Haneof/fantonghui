@@ -95,7 +95,27 @@
 
 **通用大模型为什么做不到**：它只有这一句话的上下文，没有 ②③⑦⑧，所以只能用"它自己觉得清楚"的方式讲——即微积分式讲法。AIOS 的全部价值就是 ②③④⑦⑧ 这五步，**这也解释了为什么底座必须先做**：底座不成立，教育 App 就退化成一个 prompt。
 
-该场景已被固化为**可判分验收**：`docs/08_ACCEPTANCE_TESTS.md` 验收 K（教学适配 · 微积分反例），夹具 `aios/01_os/code/bench/teaching_fit_v0.jsonl`。
+该场景已被固化为**可判分验收**：`docs/08_ACCEPTANCE_TESTS.md` 验收 K（教学适配 · 微积分反例），夹具 `aios/01_os/code/bench/teaching_fit_v1.jsonl`。
+
+## 5.5 App 与维度族（一个入口、多条曲线、底层共通）
+
+指挥官对形态的定义里最关键的一条：**App 只是"和用户一起处理某个专业方向"的环境，认知全在 AIOS。** 落到模型上是四句话：
+
+| 规则 | 含义 | 反例（一律打回） |
+|---|---|---|
+| **一个 App = 一个 family，不是一个维度** | 教育 App 内含 `math`/`english`/`chemistry` 多条 axis；新增学科只加注册项 | 把整个教育 App 压成一条"学习水平"分 → 无法分科教学 |
+| **底层数据共通** | `interest_app` 教编程时读的就是教育 App 那条 `math/knowledge_level`，同一条曲线、无副本 | App 各自维护"用户画像表"；跨 App 同步"用户等级"字段 |
+| **App 只报观测，AIOS 算曲线** | App 报"错在哪一步、用了多久"；档位由 AIOS 按 rubric 统一算 | App 自己上报"该生小学一年级"——三家有三家的一年级 |
+| **缺曲线是一等信息** | `chemistry` 没有曲线 = 还没学过/没测过，状态 `ABSENT`，必须显式承认 | 把"没有数据"读成"水平为 0"，于是给用户讲零基础 |
+
+两类额外挂载（这是"可挂载"三个字的实际内容）：
+- **AI 自注册维度**：情绪、压力、动机这类没有外界接口的，AI 可以自己提案注册一条曲线（如 `ai_self/u_004/emotion/valence`），用对话与工作生活观测打分；但必须带 rubric 版本、可复算性、退出条件（用户连续否证即下线），且值永远 `INFERRED`、永不写事实槽位。
+- **外部源挂载**：用户买了车 → `vehicle_oem` 注册一个 producer，油量和驾驶时长成为两条新曲线 → AI 能提醒加油保养、能说出"你连续开了 3 小时，该休息了"。断供必须转 `STALE`，禁止拿旧值冒充当前。
+
+跨域推理（数学水平 → 怎么教编程）**不是**曲线属性，而是独立对象 `Transfer Belief`：必须声明依据曲线、依据不全要自动降置信度、只进认知树、可被用户纠正。
+
+对象结构、状态机、rubric、治理与外部源 manifest 全部冻结在
+**`aios/01_os/docs/11_DIMENSION_MODEL_V0.md`**；实装见 `NEXT_TASK.md` 任务 I。
 
 ## 6. 当前实现与这个形态的距离（诚实刻度，勿对外宣称已完成）
 
@@ -103,7 +123,7 @@
 |---|---|---|
 | L0 | aiosd / 总线 / SDK 骨架 / SQLite 各服务库 | 无配额、无保留期策略 |
 | L1 | hublinkd 持久队列（829/s、kill-9 零丢失）、simd 模拟器、31,399 条/90 天数据集、mock 适配 | **Observation Store 0 命中**；声纹/说话人写死 `unknown` |
-| L2 | stated 689 行（幂等/陈旧/非法三重防护，验收 22/22）、三树隔离、六跳金字塔、evolutiond 版本链、门控规则内核（636 题 100%） | **Timeline/Dimension/Trigger/Inference/Anchor 全 0 命中**；attentiond 被宪法判违宪（P0） |
+| L2 | stated 689 行（幂等/陈旧/非法三重防护，验收 22/22）、三树隔离、六跳金字塔、evolutiond 版本链、门控规则内核（636 题 100%） | **Timeline/Dimension/Trigger/Inference/Anchor 全 0 命中**；attentiond 被宪法判违宪（P0）；Dimension Registry / 曲线对象 / Transfer 全未实装（契约已冻结于 11 号文档） |
 | L3 | privacyd 授权状态机、interactd 五级通道、cognitiond 知识状态五值 | **设置面 0**、审计 0、safetyd 空壳、账号/多用户未定 |
 | L4 | 服务注册表雏形（`services.json`） | Syscall 表未冻结、App 注册与维度挂载声明无契约、UI/App 空壳（按计划） |
 

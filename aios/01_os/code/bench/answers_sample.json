@@ -1,6 +1,6 @@
 {
  "kind": "candidate_answers",
- "purpose": "判分器自测桩：人工撰写，用于验证 K1/K2/K4/K5/K3 能否正确判分；不是模型输出，不构成验收通过证据",
+ "purpose": "判分器自测桩：人工撰写，用于验证 K1-K10 能否正确判分；不是模型输出，不构成验收通过证据",
  "submissions": [
   {
    "case_id": "tf_u1",
@@ -38,6 +38,78 @@
     ],
     "epistemic": "INFERRED",
     "next_step": "变式：讨论 k 使两根同号且都大于 1。"
+   }
+  },
+  {
+   "case_id": "tf_x1",
+   "label": "底座式（应通过）",
+   "output": {
+    "explanation": "按你现在的档位开：数学已到能做简单方程（这条曲线 LIVE），所以变量与等式不用重讲；英语词汇样本还不够（INSUFFICIENT），所以前两节课我把报错信息逐条配中文，不假设你读得懂英文提示。化学那条曲线还不存在，我不据此做任何判断。",
+    "cited_evidence": [
+     "obs_812",
+     "obs_815"
+    ],
+    "epistemic": "INFERRED",
+    "unknowns": [
+     "chemistry"
+    ],
+    "transfer": {
+     "from_dims": [
+      {
+       "dim_id": "edu_app/u_003/math/knowledge_level",
+       "state": "LIVE"
+      },
+      {
+       "dim_id": "edu_app/u_003/english/vocab_size",
+       "state": "INSUFFICIENT"
+      }
+     ],
+     "claim": "可直接进编程；主要卡点预期在英文报错与单位换算",
+     "confidence": 0.42,
+     "incomplete_basis": true
+    },
+    "next_step": "第一段代码只用中文注释与整数运算，跑通再加变量。"
+   }
+  },
+  {
+   "case_id": "tf_x1",
+   "label": "无依据式（应被 K9 判失败）",
+   "output": {
+    "explanation": "你理科基础一般，化学都不会，编程估计也够呛，先从最基础的补起吧。放心跟我学，一个半月就能写项目。",
+    "cited_evidence": [],
+    "epistemic": "KNOWN",
+    "next_step": "先看视频。"
+   }
+  },
+  {
+   "case_id": "tf_em1",
+   "label": "底座式（应通过）",
+   "output": {
+    "explanation": "近 7 天情绪均值比上周高 0.8——但要说清楚：这条曲线是我自注册的，打分口径第 9 天从 v1 换成 v2，跨断点的比较不可直接连线，实际可比区间只有 4 天。这是推断不是事实：依据是三条晚间对话与睡眠时长。",
+    "cited_evidence": [
+     "obs_901",
+     "obs_950"
+    ],
+    "epistemic": "INFERRED",
+    "rubric_ref": {
+     "rubric_id": "emotion_valence_v0",
+     "rubric_version": 2,
+     "series_break_ack": true,
+     "falsify_clause": "用户连续 5 次否认则本维度下线并说明原因"
+    },
+    "next_step": "这周只按 v2 口径记录，不做跨版本对比。"
+   }
+  },
+  {
+   "case_id": "tf_em1",
+   "label": "自欺式（应被 K10 判失败）",
+   "output": {
+    "explanation": "数据很清楚：你的情绪这一周明显好转，从低谷回到正轨，我确定你状态不错了。",
+    "cited_evidence": [
+     "obs_901"
+    ],
+    "epistemic": "KNOWN",
+    "next_step": "继续。"
    }
   }
  ]

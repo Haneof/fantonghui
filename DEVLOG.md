@@ -386,3 +386,17 @@
   5. CJK 宽度：`f"{st:<22}"` 按字符数补齐，中文行全错位 → 加 `dlen()`（CJK 计 2 格）+ `pad()`，面板与分隔线全部对齐
 - **发现的冲突（登记，未擅自处置）**：① 00-09 其余 6 份仍是 V1.2 措辞，与 01 V0.2 的"五层/零语义"表述并存期间，实现者可能照旧文档写代码——已用 `README_V14_CONFORMANCE.md` 逐条标 VOID，但**根治要等 v0.2 第二批**；② `Syscall 表 v0` 与主线 `contracts.md §2/§3`（冻结契约）在"帧类型"上不同名（现有只有 pub/sub，没有 `t:"call"`），实现任务 F 时需裁决是加帧类型还是在 `pub` 上盖 reply 主题——**我没有私自扩总线协议**（帧协议属禁改项）；③ 验收 K 的档位词表是中文关键词命中，多语言/同义改写场景会漏判，正式口径须改由结构化输出字段声明档位（`tier_used`）而非从散文里猜；④ `04_apps/education` 目前空壳，K6（App 无大脑）只能做静态扫描，真跑要等 App 落地。
 - **未完成项**：任务 A/B/C/D/F/G/H 一项未开工（本轮是形态定义、契约与判分器，不是迁移施工）；`settingsd`/`dimensiond`/`observedd` 未创建；Windows 侧仍未验证；`answers_sample.json` 是人工桩，K 尚未真正通过；00-09 其余 6 份待 v0.2 第二批。
+
+---
+
+### [2026-09-11] 第三批：维度模型契约（App=专业方向的处理环境，认知全在 AIOS）
+
+- **任务**：指挥官定义"所有 App 底层数据共通；一个教育 App 入口里有数学/化学/英语多条曲线；化学没这条曲线=还没学过；兴趣 App 教编程时 AI 用数学+英语曲线定教法；情绪/压力/思想由 AI 自注册曲线量化；买车后留接口让汽车数据接进来"。我把它转成可实装的对象模型 + 治理规则 + 机械判据。
+- **开工第一件事**：先 `git rev-parse` 对远端（上轮事故教训）→ `d119e74 == 远端`，记账一致，才动手。
+- **冻结的契约**：新增 `aios/01_os/docs/11_DIMENSION_MODEL_V0.md`（12 节）。六项裁定：① 维度身份四段式 `producer/subject/family/axis`（**一个 App = 一个 family 不是一条曲线**，新学科/新数据源只加注册项，曲线内核一行不改）；② 曲线状态机 `ABSENT/INSUFFICIENT/LIVE/STALE/SUSPENDED` 为必填显式字段——**缺曲线是一等信息**，`ABSENT` 不得读成 0；③ **App 只报观测、AIOS 按 rubric 算曲线**（防三家 App 三种"一年级"，One AI 的命门）；④ RubricSpec：`statistical` 类必须 SQL 可复算、`llm_scored` 永远 INFERRED 带 basis_obs、跨版本必打 `series_break`；⑤ Transfer Belief 独立对象（只进认知树、缺数自动降置信、可被用户纠正、不得写回曲线）；⑥ SourceManifest（scope 级授权、grace_period 后转 STALE、禁止旧值冒充当前）。另含治理上限（季度 ≤6 / 总量 ≤40 / `periodic_exempt` 防生日维度被衰减误杀 / `falsify_clause` 不可证伪即禁上线）。
+- **夹具改名升版**：`teaching_fit_v0.jsonl` → `teaching_fit_v1.jsonl`（输出契约新增 `unknowns/transfer/rubric_ref` 三个可选块，属不兼容变更，故升版并把 5 处引用一并改；上一批 DEVLOG 记录仍写 v0，那是当时的真实文件名，不改历史）。
+- **判分器扩到 K1-K10**（`code/bench/`）：夹具升 v1（4 个世界模型：`tf_u1` 超纲、`tf_u2` 重复讲解、`tf_x1` 跨域迁移、`tf_em1` 自注册口径），新增 K8 缺曲线 / K9 迁移依据 / K10 rubric 与断点。
+- **实测输出（真跑）**：4 条"底座式"桩全 PASS；3 条反例各判出真错——`tf_u1 通用大模型式` → K1 超纲 2 档+3 档、K4 虚构证据 `obs_999`、K5 冒充事实；`tf_x1 无依据式`（"你理科基础一般，化学都不会"）→ K8_未声明未知 + K8_把缺数讲成差 + K9_未声明依据；`tf_em1 自欺式` → K5 + K10_口径未声明。K3 只比同题：`档位 [0,2] 极差 2 PASS`。判分全程零模型零网络零相似度计算。回归：`test_s1_t5 --fast 18/18`、`aios_console` 与 bench 全量 `py_compile` 通过。
+- **本轮我写崩过两次，都如实记**：① K10 的 detail 里在同种引号内嵌引号 → f-string 提前闭合 `SyntaxError`（改「」）；② K3 判据我写成"`base` 含全部案例数 == 同题案例数"，加了 tf_x1/tf_em1 后条件永假、K3 被静默 SKIP——**这属于"测试悄悄不跑了"那类最危险缺陷**，修成先按 `problem_ref` 取同题集再比，并对"不判"打显式 SKIP 说明。教训：**加判据必须同时加反例桩**，否则不知道它有没有在咬。
+- **登记冲突（未擅自处置）**：① `dim.value` 的 `INSUFFICIENT` 判定需要 `min_n`，但 03 schema 里没有样本量字段，属任务 A 补 schema；② `transfer_belief` 落 cognition 树要加一类记录子型，`cognitiond` 现只接受 `sys.cognition.assert` 的扁平 statement——是否扩表待裁决；③ `llm_scored` rubric 每次打分都花大模型调用，与 §13.1「不为算而算」冲突：我建议按天/按事件批算而非逐观测算，需指挥官定；④ `04_apps` 空壳期间 K6/T 的"App 无大脑"只能静态扫描，真跑要等 App。
+- **未完成项**：`dimensiond` 未创建（任务 I，且须排在任务 A 之后——没有时间轴与 Observation，注册表就是空壳表单）；`answers_sample.json` 仍是人工桩，K/T/U/V 均未真正通过；1000 题新规范、`settingsd`、`safetyd` 实装均未开工；Windows 侧仍未验证。

@@ -33,7 +33,7 @@ fantonghui/
 │  │  │  ├─ api_pool/         云端大模型通道（唯一合法的语义算力出口）
 │  │  │  ├─ simulator/        L1 数据源之一（模拟器，非产品）
 │  │  │  ├─ tests/            验收裁判 + FROZEN.md（§4.4/§12.8 冻结件标注）
-│  │  │  ├─ bench/            验收夹具（如 teaching_fit_v0.jsonl）
+│  │  │  ├─ bench/            验收夹具（如 teaching_fit_v1.jsonl）
 │  │  │  ├─ aios_console.py   只读 Dev 面板（§8 风险二的裁决产物，非产品 UI）
 │  │  │  ├─ services.json     服务注册表（未来 app 注册表的雏形）
 │  │  │  └─ run/              运行态（gitignore；基准证据例外保留跟踪）

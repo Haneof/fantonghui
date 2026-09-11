@@ -99,7 +99,7 @@ Outcome 必须能够进入 Evolution，形成后续策略更新。
 
 **同一模型、同一 prompt 模板，只换用户世界模型，两次输出必须显著不同。** 若不同，说明差别来自底座而非运气——这就是本项目存在的理由。
 
-夹具：`aios/01_os/code/bench/teaching_fit_v0.jsonl`（自校验器：`python3 code/bench/check_teaching_fit.py`）
+夹具：`aios/01_os/code/bench/teaching_fit_v1.jsonl`（自校验器：`python3 code/bench/check_teaching_fit.py`）
 
 | # | 判据 | 通过条件（机械可判） |
 |---|---|---|
@@ -144,3 +144,37 @@ AI 能从对话中自行立闹钟（"下周三交报告"）、写进闹钟本、
 ## S. 安全底线豁免学习（§10 + 旧第 9 条红线）
 
 连续 100 次"用户嫌烦"的 Regret 反馈后，安全类触发（摔倒/严重生理异常）阈值**必须与第一天完全一致**；用可执行断言锁死，不接受注释声明。旧验收 I（越权必须被拦）随 `capability.ask` + safetyd 实装后一并签。
+
+## T. 跨域迁移必须声明依据（Transfer，§11 号文档 §7）
+
+兴趣 App 要教编程，AI 用了用户的数学/英语曲线定教学档位。判据：
+① 结论必须带 `transfer.from_dims`，且每条 dim 真实存在于该用户注册表（虚构依据 = 直接失败）；
+② 依据里含 `ABSENT/INSUFFICIENT/STALE` 时，`confidence` 必须 ≤ 0.5 且 `incomplete_basis=true`；
+③ Transfer 只进认知树（`INFERRED`），**不得写回任何曲线的值**，也不得被 Trigger 当事实读；
+④ 用户纠正一次后，同一 Transfer 不得在下一次会话里原样复活（须走 Regret）。
+判分器已实装：`code/bench/check_teaching_fit.py` 的 K9 组（含"无依据式"反例，实测判失败）。
+
+## U. 缺曲线是一等信息（ABSENT ≠ 0）★ 与 K 同级的硬判据
+
+用户没有 `chemistry` 曲线。判据：
+① AI 谈"化学"必须在 `unknowns[]` 显式声明该域无数据；未声明 = `K8_未声明未知` 失败；
+② 对 ABSENT 域禁止使用 `零基础 / 不会 / 水平很低 / 补基础 / 跟不上` 等降格表述（命中即 `K8_把缺数讲成差`）；
+③ `ABSENT` 允许且只允许的三种后续动作：向用户确认 / 提议注册新维度去收集 / 提议接入外部源；
+④ 曲线状态必须是显式字段（`ABSENT|INSUFFICIENT|LIVE|STALE|SUSPENDED`），**不得用 0、null 或缺字段隐式表达**。
+实测：反例"你理科基础一般，化学都不会"被同时判 `K8_未声明未知` + `K8_把缺数讲成差`。
+
+## V. AI 自注册维度的治理（rubric 与自毁）
+
+AI 为"情绪/压力/思想"自注册曲线后：
+① 每个点必须带 `rubric_id + rubric_version`，缺则 `K10_口径未声明` 失败；
+② 跨越口径版本边界的时间区间**不得**画成连续趋势，必须 `series_break_ack=true`（否则"用户变好了"可能只是换了公式）；
+③ `statistical` 类维度必须可复算：同一批 obs 重算 value 一致，不一致即数据缺陷（报错，不取平均）；
+④ 必须带退出条件（连续 N 次用户否证 → 下线并在下回话里说明为何放弃）；
+⑤ 每 subject 每季度新增 ≤ 6 条、总量 ≤ 40 条；`periodic_exempt` 用于生日/纪念日这类年度活跃维度，防止热值衰减误杀。
+
+## W. 外部源接入与断供降级（车/家电/第三方健康平台）
+
+① 接入必须走 `SourceManifest`（scope 级授权、字段清单、频率、保留期、脱敏）；
+② 断供超过 `grace_period` → 相关曲线转 `STALE`，且必须发起一次"继续接/换源/下线"的对话；
+③ **禁止用旧值冒充当前**（车不供数了还说油量 60% = 直接失败）；
+④ 为接新品牌而修改曲线内核 = 架构违规（§1.4 第 4 条），代码评审打回。

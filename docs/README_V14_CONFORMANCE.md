@@ -18,7 +18,7 @@
 | `02` | §9 Wake Runtime | **VOID** | 由 §4.2 **六类 Trigger** 取代；`NO_WAKE/MICRO/AI/EMERGENCY` 四级命名作废，其中 EMERGENCY 的语义并入第 6 类 Safety Trigger（硬规则、豁免学习） |
 | `02` | §10 AI / §11 Capability / §12 Interaction Runtime | KEEP+重标 | Capability 须过 Permission + Audit（§10）；Interaction 补 §9.2 语义枚举（只定契约、不实现） |
 | `03_WORLD_EVENT_SCHEMA` | Event / Entity / World State / World Change | KEEP（在用） | 主线三件套 `aios/01_os/schemas/{event,world_state,world_change}.json` 是本文逐字节副本，测试锁定（S1 验收） |
-| `03` | Canonical schema set / naming rule | **REVISE** | 须新增 Observation、DimensionPoint、TriggerRecord、InferenceEvent、SummaryNode 五份；`raw_ref` 唯一引用规则**继续有效**（Observation Store 就是 raw 的归宿） |
+| `03` | Canonical schema set / naming rule | **REVISE** | 须新增 Observation、DimensionPoint、TriggerRecord、InferenceEvent、SummaryNode 五份（**字段级草案已冻结在 `aios/01_os/docs/11_DIMENSION_MODEL_V0.md` §4/§5/§7/§8**）；`raw_ref` 唯一引用规则**继续有效**（Observation Store 就是 raw 的归宿） |
 | `03` | Memory / Relationship / Cognition / Growth / Decision | KEEP+重标 | Memory 须长出 Event Anchor + Keyword Inverted Index（§8.2、§6）；Cognition 的 epistemic 五状态已合 §5.5，保留 |
 | `04_WAKE_RUNTIME` | §2 流水线 Level 1 Semanticization（低层做语义化） | **VOID** | §4.4 第 1、2 条冻结：底层不做语义分类、本地小模型不做语义判断 |
 | `04` | §3 Level 4 Relevance / Level 5 Attention 分层 | **VOID** | 同 §6/§7/§8 判定，漏斗分层收敛为「机械触发 → AI」两段 |
