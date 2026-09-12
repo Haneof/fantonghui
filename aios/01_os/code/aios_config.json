@@ -1,1 +1,0 @@
-{"bus_host":"127.0.0.1","bus_port":7800,"hb_interval_s":1.0,"hb_timeout_s":3.0,"scan_interval_s":0.2,"restart_min_interval_s":0.5,"max_restarts_per_min":10}
