@@ -3,8 +3,8 @@
 > 状态：ACTIVE
 > 唯一开发分支：`aios`
 > 唯一 OS 主线：`aios/01_os/`
-> 唯一有效宪法：`docs/AIOS_Constitution_V1.4-r3.md`
-> 唯一完整架构：`docs/AIOS_Architecture_V1.4-r3.md`
+> 当前宪法基线：`docs/AIOS_Constitution_V1.4-r3.md` + `docs/AIOS_Constitution_V1.4-r3.1_Addendum.md`
+> 当前完整架构基线：`docs/AIOS_Architecture_V1.4-r3.md` + `docs/AIOS_Architecture_V1.4-r3.1_Addendum.md`
 >
 > **工程规则：任何代码、Schema、Runtime Contract、架构文档或测试发生修改后，必须同步更新本任务表。没有测试/运行证据和 Commit，不得标记完成。**
 
@@ -33,8 +33,14 @@
 21. 模型供应商可替换，不得成为 AIOS 身份或长期认知的一部分。
 22. Simulator 的 Hidden Expected Intent 对被测 AI 隐藏。
 23. PC/Linux 先完整实现软件闭环，手机和手环通过适配器后接入。
+24. **基础数据优先**：用户对话、消费记录、学习记录、传感器数据、位置、设备数据及其他来源数据可以直接作为 Foundational World Data，不要求先经过 AI 总结。
+25. **Source ≠ Dimension**：数据来源、设备、外部平台和 AIOS 能力应用不是自动生成的世界维度。
+26. **共享基础世界数据**：同一基础数据可以被多个独立维度引用/投影，不复制底层事实。
+27. **统一认知**：AI 跨维度对共同基础世界数据进行统一理解，而不是每个维度维护一套孤立的 AI 总结数据库。
+28. **高阶认知维度**：AI 可以从多个独立维度及其基础数据中动态抽象出新的高阶维度；高阶维度不等于父节点，不取代原维度。
+29. **多层交叉抽象**：高阶维度可以继续参与更高层抽象，也可以与其他维度交叉形成不同方向的认知结构；不预定义层数、组合、命名或阈值。
 
-## 1. V1.4-r3 总体开发路线
+## 1. V1.4-r3.1 总体开发路线
 
 ```text
 A0 架构基线冻结
@@ -62,7 +68,7 @@ A0 架构基线冻结
 | ID | 任务 | 状态 | 验收 |
 |---|---|---|---|
 | A0-T1 | V1.4-r3 完整 OS 模块树 | ✅ | 架构文档已提交 |
-| A0-T2 | V1.4-r3 宪法 | ✅ | r3 为唯一当前入口 |
+| A0-T2 | V1.4-r3 宪法 | ✅ | r3 为基础宪法 |
 | A0-T3 | 开放世界维度模型 | ✅ | 维度平行、可演化、不固定认知路线 |
 | A0-T4 | 节点 / 局部关联 / 全局导航抽象 | ✅ | 能力边界明确，不把示例固化为规则 |
 | A0-T5 | 时间语义与世界坐标 | ✅ | occurrence / observation / record / cognition 可区分 |
@@ -73,6 +79,9 @@ A0 架构基线冻结
 | A0-T10 | AI Capability Apps | ✅ | 不建立第二套核心认知 |
 | A0-T11 | PC 优先、硬件后适配 | ✅ | 模拟器优先原则冻结 |
 | A0-T12 | r2 → r3 文档切换 | ✅ | r2 不再作为当前架构入口 |
+| A0-T13 | 基础世界数据模型 | ✅ | Source / Foundational Data / Dimension / Cognition 边界明确 |
+| A0-T14 | 高阶认知维度 | ✅ | 独立维度可被 AI 动态抽象成更高阶维度，不形成固定父子树 |
+| A0-T15 | 多层交叉抽象 | ✅ | 支持继续向上抽象与交叉组合，不固定层数/组合/阈值 |
 
 ## 3. 下一阶段任务
 
@@ -91,6 +100,9 @@ A0 架构基线冻结
 | A4-T3 | Cross-Dimension Query | ⬜ | 横向/纵向/关系查询 |
 | A4-T4 | Dimension Evolution | ⬜ | 创建/调整/弱化/停用/重组能力 |
 | A4-T5 | Sparse Cognitive Update | ⬜ | 只在真实认知增量出现时更新 |
+| A4-T6 | Foundational Data Reference | ⬜ | 多维度共享同一基础数据，不复制事实 |
+| A4-T7 | Higher-Order Dimension Runtime | ⬜ | 多独立维度 → 动态高阶认知维度 |
+| A4-T8 | Multi-Level / Cross-Dimension Abstraction | ⬜ | 高阶维度可继续抽象、交叉、拆分、重组 |
 | A5-T1 | Evidence / Provenance | ⬜ | 来源可追溯 |
 | A5-T2 | Confidence Model | ⬜ | source/evidence/claim 分离 |
 | A5-T3 | Outcome Verification | ⬜ | prediction → outcome → confidence |
@@ -141,18 +153,29 @@ A0 架构基线冻结
 - 明确 AI 自身也可以拥有独立长期认知维度。
 - 保留完整 OS 全局模块架构，并与开放世界核心认知统一。
 
+### 2026-09-12 · V1.4-r3.1 高阶认知维度增补
+
+- 明确所有现实、用户行为、用户对话、消费记录、学习记录和应用产生的数据首先属于共同基础世界数据。
+- 明确 Source 不等于 Dimension，外部平台和 AIOS 能力应用不自动产生独立维度。
+- 明确维度是共同基础世界数据上的认知坐标/投影，不是各自独立的总结数据库。
+- 明确同一基础数据可以被多个平行维度引用而不复制事实。
+- 明确 AI 可以在多个独立维度之上动态形成高阶认知维度。
+- 明确高阶维度不属于低阶维度的固定父节点，不取代低阶维度。
+- 明确高阶维度可以继续向上抽象，也可以形成交叉、多方向的认知结构。
+- 明确不预定义抽象层数、组合方式、命名方式或固定阈值。
+
 ## 5. 当前执行状态
 
-**V1.4-r3 架构基线已冻结。下一步从 A1-T1 开始，按新架构自底向上实现；不得把具体产品示例反向固化成认知硬规则。**
+**V1.4-r3.1 架构基线已冻结。下一步从 A1-T1 开始；A4 实现阶段必须同时落实 Foundational Data Reference 与 Higher-Order Dimension Runtime，不能把维度实现成独立的 AI 摘要数据库。**
 
 ## 6. Agent 强制流程
 
 ```text
 读取本任务表
  ↓
-读取 V1.4-r3 Constitution
+读取 V1.4-r3 Constitution + r3.1 Addendum
  ↓
-读取 V1.4-r3 Architecture
+读取 V1.4-r3 Architecture + r3.1 Addendum
  ↓
 读取当前模块 Contract / Schema
  ↓
