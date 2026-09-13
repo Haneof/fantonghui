@@ -301,3 +301,47 @@ M0-001 状态 CONDITIONAL PASS，禁止进入 M0-002，修正两个问题并制�
 - 待提交 M0-002 define protocol error contract
 - 待提交 M0-002 archive implementation evidence
 
+
+## 2026-09-14 M0-002-R1 强化协议错误对象构造不变量、严格JSON语义与context不可污染性
+
+### 总工审查结论
+- M0-002主体通过，但存在协议不变量漏洞，PATCH REQUIRED
+- 阻塞：构造时未验证context、context可被外部污染、NaN/Infinity非标准JSON
+
+### 修复
+
+**ErrorResponse严格JSON**
+- 修改 src/aios_core/contracts/errors.py: ConfigDict extra="forbid", frozen=True, allow_inf_nan=False
+- 拒绝 float("nan"), float("inf"), float("-inf")
+
+**AIOSProtocolError构造即验证**
+- 修改 src/aios_core/errors.py
+- 原 self._context = context 仅依赖类型标注，无运行时保证
+- 现立即构造 validated = ErrorResponse(code, message, context), 非法立即失败
+- 内部保存 self._response = validated.model_copy(deep=True)
+- super().__init__(validated.message)
+
+**context不可污染**
+- 原始dict隔离：原始调用者dict修改不得改变已创建错误内部context (deep copy)
+- getter隔离：err.context 返回 deepcopy，修改返回dict不污染内部
+- to_response稳定：返回 deep copy，不受之前外部修改影响
+
+**新增测试**
+- P01 构造拒绝 object()
+- P02 构造拒绝 open
+- P03 ErrorResponse拒绝 NaN
+- P04 ErrorResponse拒绝 Infinity/-Infinity
+- P05 AIOSProtocolError同样拒绝 NaN/Infinity
+- P06 合法协议 json.dumps(allow_nan=False) 成功
+- P07 原始context隔离
+- P08 getter隔离
+- P09 to_response稳定
+- S01 empty commit context {operation_id, reason="empty_commit"}
+- S02 duplicate revision context {operation_id, reason="duplicate_revision"}
+- S03 self-current reference context {object_id, revision}
+- 清理重复 test_e04
+
+**测试**
+- 72 passed (57 + 15新增), reference 15 passed
+- 对抗验证 A-E 有效
+

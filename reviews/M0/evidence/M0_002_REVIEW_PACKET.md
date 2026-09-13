@@ -173,3 +173,47 @@ clean after commit
 ## 未修改 reference
 - aios_core_r2_reference/ 保持冻结，15 tests 通过
 - 正式 src 合法超越 reference (错误协议)
+
+---
+
+## R1 PATCH
+
+### 问题
+- AIOSProtocolError构造时未验证context, 依赖类型标注无运行时保证, object()可先成功创建到 to_response()才失败
+- context内部状态可被外部污染: 原始dict修改、err.context getter修改可污染内部
+- 严格JSON数值: NaN/Infinity/-Infinity 不是标准JSON, 需显式拒绝
+
+### 修复
+- ErrorResponse: ConfigDict allow_inf_nan=False
+- AIOSProtocolError: 构造即 validated = ErrorResponse(...), 非法立即失败; 内部保存 model_copy(deep=True); context getter 返回 deepcopy; to_response 返回 deep copy
+- 保证原始dict隔离、getter隔离、to_response稳定
+
+### 新测试 (15新增)
+- P01 构造拒绝 object() 立即失败
+- P02 构造拒绝 open 立即失败
+- P03 ErrorResponse拒绝 NaN
+- P04 ErrorResponse拒绝 Infinity/-Infinity (parametrize)
+- P05 AIOSProtocolError拒绝 NaN/Infinity
+- P06 合法协议 json.dumps(allow_nan=False) 成功
+- P07 原始context隔离: ctx修改不污染 err.context
+- P08 getter隔离: returned dict修改不污染内部
+- P09 to_response稳定: 外部修改后仍得原始内容
+- S01 empty commit context {operation_id, reason="empty_commit"}
+- S02 duplicate revision context {operation_id, reason="duplicate_revision"}
+- S03 self-current reference context {object_id, revision}
+- 清理重复 test_e04_empty_message_rejected
+
+### 测试结果
+- 正式 72 passed (57 + 15新增)
+- Reference 15 passed
+- Python 3.11.2 (正式 >=3.12, PYTHON_312_RUNTIME_UNAVAILABLE)
+
+### 对抗验证 R1
+- A 删除构造验证 -> P01/P02/P05失败, 攻击有效
+- B 直接返回内部dict -> P08/P09失败, 攻击有效
+- C 删除 allow_inf_nan=False -> NaN/Infinity测试失败 (LooseResponse 允许 nan), 攻击有效
+- D 删除 empty_commit context -> S01失败, 攻击有效
+- E 删除 self-current context -> S03失败, 攻击有效
+
+### Commit
+- R1待提交
