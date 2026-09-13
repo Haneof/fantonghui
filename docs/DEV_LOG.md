@@ -269,3 +269,35 @@ M0-001 状态 CONDITIONAL PASS，禁止进入 M0-002，修正两个问题并制�
 **12. 测试**
 - 待执行 33 + 15
 
+
+## 2026-09-14 M0-002 统一错误码、协议级错误结构与机器可恢复异常契约
+
+### 起始
+- 冻结 commit 8197c4f, Manifest 8ea4a102..., M0-001 FINAL PASS 已归档
+- 分支 arena/01a09bc6-fantonghui clean
+
+### 实现
+- 新建 src/aios_core/contracts/errors.py: ErrorResponse
+- 新建 src/aios_core/errors.py: AIOSProtocolError
+- 修改 src/aios_core/contracts/__init__.py: 导出 ErrorResponse
+- 修改 src/aios_core/storage/sqlite_store.py: StoreError 继承 AIOSProtocolError + 结构化 context (empty_commit, world revision, object revision, self ref, reference not found, get_payload not found, operation not found)
+- 新建 tests/unit/test_errors.py 24 tests (E01-E20 + message独立性 + 安全序列化 + 其他错误码 + operation not found)
+- README 增加 M0-002 错误协议说明
+- TASK_PROGRESS 更新为 CODE COMPLETE / WAITING CHIEF REVIEW
+
+### 测试
+- 57 passed (33原 + 24新增)
+- 15 reference passed
+- 对抗验证 A-E 有效
+
+### 未实现
+- 未新增 ErrorCode, 未修改字符串值
+- 完整幂等检测 -> M0-016
+- 完整 Action Runtime -> 后续
+- HTTP mapping -> 后续接口层
+- 完整 logging -> 后续
+
+### 提交
+- 待提交 M0-002 define protocol error contract
+- 待提交 M0-002 archive implementation evidence
+
