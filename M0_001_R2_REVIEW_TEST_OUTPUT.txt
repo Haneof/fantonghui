@@ -1,0 +1,33 @@
+Python 3.11.2
+
+=== Formal ===
+============================= test session starts ==============================
+platform linux -- Python 3.11.2, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/user/fantonghui
+configfile: pyproject.toml
+collected 33 items
+
+tests/architecture/test_boundaries.py ......                             [ 18%]
+tests/architecture/test_scanner_regression.py ............               [ 54%]
+tests/unit/test_contracts.py .....                                       [ 69%]
+tests/unit/test_state_machines.py ....                                   [ 81%]
+tests/unit/test_store.py ......                                          [100%]
+
+============================== 33 passed in 0.27s ==============================
+
+=== Reference ===
+============================= test session starts ==============================
+platform linux -- Python 3.11.2, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/user/fantonghui/aios_core_r2_reference
+configfile: pyproject.toml
+collected 15 items
+
+aios_core_r2_reference/tests/test_contracts.py .....                     [ 33%]
+aios_core_r2_reference/tests/test_state_machines.py ....                 [ 60%]
+aios_core_r2_reference/tests/test_store.py ......                        [100%]
+
+============================== 15 passed in 0.23s ==============================
+
+=== Wheel ===
+python3 -m pip wheel . --no-deps -w dist_test --no-build-isolation --ignore-requires-python
+Result: aios_core-0.1.0-py3-none-any.whl 22K SHA256 1e2800e676e8efc1d1e7ad50de434a97eaf0512dd861de37fbe0c1e0223aebfc

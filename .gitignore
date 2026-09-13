@@ -55,3 +55,7 @@ Thumbs.db
 # AIOS specific
 run/
 data/
+
+# Env & secrets
+.env
+.env.*

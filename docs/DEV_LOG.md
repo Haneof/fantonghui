@@ -137,3 +137,70 @@ M0-001 状态 CONDITIONAL PASS，禁止进入 M0-002，修正两个问题并制�
 - 审查包已生成
 - 未进入 M0-002，未修改世界对象语义
 
+
+## 2026-09-14 M0-001-R2 harden repository boundary checks
+
+### 触发
+- 评审反馈：TEST-B 绕过 from aios_core import storage / as xxx, AST fail-closed缺失, scanner无回归测试, TEST-F命名误导, pyproject.toml MIT license未删除, .gitignore未进入zip
+
+### 修复清单执行
+
+**1. TEST-B 绕过修复**
+- 修改 tests/architecture/test_boundaries.py: _has_import_storage_internal 新增检测 mod == "aios_core" 且 alias.name == "storage" 或 startswith "storage."
+- 覆盖 6 种形式：import aios_core.storage, import aios_core.storage.sqlite_store, from aios_core.storage import, from aios_core.storage.sqlite_store import, from aios_core import storage, from aios_core import storage as xxx
+- 验证：新增回归测试 CASE-5/6 均判违规
+
+**2. AST fail-closed**
+- 建立统一 _parse_file_or_fail(file_path) helper
+- OSError/UnicodeError/SyntaxError 必须抛 AssertionError 带路径和原始异常，禁止 return False
+- 所有检测函数复用该 helper，确保无法读取/解析文件时测试失败而非返回安全
+
+**3. Scanner回归测试**
+- 新增 tests/architecture/test_scanner_regression.py 12 cases (10 required + 2 extra)
+- CASE-1 import sqlite3 => 违规
+- CASE-2 from sqlite3 import connect => 违规
+- CASE-3 import aios_core.storage => 违规
+- CASE-4 from aios_core.storage import => 违规
+- CASE-5 from aios_core import storage => 违规 (绕过)
+- CASE-6 from aios_core import storage as core_storage => 违规
+- CASE-7 import evaluator => 违规
+- CASE-8 from evaluator import truth => 违规
+- CASE-9 合法 from aios_core.contracts import Claim => 不误判
+- CASE-10 无法parse文件必须失败 (AssertionError)
+- extra import/from storage.sqlite_store => 违规
+
+**4. TEST-F 修正**
+- 原 test_f_pytest_runs_from_root 误导，改为 test_f_repository_test_configuration_present
+- 检查 ROOT/pyproject.toml/tests/src 存在，README/review packet准确描述
+
+**5. License**
+- 删除 pyproject.toml license = {text="MIT"}, 不替换其他许可证，等待负责人决定
+
+**6. .gitignore**
+- 确认存在且包含 .venv/venv/__pycache__/*.pyc/.pytest_cache/build/dist/*.egg-info/.env/.env.*/*.db
+- 已进入新 ZIP AIOS_2.0_M0-001_R2_review.zip
+
+**7. Python 3.12 CI**
+- 基线保持 >=3.12，本地 3.11.2 PYTHON_312_RUNTIME_UNAVAILABLE，CI已配置 3.12 (备份在 docs/workflow_backup/ci.yml.txt)
+
+**8. 构建验证**
+- python3 -m pip wheel . --no-deps -w dist_test --no-build-isolation --ignore-requires-python 成功
+- 产物 aios_core-0.1.0-py3-none-any.whl 22K SHA256 1e2800e676e8efc1d1e7ad50de434a97eaf0512dd861de37fbe0c1e0223aebfc
+- 使用 --ignore-requires-python 因正式要求 >=3.12 但本地 3.11.2，--no-build-isolation 因网络隔离，实际命令已报告
+- 构建后删除 dist_test，未提交产物
+
+**测试**
+- 正式 33 passed (架构18 + 单元15)
+- Reference 15 passed
+- Wheel build success
+
+**审查包**
+- M0_001_R2_REVIEW_PACKET.md
+- M0_001_R2_REVIEW_TEST_OUTPUT.txt
+- AIOS_2.0_M0-001_R2_review.zip 181K SHA256 6e9dafa95060ad1c0aca2ac916e4a1433385e0374294fc397a35c3d8daccebb8
+  - 包含 pyproject.toml/.gitignore/README.md/TASK_PROGRESS_R2.md/8根正式文档/src/tests/docs/.github/reference/review packet/test output
+  - 排除 .git/.venv/__pycache__/.pytest_cache/build/dist/egg-info/临时db/secret
+
+### 提交
+- 待提交 M0-001-R2 harden repository boundary checks
+
