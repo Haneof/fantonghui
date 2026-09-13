@@ -1,7 +1,8 @@
 from .base import WorldObject
-from .enums import *
-from .ids import *
-from .models import *
+from .enums import *  # noqa: F403
+from .errors import ErrorResponse
+from .ids import *  # noqa: F403
+from .models import *  # noqa: F403
 from .operations import CommitResult, OperationRequest
 from .refs import ObjectRef, SourceRef
 from .time import KnowledgeWindow, TemporalExtent, TimePrecision, utc_now
@@ -16,4 +17,5 @@ __all__ = [
     "TemporalExtent",
     "TimePrecision",
     "utc_now",
+    "ErrorResponse",
 ]

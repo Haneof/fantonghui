@@ -7,22 +7,34 @@ from datetime import datetime
 from pathlib import Path
 from typing import Iterable, Iterator, TypeVar
 
-from pydantic import BaseModel
+from pydantic import BaseModel, JsonValue
 
 from aios_core.contracts.base import WorldObject
 from aios_core.contracts.enums import ErrorCode, ObjectType
 from aios_core.contracts.operations import CommitResult, OperationRequest
 from aios_core.contracts.refs import ObjectRef, SourceRef
 from aios_core.contracts.time import utc_now
+from aios_core.errors import AIOSProtocolError
 
 T = TypeVar("T", bound=WorldObject)
 
 
-class StoreError(RuntimeError):
-    def __init__(self, code: ErrorCode, message: str):
-        super().__init__(message)
-        self.code = code
-        self.message = message
+class StoreError(AIOSProtocolError):
+    """Storage layer error, now inherits from AIOSProtocolError for unified handling.
+
+    Keeps backward compatibility:
+    - except StoreError still works
+    - except AIOSProtocolError also catches StoreError
+    """
+
+    def __init__(
+        self,
+        code: ErrorCode,
+        message: str,
+        *,
+        context: dict[str, JsonValue] | None = None,
+    ):
+        super().__init__(code, message, context=context)
 
 
 class SQLiteWorldStore:
@@ -197,7 +209,14 @@ class SQLiteWorldStore:
     ) -> CommitResult:
         object_list = list(objects)
         if not object_list:
-            raise StoreError(ErrorCode.INVALID_ARGUMENT, "commit requires at least one object")
+            raise StoreError(
+                ErrorCode.INVALID_ARGUMENT,
+                "commit requires at least one object",
+                context={
+                    "operation_id": operation.operation_id,
+                    "reason": "empty_commit",
+                },
+            )
 
         with self._connection() as conn:
             conn.execute("BEGIN IMMEDIATE")
@@ -216,11 +235,23 @@ class SQLiteWorldStore:
                     raise StoreError(
                         ErrorCode.VERSION_CONFLICT,
                         f"expected world revision {operation.expected_world_revision}, current is {current_world_revision}",
+                        context={
+                            "expected_world_revision": operation.expected_world_revision,
+                            "current_world_revision": current_world_revision,
+                            "operation_id": operation.operation_id,
+                        },
                     )
 
                 pending_pairs = {(o.object_id, o.revision) for o in object_list}
                 if len(pending_pairs) != len(object_list):
-                    raise StoreError(ErrorCode.INVALID_ARGUMENT, "duplicate object revision in one commit")
+                    raise StoreError(
+                        ErrorCode.INVALID_ARGUMENT,
+                        "duplicate object revision in one commit",
+                        context={
+                            "operation_id": operation.operation_id,
+                            "reason": "duplicate_revision",
+                        },
+                    )
 
                 # Validate revision monotonicity before any write.
                 for obj in object_list:
@@ -230,6 +261,11 @@ class SQLiteWorldStore:
                         raise StoreError(
                             ErrorCode.VERSION_CONFLICT,
                             f"{obj.object_id} must write revision {expected_revision}, got {obj.revision}",
+                            context={
+                                "object_id": obj.object_id,
+                                "expected_revision": expected_revision,
+                                "actual_revision": obj.revision,
+                            },
                         )
 
                 if validate_references:
@@ -239,11 +275,19 @@ class SQLiteWorldStore:
                                 raise StoreError(
                                     ErrorCode.DEPENDENCY_INVALID,
                                     f"object {obj.object_id} cannot cite its own current revision as evidence/source",
+                                    context={
+                                        "object_id": obj.object_id,
+                                        "revision": obj.revision,
+                                    },
                                 )
                             if not self._reference_exists(conn, ref, pending_pairs):
                                 raise StoreError(
                                     ErrorCode.NOT_FOUND,
                                     f"reference does not exist: {ref.object_id}@{ref.revision or 'latest'}",
+                                    context={
+                                        "referenced_object_id": ref.object_id,
+                                        "referenced_revision": ref.revision,
+                                    },
                                 )
 
                 next_world_revision = current_world_revision + 1
@@ -356,7 +400,14 @@ class SQLiteWorldStore:
         with self._connection() as conn:
             row = conn.execute(sql, tuple(params)).fetchone()
             if row is None:
-                raise StoreError(ErrorCode.NOT_FOUND, f"object not found: {object_id}")
+                raise StoreError(
+                    ErrorCode.NOT_FOUND,
+                    f"object not found: {object_id}",
+                    context={
+                        "object_id": object_id,
+                        "revision": revision,
+                    },
+                )
             return json.loads(row["payload_json"])
 
     def list_payloads(
@@ -455,5 +506,11 @@ class SQLiteWorldStore:
                 (operation_id,),
             ).fetchone()
             if row is None:
-                raise StoreError(ErrorCode.NOT_FOUND, f"operation not found: {operation_id}")
+                raise StoreError(
+                    ErrorCode.NOT_FOUND,
+                    f"operation not found: {operation_id}",
+                    context={
+                        "operation_id": operation_id,
+                    },
+                )
             return dict(row)
