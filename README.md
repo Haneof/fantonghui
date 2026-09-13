@@ -4,6 +4,7 @@
 > 宪法基线：`AIOS宪法2.0.txt` + R1/R2 修改案
 > 任务母表：`AIOS_Core_详细开发任务拆分_R2_总工程师版.md`
 > 当前任务：M0-001 仓库骨架、包边界与依赖方向
+> 正式 Python 基线：`>=3.12` (参考实现 pyproject.toml 原始要求)
 
 ## 1. 当前阶段是什么
 
@@ -17,10 +18,10 @@
 
 ## 2. 五个主要代码包
 
-| 包 | 职责 | 是否可写DB |
+| 包 | 职责 | DB写权限说明 |
 |---|---|---|
-| `src/aios_core` | 世界、对象、版本、写入、查询唯一正式实现 | **唯一可写** SQLite，WAL，追加式 revision |
-| `src/ai_worker` | 调用大模型，通过 Core 公共接口操作世界 | **禁止** `import sqlite3` / `aios_core.storage` 内部 |
+| `src/aios_core` | 世界、对象、版本、写入、查询唯一正式实现 | 唯一被允许通过 `SQLiteWorldStore.commit()` 写入 |
+| `src/ai_worker` | 调用大模型，通过 Core 公共接口操作世界 | 正式代码架构禁止直接访问SQLite，并由自动架构测试阻止已定义的直接依赖方式 |
 | `src/console` | 开发者调试，查看时间轴、对象、证据、下钻 | 只读，通过 Core 查询接口 |
 | `src/simulator` | 虚拟人生、虚拟时钟、观测生成 | 写入 Observation，但走 Core commit |
 | `src/evaluator` | 隐藏真值、评分、B0/B1/B2 基线 | 保存隐藏答案，`aios_core` 绝不能 import evaluator |
@@ -32,20 +33,23 @@
 ## 3. 如何安装
 
 ```bash
-python3 -m venv .venv
+python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
-要求 Python 3.12+ (生产)，当前 CI 兼容 3.11。
+正式要求 Python 3.12+。当前代码可能兼容 3.11，但正式项目最低版本保持 >=3.12，不因开发机环境降低。
 
 ## 4. 如何运行测试
 
 ```bash
 # 从项目根目录
+python3.12 -m pytest -v
+# 兼容环境
 python -m pytest -v
-# 或
+# 架构边界
 pytest tests/architecture -v
+# 参考实现
 pytest aios_core_r2_reference/tests -v
 ```
 
@@ -57,11 +61,11 @@ pytest aios_core_r2_reference/tests -v
 
 ## 6. 哪一个模块拥有数据库写权限
 
-只有 `src/aios_core/storage/sqlite_store.py` 的 `SQLiteWorldStore.commit()` 拥有写权限。
+正式架构中，只有 `src/aios_core/storage/sqlite_store.py` 的 `SQLiteWorldStore.commit()` 被允许作为世界写入的唯一实现。
 
-所有其他包必须通过它。
+所有其他包（ai_worker, console, simulator, evaluator）必须通过 Core 公共接口操作世界。
 
-`ai_worker` 获得 `sqlite3.Connection` 即视为架构违规，architecture test 会失败。
+**注意**：当前架构测试属于“代码架构政策检查”，不是操作系统级安全沙箱。正式代码架构禁止 AI Worker 直接访问 SQLite，并由自动架构测试阻止已定义的直接依赖方式（import sqlite3 / import aios_core.storage 等），而非声称技术上绝对不可能。
 
 ## 7. AI Worker 为什么不能直接访问数据库
 
@@ -82,14 +86,28 @@ Evaluator 保存虚拟人真实隐藏状态、评分标准、未来观测。
 - `ai_worker -> evaluator` 隐藏真值模块禁止
 - `simulator` 可按测试协议与 evaluator 协作，但正式查询接口不能读真值
 
-## 9. M0-001 验收
+## 9. 正式文档唯一真源
+
+根目录中的正式 AIOS 文档为唯一权威版本，包括：
+
+- AIOS宪法2.0.txt
+- AIOS宪法2.0及开发规格修改案_R1.md / R2.md
+- AIOS Core 系统架构图与开发规划.md
+- AIOS认知工作台功能规格.md
+- AIOS虚拟世界测试规范.md
+- AIOS_Core_详细开发任务拆分_R2.md
+- AIOS_Core_详细开发任务拆分_R2_总工程师版.md
+
+`docs/` 目录不得保存这些文档的第二份可编辑副本，仅保留 `docs/README.md` 说明和 `docs/DEV_LOG.md` 开发日志。历史版本未来进入 archive/ 后另行管理。
+
+## 10. M0-001 验收
 
 - [x] src layout 已建立
 - [x] aios_core 唯一 Core 实现
 - [x] ai_worker / console / simulator / evaluator 物理隔离
-- [x] 架构边界自动测试
+- [x] 架构边界自动测试（递归扫描 src/ai_worker, src/aios_core）
 - [x] 原参考测试继续通过
 - [x] pytest 根目录执行成功
-- [x] pyproject.toml 可用
-- [x] 未删除宪法/架构文档
+- [x] pyproject.toml 可用 (requires-python >=3.12)
+- [x] 未删除宪法/架构文档（根为权威）
 - [x] 未开始 M0-002 以后内容

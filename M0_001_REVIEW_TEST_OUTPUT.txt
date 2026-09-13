@@ -1,0 +1,46 @@
+# M0-001-R Review Test Output
+# Generated: 2026-09-14
+# Python: 
+Python 3.11.2
+
+=== Formal tests: PYTHONPATH=src python3 -m pytest tests -v ===
+============================= test session starts ==============================
+platform linux -- Python 3.11.2, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/user/fantonghui
+configfile: pyproject.toml
+collected 21 items
+
+tests/architecture/test_boundaries.py ......                             [ 28%]
+tests/unit/test_contracts.py .....                                       [ 52%]
+tests/unit/test_state_machines.py ....                                   [ 71%]
+tests/unit/test_store.py ......                                          [100%]
+
+============================== 21 passed in 0.23s ==============================
+
+=== Reference tests: PYTHONPATH=aios_core_r2_reference/src python3 -m pytest aios_core_r2_reference/tests -v ===
+============================= test session starts ==============================
+platform linux -- Python 3.11.2, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/user/fantonghui/aios_core_r2_reference
+configfile: pyproject.toml
+collected 15 items
+
+aios_core_r2_reference/tests/test_contracts.py .....                     [ 33%]
+aios_core_r2_reference/tests/test_state_machines.py ....                 [ 60%]
+aios_core_r2_reference/tests/test_store.py ......                        [100%]
+
+============================== 15 passed in 0.20s ==============================
+
+=== All tests from root: python3 -m pytest -v ===
+============================= test session starts ==============================
+platform linux -- Python 3.11.2, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/user/fantonghui
+configfile: pyproject.toml
+testpaths: tests
+collected 21 items
+
+tests/architecture/test_boundaries.py ......                             [ 28%]
+tests/unit/test_contracts.py .....                                       [ 52%]
+tests/unit/test_state_machines.py ....                                   [ 71%]
+tests/unit/test_store.py ......                                          [100%]
+
+============================== 21 passed in 0.23s ==============================

@@ -7,7 +7,7 @@ name = "aios-core"
 version = "0.1.0"
 description = "AIOS Core 2.0 - 共同世界运行时 + 认知工作台 + 任务调度 + 虚拟世界评估 (M0-001 骨架)"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 license = {text = "MIT"}
 dependencies = [
   "pydantic>=2.10,<3",
