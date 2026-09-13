@@ -4,13 +4,13 @@
 > 宪法基线：`AIOS宪法2.0.txt` + R1/R2
 > 当前主线：`aios-2.0`
 > 工作分支：`arena/01a09bc6-fantonghui`
-> 最后更新：2026-09-14 22:00 UTC (M0-002 FINAL PASS, M0-003 PATCH COMPLETE)
+> 最后更新：2026-09-14 23:00 UTC (M0-003 FINAL PASS, M0-004 CODE COMPLETE)
 
 ## 里程碑总览
 
 | 里程碑 | 目标 | 状态 | 完成度 |
 |---|---|---|---|
-| M0 | 冻结世界契约与核心存储 | 进行中 IN PROGRESS | 2/22 FINAL PASS + M0-003 PATCH COMPLETE |
+| M0 | 冻结世界契约与核心存储 | 进行中 IN PROGRESS | 3/22 FINAL PASS + M0-004 CODE COMPLETE |
 | M1 | 可写、可查、可下钻的共同世界 | 未开始 | 0/16 |
 | M2 | 主动运行闭环 | 未开始 | 0/15 |
 | M3 | 长期纠错与多尺度认知 | 未开始 | 0/11 |
@@ -24,8 +24,8 @@
 
 | 任务 | 名称 | 状态 | 测试 | Commit | 备注 |
 |---|---|---|---|---|---|
-| M0-001 | 仓库骨架 | FINAL PASS | 33+15 | 8197c4f | - |
+| M0-001 | 仓库骨架 | FINAL PASS | 33+15 | 8197c4f | Manifest 8ea4a102... |
 | M0-002 | 统一错误码 | FINAL PASS | 72+15 | 3430e13 | - |
-| M0-003 | 稳定对象 ID | PATCH COMPLETE / WAITING CHIEF REVIEW | 103+15 | ac8edcc -> R1待提交 | 生产代码PASS, 测试补强 |
-| M0-003-R1 | 删除性能Gate, 补强名称测试 | PATCH COMPLETE / WAITING CHIEF REVIEW | 103+15 | 待提交 | 删除elapsed<60, 补强test_name_not_in_id |
-| M0-004 | 唯一时间轴 | TODO / HOLD | - | - | 禁止提前开始 |
+| M0-003 | 稳定对象 ID | FINAL PASS | 103+15 | f705e38 | ids.py SHA256 9972e1d4... |
+| M0-004 | 唯一时间轴、三类时间、跨时区规范化与 Knowledge Cutoff | CODE COMPLETE / WAITING CHIEF REVIEW | 138+15 | 待提交 | 35新增, 138总, 100k跨时区泄露修复 |
+| M0-005 | WorldObject 公共字段 | TODO / HOLD | - | - | 禁止提前开始 |
