@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .enums import ObjectType
 from .refs import SourceRef
-from .time import TemporalExtent, require_aware, utc_now
+from .time import TemporalExtent, as_utc, require_aware, utc_now
 
 
 class WorldObject(BaseModel):
@@ -31,7 +31,13 @@ class WorldObject(BaseModel):
     def validate_times(self) -> "WorldObject":
         require_aware(self.learned_at, "learned_at")
         require_aware(self.recorded_at, "recorded_at")
-        if self.recorded_at < self.learned_at:
+        if as_utc(
+            self.recorded_at,
+            "recorded_at",
+        ) < as_utc(
+            self.learned_at,
+            "learned_at",
+        ):
             # Allow ingestion delay only in the forward direction. If data is imported
             # from old systems, learned_at should still represent when AIOS learned it.
             raise ValueError("recorded_at must be >= learned_at")

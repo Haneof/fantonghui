@@ -121,7 +121,7 @@ class TemporalExtent(BaseModel):
         if (
             self.start is not None
             and self.end is not None
-            and self.end < self.start
+            and as_utc(self.end, "end") < as_utc(self.start, "start")
         ):
             raise ValueError(
                 "end must not be before start"
