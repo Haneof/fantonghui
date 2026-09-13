@@ -345,3 +345,19 @@ M0-001 状态 CONDITIONAL PASS，禁止进入 M0-002，修正两个问题并制�
 - 72 passed (57 + 15新增), reference 15 passed
 - 对抗验证 A-E 有效
 
+
+## 2026-09-14 M0-003 稳定对象 ID 生成器正式冻结与验证
+
+### 起始
+- 冻结 commit 3430e13 (M0-002 FINAL PASS)
+- 分支 arena/01a09bc6-fantonghui clean
+
+### 实现
+- 确认 ids.py 已与总工冻结一致 (SHA256 9972e1d4d7e272019da26d8fb466a9391dea868039e43b5fc9cdaf33073a8993)
+- 新增 tests/unit/test_ids.py 31 tests: 完整性/格式/operation/execution/1000唯一性/100k唯一性/rename稳定性/revision稳定性/名称不进入ID/truth leakage/UUID版本
+- 100k唯一性 100k/100k 碰撞0 耗时记录
+- 对抗测试 A-E 有效
+
+### 测试
+- 103 passed + 15 reference
+
