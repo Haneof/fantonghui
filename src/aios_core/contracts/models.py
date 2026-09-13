@@ -22,7 +22,7 @@ from .enums import (
     WakeState,
 )
 from .refs import ObjectRef
-from .time import KnowledgeWindow, TemporalExtent, require_aware, require_timezone_name
+from .time import KnowledgeWindow, TemporalExtent, as_utc, require_aware, require_timezone_name
 
 
 class Observation(WorldObject):
@@ -243,7 +243,13 @@ class Wake(WorldObject):
     def validate_wake_times(self) -> "Wake":
         require_aware(self.first_hit_at, "first_hit_at")
         require_aware(self.last_hit_at, "last_hit_at")
-        if self.last_hit_at < self.first_hit_at:
+        if as_utc(
+            self.last_hit_at,
+            "last_hit_at",
+        ) < as_utc(
+            self.first_hit_at,
+            "first_hit_at",
+        ):
             raise ValueError("last_hit_at must not be before first_hit_at")
         return self
 

@@ -744,3 +744,105 @@ def test_d04_worldobject_dst_recorded_wall_greater_but_instant_less_rejected():
             recorded_at=recorded,
             created_by="test",
         )
+
+# D05 Wake DST false-reject protection
+def test_d05_wake_dst_wall_less_but_instant_greater_allowed():
+    from aios_core.contracts.models import Wake
+    from aios_core.contracts.enums import WakeSource
+    from aios_core.contracts.time import utc_now
+
+    ny = ZoneInfo("America/New_York")
+    first = datetime(2026, 11, 1, 1, 30, tzinfo=ny, fold=0)  # 05:30 UTC
+    last = datetime(2026, 11, 1, 1, 15, tzinfo=ny, fold=1)   # 06:15 UTC
+
+    assert as_utc(last, "last_hit_at") > as_utc(first, "first_hit_at")
+
+    now = utc_now()
+    wake = Wake(
+        object_id="wake_dst_05",
+        subject_id="test_wake",
+        revision=1,
+        learned_at=now,
+        recorded_at=now,
+        created_by="test",
+        wake_source=WakeSource.TASK_DUE,
+        first_hit_at=first,
+        last_hit_at=last,
+    )
+    assert wake.first_hit_at == first
+    assert wake.last_hit_at == last
+
+
+# D06 Wake DST false-accept protection
+def test_d06_wake_dst_wall_greater_but_instant_less_rejected():
+    from aios_core.contracts.models import Wake
+    from aios_core.contracts.enums import WakeSource
+    from aios_core.contracts.time import utc_now
+
+    ny = ZoneInfo("America/New_York")
+    first = datetime(2026, 11, 1, 1, 30, tzinfo=ny, fold=1)  # 06:30 UTC
+    last = datetime(2026, 11, 1, 1, 45, tzinfo=ny, fold=0)   # 05:45 UTC
+
+    assert as_utc(last, "last_hit_at") < as_utc(first, "first_hit_at")
+
+    now = utc_now()
+    with pytest.raises(ValueError):
+        Wake(
+            object_id="wake_dst_06",
+            subject_id="test_wake",
+            revision=1,
+            learned_at=now,
+            recorded_at=now,
+            created_by="test",
+            wake_source=WakeSource.TASK_DUE,
+            first_hit_at=first,
+            last_hit_at=last,
+        )
+
+
+# Wake naive first_hit_at reject
+def test_wake_naive_first_hit_rejected():
+    from aios_core.contracts.models import Wake
+    from aios_core.contracts.enums import WakeSource
+    from aios_core.contracts.time import utc_now
+
+    now = utc_now()
+    aware = datetime(2026, 9, 14, 12, 0, tzinfo=timezone.utc)
+    naive = datetime(2026, 9, 14, 12, 0)
+
+    with pytest.raises(ValueError):
+        Wake(
+            object_id="wake_naive_1",
+            subject_id="test_wake",
+            revision=1,
+            learned_at=now,
+            recorded_at=now,
+            created_by="test",
+            wake_source=WakeSource.TASK_DUE,
+            first_hit_at=naive,
+            last_hit_at=aware,
+        )
+
+
+# Wake naive last_hit_at reject
+def test_wake_naive_last_hit_rejected():
+    from aios_core.contracts.models import Wake
+    from aios_core.contracts.enums import WakeSource
+    from aios_core.contracts.time import utc_now
+
+    now = utc_now()
+    aware = datetime(2026, 9, 14, 12, 0, tzinfo=timezone.utc)
+    naive = datetime(2026, 9, 14, 12, 0)
+
+    with pytest.raises(ValueError):
+        Wake(
+            object_id="wake_naive_2",
+            subject_id="test_wake",
+            revision=1,
+            learned_at=now,
+            recorded_at=now,
+            created_by="test",
+            wake_source=WakeSource.TASK_DUE,
+            first_hit_at=aware,
+            last_hit_at=naive,
+        )
