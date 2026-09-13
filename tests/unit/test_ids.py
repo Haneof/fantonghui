@@ -22,15 +22,12 @@ def test_prefixes_cover_all_object_types():
 
 def test_prefixes_non_empty_and_unique():
     prefixes = list(ids_module._PREFIXES.values())
-    # 所有prefix非空
     for p in prefixes:
         assert isinstance(p, str) and len(p) > 0, f"Empty prefix found: {p}"
-    # 唯一性
     assert len(prefixes) == len(set(prefixes)), f"Duplicate prefixes found: {prefixes}"
 
 
 def test_prefixes_frozen_mapping():
-    # 正式冻结映射
     expected = {
         ObjectType.OBSERVATION: "obs",
         ObjectType.ENTITY: "ent",
@@ -60,17 +57,11 @@ def test_prefixes_frozen_mapping():
 def test_object_id_format(obj_type):
     oid = new_object_id(obj_type)
     prefix = ids_module._PREFIXES[obj_type]
-    # 格式 <prefix>_[0-9a-f]{32}
     pattern = rf"^{re.escape(prefix)}_[0-9a-f]{{32}}$"
     assert re.match(pattern, oid), f"ID {oid} does not match pattern {pattern}"
-    # 验证 suffix 只有32位小写十六进制
-    suffix = oid.split("_", 1)[1] if "_" in oid else ""
-    # 对于 dmem, dder 等前缀含下划线? 实际上 prefix不含下划线，但 split 需处理
-    # 更准确：取 prefix 长度 +1 后的部分
     suffix = oid[len(prefix) + 1 :]
     assert len(suffix) == 32
     assert all(c in "0123456789abcdef" for c in suffix), f"Suffix {suffix} not lowercase hex"
-    # 不能包含名字、日期、空格、斜杠等
     assert " " not in oid
     assert "/" not in oid
     assert "\n" not in oid
@@ -96,7 +87,7 @@ def test_operation_execution_uniqueness_1000():
     assert len(set(execs)) == 1000, "Execution IDs not unique in 1000 batch"
 
 
-# 8. 100k唯一性测试
+# 8. 100k唯一性测试 - 仅记录观测指标，不设性能Gate
 def test_100k_uniqueness():
     start = time.time()
     n = 100_000
@@ -105,12 +96,11 @@ def test_100k_uniqueness():
     unique = len(set(ids))
     collisions = n - unique
     print(f"\n100k generation: {n} ids, unique {unique}, collisions {collisions}, elapsed {elapsed:.2f}s")
-    # 记录耗时，不设性能Gate，但报告
+    print("100k generation elapsed仅作为观测指标，不属于M0-003验收Gate")
     assert len(ids) == 100_000
     assert unique == 100_000, f"Collisions detected: {collisions}"
     assert collisions == 0
-    # 耗时报告，仅记录
-    assert elapsed < 60, f"100k generation too slow: {elapsed}s"  # 宽松上限
+    # 不设性能Gate，耗时不决定 PASS/FAIL
 
 
 # 9. Rename稳定性测试
@@ -118,7 +108,6 @@ def test_rename_stability():
     from aios_core.contracts.base import WorldObject
     from aios_core.contracts.enums import ObjectType
     from aios_core.contracts.time import utc_now
-    from datetime import datetime, timezone
 
     class TestEntity(WorldObject):
         object_type: ObjectType = ObjectType.ENTITY
@@ -137,7 +126,7 @@ def test_rename_stability():
         canonical_name="未知人物A",
     )
     v2 = TestEntity(
-        object_id=object_id,  # 同一个 object_id
+        object_id=object_id,
         revision=2,
         learned_at=now,
         recorded_at=now,
@@ -145,7 +134,7 @@ def test_rename_stability():
         canonical_name="妈妈",
     )
 
-    assert v1.object_id == v2.object_id, "object_id must remain same across rename"
+    assert v1.object_id == v2.object_id
     assert v1.canonical_name != v2.canonical_name
     assert v1.object_id == object_id
     assert v2.object_id == object_id
@@ -185,23 +174,19 @@ def test_revision_stability_event():
     assert v1.object_id == v2.object_id
     assert v1.revision == 1
     assert v2.revision == 2
-    # revision不是identity，object_id复用
 
 
-# 11. 名称不进入ID
+# 11. 名称不进入ID - 补强：真正实例化不同canonical_name的Entity
 def test_name_not_in_id():
-    # new_object_id 签名只有 object_type
     import inspect
-
-    sig = inspect.signature(new_object_id)
-    params = list(sig.parameters.keys())
-    assert params == ["object_type"], f"new_object_id signature should only have object_type, got {params}"
-    # 没有 name, canonical_name, label, title, timestamp, subject truth
-
-    # 两个不同名字的 Entity，ID中不包含 canonical_name
     from aios_core.contracts.base import WorldObject
     from aios_core.contracts.enums import ObjectType
     from aios_core.contracts.time import utc_now
+
+    # 验证生成器参数只有 object_type
+    sig = inspect.signature(new_object_id)
+    params = list(sig.parameters.keys())
+    assert params == ["object_type"], f"new_object_id signature should only have object_type, got {params}"
 
     class TestEntity(WorldObject):
         object_type: ObjectType = ObjectType.ENTITY
@@ -209,35 +194,55 @@ def test_name_not_in_id():
         canonical_name: str = "test"
 
     now = utc_now()
-    id1 = new_object_id(ObjectType.ENTITY)
-    id2 = new_object_id(ObjectType.ENTITY)
 
-    # 确认ID字符串中不包含 "妈妈"
-    assert "妈妈" not in id1
-    assert "妈妈" not in id2
-    # 也不包含其他语义
-    assert "未知人物A" not in id1
+    # 真正执行场景：创建两个带不同canonical_name的Entity
+    entity_a = TestEntity(
+        object_id=new_object_id(ObjectType.ENTITY),
+        revision=1,
+        learned_at=now,
+        recorded_at=now,
+        created_by="test",
+        canonical_name="未知人物A",
+    )
+
+    entity_b = TestEntity(
+        object_id=new_object_id(ObjectType.ENTITY),
+        revision=1,
+        learned_at=now,
+        recorded_at=now,
+        created_by="test",
+        canonical_name="妈妈",
+    )
+
+    # 验证 canonical_name not in object_id
+    assert entity_a.canonical_name not in entity_a.object_id, (
+        f"canonical_name '{entity_a.canonical_name}' should not be in object_id '{entity_a.object_id}'"
+    )
+    assert entity_b.canonical_name not in entity_b.object_id, (
+        f"canonical_name '{entity_b.canonical_name}' should not be in object_id '{entity_b.object_id}'"
+    )
+
+    # 两个Entity是不同身份，object_id应该不同 (随机唯一性，非数学证明)
+    assert entity_a.object_id != entity_b.object_id
+
+    # 额外：ID中不包含其他语义
+    assert "未知人物A" not in entity_a.object_id
+    assert "妈妈" not in entity_b.object_id
 
 
 # 12. 测试真值泄露
 def test_truth_leakage():
     secret_truth = "mother_ground_truth_8848"
-    # 生成多个Entity ID
     ids = [new_object_id(ObjectType.ENTITY) for _ in range(100)]
     for oid in ids:
         assert secret_truth not in oid
-        assert "mother" not in oid.lower() or "mother" in "mother_ground_truth_8848"  # 实际ID不应包含业务token
-        # 更严格：ID只含 prefix + _ + hex
         assert re.match(r"^ent_[0-9a-f]{32}$", oid)
 
-    # 验证ID函数根本不接收truth参数
     import inspect
 
     sig = inspect.signature(new_object_id)
     assert "truth" not in str(sig)
     assert "secret" not in str(sig).lower()
-
-    # 真正安全保证来自：ID函数签名只有 object_type
     assert len(sig.parameters) == 1
 
 
@@ -247,11 +252,10 @@ def test_uuid_version():
     prefix = ids_module._PREFIXES[ObjectType.ENTITY]
     suffix = oid[len(prefix) + 1 :]
     parsed = uuid.UUID(hex=suffix)
-    assert parsed.version == 4, f"Expected UUID4, got version {parsed.version}"
+    assert parsed.version == 4
 
-    # 同样测试 operation 和 execution
-    op_suffix = new_operation_id()[3:]  # op_ -> len 3
+    op_suffix = new_operation_id()[3:]
     assert uuid.UUID(hex=op_suffix).version == 4
 
-    exec_suffix = new_execution_id()[5:]  # exec_ -> len 5
+    exec_suffix = new_execution_id()[5:]
     assert uuid.UUID(hex=exec_suffix).version == 4
