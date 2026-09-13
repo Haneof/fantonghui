@@ -1,10 +1,11 @@
 """M0-002 统一错误码、协议级错误结构与机器可恢复异常契约
 
-CASE E01-E20 + 额外回归测试
+CASE E01-E20 + P01-P09 + S01-S03 + 额外回归测试
 """
 from __future__ import annotations
 
 import json
+import math
 
 import pytest
 from pydantic import ValidationError
@@ -20,7 +21,6 @@ def test_e01_all_error_codes_constructible():
     for code in ErrorCode:
         resp = ErrorResponse(code=code, message=f"test {code}", context={})
         assert resp.code == code
-    # 必须正好10个
     assert len(list(ErrorCode)) == 10
     expected = {
         "INVALID_ARGUMENT",
@@ -49,7 +49,6 @@ def test_e02_error_response_json_dump():
     assert dumped["code"] == "NOT_FOUND"
     assert dumped["message"] == "object not found"
     assert dumped["context"]["object_id"] == "obj_123"
-    # JSON序列化
     json_str = json.dumps(dumped)
     assert "NOT_FOUND" in json_str
 
@@ -60,16 +59,13 @@ def test_e03_unknown_error_code_rejected():
         ErrorResponse(code="UNKNOWN_CODE", message="x", context={})  # type: ignore
     with pytest.raises(ValidationError):
         ErrorResponse(code="FAKE_ERROR", message="x", context={})  # type: ignore
-    # 非法类型
     with pytest.raises((ValidationError, TypeError)):
         ErrorResponse(code=123, message="x", context={})  # type: ignore
 
 
-# CASE E04: 空 message 被拒绝
+# CASE E04: 空 message 被拒绝 (清理重复)
 def test_e04_empty_message_rejected():
     with pytest.raises(ValidationError):
-        ErrorResponse(code=ErrorCode.NOT_FOUND, message="", context={})
-    with pytest.raises((ValidationError, ValueError)):
         ErrorResponse(code=ErrorCode.NOT_FOUND, message="", context={})
 
 
@@ -105,7 +101,6 @@ def test_e06_non_json_context_rejected():
             message="x",
             context={"file": open},  # type: ignore
         )
-    # 合法 JSON 值应通过
     ok = ErrorResponse(
         code=ErrorCode.NOT_FOUND,
         message="x",
@@ -148,7 +143,6 @@ def test_e08_to_response_same_semantics():
     assert resp.code == err.code
     assert resp.message == err.message
     assert resp.context == err.context
-    # model_dump 应该一致
     assert resp.model_dump(mode="json")["code"] == "NOT_FOUND"
 
 
@@ -196,7 +190,6 @@ def test_e12_world_revision_conflict_context(tmp_path):
 
     db = tmp_path / "test.db"
     store = SQLiteWorldStore(db)
-    # first commit to get world revision 1
     obj1 = DummyObj(
         object_id="obj1",
         revision=1,
@@ -215,7 +208,6 @@ def test_e12_world_revision_conflict_context(tmp_path):
     )
     store.commit([obj1], op1)
 
-    # second commit with wrong expected revision should fail with VERSION_CONFLICT and structured context
     obj2 = DummyObj(
         object_id="obj2",
         revision=1,
@@ -228,7 +220,7 @@ def test_e12_world_revision_conflict_context(tmp_path):
         operation_id=str(uuid.uuid4()),
         operation_name="test",
         arguments={},
-        expected_world_revision=0,  # wrong, should be 1
+        expected_world_revision=0,
         reason="test",
         idempotency_key=str(uuid.uuid4()),
     )
@@ -236,14 +228,11 @@ def test_e12_world_revision_conflict_context(tmp_path):
         store.commit([obj2], op2)
         pytest.fail("should have raised VERSION_CONFLICT")
     except StoreError as e:
-        # 禁止依赖 message 解析，必须通过 code 和 context 判断
         assert e.code == ErrorCode.VERSION_CONFLICT
         assert "expected_world_revision" in e.context
         assert "current_world_revision" in e.context
         assert e.context["expected_world_revision"] == 0
         assert e.context["current_world_revision"] == 1
-        # 验证 message 包含数字但业务逻辑不依赖它
-        assert isinstance(e.message, str)
 
 
 # CASE E13: object revision conflict context
@@ -280,7 +269,6 @@ def test_e13_object_revision_conflict_context(tmp_path):
     )
     store.commit([obj1], op1)
 
-    # try to write same revision again (should expect 2 but got 1)
     obj1_dup = DummyObj(
         object_id="obj1",
         revision=1,
@@ -363,7 +351,6 @@ def test_e15_reference_not_found_context(tmp_path):
         assert e.context["referenced_object_id"] == "missing_obj"
         assert e.context["referenced_revision"] == 1
 
-    # 测试 revision 为 None 时应为 null (JSON None)
     obj2 = ObjWithRef(
         object_id="obj2",
         revision=1,
@@ -386,12 +373,11 @@ def test_e15_reference_not_found_context(tmp_path):
     except StoreError as e:
         assert e.code == ErrorCode.NOT_FOUND
         assert e.context["referenced_object_id"] == "missing_obj2"
-        assert e.context["referenced_revision"] is None  # null, not string "None"
+        assert e.context["referenced_revision"] is None
 
 
 # CASE E16: OUTCOME_UNKNOWN 模拟Action timeout
 def test_e16_outcome_unknown_action_timeout():
-    # 模拟 Action boundary 捕获 TimeoutError 转换为 OUTCOME_UNKNOWN
     try:
         raise TimeoutError("action timed out after 30s")
     except TimeoutError as cause:
@@ -403,9 +389,7 @@ def test_e16_outcome_unknown_action_timeout():
                 "cause": "timeout",
             },
         )
-        # 保留 cause chain 用于内部日志
         err.__cause__ = cause
-        # 验证 code
         assert err.code == ErrorCode.OUTCOME_UNKNOWN
         resp = err.to_response()
         assert resp.code == ErrorCode.OUTCOME_UNKNOWN
@@ -421,10 +405,8 @@ def test_e17_outcome_unknown_not_failed():
         context={"action_id": "act_456"},
     )
     resp = err.to_response()
-    # 协议 code 保持 OUTCOME_UNKNOWN，不是 FAILED
     assert resp.code == ErrorCode.OUTCOME_UNKNOWN
     assert resp.code != ErrorCode.NOT_FOUND
-    # 确保不是被误认为是 INVALID_ARGUMENT
     assert resp.code.value == "OUTCOME_UNKNOWN"
 
 
@@ -458,8 +440,6 @@ def test_e19_version_vs_idempotency_conflict():
     assert version_err.code != idempotency_err.code
     assert version_err.code == ErrorCode.VERSION_CONFLICT
     assert idempotency_err.code == ErrorCode.IDEMPOTENCY_CONFLICT
-    # 记录实际幂等冲突检测由 M0-016 完成
-    # 本轮只冻结协议语义
 
 
 # CASE E20: ErrorResponse 不包含 traceback 字段
@@ -471,14 +451,11 @@ def test_e20_no_traceback_in_response():
     dumped = resp.model_dump(mode="json")
     assert "traceback" not in dumped
     assert "traceback" not in dumped.get("context", {})
-    # 确保 context 不会自动包含异常 repr
     assert "traceback" not in json.dumps(dumped).lower()
 
 
 # 额外：禁止message业务分支的回归测试
 def test_message_independence_classify():
-    """业务分类必须按 code，不依赖 message 文本"""
-
     def classify(error: ErrorResponse) -> str:
         if error.code == ErrorCode.VERSION_CONFLICT:
             return "retry_after_refresh"
@@ -489,7 +466,6 @@ def test_message_independence_classify():
         else:
             return "other"
 
-    # 相同 code，不同 message，分类结果必须相同
     err1 = ErrorResponse(
         code=ErrorCode.VERSION_CONFLICT,
         message="文本A",
@@ -502,10 +478,9 @@ def test_message_independence_classify():
     )
     assert classify(err1) == classify(err2) == "retry_after_refresh"
 
-    # 不同 code 即使 message 相似，分类不同
     err3 = ErrorResponse(
         code=ErrorCode.NOT_FOUND,
-        message="文本A",  # 故意相同 message
+        message="文本A",
         context={"object_id": "x"},
     )
     assert classify(err3) == "create_new"
@@ -522,18 +497,14 @@ def test_safe_serialization_no_leak():
             "invalid request",
             context={"field": "x"},
         )
-        err.__cause__ = cause  # 保留内部链用于日志
+        err.__cause__ = cause
 
     resp = err.to_response()
     dumped = resp.model_dump(mode="json")
     json_str = json.dumps(dumped)
-
-    # 输出中不得自动出现内部敏感信息
     assert "internal sensitive diagnostic" not in json_str
     assert "ValueError" not in json_str
     assert "traceback" not in json_str.lower()
-
-    # 内部 __cause__ 属于诊断层，不属于协议序列化字段
     assert err.__cause__ is not None
     assert "internal sensitive diagnostic" in str(err.__cause__)
 
@@ -552,7 +523,6 @@ def test_other_error_codes_constructible():
             context={"detail": "test"},
         )
         assert resp.code == code
-        # JSON 可序列化
         assert json.dumps(resp.model_dump(mode="json"))
 
 
@@ -568,3 +538,246 @@ def test_operation_not_found_context(tmp_path):
     except StoreError as e:
         assert e.code == ErrorCode.NOT_FOUND
         assert e.context["operation_id"] == "nonexistent_op"
+
+
+# ========== R1 新增 P01-P09 ==========
+
+# P01 AIOSProtocolError构造阶段拒绝 object()
+def test_p01_protocol_error_rejects_object_at_construction():
+    with pytest.raises(ValidationError):
+        AIOSProtocolError(
+            ErrorCode.INVALID_ARGUMENT,
+            "bad request",
+            context={"bad": object()},  # type: ignore
+        )
+
+
+# P02 AIOSProtocolError构造阶段拒绝 open
+def test_p02_protocol_error_rejects_non_json_at_construction():
+    with pytest.raises(ValidationError):
+        AIOSProtocolError(
+            ErrorCode.INVALID_ARGUMENT,
+            "bad request",
+            context={"bad": open},  # type: ignore
+        )
+
+
+# P03 ErrorResponse拒绝 NaN
+def test_p03_error_response_rejects_nan():
+    with pytest.raises(ValidationError):
+        ErrorResponse(
+            code=ErrorCode.NOT_FOUND,
+            message="x",
+            context={"v": float("nan")},
+        )
+
+
+# P04 ErrorResponse拒绝 Infinity
+@pytest.mark.parametrize("inf_val", [float("inf"), float("-inf")])
+def test_p04_error_response_rejects_infinity(inf_val):
+    with pytest.raises(ValidationError):
+        ErrorResponse(
+            code=ErrorCode.NOT_FOUND,
+            message="x",
+            context={"v": inf_val},
+        )
+
+
+# P05 AIOSProtocolError同样拒绝 NaN/Infinity
+@pytest.mark.parametrize("bad_val", [float("nan"), float("inf"), float("-inf")])
+def test_p05_protocol_error_rejects_nan_inf(bad_val):
+    with pytest.raises(ValidationError):
+        AIOSProtocolError(
+            ErrorCode.NOT_FOUND,
+            "x",
+            context={"v": bad_val},
+        )
+
+
+# P06 合法协议 json.dumps allow_nan=False 成功
+def test_p06_legal_json_dumps_strict():
+    resp = ErrorResponse(
+        code=ErrorCode.NOT_FOUND,
+        message="x",
+        context={"a": 1, "b": None, "c": [1, 2], "d": {"nested": "ok"}},
+    )
+    dumped = resp.model_dump(mode="json")
+    # 必须能够 json.dumps with allow_nan=False
+    json_str = json.dumps(dumped, allow_nan=False)
+    assert "NOT_FOUND" in json_str
+    # 验证标准 JSON
+    parsed = json.loads(json_str)
+    assert parsed["code"] == "NOT_FOUND"
+
+
+# P07 原始context隔离
+def test_p07_original_context_isolation():
+    ctx = {"value": 1, "nested": {"a": 1}}
+    err = AIOSProtocolError(
+        ErrorCode.INVALID_ARGUMENT,
+        "x",
+        context=ctx,
+    )
+    # 修改原始 dict
+    ctx["value"] = 2
+    ctx["nested"]["a"] = 999
+    ctx["new_key"] = "polluted"
+    # 必须仍然是原值
+    assert err.context["value"] == 1
+    assert err.context["nested"]["a"] == 1
+    assert "new_key" not in err.context
+
+
+# P08 context getter隔离
+def test_p08_context_getter_isolation():
+    err = AIOSProtocolError(
+        ErrorCode.INVALID_ARGUMENT,
+        "x",
+        context={"value": 1},
+    )
+    returned = err.context
+    returned["value"] = 999
+    returned["new"] = "polluted"
+    # 再次获取必须仍是原值
+    assert err.context["value"] == 1
+    assert "new" not in err.context
+
+
+# P09 to_response稳定
+def test_p09_to_response_stable():
+    ctx = {"value": 1}
+    err = AIOSProtocolError(
+        ErrorCode.INVALID_ARGUMENT,
+        "x",
+        context=ctx,
+    )
+    resp1 = err.to_response()
+    # 执行外部修改
+    ctx["value"] = 2
+    returned = err.context
+    returned["value"] = 999
+    # to_response 仍应得到原始合法内容
+    resp2 = err.to_response()
+    assert resp1.context["value"] == 1
+    assert resp2.context["value"] == 1
+    assert resp1.model_dump(mode="json")["context"]["value"] == 1
+
+
+# ========== R1 新增 S01-S03 ==========
+
+# S01 空commit context
+def test_s01_empty_commit_context(tmp_path):
+    from aios_core.contracts.operations import OperationRequest
+    from aios_core.storage.sqlite_store import SQLiteWorldStore
+    import uuid
+
+    db = tmp_path / "test.db"
+    store = SQLiteWorldStore(db)
+    op = OperationRequest(
+        operation_id="op_empty",
+        operation_name="test",
+        arguments={},
+        expected_world_revision=0,
+        reason="test",
+        idempotency_key=str(uuid.uuid4()),
+    )
+    try:
+        store.commit([], op)
+        pytest.fail("should have raised INVALID_ARGUMENT")
+    except StoreError as e:
+        assert e.code == ErrorCode.INVALID_ARGUMENT
+        assert e.context["operation_id"] == "op_empty"
+        assert e.context["reason"] == "empty_commit"
+
+
+# S02 duplicate revision context
+def test_s02_duplicate_revision_context(tmp_path):
+    from aios_core.contracts.base import WorldObject
+    from aios_core.contracts.enums import ObjectType
+    from aios_core.contracts.operations import OperationRequest
+    from aios_core.storage.sqlite_store import SQLiteWorldStore
+    from aios_core.contracts.time import utc_now
+    import uuid
+
+    class DummyObj(WorldObject):
+        object_type: ObjectType = ObjectType.ENTITY
+        subject_id: str = "test"
+        payload: str = "x"
+
+    db = tmp_path / "test.db"
+    store = SQLiteWorldStore(db)
+
+    obj1 = DummyObj(
+        object_id="dup_obj",
+        revision=1,
+        learned_at=utc_now(),
+        recorded_at=utc_now(),
+        created_by="test",
+        payload="a",
+    )
+    obj2 = DummyObj(
+        object_id="dup_obj",
+        revision=1,  # duplicate
+        learned_at=utc_now(),
+        recorded_at=utc_now(),
+        created_by="test",
+        payload="b",
+    )
+    op = OperationRequest(
+        operation_id="op_dup",
+        operation_name="test",
+        arguments={},
+        expected_world_revision=0,
+        reason="test",
+        idempotency_key=str(uuid.uuid4()),
+    )
+    try:
+        store.commit([obj1, obj2], op)
+        pytest.fail("should have raised INVALID_ARGUMENT for duplicate")
+    except StoreError as e:
+        assert e.code == ErrorCode.INVALID_ARGUMENT
+        assert e.context["operation_id"] == "op_dup"
+        assert e.context["reason"] == "duplicate_revision"
+
+
+# S03 当前对象引用自己的当前revision context
+def test_s03_self_current_reference_context(tmp_path):
+    from aios_core.contracts.base import WorldObject
+    from aios_core.contracts.enums import ObjectType
+    from aios_core.contracts.operations import OperationRequest
+    from aios_core.contracts.refs import ObjectRef
+    from aios_core.storage.sqlite_store import SQLiteWorldStore
+    from aios_core.contracts.time import utc_now
+    import uuid
+
+    class ObjSelfRef(WorldObject):
+        object_type: ObjectType = ObjectType.CLAIM
+        subject_id: str = "test"
+        ref: ObjectRef
+
+    db = tmp_path / "test.db"
+    store = SQLiteWorldStore(db)
+
+    obj = ObjSelfRef(
+        object_id="self_obj",
+        revision=1,
+        learned_at=utc_now(),
+        recorded_at=utc_now(),
+        created_by="test",
+        ref=ObjectRef(object_id="self_obj", revision=1),  # self current
+    )
+    op = OperationRequest(
+        operation_id="op_self",
+        operation_name="test",
+        arguments={},
+        expected_world_revision=0,
+        reason="test",
+        idempotency_key=str(uuid.uuid4()),
+    )
+    try:
+        store.commit([obj], op)
+        pytest.fail("should have raised DEPENDENCY_INVALID")
+    except StoreError as e:
+        assert e.code == ErrorCode.DEPENDENCY_INVALID
+        assert e.context["object_id"] == "self_obj"
+        assert e.context["revision"] == 1
