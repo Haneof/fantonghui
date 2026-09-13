@@ -115,3 +115,54 @@ f705e38 (M0-003 FINAL PASS, ids.py SHA256 9972e1d4d7e272019da26d8fb466a9391dea86
 
 ## git status
 clean after commit
+
+---
+
+## R1 PATCH 2026-09-14 DST fold UTC instant修复
+
+### 阻塞问题
+- TemporalExtent 原使用 self.end < self.start 直接比较 aware datetime，在相同ZoneInfo下DST回拨重复小时不能代表真实UTC instant顺序
+- WorldObject 原使用 self.recorded_at < self.learned_at 同样问题
+- 例如 America/New_York DST回拨 2026-11-01 01:30 fold=0 = 05:30 UTC, 01:30 fold=1 = 06:30 UTC，本地墙钟相同但真实instant不同
+
+### 修复
+- TemporalExtent: 改为 as_utc(self.end, "end") < as_utc(self.start, "start")
+- WorldObject: import as_utc, 改为 as_utc(recorded_at) < as_utc(learned_at)
+- 保留语义 recorded_at >= learned_at，只是比较方式改为唯一UTC instant
+- 未新增 learned_at >= occurred 约束
+- sqlite_store.py NO CHANGE，已通过审查的 canonical UTC 实现保留
+
+### 新增测试 D01-D04
+- D01: start 01:30 fold=1 (06:30 UTC) end 01:45 fold=0 (05:45 UTC) 本地墙钟 01:45 > 01:30 但真实 05:45 < 06:30 必须拒绝，验证 as_utc(end) < as_utc(start)
+- D02: start 01:30 fold=0 (05:30 UTC) end 01:15 fold=1 (06:15 UTC) 墙钟 01:15 < 01:30 但真实 06:15 > 05:30 必须允许，防 false reject
+- D03: WorldObject learned fold=0 05:30 UTC recorded fold=1 06:15 UTC 本地 recorded 01:15 < learned 01:30 但真实 recorded > learned 必须合法
+- D04: learned fold=1 06:30 UTC recorded fold=0 05:45 UTC 本地 recorded 01:45 > learned 01:30 但真实 recorded < learned 必须拒绝
+- 全部真正使用 fold=0/1，不是仅换UTC offset模拟
+
+### canonical microseconds补强
+- 原 T20 宽松 assert ".000000" in canon or ".000" in canon
+- 现严格 assert canonical == "2026-09-14T04:00:00.000000+00:00"
+- 新增带microsecond 123456 测试 assert == "2026-09-14T04:00:00.123456+00:00"
+- 防止未来悄悄改成milliseconds
+
+### 其他直接时间比较检查
+- 搜索 src/aios_core 中 learned_at/recorded_at/start/end 直接 < > 比较
+- 已修复: TemporalExtent (as_utc), WorldObject (as_utc)
+- 未修复但存在同类风险: Wake.validate_wake_times last_hit_at < first_hit_at 直接比较，未在本次任务允许范围内修改，报告为未解决问题等待裁决
+- SQLite learned_at<=? 为 canonical UTC 字符串比较，正确
+
+### 对抗验证 R1
+- A TemporalExtent改回 self.end < self.start => D01 false accept 失败，攻击有效
+- B WorldObject改回 recorded_at < learned_at => D04 false accept 失败，攻击有效
+- C canonical改成 milliseconds => fixed microseconds测试失败，攻击有效
+
+### 全量测试 R1
+- 正式 142 passed (138 + 4 DST)
+- Reference 15 passed
+- Python 3.11.2
+
+### SHA256 R1
+- time.py: 0a243b697f077e5cfd2dd7d364f5257b1ad6def3d91524b87e92f3713cbf531b
+- base.py: b3a6d333736e0990995662e1f7096520d800c4621c9d3d68750392ca1d238d82
+- sqlite_store.py: NO CHANGE
+

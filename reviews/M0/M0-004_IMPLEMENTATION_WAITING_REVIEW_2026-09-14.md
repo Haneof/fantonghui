@@ -2,78 +2,64 @@
 
 状态：
 
-WAITING CHIEF ENGINEER REVIEW
+R1 PATCH COMPLETE / WAITING CHIEF ENGINEER REVIEW
 
 日期：2026-09-14
 
 任务：
 
-唯一时间轴、三类时间语义、跨时区规范化与 Knowledge Cutoff 冻结
+唯一时间轴、三类时间语义、跨时区规范化与 Knowledge Cutoff 冻结 + R1 DST fold修复
 
 起始commit：
 
-f705e38
+98a7c92a8dd757bba79312a139630351a30e6809
 
-## 实现了什么
+## 已通过部分 (总工确认)
 
-1. 归档 M0-003 FINAL PASS: reviews/M0/M0-003_final_PASS_2026-09-14.md, 更新 TASK_PROGRESS
+- time.py整体结构符合M0-004
+- timezone-aware datetime契约
+- KnowledgeWindow
+- Task IANA timezone验证
+- SQLite learned_at/recorded_at索引已canonical UTC
+- 所有knowledge_cutoff路径已canonical UTC
+- 旧ISO offset字符串TEXT排序问题已反例证明
+- rev1 04:00Z / rev2 06:00Z / cutoff 05:00Z正确返回rev1
+- future_secret未提前泄露
+- knowledge visibility依据learned_at而非occurred
+- 正式138 passed, reference 15 passed (M0-004基线)
 
-2. 修改 src/aios_core/contracts/time.py 为总工冻结版本:
-   - TimePrecision, utc_now, require_aware, require_timezone_name (ZoneInfo验证), as_utc, canonical_utc_iso (fixed-shape UTC microsec +00:00)
-   - TemporalExtent: point/range/open-start/open-end/unknown, 验证 aware, timezone_name IANA, unknown组合, end<start真实instant拒绝
-   - KnowledgeWindow: aware cutoff, world_revision ge0
+## R1 修复
 
-3. 检查 src/aios_core/contracts/base.py 已有 occurred/learned_at/recorded_at, recorded_at>=learned_at, 无 learned_at>=occurred约束, 符合要求, 未重写
-
-4. 修改 src/aios_core/contracts/models.py Task:
-   - 增加 require_timezone_name 验证, 合法 None/Asia/Shanghai/America/New_York, 非法 Mars/Base1/""
-
-5. 修改 src/aios_core/storage/sqlite_store.py 时间规范化:
-   - import canonical_utc_iso
-   - 写 object_revisions: canonical_utc_iso(learned_at), canonical_utc_iso(recorded_at)
-   - knowledge_cutoff 过滤: canonical_utc_iso(knowledge_cutoff) 覆盖 get_payload/list_payloads/_list_payloads_historical, 自动拒绝 naive
-   - now_dt = utc_now(), now = canonical_utc_iso(now_dt) 用于 world_commits
-   - payload_json 仍 model_dump_json(), 索引与payload分离
-   - 未修改 schema/事务/world_revision/revision规则/M0-002 context/idempotency/reference validation
-
-6. 新建 tests/unit/test_time.py 35 tests:
-   - T01-T10 TemporalExtent各种状态
-   - T11-T15 三类时间 (昨天发生今天知道, 今天知道明天发生, naive拒绝, recorded<learned拒绝)
-   - T16-T18 KnowledgeWindow
-   - T19-T21 UTC canonicalization (相同instant不同时区结果相同, +00:00固定microsec, naive拒绝)
-   - T22-T26 Task跨时区
-   - T27-T28 Future knowledge leakage跨时区 (04:00 vs 06:00 cutoff 05:00)
-   - T29-T30 naive cutoff拒绝
-   - T31-T34 timezone_name验证
-   - 额外 learned_at vs occurred 回归
-
-7. 更新 TASK_PROGRESS_R2.md, docs/DEV_LOG.md, README.md (已在M0-002加入错误协议说明，本轮无需大改)
-
-## 哪些没有实现
-
-- 未增加 Unix timestamp/local/device/GPS timestamp字段 (以后可为Observation内容)
-- 未开发 recurrence engine, DST调度器
-- 未实现完整搜索索引、预算、权限、Dependency engine
-- 未修改 M0-005 WorldObject基类 (除已验证三类时间)
-- 未开发migration系统，pre-M0-004 DB可重建，正式索引格式从M0-004冻结
-
-## 为什么没有越界
-
-- 只做M0-004时间语义冻结 + SQLite索引时间规范化 + Task timezone_name契约
-- 未进入 M0-005
-- 遵守总工亲自代码要求，未重新设计时间模型，按冻结代码实现
+1. TemporalExtent instant比较改为 as_utc(end) < as_utc(start)，按唯一UTC instant排序，修复DST fold下直接墙钟比较问题
+2. WorldObject recorded_at/learned_at比较改为 as_utc(recorded_at) < as_utc(learned_at)，保留 recorded_at >= learned_at 语义，比较方式改为UTC
+3. 未修改sqlite_store.py canonical逻辑 (NO CHANGE)
+4. 新增 DST fold测试 D01-D04，真正使用 fold=0/1
+   - D01: start fold=1 06:30 UTC end fold=0 05:45 UTC 本地01:45>01:30但真实05:45<06:30必须拒绝
+   - D02: start fold=0 05:30 UTC end fold=1 06:15 UTC 墙钟01:15<01:30但真实06:15>05:30必须允许
+   - D03: learned fold=0 05:30 recorded fold=1 06:15 本地01:15<01:30但真实06:15>05:30合法
+   - D04: learned fold=1 06:30 recorded fold=0 05:45 本地01:45>01:30但真实05:45<06:30拒绝
+5. 补强 canonical microseconds测试: 严格 assert == "2026-09-14T04:00:00.000000+00:00" 和 "2026-09-14T04:00:00.123456+00:00"
+6. 检查其他直接时间比较: Wake.last_hit_at < first_hit_at 存在同类风险，未在本次允许范围，列为未解决问题
 
 ## 测试
 
-- 正式 138 passed (103 + 35)
+- 正式 142 passed (138 + 4)
 - Reference 15 passed
-- 对抗验证 A-F 有效
+- 对抗 A/B/C 有效
 
 ## 审查证据
 
-- reviews/M0/evidence/M0_004_REVIEW_PACKET.md
-- reviews/M0/evidence/M0_004_TEST_OUTPUT.txt
+- reviews/M0/M0-004_review_PATCH_REQUIRED_2026-09-14.md
+- reviews/M0/evidence/M0_004_REVIEW_PACKET.md (含R1)
+- reviews/M0/evidence/M0_004_R1_TEST_OUTPUT.txt
+- reviews/M0/evidence/M0_004_TEST_OUTPUT.txt (基线)
+
+## SHA256
+
+- time.py R1: 0a243b697f077e5cfd2dd7d364f5257b1ad6def3d91524b87e92f3713cbf531b (原 814210c7a0cf529f39fcfc5dca542ff3b203f05b6723ec4481484b7948620c59)
+- base.py R1: b3a6d333736e0990995662e1f7096520d800c4621c9d3d68750392ca1d238d82
+- sqlite_store.py: NO CHANGE
 
 ## 下一步
 
-等待总工程师 M0-004 CODE REVIEW，签发 FINAL PASS 后才允许进入 M0-005。
+等待总工程师 M0-004 FINAL REVIEW，签发 FINAL PASS 后才允许进入 M0-005。
