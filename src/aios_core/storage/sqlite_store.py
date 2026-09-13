@@ -13,7 +13,7 @@ from aios_core.contracts.base import WorldObject
 from aios_core.contracts.enums import ErrorCode, ObjectType
 from aios_core.contracts.operations import CommitResult, OperationRequest
 from aios_core.contracts.refs import ObjectRef, SourceRef
-from aios_core.contracts.time import utc_now
+from aios_core.contracts.time import canonical_utc_iso, utc_now
 from aios_core.errors import AIOSProtocolError
 
 T = TypeVar("T", bound=WorldObject)
@@ -291,7 +291,8 @@ class SQLiteWorldStore:
                                 )
 
                 next_world_revision = current_world_revision + 1
-                now = utc_now().isoformat()
+                now_dt = utc_now()
+                now = canonical_utc_iso(now_dt, "now")
                 conn.execute(
                     "INSERT INTO world_commits(world_revision, committed_at, operation_id, session_id, reason) VALUES(?,?,?,?,?)",
                     (
@@ -319,8 +320,8 @@ class SQLiteWorldStore:
                             obj.object_type.value,
                             obj.subject_id,
                             next_world_revision,
-                            obj.learned_at.isoformat(),
-                            obj.recorded_at.isoformat(),
+                            canonical_utc_iso(obj.learned_at, "learned_at"),
+                            canonical_utc_iso(obj.recorded_at, "recorded_at"),
                             payload,
                         ),
                     )
@@ -391,7 +392,7 @@ class SQLiteWorldStore:
             params.append(as_of_world_revision)
         if knowledge_cutoff is not None:
             clauses.append("learned_at<=?")
-            params.append(knowledge_cutoff.isoformat())
+            params.append(canonical_utc_iso(knowledge_cutoff, "knowledge_cutoff"))
         sql = (
             "SELECT payload_json FROM object_revisions WHERE "
             + " AND ".join(clauses)
@@ -432,7 +433,7 @@ class SQLiteWorldStore:
             params.append(as_of_world_revision)
         if knowledge_cutoff is not None:
             clauses.append("o.learned_at<=?")
-            params.append(knowledge_cutoff.isoformat())
+            params.append(canonical_utc_iso(knowledge_cutoff, "knowledge_cutoff"))
 
         where = " AND ".join(clauses)
         sql = f"""
@@ -481,7 +482,7 @@ class SQLiteWorldStore:
             params.append(as_of_world_revision)
         if knowledge_cutoff is not None:
             clauses.append("learned_at<=?")
-            params.append(knowledge_cutoff.isoformat())
+            params.append(canonical_utc_iso(knowledge_cutoff, "knowledge_cutoff"))
         sql = (
             "SELECT object_id, revision, recorded_at, payload_json FROM object_revisions WHERE "
             + " AND ".join(clauses)

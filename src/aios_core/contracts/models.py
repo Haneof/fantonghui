@@ -22,7 +22,7 @@ from .enums import (
     WakeState,
 )
 from .refs import ObjectRef
-from .time import KnowledgeWindow, TemporalExtent, require_aware
+from .time import KnowledgeWindow, TemporalExtent, require_aware, require_timezone_name
 
 
 class Observation(WorldObject):
@@ -220,6 +220,10 @@ class Task(WorldObject):
     def validate_task_times(self) -> "Task":
         require_aware(self.next_wake_at, "next_wake_at")
         require_aware(self.deadline, "deadline")
+        require_timezone_name(
+            self.timezone_name,
+            "timezone_name",
+        )
         return self
 
 
