@@ -10,7 +10,7 @@
 
 | 里程碑 | 目标 | 状态 | 完成度 |
 |---|---|---|---|
-| M0 | 冻结世界契约与核心存储 | 进行中 CODE PASS / DELIVERY CLOSURE | 1/22 + R + R2 CODE PASS, R3 IN PROGRESS, 待 FINAL PASS |
+| M0 | 冻结世界契约与核心存储 | 进行中 CODE PASS / DELIVERY CLOSURE | 1/22 + R + R2 CODE PASS, R3 COMPLETED, 待 FINAL PASS |
 | M1 | 可写、可查、可下钻的共同世界 | 未开始 | 0/16 |
 | M2 | 主动运行闭环 | 未开始 | 0/15 |
 | M3 | 长期纠错与多尺度认知 | 未开始 | 0/11 |
@@ -27,7 +27,7 @@
 | M0-001 | 仓库骨架、包边界与依赖方向 | CODE PASS / DELIVERY CLOSURE | 执行程序员 | 架构6 + 回归12 + 单元15 =33 passed | 2f5ebe8 | 2026-09-14 18:19 | R2 CODE PASS, 等待 R3 闭环 |
 | M0-001-R | 复审：Python基线+文档单一真源+审查包 | ✅ COMPLETED | 执行程序员 | 21 + 15 passed | e36c365 | 2026-09-14 17:45 | CONDITIONAL PASS 修正 |
 | M0-001-R2 | 加固边界检查：storage绕过+fail-closed+回归测试+LICENSE+TEST-F | CODE PASS | 执行程序员 | 架构18 + 单元15 =33 passed | 2f5ebe8 | 2026-09-14 18:19 | 总工独立验证 33/33 + 15/15 PASS, Python 3.13.5 |
-| M0-001-R3 | 最终交付闭环、审查记录入库与云端同步 | IN PROGRESS | 执行程序员 | 33 + 15 passed | 待提交 | 2026-09-14 19:00 | 归档 reviews/, Git冻结, 云端同步 |
+| M0-001-R3 | 最终交付闭环、审查记录入库与云端同步 | COMPLETED | 执行程序员 | 33 + 15 passed | 待提交 | 2026-09-14 19:00 | 归档 reviews/, Git冻结, 云端同步 |
 | M0-002 | 统一错误码和协议级异常 | ⬜ TODO / HOLD | 总工审核 | - | - | - | 禁止提前开始，等待 M0-001 FINAL PASS |
 | M0-003 | 稳定对象 ID 生成器 | ⬜ TODO (参考已存在) | 总工亲自代码 | - | - | - | ids.py 已在reference |
 | M0-004 | 唯一时间轴与三类时间 | ⬜ TODO (参考已存在) | 总工亲自代码 | - | - | - | time.py 已在reference |
@@ -70,7 +70,7 @@
   - 创建 reviews/ + reviews/README.md + reviews/M0/PATCH_REQUIRED + reviews/M0/R2_CODE_PASS_DELIVERY_PENDING
   - 证据移动到 reviews/M0/evidence/
   - README 状态修正为“执行程序员施工自检” + CODE PASS / PENDING DELIVERY CLOSURE / M0-002 HOLD
-  - TASK_PROGRESS 更新为 CODE PASS / DELIVERY CLOSURE, R2 CODE PASS, R3 IN PROGRESS, M0-002 HOLD
+  - TASK_PROGRESS 更新为 CODE PASS / DELIVERY CLOSURE, R2 CODE PASS, R3 COMPLETED, M0-002 HOLD
   - Git提交冻结 + 云端同步 + 功能Manifest复核
 - **测试**: 正式 33 passed (架构18 + 单元15), reference 15 passed, wheel 构建成功
 - **状态**: M0-001 CODE PASS / DELIVERY CLOSURE, 等待总工签发 FINAL PASS, 禁止进入 M0-002
