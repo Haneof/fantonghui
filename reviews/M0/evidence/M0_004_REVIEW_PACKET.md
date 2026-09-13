@@ -166,3 +166,53 @@ clean after commit
 - base.py: b3a6d333736e0990995662e1f7096520d800c4621c9d3d68750392ca1d238d82
 - sqlite_store.py: NO CHANGE
 
+
+---
+
+## R2 PATCH 2026-09-14 Wake UTC instant修复 - M0-004最终缺口
+
+### 背景
+- R1已经通过: TemporalExtent start/end 按UTC instant, WorldObject learned/recorded 按UTC instant, DST D01-D04, fixed microseconds, SQLite canonical UTC, 142 passed
+- 扫描发现 Wake.validate_wake_times 仍存在直接比较 `if self.last_hit_at < self.first_hit_at`，与唯一UTC instant语义不一致
+- Wake schema属于后续M0-014完整冻结范围，本轮不设计Wake功能，只修复现有validator服从M0-004 UTC instant语义
+
+### 修复
+- 文件仅允许: src/aios_core/contracts/models.py
+- import 增加 as_utc: `from .time import KnowledgeWindow, TemporalExtent, as_utc, require_aware, require_timezone_name`
+- Wake validator 改为:
+```
+if as_utc(self.last_hit_at, "last_hit_at") < as_utc(self.first_hit_at, "first_hit_at"):
+    raise ValueError("last_hit_at must not be before first_hit_at")
+```
+- 保留 require_aware, 保留字段、默认值、WakeSource、WakeState、hit_count、priority、dedupe_key、evidence_refs
+- time.py SHA 保持 0a243b697f077e5cfd2dd7d364f5257b1ad6def3d91524b87e92f3713cbf531b 不变
+- sqlite_store.py NO CHANGE
+
+### 新增测试 D05/D06 + naive
+- D05 Wake DST false-reject: first 01:30 fold=0 =05:30 UTC, last 01:15 fold=1 =06:15 UTC, 本地01:15<01:30但真实06:15>05:30必须创建成功，显式 assert as_utc(last) > as_utc(first)
+- D06 Wake DST false-accept: first 01:30 fold=1 =06:30 UTC, last 01:45 fold=0 =05:45 UTC, 本地01:45>01:30但真实05:45<06:30必须拒绝，assert as_utc(last) < as_utc(first) + pytest.raises
+- 额外 naive: Wake naive first_hit_at reject, naive last_hit_at reject，保留 require_aware
+- 使用正式 Wake class, WakeSource.TASK_DUE 最小合法参数，不创建FakeWake，不修改enum
+
+### 对抗验证 R2
+- 临时改回 last_hit_at < first_hit_at: D05旧比较 last<first True => 错误拒绝，D06旧比较 False => 错误允许，至少一个失败，攻击有效，恢复后PASS
+
+### 剩余时间排序扫描
+- 搜索 src/aios_core 中所有 datetime / *_at / start / end 承担真实先后顺序的 < > <= >= 比较
+- 已修复: TemporalExtent (as_utc), WorldObject (as_utc), Wake (as_utc)
+- SQLite learned_at<=? 为 canonical UTC 字符串比较，正确
+- 搜索 `self\..* < self\.` 在 contracts 中无剩余直接比较
+- 结论: NO_REMAINING_DIRECT_INSTANT_ORDERING_ISSUES_FOUND
+
+### 全量测试 R2
+- 正式 146 passed (142 + 4: D05/D06 + 2 naive)
+- Reference 15 passed
+- Python 3.11.2
+
+### SHA256 R2
+- time.py Before: 0a243b697f077e5cfd2dd7d364f5257b1ad6def3d91524b87e92f3713cbf531b
+- time.py After: 0a243b697f077e5cfd2dd7d364f5257b1ad6def3d91524b87e92f3713cbf531b 相同
+- base.py: b3a6d333736e0990995662e1f7096520d800c4621c9d3d68750392ca1d238d82 保持R1
+- models.py: 新增 as_utc import + Wake UTC比较
+- sqlite_store.py: NO CHANGE
+
