@@ -100,14 +100,25 @@ Evaluator 保存虚拟人真实隐藏状态、评分标准、未来观测。
 
 `docs/` 目录不得保存这些文档的第二份可编辑副本，仅保留 `docs/README.md` 说明和 `docs/DEV_LOG.md` 开发日志。历史版本未来进入 archive/ 后另行管理。
 
-## 10. M0-001 验收
+## 10. M0-001 执行程序员施工自检
 
 - [x] src layout 已建立
 - [x] aios_core 唯一 Core 实现
 - [x] ai_worker / console / simulator / evaluator 物理隔离
 - [x] 架构边界自动测试（递归扫描 src/ai_worker, src/aios_core）
+- [x] scanner 回归测试 12 cases (含 storage绕过、fail-closed)
 - [x] 原参考测试继续通过
-- [x] pytest 根目录执行成功
-- [x] pyproject.toml 可用 (requires-python >=3.12)
+- [x] pytest 根目录执行成功 33 passed
+- [x] pyproject.toml 可用 (requires-python >=3.12，无未授权MIT)
+- [x] .gitignore 存在并包含 .venv/__pycache__/.pytest_cache/build/dist/egg-info/.env/*.db
 - [x] 未删除宪法/架构文档（根为权威）
 - [x] 未开始 M0-002 以后内容
+
+总工程师代码复审：
+CODE PASS (R2, SHA256 6e9dafa95060ad1c0aca2ac916e4a1433385e0374294fc397a35c3d8daccebb8, 33/33 + 15/15, Python 3.13.5 独立验证, wheel 构建+安装验证, storage绕过/fail-closed攻击测试通过)
+
+总工程师最终项目验收：
+PENDING DELIVERY CLOSURE (等待 R3 交付闭环: Git冻结、云端同步、审查记录归档)
+
+下一任务：
+M0-002 HOLD (禁止自行开始，等待总工程师签发 M0-001 FINAL PASS)
