@@ -127,3 +127,23 @@ E: revision2重新调用 new_object_id -> rename/revision稳定性测试失败 (
 
 ## git status
 clean after commit
+
+---
+
+## R1 PATCH (M0-003-R1)
+
+### 问题
+- 100k测试中存在非授权性能Gate: assert elapsed < 60, 可能导致慢CI机器误判ID契约失败
+- 名称不进入ID测试未真正实例化不同canonical_name的Entity
+
+### 修复
+- 删除 assert elapsed < 60, 保留 elapsed 记录和print，耗时仅作为观测指标，不属于M0-003验收Gate
+- 补强 test_name_not_in_id: 真正创建 entity_a (未知人物A) 和 entity_b (妈妈)，验证 canonical_name not in object_id, 并验证 object_id != (不同身份)
+- 保留 inspect.signature 验证唯一参数 object_type
+
+### 测试
+- 正式 103 passed (含100k 100000/100000/0), Reference 15 passed
+- ids.py SHA256 保持 9972e1d4d7e272019da26d8fb466a9391dea868039e43b5fc9cdaf33073a8993
+
+### 说明
+100k generation elapsed仅作为观测指标，不属于M0-003验收Gate，避免未来程序员又加回来
