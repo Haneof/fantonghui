@@ -118,7 +118,23 @@ Evaluator 保存虚拟人真实隐藏状态、评分标准、未来观测。
 CODE PASS (R2, SHA256 6e9dafa95060ad1c0aca2ac916e4a1433385e0374294fc397a35c3d8daccebb8, 33/33 + 15/15, Python 3.13.5 独立验证, wheel 构建+安装验证, storage绕过/fail-closed攻击测试通过)
 
 总工程师最终项目验收：
-PENDING DELIVERY CLOSURE (等待 R3 交付闭环: Git冻结、云端同步、审查记录归档)
+FINAL PASS (冻结提交 8197c4f943c8e06f87bf25f18d79aceef982e196, Manifest 8ea4a102954f0d3f82bd2bb14a84aefe076b14675af304f9f493c7a619dee803)
 
-下一任务：
-M0-002 HOLD (禁止自行开始，等待总工程师签发 M0-001 FINAL PASS)
+下一授权任务：
+M0-002 统一错误码、协议级错误结构与机器可恢复异常契约 (已授权开始)
+
+## 11. M0-002 错误协议
+
+code：机器分支语义
+message：人类可读说明
+context：机器可读细节
+
+不得基于 message 文本做业务判断。
+
+- ErrorCode 定义发生什么类别问题 (INVALID_ARGUMENT, NOT_FOUND, VERSION_CONFLICT, INCOMPLETE_DATA, STALE_INDEX, BUDGET_EXHAUSTED, PERMISSION_DENIED, DEPENDENCY_INVALID, OUTCOME_UNKNOWN, IDEMPOTENCY_CONFLICT)
+- ErrorResponse 为 Pydantic 协议响应 (code, message, context JSON)
+- AIOSProtocolError 为统一协议异常，StoreError 继承它
+- StoreError 携带结构化 context (world revision, object revision, object_id, referenced_object_id 等)
+- OUTCOME_UNKNOWN 表示真实结果未知，非 FAILED
+- 业务逻辑必须按 code 分支，不得依赖 message 文本
+- 协议响应不得泄露 traceback/内部异常 repr
