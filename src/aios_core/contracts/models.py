@@ -314,7 +314,7 @@ class Task(WorldObject):
     task_type: TaskType
     task_state: TaskState = TaskState.DRAFT
     goal_ref: ObjectRef | None = None
-    title: str
+    title: str = Field(min_length=1)
     reason_refs: list[ObjectRef] = Field(default_factory=list)
     priority: int = Field(default=50, ge=0, le=100)
     next_wake_at: datetime | None = None
@@ -332,13 +332,19 @@ class Task(WorldObject):
     outcome_refs: list[ObjectRef] = Field(default_factory=list)
 
     @model_validator(mode="after")
-    def validate_task_times(self) -> "Task":
+    def validate_task_contract(self) -> "Task":
         require_aware(self.next_wake_at, "next_wake_at")
         require_aware(self.deadline, "deadline")
         require_timezone_name(
             self.timezone_name,
             "timezone_name",
         )
+        for field_name in ["reason_refs", "execution_refs", "outcome_refs"]:
+            for ref in getattr(self, field_name):
+                if ref.revision is None:
+                    raise ValueError(
+                        f"{field_name} requires pinned ObjectRef revisions"
+                    )
         return self
 
 
@@ -355,7 +361,7 @@ class Wake(WorldObject):
     dedupe_key: str | None = None
 
     @model_validator(mode="after")
-    def validate_wake_times(self) -> "Wake":
+    def validate_wake_contract(self) -> "Wake":
         require_aware(self.first_hit_at, "first_hit_at")
         require_aware(self.last_hit_at, "last_hit_at")
         if as_utc(
@@ -366,6 +372,9 @@ class Wake(WorldObject):
             "first_hit_at",
         ):
             raise ValueError("last_hit_at must not be before first_hit_at")
+        for ref in self.evidence_refs:
+            if ref.revision is None:
+                raise ValueError("evidence_refs requires pinned ObjectRef revisions")
         return self
 
 
@@ -375,25 +384,46 @@ class Session(WorldObject):
     snapshot_world_revision: int = Field(ge=0)
     operation_ids: list[str] = Field(default_factory=list)
     checkpoint: dict[str, Any] = Field(default_factory=dict)
-    session_state: str = "open"
+    session_state: str = Field(default="open", min_length=1)
+
+    @model_validator(mode="after")
+    def validate_session_contract(self) -> "Session":
+        if self.wake_ref is not None and self.wake_ref.revision is None:
+            raise ValueError("wake_ref requires pinned ObjectRef revision")
+        return self
 
 
 class Action(WorldObject):
     object_type: Literal[ObjectType.ACTION] = ObjectType.ACTION
-    execution_id: str
-    action_type: str
+    execution_id: str = Field(min_length=1)
+    action_type: str = Field(min_length=1)
     action_status: ActionStatus = ActionStatus.PROPOSED
     task_ref: ObjectRef | None = None
     payload: dict[str, Any] = Field(default_factory=dict)
     expected_outcome: str | None = None
 
+    @model_validator(mode="after")
+    def validate_action_contract(self) -> "Action":
+        if self.task_ref is not None and self.task_ref.revision is None:
+            raise ValueError("task_ref requires pinned ObjectRef revision")
+        return self
+
 
 class Outcome(WorldObject):
     object_type: Literal[ObjectType.OUTCOME] = ObjectType.OUTCOME
     action_ref: ObjectRef
-    outcome_state: str
+    outcome_state: str = Field(min_length=1)
     payload: dict[str, Any] = Field(default_factory=dict)
     evidence_refs: list[ObjectRef] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_outcome_contract(self) -> "Outcome":
+        if self.action_ref.revision is None:
+            raise ValueError("action_ref requires pinned ObjectRef revision")
+        for ref in self.evidence_refs:
+            if ref.revision is None:
+                raise ValueError("evidence_refs requires pinned ObjectRef revisions")
+        return self
 
 
 class OperationExperience(WorldObject):
