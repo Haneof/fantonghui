@@ -442,6 +442,18 @@ class SQLiteWorldStore:
                     conn.rollback()
                     return replay
 
+                try:
+                    operation = normalize_operation_for_persistence(operation)
+                except ValidationError as exc:
+                    raise StoreError(
+                        ErrorCode.INVALID_ARGUMENT,
+                        "operation request failed persistence validation",
+                        context={
+                            "operation_id": operation.operation_id,
+                            "reason": "operation_persistence_revalidation_failed",
+                        },
+                    ) from exc
+
                 reused_operation = conn.execute(
                     "SELECT idempotency_key FROM operations WHERE operation_id=?",
                     (operation.operation_id,),
@@ -473,18 +485,6 @@ class SQLiteWorldStore:
                             "operation_id": operation.operation_id,
                         },
                     )
-
-                try:
-                    operation = normalize_operation_for_persistence(operation)
-                except ValidationError as exc:
-                    raise StoreError(
-                        ErrorCode.INVALID_ARGUMENT,
-                        "operation request failed persistence validation",
-                        context={
-                            "operation_id": operation.operation_id,
-                            "reason": "operation_persistence_revalidation_failed",
-                        },
-                    ) from exc
 
                 validated_objects: list[WorldObject] = []
                 for obj in object_list:
