@@ -21,11 +21,11 @@
 ## 二、当前项目状态
 
 - 当前里程碑：M0 — 进行中
-- M0 完成度：**14 / 22 FINAL PASS**
-- 已正式通过到：**M0-014**
-- M0-014 语义冻结：`af49c27c95527ca1d2b28cddd88115b0264b48c4`
-- 下一任务：**M0-015 — Dependency（依赖）契约**
-- M0-015 状态：**已授权 / 总工程师负责 / 尚未开始**
+- M0 完成度：**15 / 22 FINAL PASS**
+- 已正式通过到：**M0-015**
+- M0-015 语义冻结：`3b4e8b603e52830d8be44d33141f722bbba244a0`
+- 下一任务：**M0-016 — OperationRequest、审计与幂等契约**
+- M0-016 状态：**已授权 / 总工程师负责 / 尚未开始**
 - 当前生产分支：`arena/01a09bc6-fantonghui`
 - 当前开发模式：核心生产代码仍为单写入者
 
@@ -33,39 +33,42 @@
 
 | 中文职位 | 内部编号 | 当前状态 | 当前任务 | 最近结果 | 下一步 |
 |---|---|---|---|---|---|
-| **总工程师 / 总工** | `chief-01` | 当前负责人 | M0-015（尚未开始） | **M0-014 FINAL PASS**；315 正式测试 + Reference 15 全通过 | 亲自推进 M0-015 |
+| **总工程师 / 总工** | `chief-01` | 当前负责人 | M0-016（尚未开始） | **M0-015 FINAL PASS**；329 正式测试 + Reference 15 全通过 | 亲自推进 M0-016 |
 | **核心程序员 / 主程序员** | `core-01` | **待命** | 无 | M0-010 收尾已验收 | 等总工以后分配施工任务 |
 | **GPT-6 架构审计员** | `architect-01` | **待命** | 当前无任务 | 尚未触发架构升级 | M0 Gate 必须介入；当前无需启动 |
 | **并行程序员1** | `parallel-01` | **未授权** | 无 | 无 | 等总工宣布可并行 |
 | **并行程序员2** | `parallel-02` | **未授权** | 无 | 无 | 等总工宣布可并行 |
-| **自动测试** | `ci` | **通过** | 每次 core push 自动回归 | M0-014 semantic HEAD：Python 3.12.14，315 passed；Reference 15 passed | 后续 push 自动重跑 |
+| **自动测试** | `ci` | **通过** | 每次 core push 自动回归 | M0-015 semantic HEAD：Python 3.12.14，329 passed；Reference 15 passed | 后续 push 自动重跑 |
 
-## 四、M0-014 已冻结什么
+## 四、M0-015 已冻结什么
 
-- Task / Wake / Session / Action / Outcome 已成为五类持久的一等对象。
-- 未来工作必须进入 Task；不能靠模型上下文“记住以后再做”。
-- Task 的 reason/execution/outcome 历史引用使用 pinned revision；Goal/dependency/entity 导航链接不被本任务强制成历史 provenance。
-- Wake 独立保存来源、命中次数、证据、优先级和去重信息；Wake evidence 使用 pinned revision。
-- Session 保存 originating Wake、世界快照、operation IDs 与 checkpoint，为中断恢复提供持久基础。
-- Action 使用稳定 execution_id；Action 与 Outcome 明确分离。
-- Outcome 可以继续是 unknown；Action 已完成并不自动代表现实结果成功。
-- “提醒已送达”只能证明通知动作/通知 Task 的结果，不能证明用户已经学习、接受帮助或目标改善。
-- M0-009 持久化边界重验证继续保护这些 provenance 字段，构造后篡改也不能写入。
-- 本轮没有提前实现 M2 调度器。
+- Dependency 成为显式、带版本的依赖边：`dependent_ref -> dependency_ref`。
+- 两端必须钉住具体 revision；不能用 floating latest 作为历史依赖依据。
+- `dependency_type` 保持开放字符串，不提前发明封闭依赖类型表。
+- 直接自依赖被拒绝；多节点显式 Dependency 闭环可由 cycle guard 检测并拒绝。
+- 普通 Relation 网络不是 Dependency 图，因此人物/关系网络仍然可以有环。
+- 从底层 exact-version 对象可以反查直接和传递受影响对象。
+- 反查严格区分 revision；依赖 Observation@1 不等于依赖 Observation@2。
+- Dependency 可以使用统一 SQLite WorldObject 存储，重建后继续反查。
+- M3 才实现持久 reverse index、自动 stale、自动复核任务和纠错传播运行时。
 
-正式审查文件：`reviews/M0/M0-014_final_PASS_2026-09-14.md`
+正式审查文件：`reviews/M0/M0-015_final_PASS_2026-09-14.md`
 
-## 五、M0-015 已授权边界
+## 五、M0-016 已授权边界
 
-Dependency 的目标是明确记录“谁依赖谁的哪个版本”，为未来纠错传播和反向查询建立可审计基础。
+下一轮冻结世界修改操作包与安全重试规则：
 
-本轮重点：
-- `dependent_ref / dependency_ref / dependency_type`；
-- 依赖必须能保留精确版本；
-- 普通关系/语义链接不能全部偷换成 Dependency；
-- Claim→EvidenceSet→Observation、Summary→Claim、Task→Event 等链可追溯；
-- 证明链不能通过自我循环给自己增加可信度；
-- M3 才建设完整反向索引与纠错传播运行时。
+- operation_id
+- session_id
+- operation_name / arguments
+- expected_world_revision
+- reason
+- idempotency_key
+- 相同 idempotency key 重试不得重复写入
+- stale expected world revision 必须明确冲突
+- 已提交操作必须可审计
+
+本轮不提前做外部 Action 的分布式幂等或复杂事务编排。
 
 ## 六、沟通与权限
 
