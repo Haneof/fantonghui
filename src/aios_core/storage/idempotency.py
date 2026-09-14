@@ -45,7 +45,7 @@ def _validate_json_integer(value: int) -> int:
 
 
 def _model_items(value: BaseModel) -> dict[str, Any]:
-    """Expose declared, allowed-extra and dirty model-copy fields without dropping data."""
+    """Expose declared, allowed-extra and caller-injected dirty fields losslessly."""
 
     data = {
         field_name: getattr(value, field_name)
@@ -55,8 +55,17 @@ def _model_items(value: BaseModel) -> dict[str, Any]:
     if isinstance(extras, dict):
         for key, item in extras.items():
             data.setdefault(key, item)
+
+    internal_names = set(getattr(type(value), "__private_attributes__", {}))
+    for cls in type(value).__mro__:
+        slots = getattr(cls, "__slots__", ())
+        if isinstance(slots, str):
+            internal_names.add(slots)
+        else:
+            internal_names.update(slots)
+
     for key, item in vars(value).items():
-        if key.startswith("_") or key in data:
+        if key in data or key in internal_names:
             continue
         data[key] = item
     return data
@@ -445,7 +454,7 @@ def _semantic_identity_value_inner(
                 for item in value
             ]
             normalized_items.sort(key=_identity_json_from_encoded)
-            return ["$set", normalized_items]
+            return ["$sequence", normalized_items]
         finally:
             active.remove(marker)
     if isinstance(value, (list, tuple)):
@@ -548,18 +557,43 @@ def request_fingerprint(
     return hashlib.sha256(encoded).hexdigest()
 
 
-def _contains_typed_reference(
+def _looks_like_durable_reference_mapping(value: Mapping[Any, Any]) -> bool:
+    """Return whether durable JSON could be the lossy image of a typed ref.
+
+    Legacy rows do not retain enough information to distinguish these shapes from
+    an ObjectRef/SourceRef that was flattened to JSON before semantic fingerprints
+    existed. Such rows therefore cannot prove replay identity and must fail closed.
+    """
+
+    keys = set(value.keys())
+    if keys not in (
+        {"object_id", "revision"},
+        {"object_id", "revision", "source_locator"},
+    ):
+        return False
+
+    object_id = value.get("object_id")
+    revision = value.get("revision")
+    if not isinstance(object_id, str) or not object_id:
+        return False
+    if revision is not None and (
+        not isinstance(revision, int) or isinstance(revision, bool) or revision < 1
+    ):
+        return False
+
+    if "source_locator" in value:
+        source_locator = value.get("source_locator")
+        if source_locator is not None and not isinstance(source_locator, str):
+            return False
+    return True
+
+
+def _contains_legacy_reference_ambiguity(
     value: Any,
     *,
     active: set[int] | None = None,
 ) -> bool:
-    """Return whether runtime semantics include a real typed reference.
-
-    Legacy idempotency rows persisted only durable JSON and therefore cannot prove
-    whether a ref-shaped object was originally an opaque mapping or a real
-    ObjectRef/SourceRef. When semantic fingerprints are absent, typed-ref retries
-    must fail closed instead of guessing equivalence from the lossy JSON shape.
-    """
+    """Return whether a legacy row cannot prove typed-vs-opaque ref semantics."""
 
     if isinstance(value, (ObjectRef, SourceRef)):
         return True
@@ -572,7 +606,7 @@ def _contains_typed_reference(
         active.add(marker)
         try:
             return any(
-                _contains_typed_reference(item, active=active)
+                _contains_legacy_reference_ambiguity(item, active=active)
                 for item in _model_items(value).values()
             )
         finally:
@@ -583,9 +617,11 @@ def _contains_typed_reference(
             return False
         active.add(marker)
         try:
+            if _looks_like_durable_reference_mapping(value):
+                return True
             return any(
-                _contains_typed_reference(key, active=active)
-                or _contains_typed_reference(item, active=active)
+                _contains_legacy_reference_ambiguity(key, active=active)
+                or _contains_legacy_reference_ambiguity(item, active=active)
                 for key, item in value.items()
             )
         finally:
@@ -597,7 +633,8 @@ def _contains_typed_reference(
         active.add(marker)
         try:
             return any(
-                _contains_typed_reference(item, active=active) for item in value
+                _contains_legacy_reference_ambiguity(item, active=active)
+                for item in value
             )
         finally:
             active.remove(marker)
@@ -608,12 +645,12 @@ def legacy_request_fingerprint(
     operation: OperationRequest,
     objects: Iterable[WorldObject],
 ) -> str:
-    """Return the pre-semantic fingerprint for legacy idempotency rows only."""
+    """Return the pre-semantic fingerprint for unambiguous legacy rows only."""
 
     normalized_operation = normalize_operation_for_persistence(operation)
     normalized_objects = [normalize_world_object_for_persistence(obj) for obj in objects]
-    if _contains_typed_reference(normalized_operation) or any(
-        _contains_typed_reference(obj) for obj in normalized_objects
+    if _contains_legacy_reference_ambiguity(normalized_operation) or any(
+        _contains_legacy_reference_ambiguity(obj) for obj in normalized_objects
     ):
         raise DurableJSONError(
             "legacy idempotency identity cannot prove typed-reference semantics"
