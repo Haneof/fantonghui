@@ -1,0 +1,98 @@
+# M0-006 审查证据包
+
+## 起始commit
+e15a0f9d5f180f953a1d26fb7898be54a34a2a70 (M0-005 FINAL PASS)
+f04bd68 (M0-005 archive final pass and authorize M0-006)
+
+## ObjectRef frozen contract
+- BaseModel, extra="forbid", frozen=True
+- object_id: 非空str min_length=1
+- revision: int | None ge=1, None合法 (floating), 0/-1拒绝
+- extra field拒绝, 赋值修改拒绝 (R01,R02)
+- SourceRef同样: object_id, revision, source_locator, frozen, extra forbid (R03)
+
+## SourceRef frozen contract
+- 同ObjectRef + source_locator: str | None
+- revision None/1合法, 0拒绝, extra拒绝, frozen
+
+## pinned vs floating语义
+- revision=N: PINNED / VERSION-PINNED REF, 永远指向该object_id第N版，目标后来产生N+1,N+2不得改变历史指向
+- revision=None: FLOATING / LATEST-NAVIGATION REF, 追随可见最新版本，用于实体导航、当前状态导航、明确follow-latest接口，不是冻结历史证据
+- R06: target rev1 old, holder保存 ref revision=1, 目标升级rev2 new后，holder ref仍1，解析仍得old，不漂移，M0-006最重要
+- R07: floating ref revision=None，目标只有rev1时导航得rev1，目标增加rev2后同一floating ref仍None，按latest读取得rev2，证明pinned vs floating两种不同语义
+
+## generic learned_at knowledge boundary
+- 总工裁决: 正在写入的WorldObject的learned_at是通用知识边界，不得引用learned_at晚于自身的目标revision，否则09:00认知使用10:00才知道的信息，未来信息泄露
+- 与KnowledgeWindow关系: WorldObject.learned_at是通用上限，未来EvidenceSet可能有更早knowledge_cutoff，业务对象可进一步收紧，M0-006不硬编码isinstance(EvidenceSet)，不让storage依赖业务模型，通用storage invariant: target learned_at <= referencing_object.learned_at
+- 实现: _reference_exists(conn, ref, pending_pairs, pending_objects, *, knowledge_cutoff=obj.learned_at)
+  - knowledge_cutoff由当前验证的obj.learned_at传入，不新增OperationRequest字段，不新增commit公共cutoff参数
+  - pending结构: pending_pairs set[(object_id, revision)]保留，新增pending_objects dict[(object_id, revision)]->WorldObject用于检查pending learned_at
+  - Explicit revision: 若在pending，需pending_target.learned_at <= referencing.learned_at (as_utc比较)，否则DB查询 object_id=X revision=N learned_at<=cutoff (canonical_utc_iso)
+  - Floating revision=None: 存在性验证只要求cutoff以前至少一个可见revision，DB中 rev1 10:00 rev2 14:00 referencing 12:00 => 合法因为rev1可见，不因最新rev2是14:00拒绝，pending同样检查
+  - 时间比较: pending对象使用as_utc，避免DST fold复发，DB TEXT cutoff继续canonical_utc_iso保持M0-004规则
+  - Missing与Future-hidden统一NOT_FOUND，不返回不同错误暴露未来存在，context至少 referenced_object_id, referenced_revision, 允许reason=reference_not_visible_or_missing，禁止把未来target learned_at/payload/revision内容写进context
+
+## 同事务互相引用
+- R08: RefNode A rev1 learned_at T refs [B@1], B rev1 learned_at T refs [A@1], 同一commit [A,B]必须成功，World Revision只+1，继续支持任务书要求同事务合法互引，不因DB提交前不存在拒绝pending
+- R13: 同事务 A learned 10:00 引用 B@1 B learned 11:00 => 非法，整个transaction拒绝，A、B都不得写入，world revision不得增加
+- R16? Actually R08 already, R13 is pending future rejection
+- 自引用禁止: object cannot cite its own current revision 已有逻辑保留
+
+## 不扩大循环检测
+- 当前self-current-revision已有禁止逻辑保留
+- 本轮不开发任意深度环检测、Dependency graph cycle、Claim证明自身、SCC算法，属于后续M0-019/M1/M3
+- 同事务合法互引不能被误当成全部禁止cycle
+
+## R01-R15
+- R01: object_id=""拒绝, revision 0/-1拒绝, None/1合法, extra拒绝
+- R02: frozen赋值拒绝
+- R03: SourceRef结构与frozen
+- R04: nonexistent object missing_obj revision None => NOT_FOUND world不增加
+- R05: nonexistent exact revision target rev1存在引用rev2 => NOT_FOUND不fallback
+- R06: pinned historical ref不漂移 old/new测试
+- R07: floating navigation语义
+- R08: 同事务互相引用 A->B B->A 成功
+- R09: future explicit ref拒绝 target 11:00 holder 10:00 ref target@1 => NOT_FOUND world不增加，错误不泄露target learned_at
+- R10: visible historical explicit ref成功 target 09:00 holder 10:00 ref target@1 成功
+- R11: floating ref有旧可见版本 target rev1 09:00 rev2 11:00 holder 10:00 floating => 允许
+- R12: floating ref只有未来版本 target rev1 11:00 holder 10:00 floating => NOT_FOUND
+- R13: pending future ref拒绝 A 10:00引用B@1 B 11:00 同事务 => 整个拒绝 world不增加
+- R14: SourceRef版本验证 target rev1存在可见成功，rev2不存在NOT_FOUND，确保SourceRef不是只存字符串绕过验证
+- R15: SourceRef future visibility target 11:00 holder 10:00 source_refs => NOT_FOUND
+- Critical model ref field check: Claim support/counter, EventAnchor primary_claim/evidence_set, EvidenceSet member/support/counter/context, Dependency dependent/dependency 字段继续使用ObjectRef，否则STOP M0_006_CRITICAL_REF_FIELD_DIVERGED (检查通过)
+
+## 不提前实现业务对象pin强制
+- 本轮不规定 Claim所有ref必须revision非None, EvidenceSet member必须非None等，各对象更严格规则在后续M0-008/M0-009/M0-012等冻结
+
+## 生产文件允许范围
+- 允许: refs.py, sqlite_store.py, test_refs.py, reviews, TASK_PROGRESS
+- refs.py: 当前语义已完全符合，NO CHANGE
+- 禁止修改: base.py, models.py, time.py, ids.py, enums.py, operations.py, SQLite schema，如发现必须改则STOP (本轮仅修改sqlite_store.py)
+
+## M0-005冻结保护
+- 保留 revision严格+1, object_type immutable, subject_id NOT FROZEN, append-only, transaction atomicity, World Revision一次commit只+1, 本轮未破坏
+
+## M0-004冻结保护
+- 保留 aware datetime, canonical UTC, DST instant comparison, knowledge visibility由learned_at决定, 禁止按recorded_at判断引用可见性 (本轮使用learned_at)
+
+## 对抗验证
+- A 让不存在exact revision自动fallback latest => R05失败 (应NOT_FOUND但返回rev1)
+- B 让pinned ref在目标rev2后改读latest => R06失败 (old变new)
+- C 去掉pending refs支持 => R08失败 (同事务互引应成功)
+- D 忽略knowledge visibility只查物理存在 => R09/R12/R13/R15失败 (未来泄露)
+- E floating ref错误要求最新revision也必须<=cutoff => R11失败 (应允许但拒绝)
+- F SourceRef不走引用验证 => R14/R15失败
+- 恢复正式代码后全量测试 PASS
+
+## 正式pytest
+- 本地 Python 3.11.2, 179 passed (163 +16 M0-006)
+- Reference 15 passed
+
+## CI状态
+- arena/* push自动触发Python 3.12 CI, 总工直接GitHub核验真实HEAD、diff、CI、tests
+- 本地记录 CI_PENDING_CHIEF_VERIFICATION
+
+## 未解决问题
+NONE
+- 关键模型ref字段检查通过，无M0_006_CRITICAL_REF_FIELD_DIVERGED
+- 无剩余时间排序问题 (R2已修复)
