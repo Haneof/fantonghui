@@ -155,6 +155,19 @@ class SQLiteWorldStore:
         ).fetchone()
         return None if row["rev"] is None else int(row["rev"])
 
+    def _latest_object_type(self, conn: sqlite3.Connection, object_id: str) -> str | None:
+        row = conn.execute(
+            """
+            SELECT object_type
+            FROM object_revisions
+            WHERE object_id=?
+            ORDER BY revision DESC
+            LIMIT 1
+            """,
+            (object_id,),
+        ).fetchone()
+        return None if row is None else str(row["object_type"])
+
     def _reference_exists(
         self,
         conn: sqlite3.Connection,
@@ -267,6 +280,18 @@ class SQLiteWorldStore:
                                 "actual_revision": obj.revision,
                             },
                         )
+                    if latest is not None:
+                        existing_object_type = self._latest_object_type(conn, obj.object_id)
+                        if existing_object_type is not None and existing_object_type != obj.object_type.value:
+                            raise StoreError(
+                                ErrorCode.VERSION_CONFLICT,
+                                "object type cannot change across revisions",
+                                context={
+                                    "object_id": obj.object_id,
+                                    "expected_object_type": existing_object_type,
+                                    "actual_object_type": obj.object_type.value,
+                                },
+                            )
 
                 if validate_references:
                     for obj in object_list:

@@ -635,3 +635,192 @@ def test_w14_no_update_replace_in_store_source():
         flags=re.IGNORECASE,
     )
     assert not matches, f"Found forbidden SQL patterns: {matches}"
+
+# DummyClaim for object_type continuity test
+class DummyClaim(WorldObject):
+    object_type: ObjectType = ObjectType.CLAIM
+    content: str = "test"
+
+
+# W15 object_type不能跨revision变化
+def test_w15_object_type_cannot_change_across_revisions(tmp_path):
+    db = tmp_path / "test.db"
+    store = SQLiteWorldStore(db)
+
+    now = utc_now()
+    obj_id = new_object_id(ObjectType.ENTITY)
+
+    obj_entity = DummyEntity(
+        object_id=obj_id,
+        subject_id="test_subject",
+        revision=1,
+        learned_at=now,
+        recorded_at=now,
+        created_by="test",
+        canonical_name="entity1",
+    )
+    result = store.commit([obj_entity], make_op(0))
+    assert result.world_revision == 1
+
+    # Try to change to CLAIM with same object_id rev2
+    obj_claim = DummyClaim(
+        object_id=obj_id,
+        subject_id="test_subject",
+        revision=2,
+        learned_at=utc_now(),
+        recorded_at=utc_now(),
+        created_by="test",
+        content="should_fail",
+    )
+
+    with pytest.raises(StoreError) as excinfo:
+        store.commit([obj_claim], make_op(1))
+
+    err = excinfo.value
+    assert err.code == ErrorCode.VERSION_CONFLICT
+    assert err.context["object_id"] == obj_id
+    assert err.context["expected_object_type"] == ObjectType.ENTITY.value
+    assert err.context["actual_object_type"] == ObjectType.CLAIM.value
+
+
+# W16 类型冲突必须完整原子回滚 (multi-object)
+def test_w16_type_conflict_atomic_rollback_multi(tmp_path):
+    db = tmp_path / "test.db"
+    store = SQLiteWorldStore(db)
+
+    now = utc_now()
+    obj_id = new_object_id(ObjectType.ENTITY)
+
+    # First commit ENTITY rev1
+    obj_entity1 = DummyEntity(
+        object_id=obj_id,
+        subject_id="test_subject",
+        revision=1,
+        learned_at=now,
+        recorded_at=now,
+        created_by="test",
+        canonical_name="entity1",
+    )
+    store.commit([obj_entity1], make_op(0))
+    assert store.current_world_revision() == 1
+
+    # Prepare a commit with both illegal CLAIM rev2 and a new legal ENTITY
+    obj_id_new = new_object_id(ObjectType.ENTITY)
+    obj_illegal_claim = DummyClaim(
+        object_id=obj_id,
+        subject_id="test_subject",
+        revision=2,
+        learned_at=utc_now(),
+        recorded_at=utc_now(),
+        created_by="test",
+        content="illegal",
+    )
+    obj_new_entity = DummyEntity(
+        object_id=obj_id_new,
+        subject_id="new_subject",
+        revision=1,
+        learned_at=utc_now(),
+        recorded_at=utc_now(),
+        created_by="test",
+        canonical_name="new_entity",
+    )
+
+    with pytest.raises(StoreError) as excinfo:
+        store.commit([obj_illegal_claim, obj_new_entity], make_op(1))
+
+    err = excinfo.value
+    assert err.code == ErrorCode.VERSION_CONFLICT
+
+    # current_world_revision must still be 1
+    assert store.current_world_revision() == 1
+
+    # Original object latest still rev1 ENTITY
+    payload_orig = store.get_payload(obj_id)
+    assert payload_orig["revision"] == 1
+    assert payload_orig["object_type"] == ObjectType.ENTITY.value
+
+    # Illegal CLAIM rev2 does not exist
+    with pytest.raises(StoreError) as excinfo2:
+        store.get_payload(obj_id, revision=2)
+    assert excinfo2.value.code == ErrorCode.NOT_FOUND
+
+    # New ENTITY object also does not exist (entire transaction atomic)
+    with pytest.raises(StoreError) as excinfo3:
+        store.get_payload(obj_id_new)
+    assert excinfo3.value.code == ErrorCode.NOT_FOUND
+
+    # world_commits should not have new revision
+    conn = sqlite3.connect(str(db))
+    conn.row_factory = sqlite3.Row
+    rows = conn.execute("SELECT world_revision FROM world_commits ORDER BY world_revision").fetchall()
+    conn.close()
+    assert len(rows) == 1
+    assert rows[0]["world_revision"] == 1
+
+
+# W17 类型冲突失败后合法rev2可恢复
+def test_w17_type_conflict_recovery_legal_rev2(tmp_path):
+    db = tmp_path / "test.db"
+    store = SQLiteWorldStore(db)
+
+    now = utc_now()
+    obj_id = new_object_id(ObjectType.ENTITY)
+
+    obj_entity1 = DummyEntity(
+        object_id=obj_id,
+        subject_id="test_subject",
+        revision=1,
+        learned_at=now,
+        recorded_at=now,
+        created_by="test",
+        canonical_name="entity1",
+    )
+    store.commit([obj_entity1], make_op(0))
+
+    # Fail with illegal type
+    obj_illegal = DummyClaim(
+        object_id=obj_id,
+        subject_id="test_subject",
+        revision=2,
+        learned_at=utc_now(),
+        recorded_at=utc_now(),
+        created_by="test",
+        content="illegal",
+    )
+    with pytest.raises(StoreError):
+        store.commit([obj_illegal], make_op(1))
+
+    # Now legal rev2 ENTITY should succeed
+    obj_entity2 = DummyEntity(
+        object_id=obj_id,
+        subject_id="test_subject",
+        revision=2,
+        learned_at=utc_now(),
+        recorded_at=utc_now(),
+        created_by="test",
+        canonical_name="entity2",
+    )
+    result = store.commit([obj_entity2], make_op(1))
+
+    assert result.world_revision == 2
+    assert store.current_world_revision() == 2
+
+    latest = store.get_payload(obj_id)
+    assert latest["revision"] == 2
+    assert latest["object_type"] == ObjectType.ENTITY.value
+    assert latest["canonical_name"] == "entity2"
+
+    # Check DB history: rev1 ENTITY, rev2 ENTITY, no CLAIM
+    conn = sqlite3.connect(str(db))
+    conn.row_factory = sqlite3.Row
+    rows = conn.execute(
+        "SELECT revision, object_type FROM object_revisions WHERE object_id=? ORDER BY revision",
+        (obj_id,),
+    ).fetchall()
+    conn.close()
+
+    assert len(rows) == 2
+    assert rows[0]["revision"] == 1
+    assert rows[0]["object_type"] == ObjectType.ENTITY.value
+    assert rows[1]["revision"] == 2
+    assert rows[1]["object_type"] == ObjectType.ENTITY.value
