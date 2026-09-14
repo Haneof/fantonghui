@@ -1,0 +1,21 @@
+M0-021 exact semantic-head CI evidence
+
+commit: 8818dba83d97f73e3e48df97df9a18e3c450ba9d
+workflow run: 34813790092
+job: 103880165317
+runner: ubuntu-24.04
+python: CPython 3.12.14
+pytest: 8.4.2
+
+formal suite:
+collected 385 items
+385 passed, 1 warning in 3.33s
+
+reference suite:
+collected 15 items
+15 passed in 0.25s
+
+warning:
+Existing accepted adversarial Pydantic serializer warning from tests/unit/test_evidence_set.py::test_e23_time_range_mutation.
+
+conclusion: SUCCESS
