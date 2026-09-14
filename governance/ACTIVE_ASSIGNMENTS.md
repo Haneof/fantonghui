@@ -6,28 +6,32 @@ This is the cloud roster. AI agents must not self-assign production work.
 
 - Agent ID: `chief-01`
 - 中文职位：总工程师 / 总工
-- Status: ACTIVE / OWNER
-- Task: M0-016 — OperationRequest、审计与幂等契约
+- Status: AUTHORIZED / OWNER / NOT STARTED
+- Task: M0-017 — SQLite 追加式世界存储 schema
 - Role prompt: `governance/roles/CHIEF_ENGINEER.md`
 - Production branch: `arena/01a09bc6-fantonghui`
-- Frozen base: `3b4e8b603e52830d8be44d33141f722bbba244a0` (M0-015 FINAL PASS)
+- Frozen base: `cdbd7ff1d42ba292a2e0ca9972f0c9eccd4666c3` (M0-016 FINAL PASS)
 - Parallel safety: NOT PARALLEL_SAFE for another core writer
 
-### Current work
+### Authority basis
 
-The Chief Engineer is implementing and reviewing M0-016 directly.
+The authoritative taskbook marks M0-017 `负责人级别：总工程师亲自代码` and depends on M0-016.
 
-Required contract:
-- OperationRequest keeps operation_id/session_id/operation_name/arguments/expected_world_revision/reason/idempotency_key explicit;
-- safe replay checks the idempotency record before optimistic world revision validation;
-- a successful replay returns the original result and does not advance the world revision;
-- a stale expected_world_revision on a new request returns VERSION_CONFLICT and must not overwrite concurrent work;
-- committed operations remain auditable;
-- do not prematurely implement M0-017 storage schema migration policy or M0-018 broader world-revision mechanics beyond what M0-016 needs.
+### M0-017 required outcome
 
-Work already started on the production branch: OperationRequest validation was hardened and an OperationAuditRecord contract was introduced. Tests, exact-head CI, formal review, and freeze are still pending.
+Formally freeze the first-stage SQLite append-only world storage contract:
+- world_meta / world_commits / object_revisions / operations / idempotency_records;
+- WAL and transactional writes;
+- indexes for object ID/type/subject/learned_at;
+- restart-safe persistence;
+- consecutive commits and multiple revisions of the same object;
+- rollback leaves no partial world/object/operation state;
+- expected-world-revision concurrency stays explicit;
+- all historical object revisions remain preserved;
+- AI Worker must not receive a raw sqlite connection;
+- do not silently introduce runtime ad-hoc ALTER migrations.
 
-`core-01` must NOT start M0-016 unless this assignment is explicitly changed.
+`core-01` must NOT start M0-017 unless this assignment is explicitly changed.
 
 ## Assignment B — `core-01` 核心程序员 / 主程序员
 
@@ -70,14 +74,16 @@ Current instruction: remain IDLE until the Chief Engineer assigns a new task.
 
 ## Last authoritative completion
 
-M0-015 FINAL PASS:
+M0-016 FINAL PASS:
 
-- semantic frozen commit: `3b4e8b603e52830d8be44d33141f722bbba244a0`
-- formal suite: 329 passed
+- semantic frozen commit: `cdbd7ff1d42ba292a2e0ca9972f0c9eccd4666c3`
+- formal suite: 341 passed
 - Reference suite: 15 passed
 - Python: 3.12.14
-- exact-version Dependency, dependency-cycle guard, reverse impact helper frozen
-- formal review: `reviews/M0/M0-015_final_PASS_2026-09-14.md`
+- same-key replay before optimistic revision check; world revision advances once
+- stale new-key writer returns VERSION_CONFLICT and cannot overwrite
+- committed operations remain durably auditable
+- formal review: `reviews/M0/M0-016_final_PASS_2026-09-14.md`
 
 ## Operator handoff rule
 
