@@ -5,7 +5,7 @@ Last authoritative update: 2026-09-14
 ## Current milestone
 
 - Milestone: M0 — freeze world contracts and core storage
-- Status: IN PROGRESS / THIRD GATE PATCH GREEN / WAITING REQUIRED ARCHITECT RE-REVIEW
+- Status: IN PROGRESS / FOURTH PATCH GREEN / ARCHITECT THIRD REVIEW INTERRUPTED BY QUOTA
 - M1: BLOCKED
 - Parallel core development: BLOCKED
 - Production branch: `arena/01a09bc6-fantonghui`
@@ -36,11 +36,18 @@ Architect formal re-review of candidate `268d403...`:
 - B2/B3/B4 narrow fixes independently accepted
 - R3 accepted as M1/M2 future Gate
 
-## Chief rulings after latest report
+Third architect review attempt:
+- authorized by `REREVIEW_REQUEST.md`
+- Work session exhausted quota before a new `LATEST.md` was written
+- therefore current `LATEST.md` is still the older formal report and MUST NOT be treated as the result of this interrupted attempt
+- before interruption, two additional concerns were visibly identified: B8 cross-process collection replay instability and B9 false busy classification
+- chief-01 independently reproduced both in committed tests, then patched them; this does not substitute for the missing GPT-6 final verdict
+
+## Chief rulings / repairs
 
 ### B6
 
-Idempotency identity must be calculated from the same normalized representation used for durable persistence. Exact stale replay priority remains unchanged.
+Idempotency identity is calculated from the same normalized representation used for durable persistence. Exact stale replay priority remains unchanged.
 
 ### B7
 
@@ -57,9 +64,18 @@ M0-002 and M0-017 reopened. New protocol code:
 - internal integrity/operational/database faults => `STORAGE_FAILURE` with machine-readable reason
 - raw sqlite errors are not public Core protocol
 
+B9 hardening further narrows retryable contention classification: only SQLite base result codes `SQLITE_BUSY` or `SQLITE_LOCKED` are treated as `storage_busy`; arbitrary error text containing `busy` or `locked` is not sufficient.
+
 ### R4
 
 M0-009 and M0-019 reopened. EvidenceSet typed refs must be visible at the EvidenceSet's own `knowledge_window.knowledge_cutoff`, not merely at EvidenceSet.learned_at. Full world-revision materialization remains M1-006 scope.
+
+### B8
+
+Cross-process idempotent replay must not depend on Python hash randomization. Durable JSON and replay fingerprinting now share deterministic canonicalization:
+- ordered lists/tuples preserve order;
+- unordered set/frozenset values are recursively canonicalized and sorted by canonical JSON;
+- OperationRequest.arguments and WorldObject durable payloads use the same canonical representation as request fingerprints.
 
 ### recorded_at
 
@@ -71,39 +87,44 @@ Earlier:
 - B1/B3: `8ab574c6b33b2238b468c812992a92ba56ab3f71`
 - B2: `e06bc80e43ea26be2be726232158cb2719092f11`
 - B4/B5 first patch: `a99326c5034118b3a497e3be0d53ac9466445467`
+- B6/B7/B5/R4 repair: `f38fdd2aa64e31b92c5353206a8aef62c9322087`
+- approved snapshot candidate: `9c080f693917c2c99bfbe6aa924e5f3cb54744a0`
 
-Latest semantic repair:
-- `f38fdd2aa64e31b92c5353206a8aef62c9322087`
+Latest semantic repair for B8/B9:
+- `659157b849a0dbaad241c3e316dcd98eb7c72df7`
 
-Current exact green candidate including approved snapshot change:
-- `9c080f693917c2c99bfbe6aa924e5f3cb54744a0`
+Exact source-equivalent archive HEAD with green CI:
+- `d180091c73be63bcce680748048ef731316f848b`
 
-Production review/progress archive currently newer than candidate; those documentation commits do not redefine the semantic candidate.
+Later commits may be review/progress documentation only; architect must compare current production HEAD against `659157b...` before review.
 
 ## CI evidence
 
-Expected structural-drift run after adding `STORAGE_FAILURE`:
-- run `34827058782`
-- job `103921528459`
-- 417 functional tests passed
-- exactly one failure: frozen schema snapshot still represented the old ErrorCode set / old ErrorResponse schema
-- Reference skipped because formal stage failed
-- failure is preserved, not hidden
+B8/B9 red reproducer:
+- commit `83a23302ff3c88a409db988059c03e5ec27a7ace`
+- run `34831346707`
+- job `103935164027`
+- formal **418 passed / 2 failed / 1 warning**
+- failures exactly B8 and B9 reproductions
+- Reference skipped
 
-Latest exact green candidate `9c080f...`:
-- run `34827250470`
-- job `103922130589`
+Latest B8/B9 green evidence:
+- run `34831608087`
+- job `103935994524`
+- checkout `d180091c73be63bcce680748048ef731316f848b`
 - CPython 3.12.14 / pytest 8.4.2
-- formal **418 passed**, 1 known adversarial warning
+- formal **420 passed**, 1 known adversarial warning
 - Reference **15 passed**
 - SUCCESS
+- both B8/B9 reproducer tests green
 
-Chief review:
-`reviews/M0/M0_gate_B6_B7_B5_R4_resolution_2026-09-14.md`
+Chief reviews:
+- `reviews/M0/M0_gate_B6_B7_B5_R4_resolution_2026-09-14.md`
+- `reviews/M0/M0_gate_B8_B9_followup_2026-09-14.md`
 
 ## Reopened contracts
 
-Waiting for architect re-review:
+Waiting for architect continuation/re-review:
 - M0-002 — REOPENED / PATCHED
 - M0-009 — REOPENED / PATCHED
 - M0-016 — REOPENED / PATCHED
@@ -111,19 +132,22 @@ Waiting for architect re-review:
 - M0-019 — REOPENED / PATCHED
 - M0-022 — BLOCKED / PATCH CANDIDATE GREEN
 
-M0-015 is restored to FINAL PASS after the latest independent architect re-review confirmed the durable Dependency-cycle repair in its bounded M0 scope. This does not claim M3 correction propagation/reverse-index completion.
+M0-015 remains restored to FINAL PASS in its bounded M0 scope. This does not claim M3 correction propagation/reverse-index completion.
 
 ## Current assignments
 
-- `chief-01`: repair mechanically verified; waiting architect re-review
+- `chief-01`: B8/B9 independently reproduced, patched and mechanically green; waiting for independent architect continuation when quota/capacity returns
 - `core-01`: IDLE
-- `architect-01`: AUTHORIZED / REQUIRED to independently attack candidate `9c080f...`
+- `architect-01`: REQUIRED; prior third review was INTERRUPTED BY QUOTA, continuation request is queued
 - `parallel-01/02`: NOT AUTHORIZED
+
+Continuation request:
+`governance/agent_reports/architect-01/REREVIEW_CONTINUATION_B8_B9.md`
 
 ## Gate rule
 
-M0 remains not passed. Chief must not authorize M1, mark M0 22/22, or enable parallel core development until architect-01 independently reviews the latest candidate and returns an acceptable verdict, followed by chief-01 final Gate ruling.
+M0 remains not passed. Chief must not authorize M1, mark M0 22/22, or enable parallel core development until architect-01 independently reviews the repaired B8/B9 candidate together with the remaining third-review scope and returns an acceptable verdict, followed by chief-01 final Gate ruling.
 
 ## Recovery rule
 
-Read: `AGENTS.md` → `governance/CONTROL_PANEL.md` → this file → `governance/ACTIVE_ASSIGNMENTS.md` → `TASK_PROGRESS_R2.md` → `governance/agent_reports/architect-01/LATEST.md` → `REREVIEW_REQUEST.md` → current Gate reviews/evidence → taskbook.
+Read: `AGENTS.md` → `governance/CONTROL_PANEL.md` → this file → `governance/ACTIVE_ASSIGNMENTS.md` → `TASK_PROGRESS_R2.md` → `governance/agent_reports/architect-01/LATEST.md` → `REREVIEW_REQUEST.md` → `REREVIEW_CONTINUATION_B8_B9.md` → current Gate reviews/evidence → taskbook.
