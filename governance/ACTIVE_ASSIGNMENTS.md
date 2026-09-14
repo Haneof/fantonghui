@@ -7,30 +7,30 @@ This is the cloud roster. AI agents must not self-assign production work.
 - Agent ID: `chief-01`
 - 中文职位：总工程师 / 总工
 - Status: AUTHORIZED / OWNER / NOT STARTED
-- Task: M0-020 — 历史世界读取与 Knowledge Cutoff
+- Task: M0-021 — Task / Event 状态机冻结
 - Role prompt: `governance/roles/CHIEF_ENGINEER.md`
 - Production branch: `arena/01a09bc6-fantonghui`
-- Frozen base: `f1dc7cc8ca07131f75d7afe5c505f534c2f3dbe8` (M0-019 FINAL PASS)
+- Frozen base: `426ea4c8e1292f0dd5f57e01f8663014071f7004` (M0-020 FINAL PASS)
 - Parallel safety: NOT PARALLEL_SAFE for another core writer
 
 ### Authority basis
 
-The authoritative taskbook marks M0-020 `负责人级别：总工程师亲自代码` and depends on M0-004 and M0-018.
+The authoritative taskbook marks M0-021 `负责人级别：总工程师亲自代码` and depends on M0-012 and M0-014.
 
-### M0-020 required outcome
+### M0-021 required outcome
 
-Formally freeze historical world reads and knowledge-cutoff semantics:
-- read an exact object revision;
-- read latest object state as of a world revision;
-- read latest object state visible before a knowledge cutoff;
-- combine world revision and knowledge cutoff without future leakage;
-- list queries must select the newest visible revision per object under the same constraints;
-- learned_at, not recorded_at alone, controls knowledge visibility;
-- preserve UTC/DST-safe comparisons and historical replay;
-- expose the actual historical slice cleanly for later query/workspace layers;
-- do not let AI Worker bypass Core with direct SQL.
+Formally freeze Task and Event state-machine semantics:
+- legal Task transitions are encoded as an explicit matrix;
+- legal Event transitions are encoded as an explicit matrix;
+- `RUNNING -> WAITING_RESULT` is legal;
+- `COMPLETED -> RUNNING` is rejected;
+- `CANDIDATE -> REJECTED` is legal;
+- `MERGED -> ACTIVE` is rejected;
+- state changes are represented by a new object revision rather than a durable in-place UPDATE;
+- service-layer transition helpers must not silently bypass the validators;
+- no M1/M2 scheduler behavior is pulled into this task.
 
-`core-01` must NOT start M0-020 unless this assignment is explicitly changed.
+`core-01` must NOT start M0-021 unless this assignment is explicitly changed.
 
 ## Assignment B — `core-01` 核心程序员 / 主程序员
 
@@ -73,16 +73,17 @@ Current instruction: remain IDLE until the Chief Engineer assigns a new task.
 
 ## Last authoritative completion
 
-M0-019 FINAL PASS:
+M0-020 FINAL PASS:
 
-- semantic frozen commit: `f1dc7cc8ca07131f75d7afe5c505f534c2f3dbe8`
-- formal suite: 366 passed
+- semantic frozen commit: `426ea4c8e1292f0dd5f57e01f8663014071f7004`
+- formal suite: 377 passed
 - Reference suite: 15 passed
 - Python: 3.12.14
-- reference validation mandatory at persistence boundary; public bypass removed
-- missing/future refs rejected, same-transaction legal refs preserved
-- current-revision self-citation rejected; historical self-link remains legal
-- formal review: `reviews/M0/M0-019_final_PASS_2026-09-14.md`
+- exact object/world-revision + learned-at knowledge-cutoff reads frozen
+- zero future-data leakage regression covered
+- historical latest-visible selection precedes mutable subject filtering
+- query facade reports actual snapshot revision and minimal coverage
+- formal review: `reviews/M0/M0-020_final_PASS_2026-09-14.md`
 
 ## Operator handoff rule
 
