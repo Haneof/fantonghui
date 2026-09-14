@@ -7,31 +7,30 @@ This is the cloud roster. AI agents must not self-assign production work.
 - Agent ID: `chief-01`
 - 中文职位：总工程师 / 总工
 - Status: AUTHORIZED / OWNER / NOT STARTED
-- Task: M0-017 — SQLite 追加式世界存储 schema
+- Task: M0-018 — 全局 World Revision 与原子提交
 - Role prompt: `governance/roles/CHIEF_ENGINEER.md`
 - Production branch: `arena/01a09bc6-fantonghui`
-- Frozen base: `cdbd7ff1d42ba292a2e0ca9972f0c9eccd4666c3` (M0-016 FINAL PASS)
+- Frozen base: `c9bd2d85ff0047515f6f4cc5b9e7058c70cff6dc` (M0-017 FINAL PASS)
 - Parallel safety: NOT PARALLEL_SAFE for another core writer
 
 ### Authority basis
 
-The authoritative taskbook marks M0-017 `负责人级别：总工程师亲自代码` and depends on M0-016.
+The authoritative taskbook marks M0-018 `负责人级别：总工程师亲自代码` and depends on M0-017.
 
-### M0-017 required outcome
+### M0-018 required outcome
 
-Formally freeze the first-stage SQLite append-only world storage contract:
-- world_meta / world_commits / object_revisions / operations / idempotency_records;
-- WAL and transactional writes;
-- indexes for object ID/type/subject/learned_at;
-- restart-safe persistence;
-- consecutive commits and multiple revisions of the same object;
-- rollback leaves no partial world/object/operation state;
-- expected-world-revision concurrency stays explicit;
-- all historical object revisions remain preserved;
-- AI Worker must not receive a raw sqlite connection;
-- do not silently introduce runtime ad-hoc ALTER migrations.
+Formally freeze global World Revision + atomic commit semantics:
+- transaction begins against `expected_world_revision`;
+- one successful transaction produces exactly one next global world revision;
+- all objects in that transaction share that same world revision;
+- world meta advances only after the transaction succeeds;
+- stale expected revision returns `VERSION_CONFLICT` and does not overwrite another writer;
+- failed validation/write rolls back and must not advance world revision or leave partial objects;
+- preserve append-only object history and existing idempotency ordering;
+- use the existing SQLite transactional boundary (`BEGIN IMMEDIATE`);
+- do not pull later scheduling/recovery/runtime semantics into this task.
 
-`core-01` must NOT start M0-017 unless this assignment is explicitly changed.
+`core-01` must NOT start M0-018 unless this assignment is explicitly changed.
 
 ## Assignment B — `core-01` 核心程序员 / 主程序员
 
@@ -74,16 +73,16 @@ Current instruction: remain IDLE until the Chief Engineer assigns a new task.
 
 ## Last authoritative completion
 
-M0-016 FINAL PASS:
+M0-017 FINAL PASS:
 
-- semantic frozen commit: `cdbd7ff1d42ba292a2e0ca9972f0c9eccd4666c3`
-- formal suite: 341 passed
+- acceptance commit: `c9bd2d85ff0047515f6f4cc5b9e7058c70cff6dc`
+- formal suite: 353 passed
 - Reference suite: 15 passed
 - Python: 3.12.14
-- same-key replay before optimistic revision check; world revision advances once
-- stale new-key writer returns VERSION_CONFLICT and cannot overwrite
-- committed operations remain durably auditable
-- formal review: `reviews/M0/M0-016_final_PASS_2026-09-14.md`
+- WAL + foreign keys + required first-stage tables/indexes frozen
+- restart/append-only history/rollback/multi-object atomicity/stale-writer conflict verified
+- AI Worker raw DB isolation remains enforced by architecture tests
+- formal review: `reviews/M0/M0-017_final_PASS_2026-09-14.md`
 
 ## Operator handoff rule
 
