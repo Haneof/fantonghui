@@ -3,28 +3,67 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
+from datetime import date, datetime, time
+from enum import Enum
 from typing import Any, TypeVar, cast
+
+from pydantic import BaseModel, TypeAdapter
 
 from aios_core.contracts.base import WorldObject
 from aios_core.contracts.operations import OperationRequest
 
 TWorldObject = TypeVar("TWorldObject", bound=WorldObject)
+_JSON_ADAPTER = TypeAdapter(Any)
 
 
-def _json_round_trip(value: Any) -> Any:
-    """Normalize values exactly like the durable operation audit representation."""
+def canonical_json_value(value: Any) -> Any:
+    """Convert a Python value to the deterministic JSON value used durably.
 
-    return json.loads(json.dumps(value, ensure_ascii=False, default=str))
+    Ordered containers keep their order. Unordered sets/frozensets are sorted by
+    their canonical JSON representation so a logical request has the same durable
+    identity across Python processes and hash seeds. Mapping keys are sorted by the
+    final JSON encoder, not here.
+    """
+
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, Enum):
+        return canonical_json_value(value.value)
+    if isinstance(value, BaseModel):
+        return canonical_json_value(value.model_dump(mode="python", round_trip=True))
+    if isinstance(value, Mapping):
+        return {str(key): canonical_json_value(item) for key, item in value.items()}
+    if isinstance(value, (set, frozenset)):
+        normalized = [canonical_json_value(item) for item in value]
+        normalized.sort(key=_canonical_json)
+        return normalized
+    if isinstance(value, (list, tuple)):
+        return [canonical_json_value(item) for item in value]
+    if isinstance(value, (datetime, date, time)):
+        return _JSON_ADAPTER.dump_python(value, mode="json")
+
+    # Keep Pydantic's JSON-mode semantics for supported scalar/custom values such
+    # as bytes while recursively canonicalizing any container it returns.
+    converted = _JSON_ADAPTER.dump_python(value, mode="json")
+    if converted is value:
+        raise TypeError(f"value is not durably JSON serializable: {type(value)!r}")
+    return canonical_json_value(converted)
 
 
 def _canonical_json(value: Any) -> str:
     return json.dumps(
-        value,
+        canonical_json_value(value),
         ensure_ascii=False,
         sort_keys=True,
         separators=(",", ":"),
     )
+
+
+def canonical_json_dumps(value: Any) -> str:
+    """Serialize exactly the deterministic representation used for fingerprints."""
+
+    return _canonical_json(value)
 
 
 def normalize_operation_for_persistence(operation: OperationRequest) -> OperationRequest:
@@ -39,21 +78,31 @@ def normalize_operation_for_persistence(operation: OperationRequest) -> Operatio
 
 
 def normalize_world_object_for_persistence(obj: TWorldObject) -> TWorldObject:
-    """Return the same canonical object representation used for durable storage."""
+    """Return the same validated model semantics used for durable storage."""
 
     snapshot = obj.model_dump(mode="python", round_trip=True)
     return cast(TWorldObject, type(obj).model_validate(snapshot))
 
 
+def canonical_world_object_payload(obj: WorldObject) -> dict[str, Any]:
+    """Return the deterministic durable JSON payload for a validated WorldObject."""
+
+    normalized = normalize_world_object_for_persistence(obj)
+    value = canonical_json_value(normalized)
+    if not isinstance(value, dict):
+        raise TypeError("WorldObject durable JSON payload must be an object")
+    return value
+
+
 def _object_entries(objects: Iterable[WorldObject]) -> list[dict[str, Any]]:
     entries: list[dict[str, Any]] = []
     for obj in objects:
-        normalized = normalize_world_object_for_persistence(obj)
+        payload = canonical_world_object_payload(obj)
         entries.append(
             {
-                "object_id": normalized.object_id,
-                "revision": normalized.revision,
-                "payload": json.loads(normalized.model_dump_json()),
+                "object_id": payload["object_id"],
+                "revision": payload["revision"],
+                "payload": payload,
             }
         )
     entries.sort(key=lambda entry: (entry["object_id"], entry["revision"]))
@@ -67,8 +116,9 @@ def request_fingerprint(
     """Return canonical identity for one logical durable commit request.
 
     Replay identity is calculated from the same normalized representation that is
-    persisted. This closes the B6 gap where a coercible post-construction mutation
-    could be accepted, persisted in normalized form, and then fail exact replay.
+    persisted. Unordered Python collections are converted deterministically before
+    either hashing or persistence, so process hash randomization cannot change an
+    accepted request's replay identity.
     """
 
     normalized_operation = normalize_operation_for_persistence(operation)
@@ -76,7 +126,7 @@ def request_fingerprint(
         "operation_id": normalized_operation.operation_id,
         "session_id": normalized_operation.session_id,
         "operation_name": normalized_operation.operation_name,
-        "arguments": _json_round_trip(normalized_operation.arguments),
+        "arguments": canonical_json_value(normalized_operation.arguments),
         "expected_world_revision": normalized_operation.expected_world_revision,
         "reason": normalized_operation.reason,
         "idempotency_key": normalized_operation.idempotency_key,
