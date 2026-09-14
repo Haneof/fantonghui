@@ -142,6 +142,37 @@ class EvidenceSet(WorldObject):
     def validate_evidence_content(self) -> "EvidenceSet":
         if not self.member_refs and self.selector is None:
             raise ValueError("EvidenceSet requires member_refs or selector")
+
+        # EvidenceSet refs must be pinned (revision != None) - historical evidence cannot follow latest
+        for field_name in [
+            "member_refs",
+            "support_refs",
+            "counter_refs",
+            "context_refs",
+        ]:
+            refs = getattr(self, field_name)
+            for ref in refs:
+                if ref.revision is None:
+                    raise ValueError(
+                        f"{field_name} requires pinned ObjectRef revisions"
+                    )
+
+        if self.selector is not None:
+            for ref in self.selector.dimension_refs:
+                if ref.revision is None:
+                    raise ValueError(
+                        "selector.dimension_refs requires pinned ObjectRef revisions"
+                    )
+
+        # knowledge_window cutoff must not be after learned_at (cannot know future)
+        if as_utc(
+            self.knowledge_window.knowledge_cutoff,
+            "knowledge_cutoff",
+        ) > as_utc(self.learned_at, "learned_at"):
+            raise ValueError(
+                "knowledge_window.knowledge_cutoff must not be after learned_at"
+            )
+
         return self
 
 
