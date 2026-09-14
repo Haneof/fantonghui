@@ -16,12 +16,12 @@ from aios_core.errors import AIOSProtocolError
 from aios_core.storage.sqlite_store import StoreError
 
 
-# CASE E01: 所有10个 ErrorCode 可以构造 ErrorResponse
+# CASE E01: 所有11个 ErrorCode 可以构造 ErrorResponse
 def test_e01_all_error_codes_constructible():
     for code in ErrorCode:
         resp = ErrorResponse(code=code, message=f"test {code}", context={})
         assert resp.code == code
-    assert len(list(ErrorCode)) == 10
+    assert len(list(ErrorCode)) == 11
     expected = {
         "INVALID_ARGUMENT",
         "NOT_FOUND",
@@ -33,6 +33,7 @@ def test_e01_all_error_codes_constructible():
         "DEPENDENCY_INVALID",
         "OUTCOME_UNKNOWN",
         "IDEMPOTENCY_CONFLICT",
+        "STORAGE_FAILURE",
     }
     actual = {c.value for c in ErrorCode}
     assert actual == expected

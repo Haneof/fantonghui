@@ -121,7 +121,7 @@ def test_w02_failed_mid_insert_rolls_back_the_entire_world_transaction(tmp_path)
             [make_obs(ids[0], "first"), make_obs(ids[1], "boom"), make_obs(ids[2], "third")],
             op(0, "mid-insert-failure", "op-mid-insert-failure"),
         )
-    assert exc.value.code is ErrorCode.INVALID_ARGUMENT
+    assert exc.value.code is ErrorCode.STORAGE_FAILURE
     assert exc.value.context["reason"] == "sqlite_integrity_error"
 
     assert store.current_world_revision() == 0

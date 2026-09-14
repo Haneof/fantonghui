@@ -4,10 +4,12 @@ import hashlib
 import json
 import sqlite3
 from collections.abc import Iterable
-from typing import Any
+from typing import Any, TypeVar, cast
 
 from aios_core.contracts.base import WorldObject
 from aios_core.contracts.operations import OperationRequest
+
+TWorldObject = TypeVar("TWorldObject", bound=WorldObject)
 
 
 def _json_round_trip(value: Any) -> Any:
@@ -25,15 +27,35 @@ def _canonical_json(value: Any) -> str:
     )
 
 
+def normalize_operation_for_persistence(operation: OperationRequest) -> OperationRequest:
+    """Return a newly validated snapshot of a possibly mutated request instance.
+
+    Pydantic assignment validation can raise after an assignment has already changed
+    an instance. Durable boundaries therefore never trust the live instance directly.
+    """
+
+    snapshot = operation.model_dump(mode="python", round_trip=True)
+    return OperationRequest.model_validate(snapshot)
+
+
+def normalize_world_object_for_persistence(obj: TWorldObject) -> TWorldObject:
+    """Return the same canonical object representation used for durable storage."""
+
+    snapshot = obj.model_dump(mode="python", round_trip=True)
+    return cast(TWorldObject, type(obj).model_validate(snapshot))
+
+
 def _object_entries(objects: Iterable[WorldObject]) -> list[dict[str, Any]]:
-    entries = [
-        {
-            "object_id": obj.object_id,
-            "revision": obj.revision,
-            "payload": json.loads(obj.model_dump_json()),
-        }
-        for obj in objects
-    ]
+    entries: list[dict[str, Any]] = []
+    for obj in objects:
+        normalized = normalize_world_object_for_persistence(obj)
+        entries.append(
+            {
+                "object_id": normalized.object_id,
+                "revision": normalized.revision,
+                "payload": json.loads(normalized.model_dump_json()),
+            }
+        )
     entries.sort(key=lambda entry: (entry["object_id"], entry["revision"]))
     return entries
 
@@ -42,22 +64,22 @@ def request_fingerprint(
     operation: OperationRequest,
     objects: Iterable[WorldObject],
 ) -> str:
-    """Return the canonical identity of one logical durable commit request.
+    """Return canonical identity for one logical durable commit request.
 
-    An idempotency key is safe to replay only when every identity-bearing request
-    field and every intended object revision/payload match the original request.
-    Object ordering is deliberately ignored because commit ordering is not a
-    semantic part of the write request.
+    Replay identity is calculated from the same normalized representation that is
+    persisted. This closes the B6 gap where a coercible post-construction mutation
+    could be accepted, persisted in normalized form, and then fail exact replay.
     """
 
+    normalized_operation = normalize_operation_for_persistence(operation)
     payload = {
-        "operation_id": operation.operation_id,
-        "session_id": operation.session_id,
-        "operation_name": operation.operation_name,
-        "arguments": _json_round_trip(operation.arguments),
-        "expected_world_revision": operation.expected_world_revision,
-        "reason": operation.reason,
-        "idempotency_key": operation.idempotency_key,
+        "operation_id": normalized_operation.operation_id,
+        "session_id": normalized_operation.session_id,
+        "operation_name": normalized_operation.operation_name,
+        "arguments": _json_round_trip(normalized_operation.arguments),
+        "expected_world_revision": normalized_operation.expected_world_revision,
+        "reason": normalized_operation.reason,
+        "idempotency_key": normalized_operation.idempotency_key,
         "objects": _object_entries(objects),
     }
     return hashlib.sha256(_canonical_json(payload).encode("utf-8")).hexdigest()
@@ -69,14 +91,7 @@ def stored_request_fingerprint(
     operation_id: str,
     world_revision: int,
 ) -> str:
-    """Rebuild the original request identity from atomically durable records.
-
-    M0 intentionally avoids a schema migration here: the operation row and every
-    object payload written at the operation's world revision already form the
-    durable canonical request record. Reconstructing the fingerprint from those
-    rows is equivalent to persisting a duplicate digest while remaining compatible
-    with databases created before the stricter idempotency rule.
-    """
+    """Rebuild the normalized original request identity from durable records."""
 
     operation_row = conn.execute(
         """

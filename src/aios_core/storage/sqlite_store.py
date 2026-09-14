@@ -11,13 +11,18 @@ from pydantic import BaseModel, JsonValue, ValidationError
 
 from aios_core.contracts.base import WorldObject
 from aios_core.contracts.enums import ErrorCode, ObjectType
-from aios_core.contracts.models import Dependency
+from aios_core.contracts.models import Dependency, EvidenceSet
 from aios_core.contracts.operations import CommitResult, OperationRequest
 from aios_core.contracts.refs import ObjectRef, SourceRef
 from aios_core.contracts.time import as_utc, canonical_utc_iso, utc_now
 from aios_core.dependency import validate_dependency_graph_acyclic
 from aios_core.errors import AIOSProtocolError
-from aios_core.storage.idempotency import request_fingerprint, stored_request_fingerprint
+from aios_core.storage.idempotency import (
+    normalize_operation_for_persistence,
+    normalize_world_object_for_persistence,
+    request_fingerprint,
+    stored_request_fingerprint,
+)
 
 T = TypeVar("T", bound=WorldObject)
 
@@ -61,20 +66,21 @@ class SQLiteWorldStore:
 
     @contextmanager
     def _connection(self) -> Iterator[sqlite3.Connection]:
-        conn = sqlite3.connect(
-            self.db_path,
-            timeout=self.SQLITE_BUSY_TIMEOUT_MS / 1000.0,
-        )
-        conn.row_factory = sqlite3.Row
+        conn: sqlite3.Connection | None = None
         try:
+            conn = sqlite3.connect(
+                self.db_path,
+                timeout=self.SQLITE_BUSY_TIMEOUT_MS / 1000.0,
+            )
+            conn.row_factory = sqlite3.Row
             conn.execute("PRAGMA foreign_keys = ON")
             conn.execute(f"PRAGMA busy_timeout = {self.SQLITE_BUSY_TIMEOUT_MS}")
             conn.execute("PRAGMA journal_mode = WAL")
             yield conn
         except sqlite3.IntegrityError as exc:
             raise StoreError(
-                ErrorCode.INVALID_ARGUMENT,
-                "SQLite integrity constraint rejected the operation",
+                ErrorCode.STORAGE_FAILURE,
+                "SQLite integrity failure",
                 context={"reason": "sqlite_integrity_error"},
             ) from exc
         except sqlite3.OperationalError as exc:
@@ -85,13 +91,21 @@ class SQLiteWorldStore:
                     "world store is busy; retry from a fresh snapshot",
                     context={"reason": "storage_busy"},
                 ) from exc
+            reason = "storage_unavailable" if conn is None else "sqlite_operational_error"
             raise StoreError(
-                ErrorCode.INVALID_ARGUMENT,
-                "SQLite operational failure",
-                context={"reason": "sqlite_operational_error"},
+                ErrorCode.STORAGE_FAILURE,
+                "SQLite storage operation failed",
+                context={"reason": reason},
+            ) from exc
+        except sqlite3.DatabaseError as exc:
+            raise StoreError(
+                ErrorCode.STORAGE_FAILURE,
+                "SQLite database failure",
+                context={"reason": "sqlite_database_error"},
             ) from exc
         finally:
-            conn.close()
+            if conn is not None:
+                conn.close()
 
     def _initialize(self) -> None:
         with self._connection() as conn:
@@ -182,7 +196,18 @@ class SQLiteWorldStore:
         if not row:
             return None
 
-        incoming_fingerprint = request_fingerprint(operation, objects)
+        try:
+            incoming_fingerprint = request_fingerprint(operation, objects)
+        except ValidationError as exc:
+            raise StoreError(
+                ErrorCode.IDEMPOTENCY_CONFLICT,
+                "idempotency key retry is not a valid equivalent request",
+                context={
+                    "idempotency_key": operation.idempotency_key,
+                    "operation_id": operation.operation_id,
+                    "reason": "request_revalidation_failed",
+                },
+            ) from exc
         original_fingerprint = stored_request_fingerprint(
             conn,
             operation_id=str(row["operation_id"]),
@@ -399,14 +424,22 @@ class SQLiteWorldStore:
                         },
                     )
 
+                try:
+                    operation = normalize_operation_for_persistence(operation)
+                except ValidationError as exc:
+                    raise StoreError(
+                        ErrorCode.INVALID_ARGUMENT,
+                        "operation request failed persistence validation",
+                        context={
+                            "operation_id": operation.operation_id,
+                            "reason": "operation_persistence_revalidation_failed",
+                        },
+                    ) from exc
+
                 validated_objects: list[WorldObject] = []
                 for obj in object_list:
                     try:
-                        snapshot = obj.model_dump(
-                            mode="python",
-                            round_trip=True,
-                        )
-                        validated = type(obj).model_validate(snapshot)
+                        validated = normalize_world_object_for_persistence(obj)
                     except ValidationError as exc:
                         raise StoreError(
                             ErrorCode.INVALID_ARGUMENT,
@@ -460,6 +493,11 @@ class SQLiteWorldStore:
                             )
 
                 for obj in object_list:
+                    reference_cutoff = (
+                        obj.knowledge_window.knowledge_cutoff
+                        if isinstance(obj, EvidenceSet)
+                        else obj.learned_at
+                    )
                     for ref in self._collect_refs(obj):
                         if ref.object_id == obj.object_id and (
                             ref.revision is None or ref.revision == obj.revision
@@ -479,7 +517,7 @@ class SQLiteWorldStore:
                             ref,
                             pending_pairs,
                             pending_objects,
-                            knowledge_cutoff=obj.learned_at,
+                            knowledge_cutoff=reference_cutoff,
                         ):
                             raise StoreError(
                                 ErrorCode.NOT_FOUND,
