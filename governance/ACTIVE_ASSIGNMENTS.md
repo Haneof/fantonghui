@@ -7,30 +7,29 @@ This is the cloud roster. AI agents must not self-assign production work.
 - Agent ID: `chief-01`
 - 中文职位：总工程师 / 总工
 - Status: AUTHORIZED / OWNER / NOT STARTED
-- Task: M0-014 — Task / Wake / Session / Action / Outcome 基础契约
+- Task: M0-015 — Dependency（依赖）契约
 - Role prompt: `governance/roles/CHIEF_ENGINEER.md`
 - Production branch: `arena/01a09bc6-fantonghui`
-- Previous frozen semantic commit: `f30987395a034d4e9f826c9193dc82e00165a2e8` (M0-013 FINAL PASS)
+- Previous frozen semantic commit: `af49c27c95527ca1d2b28cddd88115b0264b48c4` (M0-014 FINAL PASS)
 - Parallel safety: NOT PARALLEL_SAFE for another core writer
 
 ### Authority basis
 
-The authoritative taskbook marks M0-014 `负责人级别：总工程师亲自代码` and depends on M0-005 + M0-013.
+The authoritative taskbook marks M0-015 `负责人级别：总工程师亲自代码` and depends on M0-006 + M0-009.
 
-### M0-014 high-level outcome
+### M0-015 high-level outcome
 
-Freeze the five foundational active-system contracts without implementing the M2 scheduler:
-- Task: type/state/Goal/priority/next wake/deadline/dependencies/completion/cancel/executions/outcomes;
-- Wake: source/hits/evidence/priority/dedupe;
-- Session: fixed world snapshot/execution context;
-- Action: stable `execution_id` and execution status;
-- Outcome: reality/result remains separate from Action and may represent unknown outcome semantics.
+Freeze Dependency as the explicit version-aware dependency record needed for later correction propagation and reverse lookup.
 
-Required semantic proof: “reminder delivered” may complete a notification Task but does not prove “user learned”; an Action timeout must not be silently converted into success/failure if reality is unknown.
+Required boundaries:
+- keep `dependent_ref`, `dependency_ref`, `dependency_type` explicit;
+- dependency history must identify exact object revisions when representing evidence/causal review provenance;
+- ordinary semantic relations are not automatically Dependency objects;
+- evidence/proof dependency must not gain credibility through a self-supporting cycle;
+- cover representative chains such as Claim→EvidenceSet→Observation, Summary→Claim, Task→Event;
+- do not prematurely implement the full M3 correction propagation/reverse-index runtime.
 
-Explicit prohibitions: model context cannot substitute for persistent Task; message delivery cannot equal help success.
-
-`core-01` must NOT start M0-014 unless this assignment is explicitly changed.
+`core-01` must NOT start M0-015 unless this assignment is explicitly changed.
 
 ## Assignment B — `core-01` 核心程序员 / 主程序员
 
@@ -73,14 +72,15 @@ Current instruction: remain IDLE until the Chief Engineer assigns a new task.
 
 ## Last authoritative completion
 
-M0-013 FINAL PASS:
+M0-014 FINAL PASS:
 
-- semantic frozen commit: `f30987395a034d4e9f826c9193dc82e00165a2e8`
-- formal suite: 297 passed
+- semantic frozen commit: `af49c27c95527ca1d2b28cddd88115b0264b48c4`
+- formal suite: 315 passed
 - Reference suite: 15 passed
 - Python: 3.12.14
-- exact R2 GoalStatus and Goal/Task/source-semantics boundary frozen
-- formal review: `reviews/M0/M0-013_final_PASS_2026-09-14.md`
+- durable Task/Wake/Session/Action/Outcome boundary frozen
+- Action != Outcome; message delivery != help success; outcome may remain unknown
+- formal review: `reviews/M0/M0-014_final_PASS_2026-09-14.md`
 
 ## Operator handoff rule
 
