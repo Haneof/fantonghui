@@ -87,9 +87,16 @@ def _normalize_query_integer(value: object, field_name: str) -> int:
 
 
 def _normalize_query_cutoff(value: datetime, field_name: str = "knowledge_cutoff") -> str:
+    # Preserve the already-frozen public contract for naive datetimes: callers
+    # receive the original ValueError. Protocol mapping applies to aware values
+    # that still fail canonical UTC conversion (for example datetime overflow).
+    if isinstance(value, datetime) and (
+        value.tzinfo is None or value.utcoffset() is None
+    ):
+        return canonical_utc_iso(value, field_name)
     try:
         return canonical_utc_iso(value, field_name)
-    except (OverflowError, OSError, TypeError, ValueError) as exc:
+    except (AttributeError, OverflowError, OSError, TypeError, ValueError) as exc:
         raise StoreError(
             ErrorCode.INVALID_ARGUMENT,
             f"{field_name} is not a supported timestamp",
