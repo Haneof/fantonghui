@@ -1,0 +1,211 @@
+{
+  "frozen_suite_modified": false,
+  "actual_524_legacy_database": {
+    "typed": {
+      "durable_value": {
+        "object_id": "anchor",
+        "revision": 1
+      },
+      "opaque_retry": {
+        "returned": {
+          "operation_id": "op-case",
+          "world_revision": 2,
+          "object_refs": [
+            [
+              "holder",
+              1
+            ]
+          ],
+          "idempotent_replay": true
+        },
+        "world_before": 2,
+        "world_after": 2,
+        "rows_unchanged": true,
+        "before_sha256": "20f39a124570d6619d090d6c424836ae5023a152da39963a5ae7e7cc5ed9cf71",
+        "after_sha256": "20f39a124570d6619d090d6c424836ae5023a152da39963a5ae7e7cc5ed9cf71"
+      }
+    },
+    "opaque": {
+      "durable_value": {
+        "object_id": "anchor",
+        "revision": 1
+      },
+      "opaque_retry": {
+        "returned": {
+          "operation_id": "op-case",
+          "world_revision": 2,
+          "object_refs": [
+            [
+              "holder",
+              1
+            ]
+          ],
+          "idempotent_replay": true
+        },
+        "world_before": 2,
+        "world_after": 2,
+        "rows_unchanged": true,
+        "before_sha256": "76e5da78dd692375828df11350d5e57d14a75669e97d4c982a4c7a26fcd9528f",
+        "after_sha256": "76e5da78dd692375828df11350d5e57d14a75669e97d4c982a4c7a26fcd9528f"
+      }
+    }
+  },
+  "unknown_field_controls": {
+    "world": {
+      "declared_private_attributes": [],
+      "unknown_in_instance_dict": true,
+      "canonical_validation": {
+        "exception": "ValidationError",
+        "code": null,
+        "context": null,
+        "message": "1 validation error for Observation\n_rogue\n  Extra inputs are not permitted [type=extra_forbidden, input_value='payload', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden"
+      },
+      "store": {
+        "returned": {
+          "operation_id": "op-case",
+          "world_revision": 2,
+          "object_refs": [
+            [
+              "holder",
+              1
+            ]
+          ],
+          "idempotent_replay": false
+        },
+        "world_before": 1,
+        "world_after": 2,
+        "rows_unchanged": false,
+        "before_sha256": "8395d16ff5f5d679d29e0650f607cc78f81e81b53392d9ef18c4bb17ca231a14",
+        "after_sha256": "510e7ce64fedfa46840698a0f4aafe62ee322686b32777c1f382949caef27896"
+      }
+    },
+    "operation": {
+      "declared_private_attributes": [],
+      "unknown_in_instance_dict": true,
+      "canonical_validation": {
+        "exception": "ValidationError",
+        "code": null,
+        "context": null,
+        "message": "1 validation error for OperationRequest\n_rogue\n  Extra inputs are not permitted [type=extra_forbidden, input_value='payload', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden"
+      },
+      "store": {
+        "returned": {
+          "operation_id": "op-case",
+          "world_revision": 2,
+          "object_refs": [
+            [
+              "holder",
+              1
+            ]
+          ],
+          "idempotent_replay": false
+        },
+        "world_before": 1,
+        "world_after": 2,
+        "rows_unchanged": false,
+        "before_sha256": "a00fdb28be71e5caa92e54da594625aacf442a9d01ea16849fda3d4a89b33697",
+        "after_sha256": "beaa7cba57e76d87b3722538465f9129f228e58e35d8ce538c2427ae48c0d410"
+      }
+    },
+    "ObjectRef": {
+      "declared_private_attributes": [],
+      "unknown_in_instance_dict": true,
+      "canonical_validation": {
+        "exception": "ValidationError",
+        "code": null,
+        "context": null,
+        "message": "1 validation error for ObjectRef\n_rogue\n  Extra inputs are not permitted [type=extra_forbidden, input_value='payload', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden"
+      },
+      "store": {
+        "returned": {
+          "operation_id": "op-case",
+          "world_revision": 2,
+          "object_refs": [
+            [
+              "holder",
+              1
+            ]
+          ],
+          "idempotent_replay": false
+        },
+        "world_before": 1,
+        "world_after": 2,
+        "rows_unchanged": false,
+        "before_sha256": "189e97151bead18c1cd43b8b526e513e814054550495e99c392542552141dc4c",
+        "after_sha256": "2a9a5d871dcfc9272aaebd3db4343b6f827ec4dcf9da2e8dd11770ca2a5de43b"
+      }
+    },
+    "SourceRef": {
+      "declared_private_attributes": [],
+      "unknown_in_instance_dict": true,
+      "canonical_validation": {
+        "exception": "ValidationError",
+        "code": null,
+        "context": null,
+        "message": "1 validation error for SourceRef\n_rogue\n  Extra inputs are not permitted [type=extra_forbidden, input_value='payload', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden"
+      },
+      "store": {
+        "returned": {
+          "operation_id": "op-case",
+          "world_revision": 2,
+          "object_refs": [
+            [
+              "holder",
+              1
+            ]
+          ],
+          "idempotent_replay": false
+        },
+        "world_before": 1,
+        "world_after": 2,
+        "rows_unchanged": false,
+        "before_sha256": "9e908bf76a93ae3e7b1d4d30f19ad79fb50e5f392238e91cfc97dbc01edb017a",
+        "after_sha256": "a9ccc5875b87ece74d0430a6c5a36dc3014a01ebddf14a9467fe37b4afccfe7a"
+      }
+    }
+  },
+  "durable_normal_form": {
+    "first": {
+      "returned": {
+        "operation_id": "op-case",
+        "world_revision": 2,
+        "object_refs": [
+          [
+            "holder",
+            1
+          ]
+        ],
+        "idempotent_replay": false
+      },
+      "world_before": 1,
+      "world_after": 2,
+      "rows_unchanged": false,
+      "before_sha256": "1b86ef9db8183c3afb565292a2e5739f31c1660c6b774ba48ad67c7e16b4f510",
+      "after_sha256": "e476fa8a051a25b6507f0d726298e99863fa35c246bc4e6ca253d13222ede8c2"
+    },
+    "durable_value": {
+      "unordered": [
+        "alpha",
+        "beta"
+      ]
+    },
+    "original_fingerprint": "3c952577263c1c13b22129b6192483e61a1f19cc142ebbce42689e03d215dd8d",
+    "durable_form_fingerprint": "4797cee3f3353b1e5a8f17a5c9fa1bd5a818da7bcbb08c0a299515ce98b9ad79",
+    "normal_form_retry": {
+      "exception": "StoreError",
+      "code": "IDEMPOTENCY_CONFLICT",
+      "context": {
+        "idempotency_key": "case",
+        "original_operation_id": "op-case",
+        "operation_id": "op-case",
+        "reason": "request_fingerprint_mismatch"
+      },
+      "message": "idempotency key was already used for a different request",
+      "world_before": 2,
+      "world_after": 2,
+      "rows_unchanged": true,
+      "before_sha256": "e476fa8a051a25b6507f0d726298e99863fa35c246bc4e6ca253d13222ede8c2",
+      "after_sha256": "e476fa8a051a25b6507f0d726298e99863fa35c246bc4e6ca253d13222ede8c2"
+    }
+  }
+}

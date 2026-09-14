@@ -1,0 +1,2081 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-8.4.2, pluggy-1.6.0 -- /home/user/redteam-b658/venv210/bin/python
+rootdir: /home/user/redteam-b658/legacy524
+configfile: pyproject.toml
+collecting ... collected 486 items
+
+tests/architecture/test_boundaries.py::test_a_ai_worker_no_sqlite3 PASSED [  0%]
+tests/architecture/test_boundaries.py::test_b_ai_worker_no_storage_internal PASSED [  0%]
+tests/architecture/test_boundaries.py::test_c_core_no_evaluator PASSED   [  0%]
+tests/architecture/test_boundaries.py::test_d_ai_worker_no_evaluator_truth PASSED [  0%]
+tests/architecture/test_boundaries.py::test_e_all_packages_importable PASSED [  1%]
+tests/architecture/test_boundaries.py::test_f_repository_test_configuration_present PASSED [  1%]
+tests/architecture/test_scanner_regression.py::test_case1_import_sqlite3 PASSED [  1%]
+tests/architecture/test_scanner_regression.py::test_case2_from_sqlite3_import PASSED [  1%]
+tests/architecture/test_scanner_regression.py::test_case3_import_aios_core_storage PASSED [  1%]
+tests/architecture/test_scanner_regression.py::test_case4_from_aios_core_storage_import PASSED [  2%]
+tests/architecture/test_scanner_regression.py::test_case5_from_aios_core_import_storage PASSED [  2%]
+tests/architecture/test_scanner_regression.py::test_case6_from_aios_core_import_storage_as PASSED [  2%]
+tests/architecture/test_scanner_regression.py::test_case7_import_evaluator PASSED [  2%]
+tests/architecture/test_scanner_regression.py::test_case8_from_evaluator_import_truth PASSED [  2%]
+tests/architecture/test_scanner_regression.py::test_case9_legal_from_contracts PASSED [  3%]
+tests/architecture/test_scanner_regression.py::test_case10_unparsable_file_must_fail PASSED [  3%]
+tests/architecture/test_scanner_regression.py::test_case_extra_import_storage_submodule PASSED [  3%]
+tests/architecture/test_scanner_regression.py::test_case_extra_from_storage_submodule PASSED [  3%]
+tests/architecture/test_worker_static_policy.py::test_worker_has_no_forbidden_static_or_obvious_dynamic_storage_imports PASSED [  3%]
+tests/architecture/test_worker_static_policy.py::test_scanner_catches_architect_dynamic_import_counterexamples PASSED [  4%]
+tests/integration/test_m0_gate_fixtures.py::test_gate_fixture_sports_day_revision_is_historically_replayable PASSED [  4%]
+tests/integration/test_m0_gate_fixtures.py::test_gate_fixture_unknown_person_preserves_unknown_identity PASSED [  4%]
+tests/integration/test_m0_gate_fixtures.py::test_gate_fixture_future_prediction_is_claim_not_future_fact PASSED [  4%]
+tests/integration/test_m0_gate_fixtures.py::test_gate_fixture_goal_and_task_remain_separate_lifecycles PASSED [  4%]
+tests/unit/contracts/test_m0_schema_snapshot.py::test_m0_schema_snapshot_matches_frozen_contract FAILED [  5%]
+tests/unit/contracts/test_m0_schema_snapshot.py::test_m0_snapshot_has_broad_contract_coverage PASSED [  5%]
+tests/unit/test_active_system_contracts.py::test_a01_exact_literal_object_types_and_core_field_annotations PASSED [  5%]
+tests/unit/test_active_system_contracts.py::test_a02_task_type_exact_ten_categories PASSED [  5%]
+tests/unit/test_active_system_contracts.py::test_a03_task_runtime_fields_are_durable_not_model_context PASSED [  5%]
+tests/unit/test_active_system_contracts.py::test_a04_task_time_fields_require_aware_datetime_and_valid_timezone PASSED [  6%]
+tests/unit/test_active_system_contracts.py::test_a05_task_reason_execution_outcome_refs_are_pinned_but_navigation_refs_may_float PASSED [  6%]
+tests/unit/test_active_system_contracts.py::test_a06_wake_is_separate_durable_object_and_keeps_hit_evidence PASSED [  6%]
+tests/unit/test_active_system_contracts.py::test_a07_wake_evidence_is_pinned_and_cross_timezone_order_uses_instants PASSED [  6%]
+tests/unit/test_active_system_contracts.py::test_a08_session_pins_wake_and_freezes_world_snapshot_for_recovery PASSED [  6%]
+tests/unit/test_active_system_contracts.py::test_a09_action_has_stable_execution_receipt_identity_and_pinned_task_origin PASSED [  7%]
+tests/unit/test_active_system_contracts.py::test_a10_outcome_is_not_action_and_can_remain_unknown PASSED [  7%]
+tests/unit/test_active_system_contracts.py::test_a11_outcome_action_and_evidence_refs_are_pinned PASSED [  7%]
+tests/unit/test_active_system_contracts.py::test_a12_notification_delivery_does_not_prove_learning_success PASSED [  7%]
+tests/unit/test_active_system_contracts.py::test_a13_five_objects_roundtrip_and_refs_survive_sqlite PASSED [  8%]
+tests/unit/test_active_system_contracts.py::test_a14_post_validation_mutation_of_task_provenance_is_rejected_atomically PASSED [  8%]
+tests/unit/test_active_system_contracts.py::test_a15_post_validation_mutation_of_wake_evidence_is_rejected_atomically PASSED [  8%]
+tests/unit/test_active_system_contracts.py::test_a16_action_completion_and_outcome_are_independent_states PASSED [  8%]
+tests/unit/test_active_system_contracts.py::test_a17_task_status_is_not_goal_or_outcome_status PASSED [  8%]
+tests/unit/test_active_system_contracts.py::test_a18_no_scheduler_service_is_implemented_by_contract_fixture PASSED [  9%]
+tests/unit/test_claim.py::test_c01_claim_schema PASSED                   [  9%]
+tests/unit/test_claim.py::test_c02_claimtype_required_set PASSED         [  9%]
+tests/unit/test_claim.py::test_c03_confidence_bounds PASSED              [  9%]
+tests/unit/test_claim.py::test_c04_asserted_at_aware PASSED              [  9%]
+tests/unit/test_claim.py::test_c05_tomorrow_birthday PASSED              [ 10%]
+tests/unit/test_claim.py::test_c06_certain_admission_multi_claim PASSED  [ 10%]
+tests/unit/test_claim.py::test_c07_mother_angry_belief PASSED            [ 10%]
+tests/unit/test_claim.py::test_c08_independent_combinations PASSED       [ 10%]
+tests/unit/test_claim.py::test_c09_independent_revision PASSED           [ 10%]
+tests/unit/test_claim.py::test_c10_revision_cognitive_correction PASSED  [ 11%]
+tests/unit/test_claim.py::test_c11_unknown_items PASSED                  [ 11%]
+tests/unit/test_claim.py::test_c12_evidence_ref_fields PASSED            [ 11%]
+tests/unit/test_claim.py::test_c13_forbid_content_confidence_only PASSED [ 11%]
+tests/unit/test_claim.py::test_c14_object_type_fixed PASSED              [ 11%]
+tests/unit/test_claim.py::test_c15_no_semantic_side_effects PASSED       [ 12%]
+tests/unit/test_claim.py::test_c16_claimant_vs_subject_independent PASSED [ 12%]
+tests/unit/test_claim.py::test_c17_claim_schema_exact_types PASSED       [ 12%]
+tests/unit/test_contracts.py::test_temporal_extent_rejects_naive_datetime PASSED [ 12%]
+tests/unit/test_contracts.py::test_observation_carries_three_time_semantics PASSED [ 12%]
+tests/unit/test_contracts.py::test_claim_distinguishes_prediction_from_observed_utterance PASSED [ 13%]
+tests/unit/test_contracts.py::test_evidence_set_requires_members_or_selector PASSED [ 13%]
+tests/unit/test_contracts.py::test_evidence_set_can_hold_versioned_refs PASSED [ 13%]
+tests/unit/test_dependency.py::test_d01_exact_dependency_schema_and_literal_object_type PASSED [ 13%]
+tests/unit/test_dependency.py::test_d02_dependency_requires_exact_pinned_versions PASSED [ 13%]
+tests/unit/test_dependency.py::test_d03_dependency_type_is_open_but_must_be_nonblank PASSED [ 14%]
+tests/unit/test_dependency.py::test_d04_direct_self_dependency_is_rejected_even_across_revisions PASSED [ 14%]
+tests/unit/test_dependency.py::test_d05_required_claim_evidence_observation_chain_is_explicit PASSED [ 14%]
+tests/unit/test_dependency.py::test_d06_required_summary_claim_and_task_event_edges_are_explicit PASSED [ 14%]
+tests/unit/test_dependency.py::test_d07_multi_edge_proof_cycle_is_rejected PASSED [ 15%]
+tests/unit/test_dependency.py::test_d08_acyclic_dependency_chain_passes_cycle_guard PASSED [ 15%]
+tests/unit/test_dependency.py::test_d09_reverse_lookup_finds_transitive_impacts_from_bottom_object PASSED [ 15%]
+tests/unit/test_dependency.py::test_d10_reverse_lookup_is_revision_sensitive PASSED [ 15%]
+tests/unit/test_dependency.py::test_d11_relation_graph_may_cycle_without_becoming_dependency_graph PASSED [ 15%]
+tests/unit/test_dependency.py::test_d12_dependencies_persist_and_can_be_rebuilt_for_reverse_query PASSED [ 16%]
+tests/unit/test_dependency.py::test_d13_post_validation_mutation_cannot_persist_floating_dependency_ref PASSED [ 16%]
+tests/unit/test_dependency.py::test_d14_graph_helper_is_contract_only_not_automatic_m3_propagation PASSED [ 16%]
+tests/unit/test_dimension_lifecycle.py::test_dimension_lifecycle_exact_r2_members PASSED [ 16%]
+tests/unit/test_dimension_membership_persistence.py::test_one_object_persists_under_multiple_dimensions PASSED [ 16%]
+tests/unit/test_dimensions.py::test_d01_exact_three_layer_schema PASSED  [ 17%]
+tests/unit/test_dimensions.py::test_d02_data_shape_is_not_forced_to_curve PASSED [ 17%]
+tests/unit/test_dimensions.py::test_d03_same_member_can_have_multiple_dimension_memberships PASSED [ 17%]
+tests/unit/test_dimensions.py::test_d04_membership_provenance_refs_are_pinned PASSED [ 17%]
+tests/unit/test_dimensions.py::test_d05_derivation_requires_input PASSED [ 17%]
+tests/unit/test_dimensions.py::test_d06_learning_ability_drills_down_to_math_english_programming PASSED [ 18%]
+tests/unit/test_dimensions.py::test_d07_derivation_input_contract_is_objectref_not_numeric_vector PASSED [ 18%]
+tests/unit/test_dimensions.py::test_d08_derivation_provenance_refs_are_pinned PASSED [ 18%]
+tests/unit/test_dimensions.py::test_d09_raw_observation_is_referenced_not_copied PASSED [ 18%]
+tests/unit/test_dimensions.py::test_d10_dimension_objects_round_trip_in_store PASSED [ 18%]
+tests/unit/test_dimensions.py::test_d11_membership_post_validation_mutation_blocked_at_store PASSED [ 19%]
+tests/unit/test_dimensions.py::test_d12_derivation_post_validation_mutation_blocked_at_store PASSED [ 19%]
+tests/unit/test_dimensions.py::test_d13_confidence_bounds PASSED         [ 19%]
+tests/unit/test_entity_relation.py::test_er01_exact_schema PASSED        [ 19%]
+tests/unit/test_entity_relation.py::test_er02_unknown_entity_legal PASSED [ 19%]
+tests/unit/test_entity_relation.py::test_er03_unknown_to_mother PASSED   [ 20%]
+tests/unit/test_entity_relation.py::test_er04_floating_identity_reject PASSED [ 20%]
+tests/unit/test_entity_relation.py::test_er05_same_name_two_entities PASSED [ 20%]
+tests/unit/test_entity_relation.py::test_er06_canonical_name_not_id PASSED [ 20%]
+tests/unit/test_entity_relation.py::test_er07_relation_confidence PASSED [ 20%]
+tests/unit/test_entity_relation.py::test_er08_evidence_pinned PASSED     [ 21%]
+tests/unit/test_entity_relation.py::test_er09_relation_by_id PASSED      [ 21%]
+tests/unit/test_entity_relation.py::test_er10_colleague_rev1 PASSED      [ 21%]
+tests/unit/test_entity_relation.py::test_er11_colleague_to_former PASSED [ 21%]
+tests/unit/test_entity_relation.py::test_er12_historical_replay PASSED   [ 22%]
+tests/unit/test_entity_relation.py::test_er13_valid_time_round_trip PASSED [ 22%]
+tests/unit/test_entity_relation.py::test_er14_entity_history PASSED      [ 22%]
+tests/unit/test_entity_relation.py::test_er15_relation_not_embedded PASSED [ 22%]
+tests/unit/test_entity_relation.py::test_er16_object_type_fixed PASSED   [ 22%]
+tests/unit/test_entity_relation.py::test_er17_identity_mutation PASSED   [ 23%]
+tests/unit/test_entity_relation.py::test_er18_relation_evidence_mutation PASSED [ 23%]
+tests/unit/test_entity_relation.py::test_er19_object_type_annotations_exact PASSED [ 23%]
+tests/unit/test_errors.py::test_e01_all_error_codes_constructible PASSED [ 23%]
+tests/unit/test_errors.py::test_e02_error_response_json_dump PASSED      [ 23%]
+tests/unit/test_errors.py::test_e03_unknown_error_code_rejected PASSED   [ 24%]
+tests/unit/test_errors.py::test_e04_empty_message_rejected PASSED        [ 24%]
+tests/unit/test_errors.py::test_e05_extra_fields_rejected PASSED         [ 24%]
+tests/unit/test_errors.py::test_e06_non_json_context_rejected PASSED     [ 24%]
+tests/unit/test_errors.py::test_e07_protocol_error_properties PASSED     [ 24%]
+tests/unit/test_errors.py::test_e08_to_response_same_semantics PASSED    [ 25%]
+tests/unit/test_errors.py::test_e09_store_error_subclass PASSED          [ 25%]
+tests/unit/test_errors.py::test_e10_store_error_catchable_as_store_error PASSED [ 25%]
+tests/unit/test_errors.py::test_e11_store_error_catchable_as_protocol_error PASSED [ 25%]
+tests/unit/test_errors.py::test_e12_world_revision_conflict_context PASSED [ 25%]
+tests/unit/test_errors.py::test_e13_object_revision_conflict_context PASSED [ 26%]
+tests/unit/test_errors.py::test_e14_not_found_read_object PASSED         [ 26%]
+tests/unit/test_errors.py::test_e15_reference_not_found_context PASSED   [ 26%]
+tests/unit/test_errors.py::test_e16_outcome_unknown_action_timeout PASSED [ 26%]
+tests/unit/test_errors.py::test_e17_outcome_unknown_not_failed PASSED    [ 26%]
+tests/unit/test_errors.py::test_e18_not_found_vs_incomplete_data PASSED  [ 27%]
+tests/unit/test_errors.py::test_e19_version_vs_idempotency_conflict PASSED [ 27%]
+tests/unit/test_errors.py::test_e20_no_traceback_in_response PASSED      [ 27%]
+tests/unit/test_errors.py::test_message_independence_classify PASSED     [ 27%]
+tests/unit/test_errors.py::test_safe_serialization_no_leak PASSED        [ 27%]
+tests/unit/test_errors.py::test_other_error_codes_constructible PASSED   [ 28%]
+tests/unit/test_errors.py::test_operation_not_found_context PASSED       [ 28%]
+tests/unit/test_errors.py::test_p01_protocol_error_rejects_object_at_construction PASSED [ 28%]
+tests/unit/test_errors.py::test_p02_protocol_error_rejects_non_json_at_construction PASSED [ 28%]
+tests/unit/test_errors.py::test_p03_error_response_rejects_nan PASSED    [ 29%]
+tests/unit/test_errors.py::test_p04_error_response_rejects_infinity[inf] PASSED [ 29%]
+tests/unit/test_errors.py::test_p04_error_response_rejects_infinity[-inf] PASSED [ 29%]
+tests/unit/test_errors.py::test_p05_protocol_error_rejects_nan_inf[nan] PASSED [ 29%]
+tests/unit/test_errors.py::test_p05_protocol_error_rejects_nan_inf[inf] PASSED [ 29%]
+tests/unit/test_errors.py::test_p05_protocol_error_rejects_nan_inf[-inf] PASSED [ 30%]
+tests/unit/test_errors.py::test_p06_legal_json_dumps_strict PASSED       [ 30%]
+tests/unit/test_errors.py::test_p07_original_context_isolation PASSED    [ 30%]
+tests/unit/test_errors.py::test_p08_context_getter_isolation PASSED      [ 30%]
+tests/unit/test_errors.py::test_p09_to_response_stable PASSED            [ 30%]
+tests/unit/test_errors.py::test_s01_empty_commit_context PASSED          [ 31%]
+tests/unit/test_errors.py::test_s02_duplicate_revision_context PASSED    [ 31%]
+tests/unit/test_errors.py::test_s03_self_current_reference_context PASSED [ 31%]
+tests/unit/test_event_anchor.py::test_ev01_exact_schema_and_object_type_literal PASSED [ 31%]
+tests/unit/test_event_anchor.py::test_ev02_candidate_confidence_is_not_forced_to_one PASSED [ 31%]
+tests/unit/test_event_anchor.py::test_ev03_confidence_bounds PASSED      [ 32%]
+tests/unit/test_event_anchor.py::test_ev04_required_lifecycle_transitions PASSED [ 32%]
+tests/unit/test_event_anchor.py::test_ev05_merged_and_split_are_terminal_in_current_state_machine PASSED [ 32%]
+tests/unit/test_event_anchor.py::test_ev06_invalid_direct_transition_rejected PASSED [ 32%]
+tests/unit/test_event_anchor.py::test_ev07_revised_requires_history_link_and_reason PASSED [ 32%]
+tests/unit/test_event_anchor.py::test_ev08_merged_and_split_require_traceability_links PASSED [ 33%]
+tests/unit/test_event_anchor.py::test_ev09_rejected_requires_reason_but_not_confidence_zero PASSED [ 33%]
+tests/unit/test_event_anchor.py::test_ev10_provenance_refs_must_be_pinned PASSED [ 33%]
+tests/unit/test_event_anchor.py::test_ev11_participant_identity_can_follow_stable_entity_id PASSED [ 33%]
+tests/unit/test_event_anchor.py::test_ev12_sports_day_revision_history_is_replayable PASSED [ 33%]
+tests/unit/test_event_anchor.py::test_ev13_event_payload_does_not_copy_raw_observation PASSED [ 34%]
+tests/unit/test_event_anchor.py::test_ev14_post_validation_floating_provenance_mutation_blocked_at_store PASSED [ 34%]
+tests/unit/test_event_anchor.py::test_ev15_merge_and_split_links_are_persistable_with_real_targets PASSED [ 34%]
+tests/unit/test_event_anchor_legacy_evidence_ref.py::test_event_generic_evidence_refs_remain_exact_and_pinned PASSED [ 34%]
+tests/unit/test_evidence_set.py::test_e01_schema_exact_types PASSED      [ 34%]
+tests/unit/test_evidence_set.py::test_e02_empty_reject PASSED            [ 35%]
+tests/unit/test_evidence_set.py::test_e03_explicit_members PASSED        [ 35%]
+tests/unit/test_evidence_set.py::test_e04_member_floating_reject PASSED  [ 35%]
+tests/unit/test_evidence_set.py::test_e05_support_counter_context_floating_reject PASSED [ 35%]
+tests/unit/test_evidence_set.py::test_e06_selector_dimension_floating_reject PASSED [ 36%]
+tests/unit/test_evidence_set.py::test_e07_selector_only_legal PASSED     [ 36%]
+tests/unit/test_evidence_set.py::test_e08_selector_materialization PASSED [ 36%]
+tests/unit/test_evidence_set.py::test_e09_fixed_interval PASSED          [ 36%]
+tests/unit/test_evidence_set.py::test_e10_dynamic_time_reject PASSED     [ 36%]
+tests/unit/test_evidence_set.py::test_e11_separation PASSED              [ 37%]
+tests/unit/test_evidence_set.py::test_e12_coverage PASSED                [ 37%]
+tests/unit/test_evidence_set.py::test_e13_cutoff_future_reject PASSED    [ 37%]
+tests/unit/test_evidence_set.py::test_e14_world_revision_round_trip PASSED [ 37%]
+tests/unit/test_evidence_set.py::test_e15_pinned_history PASSED          [ 37%]
+tests/unit/test_evidence_set.py::test_e16_stale_rebuild PASSED           [ 38%]
+tests/unit/test_evidence_set.py::test_e17_coverage_bounds PASSED         [ 38%]
+tests/unit/test_evidence_set.py::test_e18_object_type_fixed PASSED       [ 38%]
+tests/unit/test_evidence_set.py::test_e19_ref_pin_exact_annotation PASSED [ 38%]
+tests/unit/test_evidence_set.py::test_e20_member_mutation_persistence PASSED [ 38%]
+tests/unit/test_evidence_set.py::test_e21_selector_dimension_mutation PASSED [ 39%]
+tests/unit/test_evidence_set.py::test_e22_coverage_mutation PASSED       [ 39%]
+tests/unit/test_evidence_set.py::test_e23_time_range_mutation PASSED     [ 39%]
+tests/unit/test_goal.py::test_g01_exact_goal_schema_and_literal_object_type PASSED [ 39%]
+tests/unit/test_goal.py::test_g02_goal_status_exact_r2_values_and_default_proposed PASSED [ 39%]
+tests/unit/test_goal.py::test_g03_explicit_and_inferred_same_text_are_semantically_distinct PASSED [ 40%]
+tests/unit/test_goal.py::test_g04_app_goal_has_distinct_source_and_app_link PASSED [ 40%]
+tests/unit/test_goal.py::test_g05_ai_self_is_not_user_inferred PASSED    [ 40%]
+tests/unit/test_goal.py::test_g06_confidence_bounds PASSED               [ 40%]
+tests/unit/test_goal.py::test_g07_goal_is_not_task_and_does_not_embed_task_runtime_fields PASSED [ 40%]
+tests/unit/test_goal.py::test_g08_committing_goal_does_not_auto_create_task PASSED [ 41%]
+tests/unit/test_goal.py::test_g09_same_text_different_sources_persist_as_distinct_goals PASSED [ 41%]
+tests/unit/test_goal.py::test_g10_related_links_are_navigation_not_copied_objects PASSED [ 41%]
+tests/unit/test_goal.py::test_g11_user_denial_is_new_goal_revision_and_linked_task_stays_reviewable PASSED [ 41%]
+tests/unit/test_goal.py::test_g12_success_criteria_are_goal_level_not_task_completion PASSED [ 41%]
+tests/unit/test_goal_reviewability.py::test_denied_inferred_goal_revision_explicitly_keeps_related_task_reviewable PASSED [ 42%]
+tests/unit/test_history_m020.py::test_h01_today_cutoff_returns_rev1_when_rev2_is_learned_tomorrow PASSED [ 42%]
+tests/unit/test_history_m020.py::test_h02_exact_future_revision_is_not_visible_before_learned_at PASSED [ 42%]
+tests/unit/test_history_m020.py::test_h03_world_revision_reconstructs_old_object_revision PASSED [ 42%]
+tests/unit/test_history_m020.py::test_h04_combined_world_and_knowledge_cutoffs_choose_latest_visible_intersection PASSED [ 43%]
+tests/unit/test_history_m020.py::test_h05_visibility_is_learned_at_not_recorded_at PASSED [ 43%]
+tests/unit/test_history_m020.py::test_h06_historical_list_returns_latest_visible_revision_per_object PASSED [ 43%]
+tests/unit/test_history_m020.py::test_h07_subject_filter_applies_after_historical_revision_selection PASSED [ 43%]
+tests/unit/test_history_m020.py::test_h08_historical_query_reports_actual_snapshot_revision_and_coverage PASSED [ 43%]
+tests/unit/test_history_m020.py::test_h09_query_without_explicit_world_revision_pins_current_snapshot PASSED [ 44%]
+tests/unit/test_history_m020.py::test_h10_requested_future_world_revision_is_clamped_to_actual_world PASSED [ 44%]
+tests/unit/test_history_m020.py::test_h11_naive_knowledge_cutoff_is_rejected PASSED [ 44%]
+tests/unit/test_ids.py::test_prefixes_cover_all_object_types PASSED      [ 44%]
+tests/unit/test_ids.py::test_prefixes_non_empty_and_unique PASSED        [ 44%]
+tests/unit/test_ids.py::test_prefixes_frozen_mapping PASSED              [ 45%]
+tests/unit/test_ids.py::test_object_id_format[observation] PASSED        [ 45%]
+tests/unit/test_ids.py::test_object_id_format[entity] PASSED             [ 45%]
+tests/unit/test_ids.py::test_object_id_format[relation] PASSED           [ 45%]
+tests/unit/test_ids.py::test_object_id_format[dimension_definition] PASSED [ 45%]
+tests/unit/test_ids.py::test_object_id_format[dimension_membership] PASSED [ 46%]
+tests/unit/test_ids.py::test_object_id_format[dimension_derivation] PASSED [ 46%]
+tests/unit/test_ids.py::test_object_id_format[claim] PASSED              [ 46%]
+tests/unit/test_ids.py::test_object_id_format[evidence_set] PASSED       [ 46%]
+tests/unit/test_ids.py::test_object_id_format[event] PASSED              [ 46%]
+tests/unit/test_ids.py::test_object_id_format[summary] PASSED            [ 47%]
+tests/unit/test_ids.py::test_object_id_format[goal] PASSED               [ 47%]
+tests/unit/test_ids.py::test_object_id_format[dependency] PASSED         [ 47%]
+tests/unit/test_ids.py::test_object_id_format[task] PASSED               [ 47%]
+tests/unit/test_ids.py::test_object_id_format[wake] PASSED               [ 47%]
+tests/unit/test_ids.py::test_object_id_format[session] PASSED            [ 48%]
+tests/unit/test_ids.py::test_object_id_format[action] PASSED             [ 48%]
+tests/unit/test_ids.py::test_object_id_format[outcome] PASSED            [ 48%]
+tests/unit/test_ids.py::test_object_id_format[operation_experience] PASSED [ 48%]
+tests/unit/test_ids.py::test_object_id_format[tool_proposal] PASSED      [ 48%]
+tests/unit/test_ids.py::test_operation_id_format PASSED                  [ 49%]
+tests/unit/test_ids.py::test_execution_id_format PASSED                  [ 49%]
+tests/unit/test_ids.py::test_operation_execution_uniqueness_1000 PASSED  [ 49%]
+tests/unit/test_ids.py::test_100k_uniqueness PASSED                      [ 49%]
+tests/unit/test_ids.py::test_rename_stability PASSED                     [ 50%]
+tests/unit/test_ids.py::test_revision_stability_event PASSED             [ 50%]
+tests/unit/test_ids.py::test_name_not_in_id PASSED                       [ 50%]
+tests/unit/test_ids.py::test_truth_leakage PASSED                        [ 50%]
+tests/unit/test_ids.py::test_uuid_version PASSED                         [ 50%]
+tests/unit/test_m0_b10_b11_repair_edges.py::test_b10_unknown_dirty_type_is_protocol_rejection[False-unknown-type] PASSED [ 51%]
+tests/unit/test_m0_b10_b11_repair_edges.py::test_b10_unknown_dirty_type_is_protocol_rejection[False-None] PASSED [ 51%]
+tests/unit/test_m0_b10_b11_repair_edges.py::test_b10_unknown_dirty_type_is_protocol_rejection[False-declared2] PASSED [ 51%]
+tests/unit/test_m0_b10_b11_repair_edges.py::test_b10_unknown_dirty_type_is_protocol_rejection[True-unknown-type] PASSED [ 51%]
+tests/unit/test_m0_b10_b11_repair_edges.py::test_b10_unknown_dirty_type_is_protocol_rejection[True-None] PASSED [ 51%]
+tests/unit/test_m0_b10_b11_repair_edges.py::test_b10_unknown_dirty_type_is_protocol_rejection[True-declared2] PASSED [ 52%]
+tests/unit/test_m0_b10_b11_repair_edges.py::test_b10_registry_cannot_be_mutated_to_authorize_base_model PASSED [ 52%]
+tests/unit/test_m0_b10_b11_repair_edges.py::test_b10_runtime_class_mismatch_is_rejected[dependency] PASSED [ 52%]
+tests/unit/test_m0_b10_b11_repair_edges.py::test_b10_runtime_class_mismatch_is_rejected[evidence_set] PASSED [ 52%]
+tests/unit/test_m0_b10_b11_repair_edges.py::test_b11_nested_nonstring_key_domain[object-1_0] PASSED [ 52%]
+tests/unit/test_m0_b10_b11_repair_edges.py::test_b11_nested_nonstring_key_domain[object-None] PASSED [ 53%]
+tests/unit/test_m0_b10_b11_repair_edges.py::test_b11_nested_nonstring_key_domain[object-True] PASSED [ 53%]
+tests/unit/test_m0_b10_b11_repair_edges.py::test_b11_nested_nonstring_key_domain[object-key3] PASSED [ 53%]
+tests/unit/test_m0_b10_b11_repair_edges.py::test_b11_nested_nonstring_key_domain[object-1_1] PASSED [ 53%]
+tests/unit/test_m0_b10_b11_repair_edges.py::test_b11_nested_nonstring_key_domain[object-OpaqueKey.KEY] PASSED [ 53%]
+tests/unit/test_m0_b10_b11_repair_edges.py::test_b11_nested_nonstring_key_domain[object-key] PASSED [ 54%]
+tests/unit/test_m0_b10_b11_repair_edges.py::test_b11_nested_nonstring_key_domain[arguments-1_0] PASSED [ 54%]
+tests/unit/test_m0_b10_b11_repair_edges.py::test_b11_nested_nonstring_key_domain[arguments-None] PASSED [ 54%]
+tests/unit/test_m0_b10_b11_repair_edges.py::test_b11_nested_nonstring_key_domain[arguments-True] PASSED [ 54%]
+tests/unit/test_m0_b10_b11_repair_edges.py::test_b11_nested_nonstring_key_domain[arguments-key3] PASSED [ 54%]
+tests/unit/test_m0_b10_b11_repair_edges.py::test_b11_nested_nonstring_key_domain[arguments-1_1] PASSED [ 55%]
+tests/unit/test_m0_b10_b11_repair_edges.py::test_b11_nested_nonstring_key_domain[arguments-OpaqueKey.KEY] PASSED [ 55%]
+tests/unit/test_m0_b10_b11_repair_edges.py::test_b11_nested_nonstring_key_domain[arguments-key] PASSED [ 55%]
+tests/unit/test_m0_b10_b11_repair_edges.py::test_b11_string_enum_order_and_distinct_identity PASSED [ 55%]
+tests/unit/test_m0_gate_blockers.py::test_b1_same_key_different_operation_identity_is_conflict PASSED [ 55%]
+tests/unit/test_m0_gate_blockers.py::test_b1_same_key_altered_arguments_is_conflict PASSED [ 56%]
+tests/unit/test_m0_gate_blockers.py::test_b1_same_key_altered_object_payload_is_conflict PASSED [ 56%]
+tests/unit/test_m0_gate_blockers.py::test_b1_exact_replay_survives_restart PASSED [ 56%]
+tests/unit/test_m0_gate_blockers.py::test_b1_concurrent_same_key_different_requests_one_wins_other_conflicts PASSED [ 56%]
+tests/unit/test_m0_gate_blockers.py::test_b3_same_transaction_dependency_cycle_is_rejected PASSED [ 56%]
+tests/unit/test_m0_gate_blockers.py::test_b3_cycle_split_across_commits_is_rejected PASSED [ 57%]
+tests/unit/test_m0_gate_fifth_followup.py::test_b10_base_worldobject_cannot_masquerade_as_canonical_type[dependency] PASSED [ 57%]
+tests/unit/test_m0_gate_fifth_followup.py::test_b10_base_worldobject_cannot_masquerade_as_canonical_type[evidence_set] PASSED [ 57%]
+tests/unit/test_m0_gate_fifth_followup.py::test_b10_base_worldobject_cannot_masquerade_as_canonical_type[task] PASSED [ 57%]
+tests/unit/test_m0_gate_fifth_followup.py::test_b10_base_worldobject_cannot_masquerade_as_canonical_type[event] PASSED [ 58%]
+tests/unit/test_m0_gate_fifth_followup.py::test_b10_base_worldobject_cannot_masquerade_as_canonical_type[claim] PASSED [ 58%]
+tests/unit/test_m0_gate_fifth_followup.py::test_b10_base_worldobject_cannot_masquerade_as_canonical_type[relation] PASSED [ 58%]
+tests/unit/test_m0_gate_fifth_followup.py::test_b10_base_worldobject_cannot_masquerade_as_canonical_type[dimension_definition] PASSED [ 58%]
+tests/unit/test_m0_gate_fifth_followup.py::test_b10_legacy_poisoned_dependency_row_maps_to_storage_failure PASSED [ 58%]
+tests/unit/test_m0_gate_fifth_followup.py::test_b11_non_string_mapping_key_is_rejected_without_data_loss PASSED [ 59%]
+tests/unit/test_m0_gate_fifth_followup.py::test_b11_nested_non_string_mapping_key_is_rejected PASSED [ 59%]
+tests/unit/test_m0_gate_fifth_followup.py::test_b11_invalid_retry_cannot_alias_existing_idempotency_key PASSED [ 59%]
+tests/unit/test_m0_gate_fifth_followup.py::test_b11_operation_arguments_nested_non_string_key_rejected PASSED [ 59%]
+tests/unit/test_m0_gate_fifth_followup.py::test_b11_string_mapping_keys_remain_lossless PASSED [ 59%]
+tests/unit/test_m0_gate_followup.py::test_b4_floating_objectref_self_reference_is_rejected PASSED [ 60%]
+tests/unit/test_m0_gate_followup.py::test_b4_floating_sourceref_self_reference_is_rejected PASSED [ 60%]
+tests/unit/test_m0_gate_followup.py::test_b4_previous_pinned_revision_self_link_remains_legal PASSED [ 60%]
+tests/unit/test_m0_gate_followup.py::test_b5_reused_operation_id_with_new_key_is_protocol_conflict PASSED [ 60%]
+tests/unit/test_m0_gate_followup.py::test_b5_real_sqlite_lock_maps_to_protocol_error PASSED [ 60%]
+tests/unit/test_m0_gate_fourth_followup.py::test_b8_cross_process_unordered_collection_exact_replay_is_stable PASSED [ 61%]
+tests/unit/test_m0_gate_fourth_followup.py::test_b9_non_busy_operational_error_with_busy_word_is_not_retryable_lock PASSED [ 61%]
+tests/unit/test_m0_gate_sixth_followup.py::test_typed_refs_are_not_erased_before_validation[missing] PASSED [ 61%]
+tests/unit/test_m0_gate_sixth_followup.py::test_typed_refs_are_not_erased_before_validation[source-missing] PASSED [ 61%]
+tests/unit/test_m0_gate_sixth_followup.py::test_typed_refs_are_not_erased_before_validation[floating-self] PASSED [ 61%]
+tests/unit/test_m0_gate_sixth_followup.py::test_typed_refs_are_not_erased_before_validation[pinned-self] PASSED [ 62%]
+tests/unit/test_m0_gate_sixth_followup.py::test_typed_ref_cutoff_cannot_be_laundered_by_normalization[metadata] PASSED [ 62%]
+tests/unit/test_m0_gate_sixth_followup.py::test_typed_ref_cutoff_cannot_be_laundered_by_normalization[selector.filters] PASSED [ 62%]
+tests/unit/test_m0_gate_sixth_followup.py::test_typed_ref_cutoff_cannot_be_laundered_by_normalization[observation.value] PASSED [ 62%]
+tests/unit/test_m0_gate_sixth_followup.py::test_non_utf8_bytes_get_protocol_error_and_zero_writes[False-object] PASSED [ 62%]
+tests/unit/test_m0_gate_sixth_followup.py::test_non_utf8_bytes_get_protocol_error_and_zero_writes[False-arguments] PASSED [ 63%]
+tests/unit/test_m0_gate_sixth_followup.py::test_non_utf8_bytes_get_protocol_error_and_zero_writes[True-object] PASSED [ 63%]
+tests/unit/test_m0_gate_sixth_followup.py::test_non_utf8_bytes_get_protocol_error_and_zero_writes[True-arguments] PASSED [ 63%]
+tests/unit/test_m0_gate_sixth_followup.py::test_opaque_dictionary_is_not_promoted_to_typed_ref PASSED [ 63%]
+tests/unit/test_m0_gate_sixth_followup.py::test_replay_order_restart_different_request_and_dirty_operation PASSED [ 63%]
+tests/unit/test_m0_gate_sixth_followup.py::test_fault_rollback_retry_all_durable_tables[world_commits] PASSED [ 64%]
+tests/unit/test_m0_gate_sixth_followup.py::test_fault_rollback_retry_all_durable_tables[object_revisions] PASSED [ 64%]
+tests/unit/test_m0_gate_sixth_followup.py::test_fault_rollback_retry_all_durable_tables[operations] PASSED [ 64%]
+tests/unit/test_m0_gate_sixth_followup.py::test_fault_rollback_retry_all_durable_tables[idempotency_records] PASSED [ 64%]
+tests/unit/test_m0_gate_sixth_followup.py::test_fault_rollback_retry_all_durable_tables[world_meta] PASSED [ 65%]
+tests/unit/test_m0_gate_sixth_followup.py::test_real_lock_and_nonlock_code_classification PASSED [ 65%]
+tests/unit/test_m0_gate_sixth_followup.py::test_formal_refs_same_tx_historical_self_and_relation_cycle PASSED [ 65%]
+tests/unit/test_m0_gate_sixth_followup.py::test_formal_evidence_refs_obey_cutoff[member_refs] PASSED [ 65%]
+tests/unit/test_m0_gate_sixth_followup.py::test_formal_evidence_refs_obey_cutoff[support_refs] PASSED [ 65%]
+tests/unit/test_m0_gate_sixth_followup.py::test_formal_evidence_refs_obey_cutoff[counter_refs] PASSED [ 66%]
+tests/unit/test_m0_gate_sixth_followup.py::test_formal_evidence_refs_obey_cutoff[context_refs] PASSED [ 66%]
+tests/unit/test_m0_gate_sixth_followup.py::test_formal_evidence_refs_obey_cutoff[selector.dimension_refs] PASSED [ 66%]
+tests/unit/test_m0_gate_sixth_followup.py::test_dual_lens_and_subject_filter PASSED [ 66%]
+tests/unit/test_m0_gate_sixth_followup.py::test_same_snapshot_concurrent_writers_and_same_key PASSED [ 66%]
+tests/unit/test_m0_gate_sixth_followup.py::test_nested_unordered_cross_process_and_ordered_separation[False] PASSED [ 67%]
+tests/unit/test_m0_gate_sixth_followup.py::test_nested_unordered_cross_process_and_ordered_separation[True] PASSED [ 67%]
+tests/unit/test_m0_gate_third_followup.py::test_b6_coercible_nested_mutation_replays_from_same_normalized_identity PASSED [ 67%]
+tests/unit/test_m0_gate_third_followup.py::test_b7_failed_assignment_cannot_persist_dirty_operation[operation_id- ] PASSED [ 67%]
+tests/unit/test_m0_gate_third_followup.py::test_b7_failed_assignment_cannot_persist_dirty_operation[session_id- ] PASSED [ 67%]
+tests/unit/test_m0_gate_third_followup.py::test_b7_failed_assignment_cannot_persist_dirty_operation[operation_name- ] PASSED [ 68%]
+tests/unit/test_m0_gate_third_followup.py::test_b7_failed_assignment_cannot_persist_dirty_operation[reason- ] PASSED [ 68%]
+tests/unit/test_m0_gate_third_followup.py::test_b7_failed_assignment_cannot_persist_dirty_operation[idempotency_key- ] PASSED [ 68%]
+tests/unit/test_m0_gate_third_followup.py::test_b5_connect_failure_is_storage_failure_not_raw_sqlite PASSED [ 68%]
+tests/unit/test_m0_gate_third_followup.py::test_b5_internal_schema_failure_is_storage_failure PASSED [ 68%]
+tests/unit/test_m0_gate_third_followup.py::test_r4_evidence_refs_must_be_visible_at_frozen_cutoff[member_refs] PASSED [ 69%]
+tests/unit/test_m0_gate_third_followup.py::test_r4_evidence_refs_must_be_visible_at_frozen_cutoff[support_refs] PASSED [ 69%]
+tests/unit/test_m0_gate_third_followup.py::test_r4_evidence_refs_must_be_visible_at_frozen_cutoff[counter_refs] PASSED [ 69%]
+tests/unit/test_m0_gate_third_followup.py::test_r4_evidence_refs_must_be_visible_at_frozen_cutoff[context_refs] PASSED [ 69%]
+tests/unit/test_m0_gate_third_followup.py::test_r4_same_transaction_member_visible_at_cutoff_remains_legal PASSED [ 69%]
+tests/unit/test_observation.py::test_o01_schema_contract PASSED          [ 70%]
+tests/unit/test_observation.py::test_o02_heart_rate_observation PASSED   [ 70%]
+tests/unit/test_observation.py::test_o03_gps_observation PASSED          [ 70%]
+tests/unit/test_observation.py::test_o04_conversation_text_observation PASSED [ 70%]
+tests/unit/test_observation.py::test_o05_app_answer_observation PASSED   [ 70%]
+tests/unit/test_observation.py::test_o06_forbid_event_type_extra PASSED  [ 71%]
+tests/unit/test_observation.py::test_o07_semantic_extra_fields_forbidden PASSED [ 71%]
+tests/unit/test_observation.py::test_o08_object_type_immutable PASSED    [ 71%]
+tests/unit/test_observation.py::test_o09_unified_timeline_multi_source PASSED [ 71%]
+tests/unit/test_observation.py::test_o10_observation_does_not_wake PASSED [ 72%]
+tests/unit/test_observation.py::test_o11_raw_locator_round_trip PASSED   [ 72%]
+tests/unit/test_observation.py::test_o12_no_derived_world_objects PASSED [ 72%]
+tests/unit/test_observation.py::test_o13_helper_must_not_mask_illegal_time PASSED [ 72%]
+tests/unit/test_operations.py::test_o01_operation_request_freezes_required_fields PASSED [ 72%]
+tests/unit/test_operations.py::test_o02_operation_request_rejects_blank_identity_fields_and_extra_keys PASSED [ 73%]
+tests/unit/test_operations.py::test_o03_operation_request_rejects_negative_world_revision_and_blank_session PASSED [ 73%]
+tests/unit/test_operations.py::test_o04_validate_assignment_keeps_frozen_operation_identity_valid PASSED [ 73%]
+tests/unit/test_operations.py::test_o05_same_key_retry_returns_original_result_and_advances_world_once PASSED [ 73%]
+tests/unit/test_operations.py::test_o06_idempotency_replay_precedes_now_stale_expected_revision PASSED [ 73%]
+tests/unit/test_operations.py::test_o07_old_expected_revision_with_new_key_is_version_conflict PASSED [ 74%]
+tests/unit/test_operations.py::test_o08_successful_operation_audit_is_queryable_and_complete PASSED [ 74%]
+tests/unit/test_operations.py::test_o09_operation_audit_and_idempotency_survive_store_restart PASSED [ 74%]
+tests/unit/test_operations.py::test_o10_unknown_operation_audit_returns_not_found PASSED [ 74%]
+tests/unit/test_operations.py::test_o11_version_conflict_is_not_swallowed_or_retried_as_overwrite PASSED [ 74%]
+tests/unit/test_operations.py::test_o12_commit_result_is_stable_on_idempotent_replay PASSED [ 75%]
+tests/unit/test_reference_validation_m019.py::test_m019_01_missing_object_ref_rejected_without_partial_commit PASSED [ 75%]
+tests/unit/test_reference_validation_m019.py::test_m019_02_same_transaction_evidence_set_can_reference_new_observation PASSED [ 75%]
+tests/unit/test_reference_validation_m019.py::test_m019_03_same_transaction_mutual_non_evidence_refs_remain_legal PASSED [ 75%]
+tests/unit/test_reference_validation_m019.py::test_m019_04_current_revision_objectref_self_reference_rejected PASSED [ 75%]
+tests/unit/test_reference_validation_m019.py::test_m019_05_current_revision_sourceref_self_reference_rejected PASSED [ 76%]
+tests/unit/test_reference_validation_m019.py::test_m019_06_previous_revision_self_link_is_historical_and_legal PASSED [ 76%]
+tests/unit/test_reference_validation_m019.py::test_m019_07_commit_has_no_public_reference_validation_bypass PASSED [ 76%]
+tests/unit/test_reference_validation_m019.py::test_m019_08_pending_future_reference_rejected_by_knowledge_cutoff PASSED [ 76%]
+tests/unit/test_refs.py::test_r01_objectref_structure PASSED             [ 76%]
+tests/unit/test_refs.py::test_r02_objectref_frozen PASSED                [ 77%]
+tests/unit/test_refs.py::test_r03_sourceref_structure_and_frozen PASSED  [ 77%]
+tests/unit/test_refs.py::test_r04_nonexistent_object PASSED              [ 77%]
+tests/unit/test_refs.py::test_r05_nonexistent_exact_revision PASSED      [ 77%]
+tests/unit/test_refs.py::test_r06_pinned_historical_ref_no_drift PASSED  [ 77%]
+tests/unit/test_refs.py::test_r07_floating_navigation PASSED             [ 78%]
+tests/unit/test_refs.py::test_r08_same_transaction_mutual_refs PASSED    [ 78%]
+tests/unit/test_refs.py::test_r09_future_explicit_ref_rejected PASSED    [ 78%]
+tests/unit/test_refs.py::test_r10_visible_historical_explicit_ref_success PASSED [ 78%]
+tests/unit/test_refs.py::test_r11_floating_ref_old_visible PASSED        [ 79%]
+tests/unit/test_refs.py::test_r12_floating_ref_only_future PASSED        [ 79%]
+tests/unit/test_refs.py::test_r13_pending_future_ref_rejected PASSED     [ 79%]
+tests/unit/test_refs.py::test_r14_sourceref_version_validation PASSED    [ 79%]
+tests/unit/test_refs.py::test_r15_sourceref_future_visibility PASSED     [ 79%]
+tests/unit/test_refs.py::test_r16_pending_dst_false_accept_rejected PASSED [ 80%]
+tests/unit/test_refs.py::test_r17_pending_dst_false_reject_allowed PASSED [ 80%]
+tests/unit/test_refs.py::test_critical_model_ref_fields_annotation PASSED [ 80%]
+tests/unit/test_sqlite_schema.py::test_s01_initialization_creates_required_first_stage_tables_and_world_zero PASSED [ 80%]
+tests/unit/test_sqlite_schema.py::test_s02_storage_uses_wal_and_foreign_keys_on_store_connections PASSED [ 80%]
+tests/unit/test_sqlite_schema.py::test_s03_required_query_indexes_exist PASSED [ 81%]
+tests/unit/test_sqlite_schema.py::test_s04_object_revision_schema_keeps_common_columns_and_json_payload PASSED [ 81%]
+tests/unit/test_sqlite_schema.py::test_s05_restart_preserves_world_revision_and_payload PASSED [ 81%]
+tests/unit/test_sqlite_schema.py::test_s06_consecutive_commits_advance_world_revision_exactly_once_each PASSED [ 81%]
+tests/unit/test_sqlite_schema.py::test_s07_same_object_multiple_revisions_are_all_preserved PASSED [ 81%]
+tests/unit/test_sqlite_schema.py::test_s08_failed_transaction_rolls_back_all_world_object_and_operation_state PASSED [ 82%]
+tests/unit/test_sqlite_schema.py::test_s09_multi_object_commit_is_atomic_and_shares_one_world_revision PASSED [ 82%]
+tests/unit/test_sqlite_schema.py::test_s10_two_store_instances_enforce_expected_world_revision_concurrency PASSED [ 82%]
+tests/unit/test_sqlite_schema.py::test_s11_schema_reopen_is_idempotent_and_does_not_destroy_history PASSED [ 82%]
+tests/unit/test_sqlite_schema.py::test_s12_ai_worker_db_boundary_is_covered_by_architecture_suite PASSED [ 82%]
+tests/unit/test_state_machines.py::test_task_state_machine_allows_waiting PASSED [ 83%]
+tests/unit/test_state_machines.py::test_task_state_machine_rejects_completed_to_running PASSED [ 83%]
+tests/unit/test_state_machines.py::test_event_candidate_can_be_rejected PASSED [ 83%]
+tests/unit/test_state_machines.py::test_event_merged_is_terminal PASSED  [ 83%]
+tests/unit/test_state_machines_m021.py::test_m021_task_transition_matrix_is_exact_and_complete PASSED [ 83%]
+tests/unit/test_state_machines_m021.py::test_m021_event_transition_matrix_is_exact_and_complete PASSED [ 84%]
+tests/unit/test_state_machines_m021.py::test_m021_mandatory_canaries PASSED [ 84%]
+tests/unit/test_state_machines_m021.py::test_m021_task_state_change_requires_next_revision_same_object PASSED [ 84%]
+tests/unit/test_state_machines_m021.py::test_m021_task_revision_helper_cannot_bypass_terminal_state PASSED [ 84%]
+tests/unit/test_state_machines_m021.py::test_m021_event_state_change_requires_next_revision_same_object PASSED [ 84%]
+tests/unit/test_state_machines_m021.py::test_m021_event_revision_helper_cannot_revive_merged_event PASSED [ 85%]
+tests/unit/test_state_machines_m021.py::test_m021_transition_maps_are_immutable_to_callers PASSED [ 85%]
+tests/unit/test_store.py::test_append_only_revision_and_world_revision PASSED [ 85%]
+tests/unit/test_store.py::test_version_conflict_blocks_write PASSED      [ 85%]
+tests/unit/test_store.py::test_idempotency_replay_does_not_advance_world PASSED [ 86%]
+tests/unit/test_store.py::test_historical_world_read PASSED              [ 86%]
+tests/unit/test_store.py::test_learned_at_cutoff_hides_future_known_revision PASSED [ 86%]
+tests/unit/test_store.py::test_wrong_object_revision_rejected PASSED     [ 86%]
+tests/unit/test_time.py::test_t01_point_aware_success_naive_fail PASSED  [ 86%]
+tests/unit/test_time.py::test_t02_point_start_eq_end PASSED              [ 87%]
+tests/unit/test_time.py::test_t03_bounded_interval_different_timezone PASSED [ 87%]
+tests/unit/test_time.py::test_t04_open_start PASSED                      [ 87%]
+tests/unit/test_time.py::test_t05_open_end PASSED                        [ 87%]
+tests/unit/test_time.py::test_t06_explicit_unknown PASSED                [ 87%]
+tests/unit/test_time.py::test_t07_unknown_with_endpoint_rejected PASSED  [ 88%]
+tests/unit/test_time.py::test_t08_unknown_with_day_precision_rejected PASSED [ 88%]
+tests/unit/test_time.py::test_t09_end_before_start_real_instant_rejected PASSED [ 88%]
+tests/unit/test_time.py::test_t10_same_instant_different_timezone_allowed PASSED [ 88%]
+tests/unit/test_time.py::test_t11_yesterday_occurred_today_learned PASSED [ 88%]
+tests/unit/test_time.py::test_t12_today_learned_tomorrow_occurred PASSED [ 89%]
+tests/unit/test_time.py::test_t13_naive_learned_at_rejected PASSED       [ 89%]
+tests/unit/test_time.py::test_t14_naive_recorded_at_rejected PASSED      [ 89%]
+tests/unit/test_time.py::test_t15_recorded_before_learned_rejected PASSED [ 89%]
+tests/unit/test_time.py::test_t16_knowledge_window_aware_success PASSED  [ 89%]
+tests/unit/test_time.py::test_t17_knowledge_window_naive_rejected PASSED [ 90%]
+tests/unit/test_time.py::test_t18_world_revision_bounds PASSED           [ 90%]
+tests/unit/test_time.py::test_t19_canonical_same_instant_different_tz PASSED [ 90%]
+tests/unit/test_time.py::test_t20_canonical_format PASSED                [ 90%]
+tests/unit/test_time.py::test_t21_canonical_naive_rejected PASSED        [ 90%]
+tests/unit/test_time.py::test_t22_task_timezone_ny PASSED                [ 91%]
+tests/unit/test_time.py::test_t23_task_timezone_shanghai PASSED          [ 91%]
+tests/unit/test_time.py::test_t24_task_timezone_invalid PASSED           [ 91%]
+tests/unit/test_time.py::test_t25_task_naive_wake_rejected PASSED        [ 91%]
+tests/unit/test_time.py::test_t26_task_naive_deadline_rejected PASSED    [ 91%]
+tests/unit/test_time.py::test_t27_future_knowledge_leakage PASSED        [ 92%]
+tests/unit/test_time.py::test_t28_list_payloads_cross_timezone PASSED    [ 92%]
+tests/unit/test_time.py::test_t29_naive_cutoff_get_payload_rejected PASSED [ 92%]
+tests/unit/test_time.py::test_t30_naive_cutoff_list_payloads_rejected PASSED [ 92%]
+tests/unit/test_time.py::test_t31_temporal_extent_timezone_shanghai PASSED [ 93%]
+tests/unit/test_time.py::test_t32_temporal_extent_timezone_ny PASSED     [ 93%]
+tests/unit/test_time.py::test_t33_temporal_extent_timezone_invalid PASSED [ 93%]
+tests/unit/test_time.py::test_t34_temporal_extent_timezone_empty_and_none PASSED [ 93%]
+tests/unit/test_time.py::test_knowledge_cutoff_uses_learned_at_not_occurred PASSED [ 93%]
+tests/unit/test_time.py::test_d01_temporal_extent_dst_fold_end_before_start_rejected PASSED [ 94%]
+tests/unit/test_time.py::test_d02_temporal_extent_dst_fold_wall_clock_less_but_instant_greater_allowed PASSED [ 94%]
+tests/unit/test_time.py::test_d03_worldobject_dst_recorded_wall_less_but_instant_greater_allowed PASSED [ 94%]
+tests/unit/test_time.py::test_d04_worldobject_dst_recorded_wall_greater_but_instant_less_rejected PASSED [ 94%]
+tests/unit/test_time.py::test_d05_wake_dst_wall_less_but_instant_greater_allowed PASSED [ 94%]
+tests/unit/test_time.py::test_d06_wake_dst_wall_greater_but_instant_less_rejected PASSED [ 95%]
+tests/unit/test_time.py::test_wake_naive_first_hit_rejected PASSED       [ 95%]
+tests/unit/test_time.py::test_wake_naive_last_hit_rejected PASSED        [ 95%]
+tests/unit/test_world_object_revision.py::test_w01_worldobject_common_fields PASSED [ 95%]
+tests/unit/test_world_object_revision.py::test_w02_all_durable_models_inherit_worldobject PASSED [ 95%]
+tests/unit/test_world_object_revision.py::test_w03_revision_lower_bound PASSED [ 96%]
+tests/unit/test_world_object_revision.py::test_w04_new_object_cannot_start_from_rev2 PASSED [ 96%]
+tests/unit/test_world_object_revision.py::test_w05_write_rev1 PASSED     [ 96%]
+tests/unit/test_world_object_revision.py::test_w06_write_rev2 PASSED     [ 96%]
+tests/unit/test_world_object_revision.py::test_w07_rev1_still_readable_after_rev2 PASSED [ 96%]
+tests/unit/test_world_object_revision.py::test_w08_skip_rev4_must_fail PASSED [ 97%]
+tests/unit/test_world_object_revision.py::test_w09_failed_transaction_rollback PASSED [ 97%]
+tests/unit/test_world_object_revision.py::test_w10_rev3_after_failed_rev4 PASSED [ 97%]
+tests/unit/test_world_object_revision.py::test_w11_append_only_db_rows PASSED [ 97%]
+tests/unit/test_world_object_revision.py::test_w12_world_revision_vs_object_revision_multi PASSED [ 97%]
+tests/unit/test_world_object_revision.py::test_w13_world_revision_vs_object_revision_single PASSED [ 98%]
+tests/unit/test_world_object_revision.py::test_w14_no_update_replace_in_store_source PASSED [ 98%]
+tests/unit/test_world_object_revision.py::test_w15_object_type_cannot_change_across_revisions PASSED [ 98%]
+tests/unit/test_world_object_revision.py::test_w16_type_conflict_atomic_rollback_multi PASSED [ 98%]
+tests/unit/test_world_object_revision.py::test_w17_type_conflict_recovery_legal_rev2 PASSED [ 98%]
+tests/unit/test_world_revision_atomicity.py::test_w01_three_objects_share_one_global_world_revision PASSED [ 99%]
+tests/unit/test_world_revision_atomicity.py::test_w02_failed_mid_insert_rolls_back_the_entire_world_transaction PASSED [ 99%]
+tests/unit/test_world_revision_atomicity.py::test_w03_two_concurrent_writers_from_same_snapshot_only_one_commits PASSED [ 99%]
+tests/unit/test_world_revision_atomicity.py::test_w04_session_snapshot_revision_stays_fixed_while_world_advances PASSED [ 99%]
+tests/unit/test_world_revision_atomicity.py::test_w05_failed_multi_object_commit_does_not_consume_world_revision PASSED [100%]
+
+=================================== FAILURES ===================================
+_______________ test_m0_schema_snapshot_matches_frozen_contract ________________
+tests/unit/contracts/test_m0_schema_snapshot.py:84: in test_m0_schema_snapshot_matches_frozen_contract
+    assert current == expected, (
+E   AssertionError: M0 frozen contract snapshot changed. Any change requires explicit approval.
+E     Current generated snapshot:
+E     {
+E       "enums": {
+E         "aios_core.contracts.enums.ActionStatus": [
+E           "proposed",
+E           "submitted",
+E           "acknowledged",
+E           "completed",
+E           "failed",
+E           "outcome_unknown",
+E           "cancelled"
+E         ],
+E         "aios_core.contracts.enums.ClaimType": [
+E           "fact",
+E           "opinion",
+E           "belief",
+E           "desire",
+E           "intention",
+E           "plan",
+E           "prediction",
+E           "promise",
+E           "preference",
+E           "inference",
+E           "hypothesis"
+E         ],
+E         "aios_core.contracts.enums.DimensionLifecycle": [
+E           "candidate",
+E           "trial",
+E           "active",
+E           "low_activity",
+E           "dormant",
+E           "merged",
+E           "split",
+E           "revised",
+E           "rejected",
+E           "reactivated"
+E         ],
+E         "aios_core.contracts.enums.ErrorCode": [
+E           "INVALID_ARGUMENT",
+E           "NOT_FOUND",
+E           "VERSION_CONFLICT",
+E           "INCOMPLETE_DATA",
+E           "STALE_INDEX",
+E           "BUDGET_EXHAUSTED",
+E           "PERMISSION_DENIED",
+E           "DEPENDENCY_INVALID",
+E           "OUTCOME_UNKNOWN",
+E           "IDEMPOTENCY_CONFLICT",
+E           "STORAGE_FAILURE"
+E         ],
+E         "aios_core.contracts.enums.EventStatus": [
+E           "candidate",
+E           "active",
+E           "resolved",
+E           "revised",
+E           "rejected",
+E           "merged",
+E           "split"
+E         ],
+E         "aios_core.contracts.enums.EvidenceRole": [
+E           "support",
+E           "counter",
+E           "context"
+E         ],
+E         "aios_core.contracts.enums.GoalSourceType": [
+E           "user_explicit",
+E           "user_inferred",
+E           "ai_self",
+E           "app",
+E           "external"
+E         ],
+E         "aios_core.contracts.enums.GoalStatus": [
+E           "proposed",
+E           "active",
+E           "paused",
+E           "achieved",
+E           "abandoned",
+E           "unknown"
+E         ],
+E         "aios_core.contracts.enums.KnowledgeState": [
+E           "observed",
+E           "reported",
+E           "inferred",
+E           "hypothesis",
+E           "unknown",
+E           "conflict"
+E         ],
+E         "aios_core.contracts.enums.ObjectType": [
+E           "observation",
+E           "entity",
+E           "relation",
+E           "dimension_definition",
+E           "dimension_membership",
+E           "dimension_derivation",
+E           "claim",
+E           "evidence_set",
+E           "event",
+E           "summary",
+E           "goal",
+E           "dependency",
+E           "task",
+E           "wake",
+E           "session",
+E           "action",
+E           "outcome",
+E           "operation_experience",
+E           "tool_proposal"
+E         ],
+E         "aios_core.contracts.enums.SummaryStatus": [
+E           "current",
+E           "stale",
+E           "partial",
+E           "missing"
+E         ],
+E         "aios_core.contracts.enums.TaskState": [
+E           "draft",
+E           "ready",
+E           "running",
+E           "waiting_time",
+E           "waiting_evidence",
+E           "waiting_user",
+E           "waiting_result",
+E           "blocked",
+E           "completed",
+E           "failed",
+E           "expired",
+E           "cancelled"
+E         ],
+E         "aios_core.contracts.enums.TaskType": [
+E           "immediate",
+E           "scheduled",
+E           "deadline",
+E           "todo",
+E           "recurring",
+E           "follow_up",
+E           "observation",
+E           "verification",
+E           "maintenance",
+E           "app"
+E         ],
+E         "aios_core.contracts.enums.WakeSource": [
+E           "mechanical_change",
+E           "keyword_entity",
+E           "no_update",
+E           "task_due",
+E           "watch_match",
+E           "user_interaction",
+E           "safety",
+E           "recovery"
+E         ],
+E         "aios_core.contracts.enums.WakeState": [
+E           "new",
+E           "queued",
+E           "merged",
+E           "running",
+E           "completed",
+E           "suppressed",
+E           "cancelled"
+E         ],
+E         "aios_core.contracts.time.TimePrecision": [
+E           "second",
+E           "minute",
+E           "hour",
+E           "day",
+E           "week",
+E           "month",
+E           "quarter",
+E           "half_year",
+E           "year",
+E           "multi_year",
+E           "unknown"
+E         ]
+E       },
+E       "event_transitions": {
+E         "active": [
+E           "merged",
+E           "rejected",
+E           "resolved",
+E           "revised",
+E           "split"
+E         ],
+E         "candidate": [
+E           "active",
+E           "merged",
+E           "rejected",
+E           "revised",
+E           "split"
+E         ],
+E         "merged": [],
+E         "rejected": [
+E           "revised"
+E         ],
+E         "resolved": [
+E           "merged",
+E           "revised",
+E           "split"
+E         ],
+E         "revised": [
+E           "active",
+E           "merged",
+E           "rejected",
+E           "resolved",
+E           "split"
+E         ],
+E         "split": []
+E       },
+E       "gate_version": "M0-R2",
+E       "models": {
+E         "aios_core.contracts.base.WorldObject": "ed5aa7f7c5f31694864aa2c8c999bd3287554ebdc1a33c63c87d9d03ac617cd1",
+E         "aios_core.contracts.errors.ErrorResponse": "2ea9a6af49db3192361124253bd811c1352a001ec682808c7a4e4779767014a9",
+E         "aios_core.contracts.models.Action": "f52a3ebe53e4b15d40f365d3c3fe4ce12a7db54155a1b816264de9691250e7bf",
+E         "aios_core.contracts.models.Claim": "0680ba79684255886b7122625a515e94cf5a4b04d1aec96166ac5e7723fe094e",
+E         "aios_core.contracts.models.Dependency": "4ac0eebedadd5682c739b135a85ed685c8f5cf085e2dd12f3f67d8be7577a368",
+E         "aios_core.contracts.models.DimensionDefinition": "173756c1e937885ffc3469dfd66e252460c1d9b81c3fe253f54ba0fbf6a41ebf",
+E         "aios_core.contracts.models.DimensionDerivation": "d64970421e84939a2c3e7c31fd9ab4129a4292601d8ac13e365219ba29fac0ae",
+E         "aios_core.contracts.models.DimensionMembership": "04f9700c50060e9bd46a04017a34c2fd9a686bcf48dd100a07f60ba22d54a064",
+E         "aios_core.contracts.models.Entity": "e26599e7fea2dceb26d26488b4dde02279945034705fd83f9b43879e65cbe5f5",
+E         "aios_core.contracts.models.EventAnchor": "14b944d7ccc5549e442a289b52e4efcdb2c9848d2eed315633ea3b2abefebff5",
+E         "aios_core.contracts.models.EvidenceCoverage": "e3cd1b8e7e100536c713cdf47325363f2abb3b34e3450c2513c3d33af71256a2",
+E         "aios_core.contracts.models.EvidenceSelector": "d86a07db902d3f4e36dec15330d08e89fceca7ea97d79ca026ea6d1d65fcb3d7",
+E         "aios_core.contracts.models.EvidenceSet": "f1341cb7208f1cb8c76e3a1c8147cc1b39e894fa8f94c5513d6436e718dbb1df",
+E         "aios_core.contracts.models.Goal": "3fef4c4a52520a0bcca220602bcea7269014bc3b759e8a7b97b7a1c22509336b",
+E         "aios_core.contracts.models.Observation": "1c8f4b39b8229635834f81e1aad385bb886d8c8d65be0e3970a1e6c944e1b7fb",
+E         "aios_core.contracts.models.OperationExperience": "e5a6cfedfc8e967d6e3a652a8195ff468dfea9a166c196e86f1fb0d8cf704f2d",
+E         "aios_core.contracts.models.Outcome": "dee8d3680e73ac71be23d51a5dc936b44616b29d39f10b44fe82cd02ab3ea371",
+E         "aios_core.contracts.models.Relation": "4bc753c926462631024096609bf0edd40fa48b0d0b71689ebd2c0876bd041282",
+E         "aios_core.contracts.models.Session": "c894e96c9d7edae8f5172feb97a71b77db3f5369be25b9c6308e50fe3e22bd25",
+E         "aios_core.contracts.models.Summary": "cbc9230555116eb2979db22120442df89c9140db23fa321c9b2f4559eca0da9c",
+E         "aios_core.contracts.models.Task": "662a4098e6110b5ac5a67205d560f683d027acac744177a216d98a1ed78395d3",
+E         "aios_core.contracts.models.ToolProposal": "7e57bdb0c861ce810f157b2f216f8069c8c7b88f10c093aa11e84a64f3492407",
+E         "aios_core.contracts.models.Wake": "fa222728fe6398a6b963488eec590b1b2e1a475b665344eab62cbca03057ede1",
+E         "aios_core.contracts.operations.CommitResult": "19569e889a3cd18bdabec590b5f3dd9c5e89b741ee68bb9a8e6010bc3fcceac5",
+E         "aios_core.contracts.operations.OperationAuditRecord": "eaffe475729eea9e1be68ad396fd5c6fed610c06f9705f9632783c8542375c3e",
+E         "aios_core.contracts.operations.OperationRequest": "f9391258e4ff7c66cad43dc20aa9513c4ed2c551a6183ea5ee41c3c881d90765",
+E         "aios_core.contracts.refs.ObjectRef": "15aacd9d84fb2646f5c07b79e8a5b62653d88a9c849b311c747029e198ff12e9",
+E         "aios_core.contracts.refs.SourceRef": "10eb1e28c86e8d05d69a5f91c90de2064c301a8c7ea5d8c08e00afd08a9dd994",
+E         "aios_core.contracts.time.KnowledgeWindow": "503f4e050bf0781c367da7f9d563b6e3d748306cd65fc1ef14c3aa9c56dbb6d6",
+E         "aios_core.contracts.time.TemporalExtent": "f39671e5e54ff03f20a7085e1caea8e11d6291def18d66a292304a26962252bc"
+E       },
+E       "task_transitions": {
+E         "blocked": [
+E           "cancelled",
+E           "failed",
+E           "ready"
+E         ],
+E         "cancelled": [],
+E         "completed": [],
+E         "draft": [
+E           "cancelled",
+E           "ready"
+E         ],
+E         "expired": [],
+E         "failed": [],
+E         "ready": [
+E           "cancelled",
+E           "expired",
+E           "running"
+E         ],
+E         "running": [
+E           "blocked",
+E           "cancelled",
+E           "completed",
+E           "failed",
+E           "waiting_evidence",
+E           "waiting_result",
+E           "waiting_time",
+E           "waiting_user"
+E         ],
+E         "waiting_evidence": [
+E           "cancelled",
+E           "expired",
+E           "ready"
+E         ],
+E         "waiting_result": [
+E           "cancelled",
+E           "completed",
+E           "failed",
+E           "ready"
+E         ],
+E         "waiting_time": [
+E           "cancelled",
+E           "expired",
+E           "ready"
+E         ],
+E         "waiting_user": [
+E           "cancelled",
+E           "expired",
+E           "ready"
+E         ]
+E       }
+E     }
+E   assert {'gate_version': 'M0-R2', 'models': {'aios_core.contracts.base.WorldObject': 'ed5aa7f7c5f31694864aa2c8c999bd3287554ebdc1a33c63c87d9d03ac617cd1', 'aios_core.contracts.errors.ErrorResponse': '2ea9a6af49db3192361124253bd811c1352a001ec682808c7a4e4779767014a9', 'aios_core.contracts.models.Action': 'f52a3ebe53e4b15d40f365d3c3fe4ce12a7db54155a1b816264de9691250e7bf', 'aios_core.contracts.models.Claim': '0680ba79684255886b7122625a515e94cf5a4b04d1aec96166ac5e7723fe094e', 'aios_core.contracts.models.Dependency': '4ac0eebedadd5682c739b135a85ed685c8f5cf085e2dd12f3f67d8be7577a368', 'aios_core.contracts.models.DimensionDefinition': '173756c1e937885ffc3469dfd66e252460c1d9b81c3fe253f54ba0fbf6a41ebf', 'aios_core.contracts.models.DimensionDerivation': 'd64970421e84939a2c3e7c31fd9ab4129a4292601d8ac13e365219ba29fac0ae', 'aios_core.contracts.models.DimensionMembership': '04f9700c50060e9bd46a04017a34c2fd9a686bcf48dd100a07f60ba22d54a064', 'aios_core.contracts.models.Entity': 'e26599e7fea2dceb26d26488b4dde02279945034705fd83f9b43879e65cbe5f5', 'aios_core.contracts.models.EventAnchor': '14b944d7ccc5549e442a289b52e4efcdb2c9848d2eed315633ea3b2abefebff5', 'aios_core.contracts.models.EvidenceCoverage': 'e3cd1b8e7e100536c713cdf47325363f2abb3b34e3450c2513c3d33af71256a2', 'aios_core.contracts.models.EvidenceSelector': 'd86a07db902d3f4e36dec15330d08e89fceca7ea97d79ca026ea6d1d65fcb3d7', 'aios_core.contracts.models.EvidenceSet': 'f1341cb7208f1cb8c76e3a1c8147cc1b39e894fa8f94c5513d6436e718dbb1df', 'aios_core.contracts.models.Goal': '3fef4c4a52520a0bcca220602bcea7269014bc3b759e8a7b97b7a1c22509336b', 'aios_core.contracts.models.Observation': '1c8f4b39b8229635834f81e1aad385bb886d8c8d65be0e3970a1e6c944e1b7fb', 'aios_core.contracts.models.OperationExperience': 'e5a6cfedfc8e967d6e3a652a8195ff468dfea9a166c196e86f1fb0d8cf704f2d', 'aios_core.contracts.models.Outcome': 'dee8d3680e73ac71be23d51a5dc936b44616b29d39f10b44fe82cd02ab3ea371', 'aios_core.contracts.models.Relation': '4bc753c926462631024096609bf0edd40fa48b0d0b71689ebd2c0876bd041282', 'aios_core.contracts.models.Session': 'c894e96c9d7edae8f5172feb97a71b77db3f5369be25b9c6308e50fe3e22bd25', 'aios_core.contracts.models.Summary': 'cbc9230555116eb2979db22120442df89c9140db23fa321c9b2f4559eca0da9c', 'aios_core.contracts.models.Task': '662a4098e6110b5ac5a67205d560f683d027acac744177a216d98a1ed78395d3', 'aios_core.contracts.models.ToolProposal': '7e57bdb0c861ce810f157b2f216f8069c8c7b88f10c093aa11e84a64f3492407', 'aios_core.contracts.models.Wake': 'fa222728fe6398a6b963488eec590b1b2e1a475b665344eab62cbca03057ede1', 'aios_core.contracts.operations.CommitResult': '19569e889a3cd18bdabec590b5f3dd9c5e89b741ee68bb9a8e6010bc3fcceac5', 'aios_core.contracts.operations.OperationAuditRecord': 'eaffe475729eea9e1be68ad396fd5c6fed610c06f9705f9632783c8542375c3e', 'aios_core.contracts.operations.OperationRequest': 'f9391258e4ff7c66cad43dc20aa9513c4ed2c551a6183ea5ee41c3c881d90765', 'aios_core.contracts.refs.ObjectRef': '15aacd9d84fb2646f5c07b79e8a5b62653d88a9c849b311c747029e198ff12e9', 'aios_core.contracts.refs.SourceRef': '10eb1e28c86e8d05d69a5f91c90de2064c301a8c7ea5d8c08e00afd08a9dd994', 'aios_core.contracts.time.KnowledgeWindow': '503f4e050bf0781c367da7f9d563b6e3d748306cd65fc1ef14c3aa9c56dbb6d6', 'aios_core.contracts.time.TemporalExtent': 'f39671e5e54ff03f20a7085e1caea8e11d6291def18d66a292304a26962252bc'}, 'enums': {'aios_core.contracts.enums.ActionStatus': ['proposed', 'submitted', 'acknowledged', 'completed', 'failed', 'outcome_unknown', 'cancelled'], 'aios_core.contracts.enums.ClaimType': ['fact', 'opinion', 'belief', 'desire', 'intention', 'plan', 'prediction', 'promise', 'preference', 'inference', 'hypothesis'], 'aios_core.contracts.enums.DimensionLifecycle': ['candidate', 'trial', 'active', 'low_activity', 'dormant', 'merged', 'split', 'revised', 'rejected', 'reactivated'], 'aios_core.contracts.enums.ErrorCode': ['INVALID_ARGUMENT', 'NOT_FOUND', 'VERSION_CONFLICT', 'INCOMPLETE_DATA', 'STALE_INDEX', 'BUDGET_EXHAUSTED', 'PERMISSION_DENIED', 'DEPENDENCY_INVALID', 'OUTCOME_UNKNOWN', 'IDEMPOTENCY_CONFLICT', 'STORAGE_FAILURE'], 'aios_core.contracts.enums.EventStatus': ['candidate', 'active', 'resolved', 'revised', 'rejected', 'merged', 'split'], 'aios_core.contracts.enums.EvidenceRole': ['support', 'counter', 'context'], 'aios_core.contracts.enums.GoalSourceType': ['user_explicit', 'user_inferred', 'ai_self', 'app', 'external'], 'aios_core.contracts.enums.GoalStatus': ['proposed', 'active', 'paused', 'achieved', 'abandoned', 'unknown'], 'aios_core.contracts.enums.KnowledgeState': ['observed', 'reported', 'inferred', 'hypothesis', 'unknown', 'conflict'], 'aios_core.contracts.enums.ObjectType': ['observation', 'entity', 'relation', 'dimension_definition', 'dimension_membership', 'dimension_derivation', 'claim', 'evidence_set', 'event', 'summary', 'goal', 'dependency', 'task', 'wake', 'session', 'action', 'outcome', 'operation_experience', 'tool_proposal'], 'aios_core.contracts.enums.SummaryStatus': ['current', 'stale', 'partial', 'missing'], 'aios_core.contracts.enums.TaskState': ['draft', 'ready', 'running', 'waiting_time', 'waiting_evidence', 'waiting_user', 'waiting_result', 'blocked', 'completed', 'failed', 'expired', 'cancelled'], 'aios_core.contracts.enums.TaskType': ['immediate', 'scheduled', 'deadline', 'todo', 'recurring', 'follow_up', 'observation', 'verification', 'maintenance', 'app'], 'aios_core.contracts.enums.WakeSource': ['mechanical_change', 'keyword_entity', 'no_update', 'task_due', 'watch_match', 'user_interaction', 'safety', 'recovery'], 'aios_core.contracts.enums.WakeState': ['new', 'queued', 'merged', 'running', 'completed', 'suppressed', 'cancelled'], 'aios_core.contracts.time.TimePrecision': ['second', 'minute', 'hour', 'day', 'week', 'month', 'quarter', 'half_year', 'year', 'multi_year', 'unknown']}, 'task_transitions': {'draft': ['cancelled', 'ready'], 'ready': ['cancelled', 'expired', 'running'], 'running': ['blocked', 'cancelled', 'completed', 'failed', 'waiting_evidence', 'waiting_result', 'waiting_time', 'waiting_user'], 'waiting_time': ['cancelled', 'expired', 'ready'], 'waiting_evidence': ['cancelled', 'expired', 'ready'], 'waiting_user': ['cancelled', 'expired', 'ready'], 'waiting_result': ['cancelled', 'completed', 'failed', 'ready'], 'blocked': ['cancelled', 'failed', 'ready'], 'completed': [], 'failed': [], 'expired': [], 'cancelled': []}, 'event_transitions': {'candidate': ['active', 'merged', 'rejected', 'revised', 'split'], 'active': ['merged', 'rejected', 'resolved', 'revised', 'split'], 'resolved': ['merged', 'revised', 'split'], 'revised': ['active', 'merged', 'rejected', 'resolved', 'split'], 'rejected': ['revised'], 'merged': [], 'split': []}} == {'enums': {'aios_core.contracts.enums.ActionStatus': ['proposed', 'submitted', 'acknowledged', 'completed', 'failed', 'outcome_unknown', 'cancelled'], 'aios_core.contracts.enums.ClaimType': ['fact', 'opinion', 'belief', 'desire', 'intention', 'plan', 'prediction', 'promise', 'preference', 'inference', 'hypothesis'], 'aios_core.contracts.enums.DimensionLifecycle': ['candidate', 'trial', 'active', 'low_activity', 'dormant', 'merged', 'split', 'revised', 'rejected', 'reactivated'], 'aios_core.contracts.enums.ErrorCode': ['INVALID_ARGUMENT', 'NOT_FOUND', 'VERSION_CONFLICT', 'INCOMPLETE_DATA', 'STALE_INDEX', 'BUDGET_EXHAUSTED', 'PERMISSION_DENIED', 'DEPENDENCY_INVALID', 'OUTCOME_UNKNOWN', 'IDEMPOTENCY_CONFLICT', 'STORAGE_FAILURE'], 'aios_core.contracts.enums.EventStatus': ['candidate', 'active', 'resolved', 'revised', 'rejected', 'merged', 'split'], 'aios_core.contracts.enums.EvidenceRole': ['support', 'counter', 'context'], 'aios_core.contracts.enums.GoalSourceType': ['user_explicit', 'user_inferred', 'ai_self', 'app', 'external'], 'aios_core.contracts.enums.GoalStatus': ['proposed', 'active', 'paused', 'achieved', 'abandoned', 'unknown'], 'aios_core.contracts.enums.KnowledgeState': ['observed', 'reported', 'inferred', 'hypothesis', 'unknown', 'conflict'], 'aios_core.contracts.enums.ObjectType': ['observation', 'entity', 'relation', 'dimension_definition', 'dimension_membership', 'dimension_derivation', 'claim', 'evidence_set', 'event', 'summary', 'goal', 'dependency', 'task', 'wake', 'session', 'action', 'outcome', 'operation_experience', 'tool_proposal'], 'aios_core.contracts.enums.SummaryStatus': ['current', 'stale', 'partial', 'missing'], 'aios_core.contracts.enums.TaskState': ['draft', 'ready', 'running', 'waiting_time', 'waiting_evidence', 'waiting_user', 'waiting_result', 'blocked', 'completed', 'failed', 'expired', 'cancelled'], 'aios_core.contracts.enums.TaskType': ['immediate', 'scheduled', 'deadline', 'todo', 'recurring', 'follow_up', 'observation', 'verification', 'maintenance', 'app'], 'aios_core.contracts.enums.WakeSource': ['mechanical_change', 'keyword_entity', 'no_update', 'task_due', 'watch_match', 'user_interaction', 'safety', 'recovery'], 'aios_core.contracts.enums.WakeState': ['new', 'queued', 'merged', 'running', 'completed', 'suppressed', 'cancelled'], 'aios_core.contracts.time.TimePrecision': ['second', 'minute', 'hour', 'day', 'week', 'month', 'quarter', 'half_year', 'year', 'multi_year', 'unknown']}, 'event_transitions': {'active': ['merged', 'rejected', 'resolved', 'revised', 'split'], 'candidate': ['active', 'merged', 'rejected', 'revised', 'split'], 'merged': [], 'rejected': ['revised'], 'resolved': ['merged', 'revised', 'split'], 'revised': ['active', 'merged', 'rejected', 'resolved', 'split'], 'split': []}, 'gate_version': 'M0-R2', 'models': {'aios_core.contracts.base.WorldObject': '8bc0d806e2d427415a9e1c853d7b815eee09c4e39465814f3bc3025085597c5a', 'aios_core.contracts.errors.ErrorResponse': '2ea9a6af49db3192361124253bd811c1352a001ec682808c7a4e4779767014a9', 'aios_core.contracts.models.Action': '6f8059dfb163e2955aab6c89571d849a0acbe5383439d158dce4e0718dea705b', 'aios_core.contracts.models.Claim': '7b3f008d22cbc3ad10ccc5ac1edf788735dfbaa14fdb14b379951f5b866a40c8', 'aios_core.contracts.models.Dependency': '2787b7a598f7396bba1888343b1be7eec01dde0437a3a9fe4127b0bf344fcf86', 'aios_core.contracts.models.DimensionDefinition': '1b91ca9528916148f623da4697713f9aef5bc5a5698a1ef74a14f47a6d07ae47', 'aios_core.contracts.models.DimensionDerivation': '50f1ddf56a5a1c4270f2884863f185cea3259e1ff3b4c7f0cdbbdf2d771b7a4e', 'aios_core.contracts.models.DimensionMembership': 'a502abfa2fb972e903f53bc1cbda7db80540e6d75ebff410b41686b48b85f318', 'aios_core.contracts.models.Entity': '21d79329e215bd2a0f292a7652f57fbff36634161a0c646892727f85c655b2b2', 'aios_core.contracts.models.EventAnchor': '14009428ed717b5b105d444b8daf859e855b30023076313efe2bed20324db807', 'aios_core.contracts.models.EvidenceCoverage': 'e3cd1b8e7e100536c713cdf47325363f2abb3b34e3450c2513c3d33af71256a2', 'aios_core.contracts.models.EvidenceSelector': '27cfb93f96fd725b209f1afbd4a066e4f0b8d5dd98ee3b13fd5173c4cfab5d97', 'aios_core.contracts.models.EvidenceSet': '30758dfa624fe67642cc2994c7b851fb1513a59cca34a1d961bb37db77f8d73c', 'aios_core.contracts.models.Goal': 'd4cc974eee21690f1901b5b2126b6001e65d3bf1b026183ba837d675a233c0f2', 'aios_core.contracts.models.Observation': 'b58727fbd4b7b7c3a9984d0ff1742b56b42fb22967809e961362559c2c7561fc', 'aios_core.contracts.models.OperationExperience': '64f1c968176fa6afce4e08d9ccd10a6ab79911daf6bc0c6ee371e5f72d0a092f', 'aios_core.contracts.models.Outcome': '6c4033e4e44031f07cc078bc99a6254722b67c5f4c7887214de30e21335b45b0', 'aios_core.contracts.models.Relation': '79683cad62623b65b6f47268540f7f156e629c915da19fd8f3b48dd9683be0e4', 'aios_core.contracts.models.Session': '1a4d1d58deca8dc84bb1243f39ca28a6dc0a5ae70a93babffd35506f91d3f5d8', 'aios_core.contracts.models.Summary': '5323db4cafe10d3bae0ec32a77104f14d56d0834d569463ffeaa90682a8a797c', 'aios_core.contracts.models.Task': '36dfc7f08e2f41ade8a53bd781bc28f0590777e19efe9079563eb1ef5ebafe49', 'aios_core.contracts.models.ToolProposal': '9ff91fa43ee8896cb1cc3bcb0a416b5c4730cae9edfdb17aa5a9e60e2b7862fa', 'aios_core.contracts.models.Wake': '326408444f99c29ed9fbe9fa3a081d78b7959be6250a3e6e975280c1198408d5', 'aios_core.contracts.operations.CommitResult': '19569e889a3cd18bdabec590b5f3dd9c5e89b741ee68bb9a8e6010bc3fcceac5', 'aios_core.contracts.operations.OperationAuditRecord': 'd039a30a23261b37d6250b301356441b3a5573d2785206d2fe484d3a4fd681cc', 'aios_core.contracts.operations.OperationRequest': '506aee0d2ba50eadb5a72b387e3220f2ca362d84508e62191303e13493f7ec5b', 'aios_core.contracts.refs.ObjectRef': '15aacd9d84fb2646f5c07b79e8a5b62653d88a9c849b311c747029e198ff12e9', 'aios_core.contracts.refs.SourceRef': '10eb1e28c86e8d05d69a5f91c90de2064c301a8c7ea5d8c08e00afd08a9dd994', 'aios_core.contracts.time.KnowledgeWindow': '503f4e050bf0781c367da7f9d563b6e3d748306cd65fc1ef14c3aa9c56dbb6d6', 'aios_core.contracts.time.TemporalExtent': 'f39671e5e54ff03f20a7085e1caea8e11d6291def18d66a292304a26962252bc'}, 'task_transitions': {'blocked': ['cancelled', 'failed', 'ready'], 'cancelled': [], 'completed': [], 'draft': ['cancelled', 'ready'], 'expired': [], 'failed': [], 'ready': ['cancelled', 'expired', 'running'], 'running': ['blocked', 'cancelled', 'completed', 'failed', 'waiting_evidence', 'waiting_result', 'waiting_time', 'waiting_user'], 'waiting_evidence': ['cancelled', 'expired', 'ready'], 'waiting_result': ['cancelled', 'completed', 'failed', 'ready'], 'waiting_time': ['cancelled', 'expired', 'ready'], 'waiting_user': ['cancelled', 'expired', 'ready']}}
+E     
+E     Common items:
+E     {'enums': {'aios_core.contracts.enums.ActionStatus': ['proposed',
+E                                                           'submitted',
+E                                                           'acknowledged',
+E                                                           'completed',
+E                                                           'failed',
+E                                                           'outcome_unknown',
+E                                                           'cancelled'],
+E                'aios_core.contracts.enums.ClaimType': ['fact',
+E                                                        'opinion',
+E                                                        'belief',
+E                                                        'desire',
+E                                                        'intention',
+E                                                        'plan',
+E                                                        'prediction',
+E                                                        'promise',
+E                                                        'preference',
+E                                                        'inference',
+E                                                        'hypothesis'],
+E                'aios_core.contracts.enums.DimensionLifecycle': ['candidate',
+E                                                                 'trial',
+E                                                                 'active',
+E                                                                 'low_activity',
+E                                                                 'dormant',
+E                                                                 'merged',
+E                                                                 'split',
+E                                                                 'revised',
+E                                                                 'rejected',
+E                                                                 'reactivated'],
+E                'aios_core.contracts.enums.ErrorCode': ['INVALID_ARGUMENT',
+E                                                        'NOT_FOUND',
+E                                                        'VERSION_CONFLICT',
+E                                                        'INCOMPLETE_DATA',
+E                                                        'STALE_INDEX',
+E                                                        'BUDGET_EXHAUSTED',
+E                                                        'PERMISSION_DENIED',
+E                                                        'DEPENDENCY_INVALID',
+E                                                        'OUTCOME_UNKNOWN',
+E                                                        'IDEMPOTENCY_CONFLICT',
+E                                                        'STORAGE_FAILURE'],
+E                'aios_core.contracts.enums.EventStatus': ['candidate',
+E                                                          'active',
+E                                                          'resolved',
+E                                                          'revised',
+E                                                          'rejected',
+E                                                          'merged',
+E                                                          'split'],
+E                'aios_core.contracts.enums.EvidenceRole': ['support',
+E                                                           'counter',
+E                                                           'context'],
+E                'aios_core.contracts.enums.GoalSourceType': ['user_explicit',
+E                                                             'user_inferred',
+E                                                             'ai_self',
+E                                                             'app',
+E                                                             'external'],
+E                'aios_core.contracts.enums.GoalStatus': ['proposed',
+E                                                         'active',
+E                                                         'paused',
+E                                                         'achieved',
+E                                                         'abandoned',
+E                                                         'unknown'],
+E                'aios_core.contracts.enums.KnowledgeState': ['observed',
+E                                                             'reported',
+E                                                             'inferred',
+E                                                             'hypothesis',
+E                                                             'unknown',
+E                                                             'conflict'],
+E                'aios_core.contracts.enums.ObjectType': ['observation',
+E                                                         'entity',
+E                                                         'relation',
+E                                                         'dimension_definition',
+E                                                         'dimension_membership',
+E                                                         'dimension_derivation',
+E                                                         'claim',
+E                                                         'evidence_set',
+E                                                         'event',
+E                                                         'summary',
+E                                                         'goal',
+E                                                         'dependency',
+E                                                         'task',
+E                                                         'wake',
+E                                                         'session',
+E                                                         'action',
+E                                                         'outcome',
+E                                                         'operation_experience',
+E                                                         'tool_proposal'],
+E                'aios_core.contracts.enums.SummaryStatus': ['current',
+E                                                            'stale',
+E                                                            'partial',
+E                                                            'missing'],
+E                'aios_core.contracts.enums.TaskState': ['draft',
+E                                                        'ready',
+E                                                        'running',
+E                                                        'waiting_time',
+E                                                        'waiting_evidence',
+E                                                        'waiting_user',
+E                                                        'waiting_result',
+E                                                        'blocked',
+E                                                        'completed',
+E                                                        'failed',
+E                                                        'expired',
+E                                                        'cancelled'],
+E                'aios_core.contracts.enums.TaskType': ['immediate',
+E                                                       'scheduled',
+E                                                       'deadline',
+E                                                       'todo',
+E                                                       'recurring',
+E                                                       'follow_up',
+E                                                       'observation',
+E                                                       'verification',
+E                                                       'maintenance',
+E                                                       'app'],
+E                'aios_core.contracts.enums.WakeSource': ['mechanical_change',
+E                                                         'keyword_entity',
+E                                                         'no_update',
+E                                                         'task_due',
+E                                                         'watch_match',
+E                                                         'user_interaction',
+E                                                         'safety',
+E                                                         'recovery'],
+E                'aios_core.contracts.enums.WakeState': ['new',
+E                                                        'queued',
+E                                                        'merged',
+E                                                        'running',
+E                                                        'completed',
+E                                                        'suppressed',
+E                                                        'cancelled'],
+E                'aios_core.contracts.time.TimePrecision': ['second',
+E                                                           'minute',
+E                                                           'hour',
+E                                                           'day',
+E                                                           'week',
+E                                                           'month',
+E                                                           'quarter',
+E                                                           'half_year',
+E                                                           'year',
+E                                                           'multi_year',
+E                                                           'unknown']},
+E      'event_transitions': {'active': ['merged',
+E                                       'rejected',
+E                                       'resolved',
+E                                       'revised',
+E                                       'split'],
+E                            'candidate': ['active',
+E                                          'merged',
+E                                          'rejected',
+E                                          'revised',
+E                                          'split'],
+E                            'merged': [],
+E                            'rejected': ['revised'],
+E                            'resolved': ['merged', 'revised', 'split'],
+E                            'revised': ['active',
+E                                        'merged',
+E                                        'rejected',
+E                                        'resolved',
+E                                        'split'],
+E                            'split': []},
+E      'gate_version': 'M0-R2',
+E      'task_transitions': {'blocked': ['cancelled', 'failed', 'ready'],
+E                           'cancelled': [],
+E                           'completed': [],
+E                           'draft': ['cancelled', 'ready'],
+E                           'expired': [],
+E                           'failed': [],
+E                           'ready': ['cancelled', 'expired', 'running'],
+E                           'running': ['blocked',
+E                                       'cancelled',
+E                                       'completed',
+E                                       'failed',
+E                                       'waiting_evidence',
+E                                       'waiting_result',
+E                                       'waiting_time',
+E                                       'waiting_user'],
+E                           'waiting_evidence': ['cancelled', 'expired', 'ready'],
+E                           'waiting_result': ['cancelled',
+E                                              'completed',
+E                                              'failed',
+E                                              'ready'],
+E                           'waiting_time': ['cancelled', 'expired', 'ready'],
+E                           'waiting_user': ['cancelled', 'expired', 'ready']}}
+E     Differing items:
+E     {'models': {'aios_core.contracts.base.WorldObject': 'ed5aa7f7c5f31694864aa2c8c999bd3287554ebdc1a33c63c87d9d03ac617cd1'...250e7bf', 'aios_core.contracts.models.Claim': '0680ba79684255886b7122625a515e94cf5a4b04d1aec96166ac5e7723fe094e', ...}} != {'models': {'aios_core.contracts.base.WorldObject': '8bc0d806e2d427415a9e1c853d7b815eee09c4e39465814f3bc3025085597c5a'...dea705b', 'aios_core.contracts.models.Claim': '7b3f008d22cbc3ad10ccc5ac1edf788735dfbaa14fdb14b379951f5b866a40c8', ...}}
+E     
+E     Full diff:
+E       {
+E           'enums': {
+E               'aios_core.contracts.enums.ActionStatus': [
+E                   'proposed',
+E                   'submitted',
+E                   'acknowledged',
+E                   'completed',
+E                   'failed',
+E                   'outcome_unknown',
+E                   'cancelled',
+E               ],
+E               'aios_core.contracts.enums.ClaimType': [
+E                   'fact',
+E                   'opinion',
+E                   'belief',
+E                   'desire',
+E                   'intention',
+E                   'plan',
+E                   'prediction',
+E                   'promise',
+E                   'preference',
+E                   'inference',
+E                   'hypothesis',
+E               ],
+E               'aios_core.contracts.enums.DimensionLifecycle': [
+E                   'candidate',
+E                   'trial',
+E                   'active',
+E                   'low_activity',
+E                   'dormant',
+E                   'merged',
+E                   'split',
+E                   'revised',
+E                   'rejected',
+E                   'reactivated',
+E               ],
+E               'aios_core.contracts.enums.ErrorCode': [
+E                   'INVALID_ARGUMENT',
+E                   'NOT_FOUND',
+E                   'VERSION_CONFLICT',
+E                   'INCOMPLETE_DATA',
+E                   'STALE_INDEX',
+E                   'BUDGET_EXHAUSTED',
+E                   'PERMISSION_DENIED',
+E                   'DEPENDENCY_INVALID',
+E                   'OUTCOME_UNKNOWN',
+E                   'IDEMPOTENCY_CONFLICT',
+E                   'STORAGE_FAILURE',
+E               ],
+E               'aios_core.contracts.enums.EventStatus': [
+E                   'candidate',
+E                   'active',
+E                   'resolved',
+E                   'revised',
+E                   'rejected',
+E                   'merged',
+E                   'split',
+E               ],
+E               'aios_core.contracts.enums.EvidenceRole': [
+E                   'support',
+E                   'counter',
+E                   'context',
+E               ],
+E               'aios_core.contracts.enums.GoalSourceType': [
+E                   'user_explicit',
+E                   'user_inferred',
+E                   'ai_self',
+E                   'app',
+E                   'external',
+E               ],
+E               'aios_core.contracts.enums.GoalStatus': [
+E                   'proposed',
+E                   'active',
+E                   'paused',
+E                   'achieved',
+E                   'abandoned',
+E                   'unknown',
+E               ],
+E               'aios_core.contracts.enums.KnowledgeState': [
+E                   'observed',
+E                   'reported',
+E                   'inferred',
+E                   'hypothesis',
+E                   'unknown',
+E                   'conflict',
+E               ],
+E               'aios_core.contracts.enums.ObjectType': [
+E                   'observation',
+E                   'entity',
+E                   'relation',
+E                   'dimension_definition',
+E                   'dimension_membership',
+E                   'dimension_derivation',
+E                   'claim',
+E                   'evidence_set',
+E                   'event',
+E                   'summary',
+E                   'goal',
+E                   'dependency',
+E                   'task',
+E                   'wake',
+E                   'session',
+E                   'action',
+E                   'outcome',
+E                   'operation_experience',
+E                   'tool_proposal',
+E               ],
+E               'aios_core.contracts.enums.SummaryStatus': [
+E                   'current',
+E                   'stale',
+E                   'partial',
+E                   'missing',
+E               ],
+E               'aios_core.contracts.enums.TaskState': [
+E                   'draft',
+E                   'ready',
+E                   'running',
+E                   'waiting_time',
+E                   'waiting_evidence',
+E                   'waiting_user',
+E                   'waiting_result',
+E                   'blocked',
+E                   'completed',
+E                   'failed',
+E                   'expired',
+E                   'cancelled',
+E               ],
+E               'aios_core.contracts.enums.TaskType': [
+E                   'immediate',
+E                   'scheduled',
+E                   'deadline',
+E                   'todo',
+E                   'recurring',
+E                   'follow_up',
+E                   'observation',
+E                   'verification',
+E                   'maintenance',
+E                   'app',
+E               ],
+E               'aios_core.contracts.enums.WakeSource': [
+E                   'mechanical_change',
+E                   'keyword_entity',
+E                   'no_update',
+E                   'task_due',
+E                   'watch_match',
+E                   'user_interaction',
+E                   'safety',
+E                   'recovery',
+E               ],
+E               'aios_core.contracts.enums.WakeState': [
+E                   'new',
+E                   'queued',
+E                   'merged',
+E                   'running',
+E                   'completed',
+E                   'suppressed',
+E                   'cancelled',
+E               ],
+E               'aios_core.contracts.time.TimePrecision': [
+E                   'second',
+E                   'minute',
+E                   'hour',
+E                   'day',
+E                   'week',
+E                   'month',
+E                   'quarter',
+E                   'half_year',
+E                   'year',
+E                   'multi_year',
+E                   'unknown',
+E               ],
+E           },
+E           'event_transitions': {
+E               'active': [
+E                   'merged',
+E                   'rejected',
+E                   'resolved',
+E                   'revised',
+E                   'split',
+E               ],
+E               'candidate': [
+E                   'active',
+E                   'merged',
+E                   'rejected',
+E                   'revised',
+E                   'split',
+E               ],
+E               'merged': [],
+E               'rejected': [
+E                   'revised',
+E               ],
+E               'resolved': [
+E                   'merged',
+E                   'revised',
+E                   'split',
+E               ],
+E               'revised': [
+E                   'active',
+E                   'merged',
+E                   'rejected',
+E                   'resolved',
+E                   'split',
+E               ],
+E               'split': [],
+E           },
+E           'gate_version': 'M0-R2',
+E           'models': {
+E     -         'aios_core.contracts.base.WorldObject': '8bc0d806e2d427415a9e1c853d7b815eee09c4e39465814f3bc3025085597c5a',
+E     +         'aios_core.contracts.base.WorldObject': 'ed5aa7f7c5f31694864aa2c8c999bd3287554ebdc1a33c63c87d9d03ac617cd1',
+E               'aios_core.contracts.errors.ErrorResponse': '2ea9a6af49db3192361124253bd811c1352a001ec682808c7a4e4779767014a9',
+E     -         'aios_core.contracts.models.Action': '6f8059dfb163e2955aab6c89571d849a0acbe5383439d158dce4e0718dea705b',
+E     -         'aios_core.contracts.models.Claim': '7b3f008d22cbc3ad10ccc5ac1edf788735dfbaa14fdb14b379951f5b866a40c8',
+E     -         'aios_core.contracts.models.Dependency': '2787b7a598f7396bba1888343b1be7eec01dde0437a3a9fe4127b0bf344fcf86',
+E     -         'aios_core.contracts.models.DimensionDefinition': '1b91ca9528916148f623da4697713f9aef5bc5a5698a1ef74a14f47a6d07ae47',
+E     -         'aios_core.contracts.models.DimensionDerivation': '50f1ddf56a5a1c4270f2884863f185cea3259e1ff3b4c7f0cdbbdf2d771b7a4e',
+E     -         'aios_core.contracts.models.DimensionMembership': 'a502abfa2fb972e903f53bc1cbda7db80540e6d75ebff410b41686b48b85f318',
+E     -         'aios_core.contracts.models.Entity': '21d79329e215bd2a0f292a7652f57fbff36634161a0c646892727f85c655b2b2',
+E     -         'aios_core.contracts.models.EventAnchor': '14009428ed717b5b105d444b8daf859e855b30023076313efe2bed20324db807',
+E     +         'aios_core.contracts.models.Action': 'f52a3ebe53e4b15d40f365d3c3fe4ce12a7db54155a1b816264de9691250e7bf',
+E     +         'aios_core.contracts.models.Claim': '0680ba79684255886b7122625a515e94cf5a4b04d1aec96166ac5e7723fe094e',
+E     +         'aios_core.contracts.models.Dependency': '4ac0eebedadd5682c739b135a85ed685c8f5cf085e2dd12f3f67d8be7577a368',
+E     +         'aios_core.contracts.models.DimensionDefinition': '173756c1e937885ffc3469dfd66e252460c1d9b81c3fe253f54ba0fbf6a41ebf',
+E     +         'aios_core.contracts.models.DimensionDerivation': 'd64970421e84939a2c3e7c31fd9ab4129a4292601d8ac13e365219ba29fac0ae',
+E     +         'aios_core.contracts.models.DimensionMembership': '04f9700c50060e9bd46a04017a34c2fd9a686bcf48dd100a07f60ba22d54a064',
+E     +         'aios_core.contracts.models.Entity': 'e26599e7fea2dceb26d26488b4dde02279945034705fd83f9b43879e65cbe5f5',
+E     +         'aios_core.contracts.models.EventAnchor': '14b944d7ccc5549e442a289b52e4efcdb2c9848d2eed315633ea3b2abefebff5',
+E               'aios_core.contracts.models.EvidenceCoverage': 'e3cd1b8e7e100536c713cdf47325363f2abb3b34e3450c2513c3d33af71256a2',
+E     -         'aios_core.contracts.models.EvidenceSelector': '27cfb93f96fd725b209f1afbd4a066e4f0b8d5dd98ee3b13fd5173c4cfab5d97',
+E     -         'aios_core.contracts.models.EvidenceSet': '30758dfa624fe67642cc2994c7b851fb1513a59cca34a1d961bb37db77f8d73c',
+E     -         'aios_core.contracts.models.Goal': 'd4cc974eee21690f1901b5b2126b6001e65d3bf1b026183ba837d675a233c0f2',
+E     -         'aios_core.contracts.models.Observation': 'b58727fbd4b7b7c3a9984d0ff1742b56b42fb22967809e961362559c2c7561fc',
+E     -         'aios_core.contracts.models.OperationExperience': '64f1c968176fa6afce4e08d9ccd10a6ab79911daf6bc0c6ee371e5f72d0a092f',
+E     -         'aios_core.contracts.models.Outcome': '6c4033e4e44031f07cc078bc99a6254722b67c5f4c7887214de30e21335b45b0',
+E     -         'aios_core.contracts.models.Relation': '79683cad62623b65b6f47268540f7f156e629c915da19fd8f3b48dd9683be0e4',
+E     -         'aios_core.contracts.models.Session': '1a4d1d58deca8dc84bb1243f39ca28a6dc0a5ae70a93babffd35506f91d3f5d8',
+E     -         'aios_core.contracts.models.Summary': '5323db4cafe10d3bae0ec32a77104f14d56d0834d569463ffeaa90682a8a797c',
+E     -         'aios_core.contracts.models.Task': '36dfc7f08e2f41ade8a53bd781bc28f0590777e19efe9079563eb1ef5ebafe49',
+E     -         'aios_core.contracts.models.ToolProposal': '9ff91fa43ee8896cb1cc3bcb0a416b5c4730cae9edfdb17aa5a9e60e2b7862fa',
+E     -         'aios_core.contracts.models.Wake': '326408444f99c29ed9fbe9fa3a081d78b7959be6250a3e6e975280c1198408d5',
+E     +         'aios_core.contracts.models.EvidenceSelector': 'd86a07db902d3f4e36dec15330d08e89fceca7ea97d79ca026ea6d1d65fcb3d7',
+E     +         'aios_core.contracts.models.EvidenceSet': 'f1341cb7208f1cb8c76e3a1c8147cc1b39e894fa8f94c5513d6436e718dbb1df',
+E     +         'aios_core.contracts.models.Goal': '3fef4c4a52520a0bcca220602bcea7269014bc3b759e8a7b97b7a1c22509336b',
+E     +         'aios_core.contracts.models.Observation': '1c8f4b39b8229635834f81e1aad385bb886d8c8d65be0e3970a1e6c944e1b7fb',
+E     +         'aios_core.contracts.models.OperationExperience': 'e5a6cfedfc8e967d6e3a652a8195ff468dfea9a166c196e86f1fb0d8cf704f2d',
+E     +         'aios_core.contracts.models.Outcome': 'dee8d3680e73ac71be23d51a5dc936b44616b29d39f10b44fe82cd02ab3ea371',
+E     +         'aios_core.contracts.models.Relation': '4bc753c926462631024096609bf0edd40fa48b0d0b71689ebd2c0876bd041282',
+E     +         'aios_core.contracts.models.Session': 'c894e96c9d7edae8f5172feb97a71b77db3f5369be25b9c6308e50fe3e22bd25',
+E     +         'aios_core.contracts.models.Summary': 'cbc9230555116eb2979db22120442df89c9140db23fa321c9b2f4559eca0da9c',
+E     +         'aios_core.contracts.models.Task': '662a4098e6110b5ac5a67205d560f683d027acac744177a216d98a1ed78395d3',
+E     +         'aios_core.contracts.models.ToolProposal': '7e57bdb0c861ce810f157b2f216f8069c8c7b88f10c093aa11e84a64f3492407',
+E     +         'aios_core.contracts.models.Wake': 'fa222728fe6398a6b963488eec590b1b2e1a475b665344eab62cbca03057ede1',
+E               'aios_core.contracts.operations.CommitResult': '19569e889a3cd18bdabec590b5f3dd9c5e89b741ee68bb9a8e6010bc3fcceac5',
+E     -         'aios_core.contracts.operations.OperationAuditRecord': 'd039a30a23261b37d6250b301356441b3a5573d2785206d2fe484d3a4fd681cc',
+E     -         'aios_core.contracts.operations.OperationRequest': '506aee0d2ba50eadb5a72b387e3220f2ca362d84508e62191303e13493f7ec5b',
+E     +         'aios_core.contracts.operations.OperationAuditRecord': 'eaffe475729eea9e1be68ad396fd5c6fed610c06f9705f9632783c8542375c3e',
+E     +         'aios_core.contracts.operations.OperationRequest': 'f9391258e4ff7c66cad43dc20aa9513c4ed2c551a6183ea5ee41c3c881d90765',
+E               'aios_core.contracts.refs.ObjectRef': '15aacd9d84fb2646f5c07b79e8a5b62653d88a9c849b311c747029e198ff12e9',
+E               'aios_core.contracts.refs.SourceRef': '10eb1e28c86e8d05d69a5f91c90de2064c301a8c7ea5d8c08e00afd08a9dd994',
+E               'aios_core.contracts.time.KnowledgeWindow': '503f4e050bf0781c367da7f9d563b6e3d748306cd65fc1ef14c3aa9c56dbb6d6',
+E               'aios_core.contracts.time.TemporalExtent': 'f39671e5e54ff03f20a7085e1caea8e11d6291def18d66a292304a26962252bc',
+E           },
+E           'task_transitions': {
+E               'blocked': [
+E                   'cancelled',
+E                   'failed',
+E                   'ready',
+E               ],
+E               'cancelled': [],
+E               'completed': [],
+E               'draft': [
+E                   'cancelled',
+E                   'ready',
+E               ],
+E               'expired': [],
+E               'failed': [],
+E               'ready': [
+E                   'cancelled',
+E                   'expired',
+E                   'running',
+E               ],
+E               'running': [
+E                   'blocked',
+E                   'cancelled',
+E                   'completed',
+E                   'failed',
+E                   'waiting_evidence',
+E                   'waiting_result',
+E                   'waiting_time',
+E                   'waiting_user',
+E               ],
+E               'waiting_evidence': [
+E                   'cancelled',
+E                   'expired',
+E                   'ready',
+E               ],
+E               'waiting_result': [
+E                   'cancelled',
+E                   'completed',
+E                   'failed',
+E                   'ready',
+E               ],
+E               'waiting_time': [
+E                   'cancelled',
+E                   'expired',
+E                   'ready',
+E               ],
+E               'waiting_user': [
+E                   'cancelled',
+E                   'expired',
+E                   'ready',
+E               ],
+E           },
+E       }
+=========================== short test summary info ============================
+FAILED tests/unit/contracts/test_m0_schema_snapshot.py::test_m0_schema_snapshot_matches_frozen_contract - AssertionError: M0 frozen contract snapshot changed. Any change requires explicit approval.
+  Current generated snapshot:
+  {
+    "enums": {
+      "aios_core.contracts.enums.ActionStatus": [
+        "proposed",
+        "submitted",
+        "acknowledged",
+        "completed",
+        "failed",
+        "outcome_unknown",
+        "cancelled"
+      ],
+      "aios_core.contracts.enums.ClaimType": [
+        "fact",
+        "opinion",
+        "belief",
+        "desire",
+        "intention",
+        "plan",
+        "prediction",
+        "promise",
+        "preference",
+        "inference",
+        "hypothesis"
+      ],
+      "aios_core.contracts.enums.DimensionLifecycle": [
+        "candidate",
+        "trial",
+        "active",
+        "low_activity",
+        "dormant",
+        "merged",
+        "split",
+        "revised",
+        "rejected",
+        "reactivated"
+      ],
+      "aios_core.contracts.enums.ErrorCode": [
+        "INVALID_ARGUMENT",
+        "NOT_FOUND",
+        "VERSION_CONFLICT",
+        "INCOMPLETE_DATA",
+        "STALE_INDEX",
+        "BUDGET_EXHAUSTED",
+        "PERMISSION_DENIED",
+        "DEPENDENCY_INVALID",
+        "OUTCOME_UNKNOWN",
+        "IDEMPOTENCY_CONFLICT",
+        "STORAGE_FAILURE"
+      ],
+      "aios_core.contracts.enums.EventStatus": [
+        "candidate",
+        "active",
+        "resolved",
+        "revised",
+        "rejected",
+        "merged",
+        "split"
+      ],
+      "aios_core.contracts.enums.EvidenceRole": [
+        "support",
+        "counter",
+        "context"
+      ],
+      "aios_core.contracts.enums.GoalSourceType": [
+        "user_explicit",
+        "user_inferred",
+        "ai_self",
+        "app",
+        "external"
+      ],
+      "aios_core.contracts.enums.GoalStatus": [
+        "proposed",
+        "active",
+        "paused",
+        "achieved",
+        "abandoned",
+        "unknown"
+      ],
+      "aios_core.contracts.enums.KnowledgeState": [
+        "observed",
+        "reported",
+        "inferred",
+        "hypothesis",
+        "unknown",
+        "conflict"
+      ],
+      "aios_core.contracts.enums.ObjectType": [
+        "observation",
+        "entity",
+        "relation",
+        "dimension_definition",
+        "dimension_membership",
+        "dimension_derivation",
+        "claim",
+        "evidence_set",
+        "event",
+        "summary",
+        "goal",
+        "dependency",
+        "task",
+        "wake",
+        "session",
+        "action",
+        "outcome",
+        "operation_experience",
+        "tool_proposal"
+      ],
+      "aios_core.contracts.enums.SummaryStatus": [
+        "current",
+        "stale",
+        "partial",
+        "missing"
+      ],
+      "aios_core.contracts.enums.TaskState": [
+        "draft",
+        "ready",
+        "running",
+        "waiting_time",
+        "waiting_evidence",
+        "waiting_user",
+        "waiting_result",
+        "blocked",
+        "completed",
+        "failed",
+        "expired",
+        "cancelled"
+      ],
+      "aios_core.contracts.enums.TaskType": [
+        "immediate",
+        "scheduled",
+        "deadline",
+        "todo",
+        "recurring",
+        "follow_up",
+        "observation",
+        "verification",
+        "maintenance",
+        "app"
+      ],
+      "aios_core.contracts.enums.WakeSource": [
+        "mechanical_change",
+        "keyword_entity",
+        "no_update",
+        "task_due",
+        "watch_match",
+        "user_interaction",
+        "safety",
+        "recovery"
+      ],
+      "aios_core.contracts.enums.WakeState": [
+        "new",
+        "queued",
+        "merged",
+        "running",
+        "completed",
+        "suppressed",
+        "cancelled"
+      ],
+      "aios_core.contracts.time.TimePrecision": [
+        "second",
+        "minute",
+        "hour",
+        "day",
+        "week",
+        "month",
+        "quarter",
+        "half_year",
+        "year",
+        "multi_year",
+        "unknown"
+      ]
+    },
+    "event_transitions": {
+      "active": [
+        "merged",
+        "rejected",
+        "resolved",
+        "revised",
+        "split"
+      ],
+      "candidate": [
+        "active",
+        "merged",
+        "rejected",
+        "revised",
+        "split"
+      ],
+      "merged": [],
+      "rejected": [
+        "revised"
+      ],
+      "resolved": [
+        "merged",
+        "revised",
+        "split"
+      ],
+      "revised": [
+        "active",
+        "merged",
+        "rejected",
+        "resolved",
+        "split"
+      ],
+      "split": []
+    },
+    "gate_version": "M0-R2",
+    "models": {
+      "aios_core.contracts.base.WorldObject": "ed5aa7f7c5f31694864aa2c8c999bd3287554ebdc1a33c63c87d9d03ac617cd1",
+      "aios_core.contracts.errors.ErrorResponse": "2ea9a6af49db3192361124253bd811c1352a001ec682808c7a4e4779767014a9",
+      "aios_core.contracts.models.Action": "f52a3ebe53e4b15d40f365d3c3fe4ce12a7db54155a1b816264de9691250e7bf",
+      "aios_core.contracts.models.Claim": "0680ba79684255886b7122625a515e94cf5a4b04d1aec96166ac5e7723fe094e",
+      "aios_core.contracts.models.Dependency": "4ac0eebedadd5682c739b135a85ed685c8f5cf085e2dd12f3f67d8be7577a368",
+      "aios_core.contracts.models.DimensionDefinition": "173756c1e937885ffc3469dfd66e252460c1d9b81c3fe253f54ba0fbf6a41ebf",
+      "aios_core.contracts.models.DimensionDerivation": "d64970421e84939a2c3e7c31fd9ab4129a4292601d8ac13e365219ba29fac0ae",
+      "aios_core.contracts.models.DimensionMembership": "04f9700c50060e9bd46a04017a34c2fd9a686bcf48dd100a07f60ba22d54a064",
+      "aios_core.contracts.models.Entity": "e26599e7fea2dceb26d26488b4dde02279945034705fd83f9b43879e65cbe5f5",
+      "aios_core.contracts.models.EventAnchor": "14b944d7ccc5549e442a289b52e4efcdb2c9848d2eed315633ea3b2abefebff5",
+      "aios_core.contracts.models.EvidenceCoverage": "e3cd1b8e7e100536c713cdf47325363f2abb3b34e3450c2513c3d33af71256a2",
+      "aios_core.contracts.models.EvidenceSelector": "d86a07db902d3f4e36dec15330d08e89fceca7ea97d79ca026ea6d1d65fcb3d7",
+      "aios_core.contracts.models.EvidenceSet": "f1341cb7208f1cb8c76e3a1c8147cc1b39e894fa8f94c5513d6436e718dbb1df",
+      "aios_core.contracts.models.Goal": "3fef4c4a52520a0bcca220602bcea7269014bc3b759e8a7b97b7a1c22509336b",
+      "aios_core.contracts.models.Observation": "1c8f4b39b8229635834f81e1aad385bb886d8c8d65be0e3970a1e6c944e1b7fb",
+      "aios_core.contracts.models.OperationExperience": "e5a6cfedfc8e967d6e3a652a8195ff468dfea9a166c196e86f1fb0d8cf704f2d",
+      "aios_core.contracts.models.Outcome": "dee8d3680e73ac71be23d51a5dc936b44616b29d39f10b44fe82cd02ab3ea371",
+      "aios_core.contracts.models.Relation": "4bc753c926462631024096609bf0edd40fa48b0d0b71689ebd2c0876bd041282",
+      "aios_core.contracts.models.Session": "c894e96c9d7edae8f5172feb97a71b77db3f5369be25b9c6308e50fe3e22bd25",
+      "aios_core.contracts.models.Summary": "cbc9230555116eb2979db22120442df89c9140db23fa321c9b2f4559eca0da9c",
+      "aios_core.contracts.models.Task": "662a4098e6110b5ac5a67205d560f683d027acac744177a216d98a1ed78395d3",
+      "aios_core.contracts.models.ToolProposal": "7e57bdb0c861ce810f157b2f216f8069c8c7b88f10c093aa11e84a64f3492407",
+      "aios_core.contracts.models.Wake": "fa222728fe6398a6b963488eec590b1b2e1a475b665344eab62cbca03057ede1",
+      "aios_core.contracts.operations.CommitResult": "19569e889a3cd18bdabec590b5f3dd9c5e89b741ee68bb9a8e6010bc3fcceac5",
+      "aios_core.contracts.operations.OperationAuditRecord": "eaffe475729eea9e1be68ad396fd5c6fed610c06f9705f9632783c8542375c3e",
+      "aios_core.contracts.operations.OperationRequest": "f9391258e4ff7c66cad43dc20aa9513c4ed2c551a6183ea5ee41c3c881d90765",
+      "aios_core.contracts.refs.ObjectRef": "15aacd9d84fb2646f5c07b79e8a5b62653d88a9c849b311c747029e198ff12e9",
+      "aios_core.contracts.refs.SourceRef": "10eb1e28c86e8d05d69a5f91c90de2064c301a8c7ea5d8c08e00afd08a9dd994",
+      "aios_core.contracts.time.KnowledgeWindow": "503f4e050bf0781c367da7f9d563b6e3d748306cd65fc1ef14c3aa9c56dbb6d6",
+      "aios_core.contracts.time.TemporalExtent": "f39671e5e54ff03f20a7085e1caea8e11d6291def18d66a292304a26962252bc"
+    },
+    "task_transitions": {
+      "blocked": [
+        "cancelled",
+        "failed",
+        "ready"
+      ],
+      "cancelled": [],
+      "completed": [],
+      "draft": [
+        "cancelled",
+        "ready"
+      ],
+      "expired": [],
+      "failed": [],
+      "ready": [
+        "cancelled",
+        "expired",
+        "running"
+      ],
+      "running": [
+        "blocked",
+        "cancelled",
+        "completed",
+        "failed",
+        "waiting_evidence",
+        "waiting_result",
+        "waiting_time",
+        "waiting_user"
+      ],
+      "waiting_evidence": [
+        "cancelled",
+        "expired",
+        "ready"
+      ],
+      "waiting_result": [
+        "cancelled",
+        "completed",
+        "failed",
+        "ready"
+      ],
+      "waiting_time": [
+        "cancelled",
+        "expired",
+        "ready"
+      ],
+      "waiting_user": [
+        "cancelled",
+        "expired",
+        "ready"
+      ]
+    }
+  }
+assert {'gate_version': 'M0-R2', 'models': {'aios_core.contracts.base.WorldObject': 'ed5aa7f7c5f31694864aa2c8c999bd3287554ebdc1a33c63c87d9d03ac617cd1', 'aios_core.contracts.errors.ErrorResponse': '2ea9a6af49db3192361124253bd811c1352a001ec682808c7a4e4779767014a9', 'aios_core.contracts.models.Action': 'f52a3ebe53e4b15d40f365d3c3fe4ce12a7db54155a1b816264de9691250e7bf', 'aios_core.contracts.models.Claim': '0680ba79684255886b7122625a515e94cf5a4b04d1aec96166ac5e7723fe094e', 'aios_core.contracts.models.Dependency': '4ac0eebedadd5682c739b135a85ed685c8f5cf085e2dd12f3f67d8be7577a368', 'aios_core.contracts.models.DimensionDefinition': '173756c1e937885ffc3469dfd66e252460c1d9b81c3fe253f54ba0fbf6a41ebf', 'aios_core.contracts.models.DimensionDerivation': 'd64970421e84939a2c3e7c31fd9ab4129a4292601d8ac13e365219ba29fac0ae', 'aios_core.contracts.models.DimensionMembership': '04f9700c50060e9bd46a04017a34c2fd9a686bcf48dd100a07f60ba22d54a064', 'aios_core.contracts.models.Entity': 'e26599e7fea2dceb26d26488b4dde02279945034705fd83f9b43879e65cbe5f5', 'aios_core.contracts.models.EventAnchor': '14b944d7ccc5549e442a289b52e4efcdb2c9848d2eed315633ea3b2abefebff5', 'aios_core.contracts.models.EvidenceCoverage': 'e3cd1b8e7e100536c713cdf47325363f2abb3b34e3450c2513c3d33af71256a2', 'aios_core.contracts.models.EvidenceSelector': 'd86a07db902d3f4e36dec15330d08e89fceca7ea97d79ca026ea6d1d65fcb3d7', 'aios_core.contracts.models.EvidenceSet': 'f1341cb7208f1cb8c76e3a1c8147cc1b39e894fa8f94c5513d6436e718dbb1df', 'aios_core.contracts.models.Goal': '3fef4c4a52520a0bcca220602bcea7269014bc3b759e8a7b97b7a1c22509336b', 'aios_core.contracts.models.Observation': '1c8f4b39b8229635834f81e1aad385bb886d8c8d65be0e3970a1e6c944e1b7fb', 'aios_core.contracts.models.OperationExperience': 'e5a6cfedfc8e967d6e3a652a8195ff468dfea9a166c196e86f1fb0d8cf704f2d', 'aios_core.contracts.models.Outcome': 'dee8d3680e73ac71be23d51a5dc936b44616b29d39f10b44fe82cd02ab3ea371', 'aios_core.contracts.models.Relation': '4bc753c926462631024096609bf0edd40fa48b0d0b71689ebd2c0876bd041282', 'aios_core.contracts.models.Session': 'c894e96c9d7edae8f5172feb97a71b77db3f5369be25b9c6308e50fe3e22bd25', 'aios_core.contracts.models.Summary': 'cbc9230555116eb2979db22120442df89c9140db23fa321c9b2f4559eca0da9c', 'aios_core.contracts.models.Task': '662a4098e6110b5ac5a67205d560f683d027acac744177a216d98a1ed78395d3', 'aios_core.contracts.models.ToolProposal': '7e57bdb0c861ce810f157b2f216f8069c8c7b88f10c093aa11e84a64f3492407', 'aios_core.contracts.models.Wake': 'fa222728fe6398a6b963488eec590b1b2e1a475b665344eab62cbca03057ede1', 'aios_core.contracts.operations.CommitResult': '19569e889a3cd18bdabec590b5f3dd9c5e89b741ee68bb9a8e6010bc3fcceac5', 'aios_core.contracts.operations.OperationAuditRecord': 'eaffe475729eea9e1be68ad396fd5c6fed610c06f9705f9632783c8542375c3e', 'aios_core.contracts.operations.OperationRequest': 'f9391258e4ff7c66cad43dc20aa9513c4ed2c551a6183ea5ee41c3c881d90765', 'aios_core.contracts.refs.ObjectRef': '15aacd9d84fb2646f5c07b79e8a5b62653d88a9c849b311c747029e198ff12e9', 'aios_core.contracts.refs.SourceRef': '10eb1e28c86e8d05d69a5f91c90de2064c301a8c7ea5d8c08e00afd08a9dd994', 'aios_core.contracts.time.KnowledgeWindow': '503f4e050bf0781c367da7f9d563b6e3d748306cd65fc1ef14c3aa9c56dbb6d6', 'aios_core.contracts.time.TemporalExtent': 'f39671e5e54ff03f20a7085e1caea8e11d6291def18d66a292304a26962252bc'}, 'enums': {'aios_core.contracts.enums.ActionStatus': ['proposed', 'submitted', 'acknowledged', 'completed', 'failed', 'outcome_unknown', 'cancelled'], 'aios_core.contracts.enums.ClaimType': ['fact', 'opinion', 'belief', 'desire', 'intention', 'plan', 'prediction', 'promise', 'preference', 'inference', 'hypothesis'], 'aios_core.contracts.enums.DimensionLifecycle': ['candidate', 'trial', 'active', 'low_activity', 'dormant', 'merged', 'split', 'revised', 'rejected', 'reactivated'], 'aios_core.contracts.enums.ErrorCode': ['INVALID_ARGUMENT', 'NOT_FOUND', 'VERSION_CONFLICT', 'INCOMPLETE_DATA', 'STALE_INDEX', 'BUDGET_EXHAUSTED', 'PERMISSION_DENIED', 'DEPENDENCY_INVALID', 'OUTCOME_UNKNOWN', 'IDEMPOTENCY_CONFLICT', 'STORAGE_FAILURE'], 'aios_core.contracts.enums.EventStatus': ['candidate', 'active', 'resolved', 'revised', 'rejected', 'merged', 'split'], 'aios_core.contracts.enums.EvidenceRole': ['support', 'counter', 'context'], 'aios_core.contracts.enums.GoalSourceType': ['user_explicit', 'user_inferred', 'ai_self', 'app', 'external'], 'aios_core.contracts.enums.GoalStatus': ['proposed', 'active', 'paused', 'achieved', 'abandoned', 'unknown'], 'aios_core.contracts.enums.KnowledgeState': ['observed', 'reported', 'inferred', 'hypothesis', 'unknown', 'conflict'], 'aios_core.contracts.enums.ObjectType': ['observation', 'entity', 'relation', 'dimension_definition', 'dimension_membership', 'dimension_derivation', 'claim', 'evidence_set', 'event', 'summary', 'goal', 'dependency', 'task', 'wake', 'session', 'action', 'outcome', 'operation_experience', 'tool_proposal'], 'aios_core.contracts.enums.SummaryStatus': ['current', 'stale', 'partial', 'missing'], 'aios_core.contracts.enums.TaskState': ['draft', 'ready', 'running', 'waiting_time', 'waiting_evidence', 'waiting_user', 'waiting_result', 'blocked', 'completed', 'failed', 'expired', 'cancelled'], 'aios_core.contracts.enums.TaskType': ['immediate', 'scheduled', 'deadline', 'todo', 'recurring', 'follow_up', 'observation', 'verification', 'maintenance', 'app'], 'aios_core.contracts.enums.WakeSource': ['mechanical_change', 'keyword_entity', 'no_update', 'task_due', 'watch_match', 'user_interaction', 'safety', 'recovery'], 'aios_core.contracts.enums.WakeState': ['new', 'queued', 'merged', 'running', 'completed', 'suppressed', 'cancelled'], 'aios_core.contracts.time.TimePrecision': ['second', 'minute', 'hour', 'day', 'week', 'month', 'quarter', 'half_year', 'year', 'multi_year', 'unknown']}, 'task_transitions': {'draft': ['cancelled', 'ready'], 'ready': ['cancelled', 'expired', 'running'], 'running': ['blocked', 'cancelled', 'completed', 'failed', 'waiting_evidence', 'waiting_result', 'waiting_time', 'waiting_user'], 'waiting_time': ['cancelled', 'expired', 'ready'], 'waiting_evidence': ['cancelled', 'expired', 'ready'], 'waiting_user': ['cancelled', 'expired', 'ready'], 'waiting_result': ['cancelled', 'completed', 'failed', 'ready'], 'blocked': ['cancelled', 'failed', 'ready'], 'completed': [], 'failed': [], 'expired': [], 'cancelled': []}, 'event_transitions': {'candidate': ['active', 'merged', 'rejected', 'revised', 'split'], 'active': ['merged', 'rejected', 'resolved', 'revised', 'split'], 'resolved': ['merged', 'revised', 'split'], 'revised': ['active', 'merged', 'rejected', 'resolved', 'split'], 'rejected': ['revised'], 'merged': [], 'split': []}} == {'enums': {'aios_core.contracts.enums.ActionStatus': ['proposed', 'submitted', 'acknowledged', 'completed', 'failed', 'outcome_unknown', 'cancelled'], 'aios_core.contracts.enums.ClaimType': ['fact', 'opinion', 'belief', 'desire', 'intention', 'plan', 'prediction', 'promise', 'preference', 'inference', 'hypothesis'], 'aios_core.contracts.enums.DimensionLifecycle': ['candidate', 'trial', 'active', 'low_activity', 'dormant', 'merged', 'split', 'revised', 'rejected', 'reactivated'], 'aios_core.contracts.enums.ErrorCode': ['INVALID_ARGUMENT', 'NOT_FOUND', 'VERSION_CONFLICT', 'INCOMPLETE_DATA', 'STALE_INDEX', 'BUDGET_EXHAUSTED', 'PERMISSION_DENIED', 'DEPENDENCY_INVALID', 'OUTCOME_UNKNOWN', 'IDEMPOTENCY_CONFLICT', 'STORAGE_FAILURE'], 'aios_core.contracts.enums.EventStatus': ['candidate', 'active', 'resolved', 'revised', 'rejected', 'merged', 'split'], 'aios_core.contracts.enums.EvidenceRole': ['support', 'counter', 'context'], 'aios_core.contracts.enums.GoalSourceType': ['user_explicit', 'user_inferred', 'ai_self', 'app', 'external'], 'aios_core.contracts.enums.GoalStatus': ['proposed', 'active', 'paused', 'achieved', 'abandoned', 'unknown'], 'aios_core.contracts.enums.KnowledgeState': ['observed', 'reported', 'inferred', 'hypothesis', 'unknown', 'conflict'], 'aios_core.contracts.enums.ObjectType': ['observation', 'entity', 'relation', 'dimension_definition', 'dimension_membership', 'dimension_derivation', 'claim', 'evidence_set', 'event', 'summary', 'goal', 'dependency', 'task', 'wake', 'session', 'action', 'outcome', 'operation_experience', 'tool_proposal'], 'aios_core.contracts.enums.SummaryStatus': ['current', 'stale', 'partial', 'missing'], 'aios_core.contracts.enums.TaskState': ['draft', 'ready', 'running', 'waiting_time', 'waiting_evidence', 'waiting_user', 'waiting_result', 'blocked', 'completed', 'failed', 'expired', 'cancelled'], 'aios_core.contracts.enums.TaskType': ['immediate', 'scheduled', 'deadline', 'todo', 'recurring', 'follow_up', 'observation', 'verification', 'maintenance', 'app'], 'aios_core.contracts.enums.WakeSource': ['mechanical_change', 'keyword_entity', 'no_update', 'task_due', 'watch_match', 'user_interaction', 'safety', 'recovery'], 'aios_core.contracts.enums.WakeState': ['new', 'queued', 'merged', 'running', 'completed', 'suppressed', 'cancelled'], 'aios_core.contracts.time.TimePrecision': ['second', 'minute', 'hour', 'day', 'week', 'month', 'quarter', 'half_year', 'year', 'multi_year', 'unknown']}, 'event_transitions': {'active': ['merged', 'rejected', 'resolved', 'revised', 'split'], 'candidate': ['active', 'merged', 'rejected', 'revised', 'split'], 'merged': [], 'rejected': ['revised'], 'resolved': ['merged', 'revised', 'split'], 'revised': ['active', 'merged', 'rejected', 'resolved', 'split'], 'split': []}, 'gate_version': 'M0-R2', 'models': {'aios_core.contracts.base.WorldObject': '8bc0d806e2d427415a9e1c853d7b815eee09c4e39465814f3bc3025085597c5a', 'aios_core.contracts.errors.ErrorResponse': '2ea9a6af49db3192361124253bd811c1352a001ec682808c7a4e4779767014a9', 'aios_core.contracts.models.Action': '6f8059dfb163e2955aab6c89571d849a0acbe5383439d158dce4e0718dea705b', 'aios_core.contracts.models.Claim': '7b3f008d22cbc3ad10ccc5ac1edf788735dfbaa14fdb14b379951f5b866a40c8', 'aios_core.contracts.models.Dependency': '2787b7a598f7396bba1888343b1be7eec01dde0437a3a9fe4127b0bf344fcf86', 'aios_core.contracts.models.DimensionDefinition': '1b91ca9528916148f623da4697713f9aef5bc5a5698a1ef74a14f47a6d07ae47', 'aios_core.contracts.models.DimensionDerivation': '50f1ddf56a5a1c4270f2884863f185cea3259e1ff3b4c7f0cdbbdf2d771b7a4e', 'aios_core.contracts.models.DimensionMembership': 'a502abfa2fb972e903f53bc1cbda7db80540e6d75ebff410b41686b48b85f318', 'aios_core.contracts.models.Entity': '21d79329e215bd2a0f292a7652f57fbff36634161a0c646892727f85c655b2b2', 'aios_core.contracts.models.EventAnchor': '14009428ed717b5b105d444b8daf859e855b30023076313efe2bed20324db807', 'aios_core.contracts.models.EvidenceCoverage': 'e3cd1b8e7e100536c713cdf47325363f2abb3b34e3450c2513c3d33af71256a2', 'aios_core.contracts.models.EvidenceSelector': '27cfb93f96fd725b209f1afbd4a066e4f0b8d5dd98ee3b13fd5173c4cfab5d97', 'aios_core.contracts.models.EvidenceSet': '30758dfa624fe67642cc2994c7b851fb1513a59cca34a1d961bb37db77f8d73c', 'aios_core.contracts.models.Goal': 'd4cc974eee21690f1901b5b2126b6001e65d3bf1b026183ba837d675a233c0f2', 'aios_core.contracts.models.Observation': 'b58727fbd4b7b7c3a9984d0ff1742b56b42fb22967809e961362559c2c7561fc', 'aios_core.contracts.models.OperationExperience': '64f1c968176fa6afce4e08d9ccd10a6ab79911daf6bc0c6ee371e5f72d0a092f', 'aios_core.contracts.models.Outcome': '6c4033e4e44031f07cc078bc99a6254722b67c5f4c7887214de30e21335b45b0', 'aios_core.contracts.models.Relation': '79683cad62623b65b6f47268540f7f156e629c915da19fd8f3b48dd9683be0e4', 'aios_core.contracts.models.Session': '1a4d1d58deca8dc84bb1243f39ca28a6dc0a5ae70a93babffd35506f91d3f5d8', 'aios_core.contracts.models.Summary': '5323db4cafe10d3bae0ec32a77104f14d56d0834d569463ffeaa90682a8a797c', 'aios_core.contracts.models.Task': '36dfc7f08e2f41ade8a53bd781bc28f0590777e19efe9079563eb1ef5ebafe49', 'aios_core.contracts.models.ToolProposal': '9ff91fa43ee8896cb1cc3bcb0a416b5c4730cae9edfdb17aa5a9e60e2b7862fa', 'aios_core.contracts.models.Wake': '326408444f99c29ed9fbe9fa3a081d78b7959be6250a3e6e975280c1198408d5', 'aios_core.contracts.operations.CommitResult': '19569e889a3cd18bdabec590b5f3dd9c5e89b741ee68bb9a8e6010bc3fcceac5', 'aios_core.contracts.operations.OperationAuditRecord': 'd039a30a23261b37d6250b301356441b3a5573d2785206d2fe484d3a4fd681cc', 'aios_core.contracts.operations.OperationRequest': '506aee0d2ba50eadb5a72b387e3220f2ca362d84508e62191303e13493f7ec5b', 'aios_core.contracts.refs.ObjectRef': '15aacd9d84fb2646f5c07b79e8a5b62653d88a9c849b311c747029e198ff12e9', 'aios_core.contracts.refs.SourceRef': '10eb1e28c86e8d05d69a5f91c90de2064c301a8c7ea5d8c08e00afd08a9dd994', 'aios_core.contracts.time.KnowledgeWindow': '503f4e050bf0781c367da7f9d563b6e3d748306cd65fc1ef14c3aa9c56dbb6d6', 'aios_core.contracts.time.TemporalExtent': 'f39671e5e54ff03f20a7085e1caea8e11d6291def18d66a292304a26962252bc'}, 'task_transitions': {'blocked': ['cancelled', 'failed', 'ready'], 'cancelled': [], 'completed': [], 'draft': ['cancelled', 'ready'], 'expired': [], 'failed': [], 'ready': ['cancelled', 'expired', 'running'], 'running': ['blocked', 'cancelled', 'completed', 'failed', 'waiting_evidence', 'waiting_result', 'waiting_time', 'waiting_user'], 'waiting_evidence': ['cancelled', 'expired', 'ready'], 'waiting_result': ['cancelled', 'completed', 'failed', 'ready'], 'waiting_time': ['cancelled', 'expired', 'ready'], 'waiting_user': ['cancelled', 'expired', 'ready']}}
+  
+  Common items:
+  {'enums': {'aios_core.contracts.enums.ActionStatus': ['proposed',
+                                                        'submitted',
+                                                        'acknowledged',
+                                                        'completed',
+                                                        'failed',
+                                                        'outcome_unknown',
+                                                        'cancelled'],
+             'aios_core.contracts.enums.ClaimType': ['fact',
+                                                     'opinion',
+                                                     'belief',
+                                                     'desire',
+                                                     'intention',
+                                                     'plan',
+                                                     'prediction',
+                                                     'promise',
+                                                     'preference',
+                                                     'inference',
+                                                     'hypothesis'],
+             'aios_core.contracts.enums.DimensionLifecycle': ['candidate',
+                                                              'trial',
+                                                              'active',
+                                                              'low_activity',
+                                                              'dormant',
+                                                              'merged',
+                                                              'split',
+                                                              'revised',
+                                                              'rejected',
+                                                              'reactivated'],
+             'aios_core.contracts.enums.ErrorCode': ['INVALID_ARGUMENT',
+                                                     'NOT_FOUND',
+                                                     'VERSION_CONFLICT',
+                                                     'INCOMPLETE_DATA',
+                                                     'STALE_INDEX',
+                                                     'BUDGET_EXHAUSTED',
+                                                     'PERMISSION_DENIED',
+                                                     'DEPENDENCY_INVALID',
+                                                     'OUTCOME_UNKNOWN',
+                                                     'IDEMPOTENCY_CONFLICT',
+                                                     'STORAGE_FAILURE'],
+             'aios_core.contracts.enums.EventStatus': ['candidate',
+                                                       'active',
+                                                       'resolved',
+                                                       'revised',
+                                                       'rejected',
+                                                       'merged',
+                                                       'split'],
+             'aios_core.contracts.enums.EvidenceRole': ['support',
+                                                        'counter',
+                                                        'context'],
+             'aios_core.contracts.enums.GoalSourceType': ['user_explicit',
+                                                          'user_inferred',
+                                                          'ai_self',
+                                                          'app',
+                                                          'external'],
+             'aios_core.contracts.enums.GoalStatus': ['proposed',
+                                                      'active',
+                                                      'paused',
+                                                      'achieved',
+                                                      'abandoned',
+                                                      'unknown'],
+             'aios_core.contracts.enums.KnowledgeState': ['observed',
+                                                          'reported',
+                                                          'inferred',
+                                                          'hypothesis',
+                                                          'unknown',
+                                                          'conflict'],
+             'aios_core.contracts.enums.ObjectType': ['observation',
+                                                      'entity',
+                                                      'relation',
+                                                      'dimension_definition',
+                                                      'dimension_membership',
+                                                      'dimension_derivation',
+                                                      'claim',
+                                                      'evidence_set',
+                                                      'event',
+                                                      'summary',
+                                                      'goal',
+                                                      'dependency',
+                                                      'task',
+                                                      'wake',
+                                                      'session',
+                                                      'action',
+                                                      'outcome',
+                                                      'operation_experience',
+                                                      'tool_proposal'],
+             'aios_core.contracts.enums.SummaryStatus': ['current',
+                                                         'stale',
+                                                         'partial',
+                                                         'missing'],
+             'aios_core.contracts.enums.TaskState': ['draft',
+                                                     'ready',
+                                                     'running',
+                                                     'waiting_time',
+                                                     'waiting_evidence',
+                                                     'waiting_user',
+                                                     'waiting_result',
+                                                     'blocked',
+                                                     'completed',
+                                                     'failed',
+                                                     'expired',
+                                                     'cancelled'],
+             'aios_core.contracts.enums.TaskType': ['immediate',
+                                                    'scheduled',
+                                                    'deadline',
+                                                    'todo',
+                                                    'recurring',
+                                                    'follow_up',
+                                                    'observation',
+                                                    'verification',
+                                                    'maintenance',
+                                                    'app'],
+             'aios_core.contracts.enums.WakeSource': ['mechanical_change',
+                                                      'keyword_entity',
+                                                      'no_update',
+                                                      'task_due',
+                                                      'watch_match',
+                                                      'user_interaction',
+                                                      'safety',
+                                                      'recovery'],
+             'aios_core.contracts.enums.WakeState': ['new',
+                                                     'queued',
+                                                     'merged',
+                                                     'running',
+                                                     'completed',
+                                                     'suppressed',
+                                                     'cancelled'],
+             'aios_core.contracts.time.TimePrecision': ['second',
+                                                        'minute',
+                                                        'hour',
+                                                        'day',
+                                                        'week',
+                                                        'month',
+                                                        'quarter',
+                                                        'half_year',
+                                                        'year',
+                                                        'multi_year',
+                                                        'unknown']},
+   'event_transitions': {'active': ['merged',
+                                    'rejected',
+                                    'resolved',
+                                    'revised',
+                                    'split'],
+                         'candidate': ['active',
+                                       'merged',
+                                       'rejected',
+                                       'revised',
+                                       'split'],
+                         'merged': [],
+                         'rejected': ['revised'],
+                         'resolved': ['merged', 'revised', 'split'],
+                         'revised': ['active',
+                                     'merged',
+                                     'rejected',
+                                     'resolved',
+                                     'split'],
+                         'split': []},
+   'gate_version': 'M0-R2',
+   'task_transitions': {'blocked': ['cancelled', 'failed', 'ready'],
+                        'cancelled': [],
+                        'completed': [],
+                        'draft': ['cancelled', 'ready'],
+                        'expired': [],
+                        'failed': [],
+                        'ready': ['cancelled', 'expired', 'running'],
+                        'running': ['blocked',
+                                    'cancelled',
+                                    'completed',
+                                    'failed',
+                                    'waiting_evidence',
+                                    'waiting_result',
+                                    'waiting_time',
+                                    'waiting_user'],
+                        'waiting_evidence': ['cancelled', 'expired', 'ready'],
+                        'waiting_result': ['cancelled',
+                                           'completed',
+                                           'failed',
+                                           'ready'],
+                        'waiting_time': ['cancelled', 'expired', 'ready'],
+                        'waiting_user': ['cancelled', 'expired', 'ready']}}
+  Differing items:
+  {'models': {'aios_core.contracts.base.WorldObject': 'ed5aa7f7c5f31694864aa2c8c999bd3287554ebdc1a33c63c87d9d03ac617cd1'...250e7bf', 'aios_core.contracts.models.Claim': '0680ba79684255886b7122625a515e94cf5a4b04d1aec96166ac5e7723fe094e', ...}} != {'models': {'aios_core.contracts.base.WorldObject': '8bc0d806e2d427415a9e1c853d7b815eee09c4e39465814f3bc3025085597c5a'...dea705b', 'aios_core.contracts.models.Claim': '7b3f008d22cbc3ad10ccc5ac1edf788735dfbaa14fdb14b379951f5b866a40c8', ...}}
+  
+  Full diff:
+    {
+        'enums': {
+            'aios_core.contracts.enums.ActionStatus': [
+                'proposed',
+                'submitted',
+                'acknowledged',
+                'completed',
+                'failed',
+                'outcome_unknown',
+                'cancelled',
+            ],
+            'aios_core.contracts.enums.ClaimType': [
+                'fact',
+                'opinion',
+                'belief',
+                'desire',
+                'intention',
+                'plan',
+                'prediction',
+                'promise',
+                'preference',
+                'inference',
+                'hypothesis',
+            ],
+            'aios_core.contracts.enums.DimensionLifecycle': [
+                'candidate',
+                'trial',
+                'active',
+                'low_activity',
+                'dormant',
+                'merged',
+                'split',
+                'revised',
+                'rejected',
+                'reactivated',
+            ],
+            'aios_core.contracts.enums.ErrorCode': [
+                'INVALID_ARGUMENT',
+                'NOT_FOUND',
+                'VERSION_CONFLICT',
+                'INCOMPLETE_DATA',
+                'STALE_INDEX',
+                'BUDGET_EXHAUSTED',
+                'PERMISSION_DENIED',
+                'DEPENDENCY_INVALID',
+                'OUTCOME_UNKNOWN',
+                'IDEMPOTENCY_CONFLICT',
+                'STORAGE_FAILURE',
+            ],
+            'aios_core.contracts.enums.EventStatus': [
+                'candidate',
+                'active',
+                'resolved',
+                'revised',
+                'rejected',
+                'merged',
+                'split',
+            ],
+            'aios_core.contracts.enums.EvidenceRole': [
+                'support',
+                'counter',
+                'context',
+            ],
+            'aios_core.contracts.enums.GoalSourceType': [
+                'user_explicit',
+                'user_inferred',
+                'ai_self',
+                'app',
+                'external',
+            ],
+            'aios_core.contracts.enums.GoalStatus': [
+                'proposed',
+                'active',
+                'paused',
+                'achieved',
+                'abandoned',
+                'unknown',
+            ],
+            'aios_core.contracts.enums.KnowledgeState': [
+                'observed',
+                'reported',
+                'inferred',
+                'hypothesis',
+                'unknown',
+                'conflict',
+            ],
+            'aios_core.contracts.enums.ObjectType': [
+                'observation',
+                'entity',
+                'relation',
+                'dimension_definition',
+                'dimension_membership',
+                'dimension_derivation',
+                'claim',
+                'evidence_set',
+                'event',
+                'summary',
+                'goal',
+                'dependency',
+                'task',
+                'wake',
+                'session',
+                'action',
+                'outcome',
+                'operation_experience',
+                'tool_proposal',
+            ],
+            'aios_core.contracts.enums.SummaryStatus': [
+                'current',
+                'stale',
+                'partial',
+                'missing',
+            ],
+            'aios_core.contracts.enums.TaskState': [
+                'draft',
+                'ready',
+                'running',
+                'waiting_time',
+                'waiting_evidence',
+                'waiting_user',
+                'waiting_result',
+                'blocked',
+                'completed',
+                'failed',
+                'expired',
+                'cancelled',
+            ],
+            'aios_core.contracts.enums.TaskType': [
+                'immediate',
+                'scheduled',
+                'deadline',
+                'todo',
+                'recurring',
+                'follow_up',
+                'observation',
+                'verification',
+                'maintenance',
+                'app',
+            ],
+            'aios_core.contracts.enums.WakeSource': [
+                'mechanical_change',
+                'keyword_entity',
+                'no_update',
+                'task_due',
+                'watch_match',
+                'user_interaction',
+                'safety',
+                'recovery',
+            ],
+            'aios_core.contracts.enums.WakeState': [
+                'new',
+                'queued',
+                'merged',
+                'running',
+                'completed',
+                'suppressed',
+                'cancelled',
+            ],
+            'aios_core.contracts.time.TimePrecision': [
+                'second',
+                'minute',
+                'hour',
+                'day',
+                'week',
+                'month',
+                'quarter',
+                'half_year',
+                'year',
+                'multi_year',
+                'unknown',
+            ],
+        },
+        'event_transitions': {
+            'active': [
+                'merged',
+                'rejected',
+                'resolved',
+                'revised',
+                'split',
+            ],
+            'candidate': [
+                'active',
+                'merged',
+                'rejected',
+                'revised',
+                'split',
+            ],
+            'merged': [],
+            'rejected': [
+                'revised',
+            ],
+            'resolved': [
+                'merged',
+                'revised',
+                'split',
+            ],
+            'revised': [
+                'active',
+                'merged',
+                'rejected',
+                'resolved',
+                'split',
+            ],
+            'split': [],
+        },
+        'gate_version': 'M0-R2',
+        'models': {
+  -         'aios_core.contracts.base.WorldObject': '8bc0d806e2d427415a9e1c853d7b815eee09c4e39465814f3bc3025085597c5a',
+  +         'aios_core.contracts.base.WorldObject': 'ed5aa7f7c5f31694864aa2c8c999bd3287554ebdc1a33c63c87d9d03ac617cd1',
+            'aios_core.contracts.errors.ErrorResponse': '2ea9a6af49db3192361124253bd811c1352a001ec682808c7a4e4779767014a9',
+  -         'aios_core.contracts.models.Action': '6f8059dfb163e2955aab6c89571d849a0acbe5383439d158dce4e0718dea705b',
+  -         'aios_core.contracts.models.Claim': '7b3f008d22cbc3ad10ccc5ac1edf788735dfbaa14fdb14b379951f5b866a40c8',
+  -         'aios_core.contracts.models.Dependency': '2787b7a598f7396bba1888343b1be7eec01dde0437a3a9fe4127b0bf344fcf86',
+  -         'aios_core.contracts.models.DimensionDefinition': '1b91ca9528916148f623da4697713f9aef5bc5a5698a1ef74a14f47a6d07ae47',
+  -         'aios_core.contracts.models.DimensionDerivation': '50f1ddf56a5a1c4270f2884863f185cea3259e1ff3b4c7f0cdbbdf2d771b7a4e',
+  -         'aios_core.contracts.models.DimensionMembership': 'a502abfa2fb972e903f53bc1cbda7db80540e6d75ebff410b41686b48b85f318',
+  -         'aios_core.contracts.models.Entity': '21d79329e215bd2a0f292a7652f57fbff36634161a0c646892727f85c655b2b2',
+  -         'aios_core.contracts.models.EventAnchor': '14009428ed717b5b105d444b8daf859e855b30023076313efe2bed20324db807',
+  +         'aios_core.contracts.models.Action': 'f52a3ebe53e4b15d40f365d3c3fe4ce12a7db54155a1b816264de9691250e7bf',
+  +         'aios_core.contracts.models.Claim': '0680ba79684255886b7122625a515e94cf5a4b04d1aec96166ac5e7723fe094e',
+  +         'aios_core.contracts.models.Dependency': '4ac0eebedadd5682c739b135a85ed685c8f5cf085e2dd12f3f67d8be7577a368',
+  +         'aios_core.contracts.models.DimensionDefinition': '173756c1e937885ffc3469dfd66e252460c1d9b81c3fe253f54ba0fbf6a41ebf',
+  +         'aios_core.contracts.models.DimensionDerivation': 'd64970421e84939a2c3e7c31fd9ab4129a4292601d8ac13e365219ba29fac0ae',
+  +         'aios_core.contracts.models.DimensionMembership': '04f9700c50060e9bd46a04017a34c2fd9a686bcf48dd100a07f60ba22d54a064',
+  +         'aios_core.contracts.models.Entity': 'e26599e7fea2dceb26d26488b4dde02279945034705fd83f9b43879e65cbe5f5',
+  +         'aios_core.contracts.models.EventAnchor': '14b944d7ccc5549e442a289b52e4efcdb2c9848d2eed315633ea3b2abefebff5',
+            'aios_core.contracts.models.EvidenceCoverage': 'e3cd1b8e7e100536c713cdf47325363f2abb3b34e3450c2513c3d33af71256a2',
+  -         'aios_core.contracts.models.EvidenceSelector': '27cfb93f96fd725b209f1afbd4a066e4f0b8d5dd98ee3b13fd5173c4cfab5d97',
+  -         'aios_core.contracts.models.EvidenceSet': '30758dfa624fe67642cc2994c7b851fb1513a59cca34a1d961bb37db77f8d73c',
+  -         'aios_core.contracts.models.Goal': 'd4cc974eee21690f1901b5b2126b6001e65d3bf1b026183ba837d675a233c0f2',
+  -         'aios_core.contracts.models.Observation': 'b58727fbd4b7b7c3a9984d0ff1742b56b42fb22967809e961362559c2c7561fc',
+  -         'aios_core.contracts.models.OperationExperience': '64f1c968176fa6afce4e08d9ccd10a6ab79911daf6bc0c6ee371e5f72d0a092f',
+  -         'aios_core.contracts.models.Outcome': '6c4033e4e44031f07cc078bc99a6254722b67c5f4c7887214de30e21335b45b0',
+  -         'aios_core.contracts.models.Relation': '79683cad62623b65b6f47268540f7f156e629c915da19fd8f3b48dd9683be0e4',
+  -         'aios_core.contracts.models.Session': '1a4d1d58deca8dc84bb1243f39ca28a6dc0a5ae70a93babffd35506f91d3f5d8',
+  -         'aios_core.contracts.models.Summary': '5323db4cafe10d3bae0ec32a77104f14d56d0834d569463ffeaa90682a8a797c',
+  -         'aios_core.contracts.models.Task': '36dfc7f08e2f41ade8a53bd781bc28f0590777e19efe9079563eb1ef5ebafe49',
+  -         'aios_core.contracts.models.ToolProposal': '9ff91fa43ee8896cb1cc3bcb0a416b5c4730cae9edfdb17aa5a9e60e2b7862fa',
+  -         'aios_core.contracts.models.Wake': '326408444f99c29ed9fbe9fa3a081d78b7959be6250a3e6e975280c1198408d5',
+  +         'aios_core.contracts.models.EvidenceSelector': 'd86a07db902d3f4e36dec15330d08e89fceca7ea97d79ca026ea6d1d65fcb3d7',
+  +         'aios_core.contracts.models.EvidenceSet': 'f1341cb7208f1cb8c76e3a1c8147cc1b39e894fa8f94c5513d6436e718dbb1df',
+  +         'aios_core.contracts.models.Goal': '3fef4c4a52520a0bcca220602bcea7269014bc3b759e8a7b97b7a1c22509336b',
+  +         'aios_core.contracts.models.Observation': '1c8f4b39b8229635834f81e1aad385bb886d8c8d65be0e3970a1e6c944e1b7fb',
+  +         'aios_core.contracts.models.OperationExperience': 'e5a6cfedfc8e967d6e3a652a8195ff468dfea9a166c196e86f1fb0d8cf704f2d',
+  +         'aios_core.contracts.models.Outcome': 'dee8d3680e73ac71be23d51a5dc936b44616b29d39f10b44fe82cd02ab3ea371',
+  +         'aios_core.contracts.models.Relation': '4bc753c926462631024096609bf0edd40fa48b0d0b71689ebd2c0876bd041282',
+  +         'aios_core.contracts.models.Session': 'c894e96c9d7edae8f5172feb97a71b77db3f5369be25b9c6308e50fe3e22bd25',
+  +         'aios_core.contracts.models.Summary': 'cbc9230555116eb2979db22120442df89c9140db23fa321c9b2f4559eca0da9c',
+  +         'aios_core.contracts.models.Task': '662a4098e6110b5ac5a67205d560f683d027acac744177a216d98a1ed78395d3',
+  +         'aios_core.contracts.models.ToolProposal': '7e57bdb0c861ce810f157b2f216f8069c8c7b88f10c093aa11e84a64f3492407',
+  +         'aios_core.contracts.models.Wake': 'fa222728fe6398a6b963488eec590b1b2e1a475b665344eab62cbca03057ede1',
+            'aios_core.contracts.operations.CommitResult': '19569e889a3cd18bdabec590b5f3dd9c5e89b741ee68bb9a8e6010bc3fcceac5',
+  -         'aios_core.contracts.operations.OperationAuditRecord': 'd039a30a23261b37d6250b301356441b3a5573d2785206d2fe484d3a4fd681cc',
+  -         'aios_core.contracts.operations.OperationRequest': '506aee0d2ba50eadb5a72b387e3220f2ca362d84508e62191303e13493f7ec5b',
+  +         'aios_core.contracts.operations.OperationAuditRecord': 'eaffe475729eea9e1be68ad396fd5c6fed610c06f9705f9632783c8542375c3e',
+  +         'aios_core.contracts.operations.OperationRequest': 'f9391258e4ff7c66cad43dc20aa9513c4ed2c551a6183ea5ee41c3c881d90765',
+            'aios_core.contracts.refs.ObjectRef': '15aacd9d84fb2646f5c07b79e8a5b62653d88a9c849b311c747029e198ff12e9',
+            'aios_core.contracts.refs.SourceRef': '10eb1e28c86e8d05d69a5f91c90de2064c301a8c7ea5d8c08e00afd08a9dd994',
+            'aios_core.contracts.time.KnowledgeWindow': '503f4e050bf0781c367da7f9d563b6e3d748306cd65fc1ef14c3aa9c56dbb6d6',
+            'aios_core.contracts.time.TemporalExtent': 'f39671e5e54ff03f20a7085e1caea8e11d6291def18d66a292304a26962252bc',
+        },
+        'task_transitions': {
+            'blocked': [
+                'cancelled',
+                'failed',
+                'ready',
+            ],
+            'cancelled': [],
+            'completed': [],
+            'draft': [
+                'cancelled',
+                'ready',
+            ],
+            'expired': [],
+            'failed': [],
+            'ready': [
+                'cancelled',
+                'expired',
+                'running',
+            ],
+            'running': [
+                'blocked',
+                'cancelled',
+                'completed',
+                'failed',
+                'waiting_evidence',
+                'waiting_result',
+                'waiting_time',
+                'waiting_user',
+            ],
+            'waiting_evidence': [
+                'cancelled',
+                'expired',
+                'ready',
+            ],
+            'waiting_result': [
+                'cancelled',
+                'completed',
+                'failed',
+                'ready',
+            ],
+            'waiting_time': [
+                'cancelled',
+                'expired',
+                'ready',
+            ],
+            'waiting_user': [
+                'cancelled',
+                'expired',
+                'ready',
+            ],
+        },
+    }
+======================== 1 failed, 485 passed in 7.83s =========================

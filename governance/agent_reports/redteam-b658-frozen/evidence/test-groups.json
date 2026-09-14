@@ -1,0 +1,174 @@
+{
+  "2.13.5": {
+    "test_x1_bidirectional_identity_restart_stale": {
+      "passed": 16,
+      "failed": 0
+    },
+    "test_x1_marker_spoof_is_not_reference_identity": {
+      "passed": 8,
+      "failed": 0
+    },
+    "test_legacy_no_bidirectional_typed_opaque_false_replay": {
+      "passed": 6,
+      "failed": 6
+    },
+    "test_legacy_pure_json_exact_replay": {
+      "passed": 3,
+      "failed": 0
+    },
+    "test_legacy_unverifiable_typed_exact_fails_closed": {
+      "passed": 8,
+      "failed": 0
+    },
+    "test_x2_serialization_protocol_atomicity": {
+      "passed": 80,
+      "failed": 0
+    },
+    "test_x3_nested_extra_roundtrip_and_changed_retry": {
+      "passed": 8,
+      "failed": 0
+    },
+    "test_x3_dirty_unknown_fields_must_not_be_silently_erased": {
+      "passed": 8,
+      "failed": 8
+    },
+    "test_b10_canonical_subtype_extra_allow_is_not_authority": {
+      "passed": 2,
+      "failed": 0
+    },
+    "test_x4_canonical_ref_roundtrip_and_restart_retry": {
+      "passed": 16,
+      "failed": 0
+    },
+    "test_x4_invalid_dirty_ref_atomic_rejection": {
+      "passed": 80,
+      "failed": 0
+    },
+    "test_dirty_operation_routing_never_leaks_binder_values": {
+      "passed": 28,
+      "failed": 0
+    },
+    "test_b6_coercible_operation_identity_normalizes_before_routing": {
+      "passed": 6,
+      "failed": 0
+    },
+    "test_b11_nested_mapping_keys_must_be_strings": {
+      "passed": 48,
+      "failed": 0
+    },
+    "test_b4_reference_validation_survives_containers": {
+      "passed": 40,
+      "failed": 0
+    },
+    "test_b10_dirty_discriminator_uses_canonical_contract": {
+      "passed": 10,
+      "failed": 0
+    },
+    "test_b10_base_class_cannot_impersonate_observation": {
+      "passed": 1,
+      "failed": 0
+    },
+    "test_b1_changed_nested_plain_data_conflicts": {
+      "passed": 4,
+      "failed": 0
+    },
+    "test_b6_shared_acyclic_alias_and_json_coercions": {
+      "passed": 4,
+      "failed": 0
+    },
+    "test_b6_unordered_value_durable_normal_form_replay": {
+      "passed": 0,
+      "failed": 3
+    },
+    "test_cross_process_hash_seed_restart_preserves_complete_rows": {
+      "passed": 1,
+      "failed": 0
+    }
+  },
+  "2.10.6": {
+    "test_x1_bidirectional_identity_restart_stale": {
+      "passed": 16,
+      "failed": 0
+    },
+    "test_x1_marker_spoof_is_not_reference_identity": {
+      "passed": 8,
+      "failed": 0
+    },
+    "test_legacy_no_bidirectional_typed_opaque_false_replay": {
+      "passed": 6,
+      "failed": 6
+    },
+    "test_legacy_pure_json_exact_replay": {
+      "passed": 3,
+      "failed": 0
+    },
+    "test_legacy_unverifiable_typed_exact_fails_closed": {
+      "passed": 8,
+      "failed": 0
+    },
+    "test_x2_serialization_protocol_atomicity": {
+      "passed": 80,
+      "failed": 0
+    },
+    "test_x3_nested_extra_roundtrip_and_changed_retry": {
+      "passed": 8,
+      "failed": 0
+    },
+    "test_x3_dirty_unknown_fields_must_not_be_silently_erased": {
+      "passed": 8,
+      "failed": 8
+    },
+    "test_b10_canonical_subtype_extra_allow_is_not_authority": {
+      "passed": 2,
+      "failed": 0
+    },
+    "test_x4_canonical_ref_roundtrip_and_restart_retry": {
+      "passed": 16,
+      "failed": 0
+    },
+    "test_x4_invalid_dirty_ref_atomic_rejection": {
+      "passed": 80,
+      "failed": 0
+    },
+    "test_dirty_operation_routing_never_leaks_binder_values": {
+      "passed": 28,
+      "failed": 0
+    },
+    "test_b6_coercible_operation_identity_normalizes_before_routing": {
+      "passed": 6,
+      "failed": 0
+    },
+    "test_b11_nested_mapping_keys_must_be_strings": {
+      "passed": 48,
+      "failed": 0
+    },
+    "test_b4_reference_validation_survives_containers": {
+      "passed": 40,
+      "failed": 0
+    },
+    "test_b10_dirty_discriminator_uses_canonical_contract": {
+      "passed": 10,
+      "failed": 0
+    },
+    "test_b10_base_class_cannot_impersonate_observation": {
+      "passed": 1,
+      "failed": 0
+    },
+    "test_b1_changed_nested_plain_data_conflicts": {
+      "passed": 4,
+      "failed": 0
+    },
+    "test_b6_shared_acyclic_alias_and_json_coercions": {
+      "passed": 4,
+      "failed": 0
+    },
+    "test_b6_unordered_value_durable_normal_form_replay": {
+      "passed": 0,
+      "failed": 3
+    },
+    "test_cross_process_hash_seed_restart_preserves_complete_rows": {
+      "passed": 1,
+      "failed": 0
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "candidate": "b6588bdaaa36d9dace4f9959dda0a89a370e1674",
+  "audit_branch": "arena/01a09fa9-fantonghui",
+  "freeze_commit": "194638c1306f65865626e27b76ad36fde53f8e60",
+  "first_execution_evidence_commit": "818f19b841fe7287111c1675c0c435955314ba84",
+  "test_unchanged_since_published_freeze": true,
+  "test_sha256": "180dc1bac647e6cee6688dd4475dab8a063cc9fa9545acdc0e907036e9bea97d",
+  "execution": "local CPython 3.12.14, no dedicated new Actions execution",
+  "runtime_source": "https://github.com/python/cpython/tree/v3.12.14",
+  "runtime_source_archive_sha256": "269931901b4df60ccae2e5a47fdaf603988bbbc5fb4666c6a86ed90d4c2f1b59",
+  "runtime_optional_ssl_available": false,
+  "legacy_observation_source": "git archive 524f4d99ea1827941300de47b76810d97a6c23e7; not the lost 100-probe artifact"
+}
