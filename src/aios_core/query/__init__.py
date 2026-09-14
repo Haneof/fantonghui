@@ -2,3 +2,7 @@
 
 此层封装 storage 的历史读取与 knowledge cutoff 逻辑，禁止直接 SQL。
 """
+
+from .history import HistoricalQueryResult, HistoricalWorldQuery, QueryCoverage
+
+__all__ = ["HistoricalQueryResult", "HistoricalWorldQuery", "QueryCoverage"]
