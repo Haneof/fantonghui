@@ -44,10 +44,11 @@ def make_observation(
 ):
     now = utc_now()
     learned = learned_at or now
-    # ensure recorded_at >= learned_at
-    recorded = recorded_at or learned
-    if recorded < learned:
-        recorded = learned
+    recorded = (
+        recorded_at
+        if recorded_at is not None
+        else learned
+    )
     oid = object_id or new_object_id(ObjectType.OBSERVATION)
     base_kwargs = dict(
         object_id=oid,
@@ -231,13 +232,10 @@ def test_o05_app_answer_observation(tmp_path):
     assert payload["value"]["answer"] == "B"
     assert payload["value"]["correct"] is True
 
-    # 不要自动推断 ability等
+    # 不要自动推断 ability等，严格无confidence
     assert "ability" not in payload
     assert "learning_problem" not in payload
-    assert "confidence" not in payload or isinstance(payload.get("confidence"), (int, float)) is False or True  # confidence field not in Observation
-    # Ensure Observation doesn't have semantic fields
-    assert "ability" not in payload
-    assert "learning_problem" not in payload
+    assert "confidence" not in payload
 
 
 # O06 禁止event_type高层语义字段
@@ -434,3 +432,19 @@ def test_o12_no_derived_world_objects(tmp_path):
     assert events == []
     assert goals == []
     assert wakes == []
+
+
+# O13 helper不得掩盖非法公共时间
+def test_o13_helper_must_not_mask_illegal_time():
+    learned = datetime(2026, 9, 14, 10, 0, tzinfo=timezone.utc)
+    recorded = datetime(2026, 9, 14, 9, 59, tzinfo=timezone.utc)
+
+    with pytest.raises(ValidationError):
+        make_observation(
+            learned_at=learned,
+            recorded_at=recorded,
+            source_kind="device_sensor",
+            modality="heart_rate",
+            value=82,
+            unit="bpm",
+        )
