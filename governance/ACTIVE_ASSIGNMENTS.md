@@ -5,12 +5,14 @@ This file is the cloud roster. An AI agent must not self-assign production work 
 ## Assignment A — `chief-01` Chief Engineer
 
 - Agent ID: `chief-01`
+- 中文职位：总工程师 / 总工
 - Status: ACTIVE / OWNER
 - Task: M0-011 — DimensionDefinition / DimensionMembership / DimensionDerivation three-layer contract
 - Role: Chief Engineer
 - Role prompt: `governance/roles/CHIEF_ENGINEER.md`
 - Production branch: `arena/01a09bc6-fantonghui`
-- Frozen base commit: `949e90e58bd073c1da5d23664bfcb1cb8154ebde`
+- Frozen production base commit: `949e90e58bd073c1da5d23664bfcb1cb8154ebde`
+- Current working branch HEAD after governance-only closeout sync: `a06ac1a5b634c852a5252373795a3727f7a4ba02`
 - Parallel safety: NOT PARALLEL_SAFE for another core writer
 - Next task M0-012: HOLD
 
@@ -45,33 +47,33 @@ Chief Engineer must independently decide minimal validators/tests before writing
 ## Assignment B — `core-01` Core Implementation Engineer
 
 - Agent ID: `core-01`
-- Status: REPORT SYNC REQUIRED THEN IDLE
-- Task: M0-010-R1 closeout only
+- 中文职位：核心程序员 / 主程序员
+- Status: IDLE
+- Task: NONE
 - Role: Core Implementation Engineer
 - Role prompt: `governance/roles/IMPLEMENTATION_ENGINEER.md`
-- Working branch: `arena/01a09bc6-fantonghui`
-- Accepted HEAD: `949e90e58bd073c1da5d23664bfcb1cb8154ebde`
-- Required cloud result: `governance/agent_reports/core-01/LATEST.md` on the working branch
+- Last working branch: `arena/01a09bc6-fantonghui`
+- Last cloud result: `governance/agent_reports/core-01/LATEST.md`
+- Last accepted production commit: `949e90e58bd073c1da5d23664bfcb1cb8154ebde`
+- Closeout sync HEAD: `a06ac1a5b634c852a5252373795a3727f7a4ba02`
 - Production scope: NONE
 
-### Required closeout work
+### Chief verification of closeout
 
-- create/update `governance/agent_reports/core-01/LATEST.md`
-- record task `M0-010-R1`
-- status `PATCH COMPLETE / ACCEPTED BY CHIEF`
-- head commit `949e90e58bd073c1da5d23664bfcb1cb8154ebde`
-- production R1 diff: NO CHANGE
-- local result: 253 passed + Reference 15 passed
-- exact-head CI: SUCCESS, Python 3.12.14, 253 passed
-- unresolved issues: NONE
-- next requested action: NONE / IDLE
-- do not modify `src/aios_core/**`
-- do not start M0-011
-- push the report commit and stop
+- `LATEST.md` exists and matches M0-010-R1 accepted result
+- compare `949e90e..a06ac1a`: ahead-only
+- only changed file: `governance/agent_reports/core-01/LATEST.md`
+- no `src/aios_core/**` changes
+- exact-head GitHub Actions SUCCESS
+- Python 3.12.14 / pytest 8.4.2 / 253 passed
+- core programmer did not start M0-011
+
+Current instruction: remain IDLE until `chief-01` assigns a new task.
 
 ## Assignment C — `architect-01` Principal Architect / GPT-6 Red Team
 
 - Agent ID: `architect-01`
+- 中文职位：GPT-6 架构审计员 / GPT-6 首席架构师
 - Status: STANDBY
 - Role: Principal Architect / Red Team
 - Preferred model class: GPT-6-class
@@ -84,6 +86,7 @@ Chief Engineer must independently decide minimal validators/tests before writing
 ## Assignment D — `parallel-01` Parallel Implementation Engineer
 
 - Agent ID: `parallel-01`
+- 中文职位：并行程序员1
 - Status: NOT AUTHORIZED
 - Role: Parallel Implementation Engineer
 - Role prompt: `governance/roles/IMPLEMENTATION_ENGINEER.md`
@@ -94,6 +97,7 @@ Chief Engineer must independently decide minimal validators/tests before writing
 ## Assignment E — `parallel-02` Parallel Implementation Engineer
 
 - Agent ID: `parallel-02`
+- 中文职位：并行程序员2
 - Status: NOT AUTHORIZED
 - Role: Parallel Implementation Engineer
 - Role prompt: `governance/roles/IMPLEMENTATION_ENGINEER.md`
@@ -107,8 +111,8 @@ The human operator does not transport result text between agents.
 
 The operator only needs to say things like:
 
-- `core-01 做完了`
-- `architect-01 做完了`
-- `parallel-01 做完了`
+- `核心程序员做完了`
+- `GPT-6架构审计员做完了`
+- `并行程序员1做完了`
 
-The Chief Engineer then reads the cloud report and actual GitHub state, updates authoritative state, and tells the operator which agent ID should read its next assignment from the cloud.
+The Chief Engineer then reads the cloud report and actual GitHub state, updates authoritative state, and tells the operator which Chinese role should read its next assignment from the cloud.
