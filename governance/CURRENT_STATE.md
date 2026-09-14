@@ -7,8 +7,8 @@ This file is the short cloud checkpoint used to recover project state after long
 ## Current milestone
 
 - Milestone: M0 — freeze world contracts and core storage
-- Status: IN PROGRESS
-- Progress: 20/22 tasks FINAL PASS
+- Status: IN PROGRESS / GATE NEXT
+- Progress: 21/22 tasks FINAL PASS
 - Core development mode: SINGLE-WRITER for production contracts until M0 Gate
 
 ## Frozen tasks
@@ -32,33 +32,34 @@ This file is the short cloud checkpoint used to recover project state after long
 - M0-017 FINAL PASS — `c9bd2d85ff0047515f6f4cc5b9e7058c70cff6dc`
 - M0-018 FINAL PASS — `f00735193e09b6a337ade39dc040510c003d8f54`
 - M0-019 FINAL PASS — `f1dc7cc8ca07131f75d7afe5c505f534c2f3dbe8`
-- M0-020 FINAL PASS — semantic frozen commit `426ea4c8e1292f0dd5f57e01f8663014071f7004`
+- M0-020 FINAL PASS — `426ea4c8e1292f0dd5f57e01f8663014071f7004`
+- M0-021 FINAL PASS — semantic frozen commit `8818dba83d97f73e3e48df97df9a18e3c450ba9d`
 
-## M0-020 accepted contract
+## M0-021 accepted contract
 
-Historical reads now support exact object revision, as-of world revision, and learned-at knowledge cutoff. Future revisions already present in storage remain invisible before their learned_at boundary. Historical list reconstruction selects the latest visible revision per object before applying mutable subject filters. `HistoricalWorldQuery` pins each logical read to an actual world revision and reports that revision plus minimal returned-object coverage. Visibility is not based only on recorded_at.
+Task and Event legal transition matrices are explicit and exhaustively tested. Task terminal states cannot restart; Event MERGED/SPLIT are terminal. The mandatory canaries RUNNING->WAITING_RESULT and CANDIDATE->REJECTED are legal, while COMPLETED->RUNNING and MERGED->ACTIVE are rejected. Revision-level transition validators require the same object_id and exactly revision+1 before accepting the state transition, so a state change is represented as new append-only history rather than an in-place durable update.
 
 Exact semantic-head CI:
-- GitHub Actions run `34813251515`
-- job `103878594196`
+- GitHub Actions run `34813790092`
+- job `103880165317`
 - CPython 3.12.14 / pytest 8.4.2
-- formal: 377 passed, 1 previously accepted adversarial warning
+- formal: 385 passed, 1 previously accepted adversarial warning
 - Reference: 15 passed
 - conclusion: SUCCESS
 
-Formal review: `reviews/M0/M0-020_final_PASS_2026-09-14.md`
+Formal review: `reviews/M0/M0-021_final_PASS_2026-09-14.md`
 
 ## Active / next task
 
-- M0-021 — Task / Event 状态机冻结
-- Status: AUTHORIZED / CHIEF ENGINEER OWNED / NOT STARTED
-- Owner: `chief-01`
+- M0-022 — M0 契约总测试与冻结快照 / M0 Gate
+- Status: AUTHORIZED / CHIEF ENGINEER GATE / NOT STARTED
+- Chief owner: `chief-01`
 - Production branch: `arena/01a09bc6-fantonghui`
-- Frozen semantic base: `426ea4c8e1292f0dd5f57e01f8663014071f7004`
-- Goal: freeze legal Task and Event transition matrices, reject illegal resurrection transitions, and require state transitions to be expressed as new object revisions rather than in-place durable updates
+- Frozen semantic base through M0-021: `8818dba83d97f73e3e48df97df9a18e3c450ba9d`
+- Goal: full M0 contract regression, schema snapshot/hash, required fixtures, gate report, and explicit freeze before M1
 - `core-01`: IDLE / no production assignment
-- `architect-01`: STANDBY; mandatory at M0 Gate, no current escalation trigger
-- `parallel-01/02`: NOT AUTHORIZED
+- `architect-01`: AUTHORIZED / REQUIRED FOR M0 GATE / NOT STARTED; independent GPT-6-class red-team must pass before M0 FINAL PASS and before M1
+- `parallel-01/02`: NOT AUTHORIZED until M0 Gate passes
 
 ## Chief-review discipline
 
@@ -66,6 +67,7 @@ Formal review: `reviews/M0/M0-020_final_PASS_2026-09-14.md`
 - Chief Engineer independently checks actual GitHub HEAD, compare/diff, source, tests, reviews, and exact-head CI.
 - A task is frozen only when the Chief Engineer names the exact accepted commit.
 - Review/progress commits after a semantic freeze do not silently redefine the frozen production contract.
+- M0-022 cannot be signed FINAL PASS from CI alone; the independent GPT-6 architecture red-team is mandatory.
 
 ## Recovery rule
 
