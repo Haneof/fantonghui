@@ -31,37 +31,19 @@ This file is the short cloud checkpoint used to recover project state after long
 
 ## M0-015 accepted contract
 
-Dependency is the explicit version-aware edge used to record why one cognition/summary/task depends on another exact object revision.
-
-Accepted invariants:
-- `dependent_ref` and `dependency_ref` are pinned ObjectRefs;
-- `dependency_type` remains an open nonblank string rather than a prematurely closed ontology;
-- direct self-dependency is rejected;
-- multi-edge explicit Dependency cycles are detectable/rejectable by the dependency graph guard;
-- ordinary semantic Relation graphs are not Dependency graphs and may contain cycles;
-- exact-revision reverse scanning can identify direct/transitive impacted dependents;
-- reverse scanning does not silently treat revision N+1 as equivalent to revision N;
-- persisted Dependency payloads can be rebuilt and reverse-scanned;
-- M0-009 durable revalidation prevents post-validation mutation from persisting floating Dependency refs;
-- persistent reverse indexes and automatic correction propagation remain M3 work.
-
-Exact semantic-head CI:
-- GitHub Actions run `34809518146`
-- job `103867871731`
-- CPython 3.12.14 / pytest 8.4.2
-- formal: 329 passed, 1 previously accepted adversarial warning
-- Reference: 15 passed
+Dependency is now an exact-version first-class dependency record. Both endpoints are pinned, semantic Relation graphs remain separate, explicit dependency/proof cycles can be detected, and deterministic exact-revision reverse impact scanning is available without prematurely implementing the M3 persistent correction runtime.
 
 Formal review: `reviews/M0/M0-015_final_PASS_2026-09-14.md`
 
-## Active / next task
+## Active task
 
 - M0-016 — OperationRequest、审计与幂等契约
-- Status: AUTHORIZED / CHIEF ENGINEER OWNED / NOT STARTED
+- Status: IN PROGRESS / CHIEF ENGINEER OWNED
 - Owner: `chief-01`
 - Production branch: `arena/01a09bc6-fantonghui`
-- M0-015 semantic base: `3b4e8b603e52830d8be44d33141f722bbba244a0`
-- Goal: freeze operation_id/session_id/expected_world_revision/reason/idempotency_key and safe retry semantics
+- Frozen base: `3b4e8b603e52830d8be44d33141f722bbba244a0`
+- Taskbook requirements: every world modification carries operation_id/session_id/expected_world_revision/reason/idempotency_key; idempotency lookup precedes optimistic revision conflict checking; replay returns the original result; stale expected revision returns VERSION_CONFLICT; retries must not duplicate side effects; audit records must remain queryable.
+- Work started: OperationRequest contract hardening and an explicit OperationAuditRecord contract have been added on the production branch; formal M0-016 tests/review are still pending, so no FINAL PASS has been issued.
 - `core-01`: IDLE / no production assignment
 - `architect-01`: STANDBY; mandatory at M0 Gate, no current escalation trigger
 - `parallel-01/02`: NOT AUTHORIZED
