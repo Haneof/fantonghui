@@ -89,6 +89,17 @@ class DimensionMembership(WorldObject):
     applicable_time: TemporalExtent = Field(default_factory=TemporalExtent.unknown_time)
     basis_refs: list[ObjectRef] = Field(default_factory=list)
 
+    @model_validator(mode="after")
+    def validate_dimension_membership_refs(self) -> "DimensionMembership":
+        if self.dimension_ref.revision is None:
+            raise ValueError("dimension_ref requires pinned ObjectRef revision")
+        if self.member_ref.revision is None:
+            raise ValueError("member_ref requires pinned ObjectRef revision")
+        for ref in self.basis_refs:
+            if ref.revision is None:
+                raise ValueError("basis_refs requires pinned ObjectRef revisions")
+        return self
+
 
 class DimensionDerivation(WorldObject):
     object_type: Literal[ObjectType.DIMENSION_DERIVATION] = ObjectType.DIMENSION_DERIVATION
@@ -100,6 +111,18 @@ class DimensionDerivation(WorldObject):
     evidence_set_refs: list[ObjectRef] = Field(default_factory=list)
     confidence: float = Field(ge=0.0, le=1.0)
     counterexample_refs: list[ObjectRef] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_dimension_derivation_refs(self) -> "DimensionDerivation":
+        if self.output_dimension_ref.revision is None:
+            raise ValueError("output_dimension_ref requires pinned ObjectRef revision")
+        for field_name in ["input_refs", "evidence_set_refs", "counterexample_refs"]:
+            for ref in getattr(self, field_name):
+                if ref.revision is None:
+                    raise ValueError(
+                        f"{field_name} requires pinned ObjectRef revisions"
+                    )
+        return self
 
 
 class Claim(WorldObject):
