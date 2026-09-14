@@ -293,7 +293,7 @@ class Goal(WorldObject):
     source_type: GoalSourceType
     title: str
     description: str
-    goal_status: GoalStatus = GoalStatus.CANDIDATE
+    goal_status: GoalStatus = GoalStatus.PROPOSED
     success_criteria: list[str] = Field(default_factory=list)
     related_dimension_refs: list[ObjectRef] = Field(default_factory=list)
     related_event_refs: list[ObjectRef] = Field(default_factory=list)
