@@ -46,7 +46,7 @@ class SQLiteWorldStore:
       * every write transaction advances one global world revision;
       * optimistic concurrency uses expected_world_revision;
       * idempotency keys prevent duplicate writes;
-      * references can be validated before commit;
+      * references are validated before every commit;
       * historical reads can reconstruct what was visible at a world revision.
     """
 
@@ -186,47 +186,39 @@ class SQLiteWorldStore:
         cutoff_canonical = canonical_utc_iso(knowledge_cutoff, "knowledge_cutoff")
 
         if ref.revision is not None:
-            # Explicit pinned ref
             key = (ref.object_id, ref.revision)
             if key in pending_pairs:
                 pending_target = pending_objects.get(key)
                 if pending_target is None:
                     return False
-                # pending_target.learned_at <= referencing_obj.learned_at by UTC instant
                 try:
                     if as_utc(pending_target.learned_at, "pending_learned_at") <= as_utc(
                         knowledge_cutoff, "knowledge_cutoff"
                     ):
                         return True
-                    else:
-                        return False
+                    return False
                 except Exception:
                     return False
-            else:
-                # Query DB: object_id=X revision=N learned_at <= cutoff
-                row = conn.execute(
-                    "SELECT 1 FROM object_revisions WHERE object_id=? AND revision=? AND learned_at<=? LIMIT 1",
-                    (ref.object_id, ref.revision, cutoff_canonical),
-                ).fetchone()
-                return row is not None
-        else:
-            # Floating ref: follow latest visible revision, existence requires at least one visible revision
-            # Check pending first: any pending with same object_id and learned_at <= cutoff
-            for (oid, _rev), pending_obj in pending_objects.items():
-                if oid == ref.object_id:
-                    try:
-                        if as_utc(pending_obj.learned_at, "pending_learned_at") <= as_utc(
-                            knowledge_cutoff, "knowledge_cutoff"
-                        ):
-                            return True
-                    except Exception:
-                        continue
-            # Check DB: at least one revision visible within cutoff
             row = conn.execute(
-                "SELECT 1 FROM object_revisions WHERE object_id=? AND learned_at<=? LIMIT 1",
-                (ref.object_id, cutoff_canonical),
+                "SELECT 1 FROM object_revisions WHERE object_id=? AND revision=? AND learned_at<=? LIMIT 1",
+                (ref.object_id, ref.revision, cutoff_canonical),
             ).fetchone()
             return row is not None
+
+        for (oid, _rev), pending_obj in pending_objects.items():
+            if oid == ref.object_id:
+                try:
+                    if as_utc(pending_obj.learned_at, "pending_learned_at") <= as_utc(
+                        knowledge_cutoff, "knowledge_cutoff"
+                    ):
+                        return True
+                except Exception:
+                    continue
+        row = conn.execute(
+            "SELECT 1 FROM object_revisions WHERE object_id=? AND learned_at<=? LIMIT 1",
+            (ref.object_id, cutoff_canonical),
+        ).fetchone()
+        return row is not None
 
     @staticmethod
     def _collect_refs(value: object) -> list[ObjectRef | SourceRef]:
@@ -255,8 +247,6 @@ class SQLiteWorldStore:
         self,
         objects: Iterable[WorldObject],
         operation: OperationRequest,
-        *,
-        validate_references: bool = True,
     ) -> CommitResult:
         object_list = list(objects)
         if not object_list:
@@ -293,8 +283,6 @@ class SQLiteWorldStore:
                         },
                     )
 
-                # Generic persistence revalidation: re-validate complete object graph at durable boundary
-                # Prevents post-validation mutation bypass (list.append floating refs, nested mutation)
                 validated_objects: list[WorldObject] = []
                 for obj in object_list:
                     try:
@@ -329,7 +317,6 @@ class SQLiteWorldStore:
                         },
                     )
 
-                # Validate revision monotonicity before any write.
                 for obj in object_list:
                     latest = self._latest_revision(conn, obj.object_id)
                     expected_revision = 1 if latest is None else latest + 1
@@ -356,34 +343,33 @@ class SQLiteWorldStore:
                                 },
                             )
 
-                if validate_references:
-                    for obj in object_list:
-                        for ref in self._collect_refs(obj):
-                            if ref.object_id == obj.object_id and ref.revision == obj.revision:
-                                raise StoreError(
-                                    ErrorCode.DEPENDENCY_INVALID,
-                                    f"object {obj.object_id} cannot cite its own current revision as evidence/source",
-                                    context={
-                                        "object_id": obj.object_id,
-                                        "revision": obj.revision,
-                                    },
-                                )
-                            if not self._reference_exists(
-                                conn,
-                                ref,
-                                pending_pairs,
-                                pending_objects,
-                                knowledge_cutoff=obj.learned_at,
-                            ):
-                                raise StoreError(
-                                    ErrorCode.NOT_FOUND,
-                                    f"reference does not exist: {ref.object_id}@{ref.revision or 'latest'}",
-                                    context={
-                                        "referenced_object_id": ref.object_id,
-                                        "referenced_revision": ref.revision,
-                                        "reason": "reference_not_visible_or_missing",
-                                    },
-                                )
+                for obj in object_list:
+                    for ref in self._collect_refs(obj):
+                        if ref.object_id == obj.object_id and ref.revision == obj.revision:
+                            raise StoreError(
+                                ErrorCode.DEPENDENCY_INVALID,
+                                f"object {obj.object_id} cannot cite its own current revision as evidence/source",
+                                context={
+                                    "object_id": obj.object_id,
+                                    "revision": obj.revision,
+                                },
+                            )
+                        if not self._reference_exists(
+                            conn,
+                            ref,
+                            pending_pairs,
+                            pending_objects,
+                            knowledge_cutoff=obj.learned_at,
+                        ):
+                            raise StoreError(
+                                ErrorCode.NOT_FOUND,
+                                f"reference does not exist: {ref.object_id}@{ref.revision or 'latest'}",
+                                context={
+                                    "referenced_object_id": ref.object_id,
+                                    "referenced_revision": ref.revision,
+                                    "reason": "reference_not_visible_or_missing",
+                                },
+                            )
 
                 next_world_revision = current_world_revision + 1
                 now_dt = utc_now()
@@ -544,8 +530,6 @@ class SQLiteWorldStore:
             WHERE {where}
             ORDER BY o.recorded_at ASC
         """
-        # Note: for historical filters the inner MAX must honor the same cutoff.
-        # Keep correctness over brevity by using Python grouping when a cutoff is supplied.
         if as_of_world_revision is not None or knowledge_cutoff is not None:
             return self._list_payloads_historical(
                 object_type=object_type,
