@@ -4,13 +4,13 @@
 > 宪法基线：`AIOS宪法2.0.txt` + R1/R2
 > 当前主线：`aios-2.0`
 > 工作分支：`arena/01a09bc6-fantonghui`
-> 最后更新：2026-09-14 (M0-011 FINAL PASS)
+> 最后更新：2026-09-14 (M0-012 FINAL PASS)
 
 ## 里程碑总览
 
 | 里程碑 | 目标 | 状态 | 完成度 |
 |---|---|---|---|
-| M0 | 冻结世界契约与核心存储 | 进行中 IN PROGRESS | 11/22 FINAL PASS |
+| M0 | 冻结世界契约与核心存储 | 进行中 IN PROGRESS | 12/22 FINAL PASS |
 | M1 | 可写、可查、可下钻的共同世界 | 未开始 | 0/16 |
 | M2 | 主动运行闭环 | 未开始 | 0/15 |
 | M3 | 长期纠错与多尺度认知 | 未开始 | 0/11 |
@@ -35,4 +35,5 @@
 | M0-009 | EvidenceSet（一等证据集合）契约冻结 | FINAL PASS | 234+15 | cda888f | EvidenceSet可复核可冻结可重建, pinned refs, fixed time_range, frozen cutoff, support/counter/context分离, coverage/missingness, pinned history, stale/rebuild, persistence revalidation generic, CI SUCCESS Python 3.12.14 |
 | M0-010 | Entity + Relation（实体与关系）契约冻结 | FINAL PASS | 253+15 | 949e90e | stable Entity ID, canonical_name非key, identity provenance pinned, Relation独立历史与evidence pinned, CI SUCCESS Python 3.12.14 |
 | M0-011 | DimensionDefinition / Membership / Derivation 三层契约 | FINAL PASS | 268+15 | 295d2a1 | data_shape开放, multi-membership, high-level drill-down, pinned provenance, raw Observation不复制, R2 lifecycle exact, Reference 15纳入CI |
-| M0-012 | EventAnchor（事件锚点）契约与生命周期 | AUTHORIZED / CHIEF ENGINEER OWNED / NOT STARTED | - | - | M0-011通过后允许；总工程师亲自代码 |
+| M0-012 | EventAnchor（事件锚点）契约与生命周期 | FINAL PASS | 284+15 | 5ab6ed1 | candidate/active/resolved/revised/rejected/merged/split, support/counter evidence, pinned provenance, revision_reason, sports-day->track-test历史回放, raw Observation不复制, CI SUCCESS Python 3.12.14 |
+| M0-013 | Goal（目标）一等对象 | AUTHORIZED / CHIEF ENGINEER OWNED / NOT STARTED | - | - | 长期Goal与Task分离；用户明确/AI推断/App来源必须区分；总工程师亲自代码 |
