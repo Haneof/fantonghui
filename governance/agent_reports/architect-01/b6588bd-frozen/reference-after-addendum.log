@@ -1,0 +1,24 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-8.4.2, pluggy-1.6.0 -- /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+cachedir: .pytest_cache
+rootdir: /workspace/scratch/82c41c0036ab/xreview/aios_core_r2_reference
+configfile: pyproject.toml
+collecting ... collected 15 items
+
+aios_core_r2_reference/tests/test_contracts.py::test_temporal_extent_rejects_naive_datetime PASSED [  6%]
+aios_core_r2_reference/tests/test_contracts.py::test_observation_carries_three_time_semantics PASSED [ 13%]
+aios_core_r2_reference/tests/test_contracts.py::test_claim_distinguishes_prediction_from_observed_utterance PASSED [ 20%]
+aios_core_r2_reference/tests/test_contracts.py::test_evidence_set_requires_members_or_selector PASSED [ 26%]
+aios_core_r2_reference/tests/test_contracts.py::test_evidence_set_can_hold_versioned_refs PASSED [ 33%]
+aios_core_r2_reference/tests/test_state_machines.py::test_task_state_machine_allows_waiting PASSED [ 40%]
+aios_core_r2_reference/tests/test_state_machines.py::test_task_state_machine_rejects_completed_to_running PASSED [ 46%]
+aios_core_r2_reference/tests/test_state_machines.py::test_event_candidate_can_be_rejected PASSED [ 53%]
+aios_core_r2_reference/tests/test_state_machines.py::test_event_merged_is_terminal PASSED [ 60%]
+aios_core_r2_reference/tests/test_store.py::test_append_only_revision_and_world_revision PASSED [ 66%]
+aios_core_r2_reference/tests/test_store.py::test_version_conflict_blocks_write PASSED [ 73%]
+aios_core_r2_reference/tests/test_store.py::test_idempotency_replay_does_not_advance_world PASSED [ 80%]
+aios_core_r2_reference/tests/test_store.py::test_historical_world_read PASSED [ 86%]
+aios_core_r2_reference/tests/test_store.py::test_learned_at_cutoff_hides_future_known_revision PASSED [ 93%]
+aios_core_r2_reference/tests/test_store.py::test_wrong_object_revision_rejected PASSED [100%]
+
+============================== 15 passed in 0.16s ==============================

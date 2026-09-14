@@ -1,0 +1,1928 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-8.4.2, pluggy-1.6.0 -- /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+cachedir: .pytest_cache
+rootdir: /workspace/scratch/82c41c0036ab
+collecting ... collected 294 items
+
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[False-opaque-to-typed-metadata-ObjectRef] PASSED [  0%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[False-opaque-to-typed-metadata-SourceRef] PASSED [  0%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[False-opaque-to-typed-value-ObjectRef] PASSED [  1%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[False-opaque-to-typed-value-SourceRef] PASSED [  1%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[False-opaque-to-typed-arguments-ObjectRef] PASSED [  1%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[False-opaque-to-typed-arguments-SourceRef] PASSED [  2%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[False-opaque-to-typed-selector.filters-ObjectRef] PASSED [  2%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[False-opaque-to-typed-selector.filters-SourceRef] PASSED [  2%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[False-typed-to-opaque-metadata-ObjectRef] PASSED [  3%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[False-typed-to-opaque-metadata-SourceRef] PASSED [  3%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[False-typed-to-opaque-value-ObjectRef] PASSED [  3%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[False-typed-to-opaque-value-SourceRef] PASSED [  4%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[False-typed-to-opaque-arguments-ObjectRef] PASSED [  4%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[False-typed-to-opaque-arguments-SourceRef] PASSED [  4%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[False-typed-to-opaque-selector.filters-ObjectRef] PASSED [  5%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[False-typed-to-opaque-selector.filters-SourceRef] PASSED [  5%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[True-opaque-to-typed-metadata-ObjectRef] PASSED [  5%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[True-opaque-to-typed-metadata-SourceRef] PASSED [  6%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[True-opaque-to-typed-value-ObjectRef] PASSED [  6%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[True-opaque-to-typed-value-SourceRef] PASSED [  6%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[True-opaque-to-typed-arguments-ObjectRef] PASSED [  7%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[True-opaque-to-typed-arguments-SourceRef] PASSED [  7%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[True-opaque-to-typed-selector.filters-ObjectRef] PASSED [  7%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[True-opaque-to-typed-selector.filters-SourceRef] PASSED [  8%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[True-typed-to-opaque-metadata-ObjectRef] FAILED [  8%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[True-typed-to-opaque-metadata-SourceRef] FAILED [  8%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[True-typed-to-opaque-value-ObjectRef] FAILED [  9%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[True-typed-to-opaque-value-SourceRef] FAILED [  9%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[True-typed-to-opaque-arguments-ObjectRef] FAILED [  9%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[True-typed-to-opaque-arguments-SourceRef] FAILED [ 10%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[True-typed-to-opaque-selector.filters-ObjectRef] FAILED [ 10%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[True-typed-to-opaque-selector.filters-SourceRef] FAILED [ 10%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_exact_typed_restart[False-metadata-ObjectRef] PASSED [ 11%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_exact_typed_restart[False-metadata-SourceRef] PASSED [ 11%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_exact_typed_restart[False-value-ObjectRef] PASSED [ 11%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_exact_typed_restart[False-value-SourceRef] PASSED [ 12%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_exact_typed_restart[False-arguments-ObjectRef] PASSED [ 12%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_exact_typed_restart[False-arguments-SourceRef] PASSED [ 12%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_exact_typed_restart[False-selector.filters-ObjectRef] PASSED [ 13%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_exact_typed_restart[False-selector.filters-SourceRef] PASSED [ 13%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_exact_typed_restart[True-metadata-ObjectRef] PASSED [ 13%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_exact_typed_restart[True-metadata-SourceRef] PASSED [ 14%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_exact_typed_restart[True-value-ObjectRef] PASSED [ 14%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_exact_typed_restart[True-value-SourceRef] PASSED [ 14%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_exact_typed_restart[True-arguments-ObjectRef] PASSED [ 15%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_exact_typed_restart[True-arguments-SourceRef] PASSED [ 15%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_exact_typed_restart[True-selector.filters-ObjectRef] PASSED [ 15%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_exact_typed_restart[True-selector.filters-SourceRef] PASSED [ 16%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_legacy_json_exact_replay[False-metadata] PASSED [ 16%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_legacy_json_exact_replay[False-value] PASSED [ 17%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_legacy_json_exact_replay[False-arguments] PASSED [ 17%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_legacy_json_exact_replay[False-selector.filters] PASSED [ 17%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_legacy_json_exact_replay[True-metadata] PASSED [ 18%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_legacy_json_exact_replay[True-value] PASSED [ 18%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_legacy_json_exact_replay[True-arguments] PASSED [ 18%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_legacy_json_exact_replay[True-selector.filters] PASSED [ 19%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_marker_shaped_values_remain_distinct[marker0-metadata] PASSED [ 19%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_marker_shaped_values_remain_distinct[marker0-value] PASSED [ 19%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_marker_shaped_values_remain_distinct[marker0-arguments] PASSED [ 20%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_marker_shaped_values_remain_distinct[marker0-selector.filters] PASSED [ 20%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_marker_shaped_values_remain_distinct[marker1-metadata] PASSED [ 20%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_marker_shaped_values_remain_distinct[marker1-value] PASSED [ 21%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_marker_shaped_values_remain_distinct[marker1-arguments] PASSED [ 21%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_marker_shaped_values_remain_distinct[marker1-selector.filters] PASSED [ 21%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_marker_shaped_values_remain_distinct[marker2-metadata] PASSED [ 22%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_marker_shaped_values_remain_distinct[marker2-value] PASSED [ 22%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_marker_shaped_values_remain_distinct[marker2-arguments] PASSED [ 22%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_marker_shaped_values_remain_distinct[marker2-selector.filters] PASSED [ 23%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-metadata-surrogate] PASSED [ 23%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-metadata-bytes] PASSED [ 23%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-metadata-huge-int] PASSED [ 24%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-metadata-nan] PASSED [ 24%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-metadata-infinity] PASSED [ 24%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-metadata-unsupported] PASSED [ 25%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-metadata-non-string-key] PASSED [ 25%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-metadata-cycle] PASSED [ 25%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-metadata-depth] PASSED [ 26%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-value-surrogate] PASSED [ 26%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-value-bytes] PASSED [ 26%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-value-huge-int] PASSED [ 27%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-value-nan] PASSED [ 27%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-value-infinity] PASSED [ 27%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-value-unsupported] PASSED [ 28%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-value-non-string-key] PASSED [ 28%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-value-cycle] PASSED [ 28%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-value-depth] PASSED [ 29%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-arguments-surrogate] PASSED [ 29%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-arguments-bytes] PASSED [ 29%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-arguments-huge-int] PASSED [ 30%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-arguments-nan] PASSED [ 30%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-arguments-infinity] PASSED [ 30%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-arguments-unsupported] PASSED [ 31%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-arguments-non-string-key] PASSED [ 31%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-arguments-cycle] PASSED [ 31%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-arguments-depth] PASSED [ 32%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-selector.filters-surrogate] PASSED [ 32%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-selector.filters-bytes] PASSED [ 32%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-selector.filters-huge-int] PASSED [ 33%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-selector.filters-nan] PASSED [ 33%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-selector.filters-infinity] PASSED [ 34%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-selector.filters-unsupported] PASSED [ 34%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-selector.filters-non-string-key] PASSED [ 34%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-selector.filters-cycle] PASSED [ 35%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[False-selector.filters-depth] PASSED [ 35%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-metadata-surrogate] PASSED [ 35%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-metadata-bytes] PASSED [ 36%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-metadata-huge-int] PASSED [ 36%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-metadata-nan] PASSED [ 36%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-metadata-infinity] PASSED [ 37%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-metadata-unsupported] PASSED [ 37%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-metadata-non-string-key] PASSED [ 37%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-metadata-cycle] PASSED [ 38%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-metadata-depth] PASSED [ 38%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-value-surrogate] PASSED [ 38%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-value-bytes] PASSED [ 39%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-value-huge-int] PASSED [ 39%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-value-nan] PASSED [ 39%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-value-infinity] PASSED [ 40%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-value-unsupported] PASSED [ 40%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-value-non-string-key] PASSED [ 40%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-value-cycle] PASSED [ 41%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-value-depth] PASSED [ 41%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-arguments-surrogate] PASSED [ 41%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-arguments-bytes] PASSED [ 42%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-arguments-huge-int] PASSED [ 42%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-arguments-nan] PASSED [ 42%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-arguments-infinity] PASSED [ 43%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-arguments-unsupported] PASSED [ 43%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-arguments-non-string-key] PASSED [ 43%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-arguments-cycle] PASSED [ 44%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-arguments-depth] PASSED [ 44%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-selector.filters-surrogate] PASSED [ 44%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-selector.filters-bytes] PASSED [ 45%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-selector.filters-huge-int] PASSED [ 45%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-selector.filters-nan] PASSED [ 45%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-selector.filters-infinity] PASSED [ 46%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-selector.filters-unsupported] PASSED [ 46%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-selector.filters-non-string-key] PASSED [ 46%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-selector.filters-cycle] PASSED [ 47%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x2_protocol_and_five_table_atomicity[True-selector.filters-depth] PASSED [ 47%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_nested_extras_preserved_and_affect_identity[metadata] PASSED [ 47%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_nested_extras_preserved_and_affect_identity[value] PASSED [ 48%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_nested_extras_preserved_and_affect_identity[arguments] PASSED [ 48%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_nested_extras_preserved_and_affect_identity[selector.filters] PASSED [ 48%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[False-model-copy-object] PASSED [ 49%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[False-model-copy-operation] PASSED [ 49%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[False-model-copy-selector] PASSED [ 50%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[False-model-copy-ref] PASSED [ 50%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[False-pydantic-extra-object] PASSED [ 50%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[False-pydantic-extra-operation] PASSED [ 51%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[False-pydantic-extra-selector] PASSED [ 51%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[False-pydantic-extra-ref] PASSED [ 51%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[False-shadow-extra-object] FAILED [ 52%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[False-shadow-extra-operation] FAILED [ 52%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[False-shadow-extra-selector] FAILED [ 52%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[False-shadow-extra-ref] FAILED [ 53%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[True-model-copy-object] PASSED [ 53%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[True-model-copy-operation] PASSED [ 53%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[True-model-copy-selector] PASSED [ 54%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[True-model-copy-ref] PASSED [ 54%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[True-pydantic-extra-object] PASSED [ 54%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[True-pydantic-extra-operation] PASSED [ 55%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[True-pydantic-extra-selector] PASSED [ 55%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[True-pydantic-extra-ref] PASSED [ 55%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[True-shadow-extra-object] FAILED [ 56%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[True-shadow-extra-operation] FAILED [ 56%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[True-shadow-extra-selector] FAILED [ 56%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[True-shadow-extra-ref] FAILED [ 57%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False-1-metadata-ObjectRef] PASSED [ 57%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False-1-metadata-SourceRef] PASSED [ 57%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False-1-value-ObjectRef] PASSED [ 58%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False-1-value-SourceRef] PASSED [ 58%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False-1-arguments-ObjectRef] PASSED [ 58%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False-1-arguments-SourceRef] PASSED [ 59%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False-1-selector.filters-ObjectRef] PASSED [ 59%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False-1-selector.filters-SourceRef] PASSED [ 59%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False-bad-metadata-ObjectRef] PASSED [ 60%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False-bad-metadata-SourceRef] PASSED [ 60%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False-bad-value-ObjectRef] PASSED [ 60%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False-bad-value-SourceRef] PASSED [ 61%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False-bad-arguments-ObjectRef] PASSED [ 61%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False-bad-arguments-SourceRef] PASSED [ 61%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False-bad-selector.filters-ObjectRef] PASSED [ 62%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False-bad-selector.filters-SourceRef] PASSED [ 62%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False--1-metadata-ObjectRef] PASSED [ 62%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False--1-metadata-SourceRef] PASSED [ 63%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False--1-value-ObjectRef] PASSED [ 63%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False--1-value-SourceRef] PASSED [ 63%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False--1-arguments-ObjectRef] PASSED [ 64%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False--1-arguments-SourceRef] PASSED [ 64%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False--1-selector.filters-ObjectRef] PASSED [ 64%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False--1-selector.filters-SourceRef] PASSED [ 65%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False-None-metadata-ObjectRef] PASSED [ 65%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False-None-metadata-SourceRef] PASSED [ 65%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False-None-value-ObjectRef] PASSED [ 66%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False-None-value-SourceRef] PASSED [ 66%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False-None-arguments-ObjectRef] PASSED [ 67%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False-None-arguments-SourceRef] PASSED [ 67%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False-None-selector.filters-ObjectRef] PASSED [ 67%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[False-None-selector.filters-SourceRef] PASSED [ 68%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True-1-metadata-ObjectRef] PASSED [ 68%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True-1-metadata-SourceRef] PASSED [ 68%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True-1-value-ObjectRef] PASSED [ 69%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True-1-value-SourceRef] PASSED [ 69%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True-1-arguments-ObjectRef] PASSED [ 69%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True-1-arguments-SourceRef] PASSED [ 70%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True-1-selector.filters-ObjectRef] PASSED [ 70%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True-1-selector.filters-SourceRef] PASSED [ 70%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True-bad-metadata-ObjectRef] PASSED [ 71%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True-bad-metadata-SourceRef] PASSED [ 71%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True-bad-value-ObjectRef] PASSED [ 71%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True-bad-value-SourceRef] PASSED [ 72%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True-bad-arguments-ObjectRef] PASSED [ 72%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True-bad-arguments-SourceRef] PASSED [ 72%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True-bad-selector.filters-ObjectRef] PASSED [ 73%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True-bad-selector.filters-SourceRef] PASSED [ 73%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True--1-metadata-ObjectRef] PASSED [ 73%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True--1-metadata-SourceRef] PASSED [ 74%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True--1-value-ObjectRef] PASSED [ 74%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True--1-value-SourceRef] PASSED [ 74%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True--1-arguments-ObjectRef] PASSED [ 75%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True--1-arguments-SourceRef] PASSED [ 75%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True--1-selector.filters-ObjectRef] PASSED [ 75%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True--1-selector.filters-SourceRef] PASSED [ 76%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True-None-metadata-ObjectRef] PASSED [ 76%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True-None-metadata-SourceRef] PASSED [ 76%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True-None-value-ObjectRef] PASSED [ 77%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True-None-value-SourceRef] PASSED [ 77%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True-None-arguments-ObjectRef] PASSED [ 77%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True-None-arguments-SourceRef] PASSED [ 78%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True-None-selector.filters-ObjectRef] PASSED [ 78%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_x4_dirty_revision_revalidation[True-None-selector.filters-SourceRef] PASSED [ 78%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_dirty_operation_routing[False-idempotency_key-request] PASSED [ 79%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_dirty_operation_routing[False-idempotency_key-value1] PASSED [ 79%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_dirty_operation_routing[False-idempotency_key-None] PASSED [ 79%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_dirty_operation_routing[False-idempotency_key- ] PASSED [ 80%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_dirty_operation_routing[False-expected_world_revision-1] PASSED [ 80%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_dirty_operation_routing[False-expected_world_revision-bad] PASSED [ 80%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_dirty_operation_routing[False-expected_world_revision--1] PASSED [ 81%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_dirty_operation_routing[False-operation_id-op-request] PASSED [ 81%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_dirty_operation_routing[False-operation_id-value8] PASSED [ 81%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_dirty_operation_routing[False-operation_id-None] PASSED [ 82%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_dirty_operation_routing[False-operation_id- ] PASSED [ 82%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_dirty_operation_routing[True-idempotency_key-request] PASSED [ 82%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_dirty_operation_routing[True-idempotency_key-value1] PASSED [ 83%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_dirty_operation_routing[True-idempotency_key-None] PASSED [ 83%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_dirty_operation_routing[True-idempotency_key- ] PASSED [ 84%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_dirty_operation_routing[True-expected_world_revision-1] PASSED [ 84%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_dirty_operation_routing[True-expected_world_revision-bad] PASSED [ 84%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_dirty_operation_routing[True-expected_world_revision--1] PASSED [ 85%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_dirty_operation_routing[True-operation_id-op-request] PASSED [ 85%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_dirty_operation_routing[True-operation_id-value8] PASSED [ 85%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_dirty_operation_routing[True-operation_id-None] PASSED [ 86%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_dirty_operation_routing[True-operation_id- ] PASSED [ 86%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_b1_changed_request_conflicts[operation_id-other] PASSED [ 86%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_b1_changed_request_conflicts[session_id-other] PASSED [ 87%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_b1_changed_request_conflicts[operation_name-other] PASSED [ 87%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_b1_changed_request_conflicts[arguments-value3] PASSED [ 87%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_b1_changed_request_conflicts[expected_world_revision-90] PASSED [ 88%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_b1_changed_request_conflicts[reason-changed] PASSED [ 88%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_b1_object_order_and_argument_key_order PASSED [ 88%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_b10_canonical_subtype_required[dependency] PASSED [ 89%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_b10_canonical_subtype_required[evidence_set] PASSED [ 89%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_b10_canonical_subtype_required[claim] PASSED [ 89%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_b4_self_reference_rejected[None-ObjectRef] PASSED [ 90%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_b4_self_reference_rejected[None-SourceRef] PASSED [ 90%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_b4_self_reference_rejected[1-ObjectRef] PASSED [ 90%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_b4_self_reference_rejected[1-SourceRef] PASSED [ 91%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_historical_self_and_distinct_mutual_references PASSED [ 91%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_evidence_frozen_cutoff_intersection[-1-False] PASSED [ 91%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_evidence_frozen_cutoff_intersection[-1-True] PASSED [ 92%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_evidence_frozen_cutoff_intersection[0-False] PASSED [ 92%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_evidence_frozen_cutoff_intersection[0-True] PASSED [ 92%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_evidence_frozen_cutoff_intersection[1-False] PASSED [ 93%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_evidence_frozen_cutoff_intersection[1-True] PASSED [ 93%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_b6_coercible_nested_value_restart PASSED [ 93%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_b6_unordered_cross_process_identity PASSED [ 94%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_mid_insert_rollback_and_recovery PASSED [ 94%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_competing_writers_one_success[False] PASSED [ 94%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_competing_writers_one_success[True] PASSED [ 95%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_stale_world_rejects_new_request_without_writes PASSED [ 95%]
+../frozen_b6588bd/test_redteam_b6588bd.py::test_two_lens_history PASSED  [ 95%]
+../frozen_b6588bd/test_quality_addendum_b6588bd.py::test_missing_world_reference_rejected[metadata-ObjectRef] PASSED [ 96%]
+../frozen_b6588bd/test_quality_addendum_b6588bd.py::test_missing_world_reference_rejected[metadata-SourceRef] PASSED [ 96%]
+../frozen_b6588bd/test_quality_addendum_b6588bd.py::test_missing_world_reference_rejected[value-ObjectRef] PASSED [ 96%]
+../frozen_b6588bd/test_quality_addendum_b6588bd.py::test_missing_world_reference_rejected[value-SourceRef] PASSED [ 97%]
+../frozen_b6588bd/test_quality_addendum_b6588bd.py::test_missing_world_reference_rejected[selector.filters-ObjectRef] PASSED [ 97%]
+../frozen_b6588bd/test_quality_addendum_b6588bd.py::test_missing_world_reference_rejected[selector.filters-SourceRef] PASSED [ 97%]
+../frozen_b6588bd/test_quality_addendum_b6588bd.py::test_observation_cannot_claim_other_canonical_type[dependency] PASSED [ 98%]
+../frozen_b6588bd/test_quality_addendum_b6588bd.py::test_observation_cannot_claim_other_canonical_type[evidence_set] PASSED [ 98%]
+../frozen_b6588bd/test_quality_addendum_b6588bd.py::test_dirty_object_type_protocol[not-a-world-type] PASSED [ 98%]
+../frozen_b6588bd/test_quality_addendum_b6588bd.py::test_dirty_object_type_protocol[None] PASSED [ 99%]
+../frozen_b6588bd/test_quality_addendum_b6588bd.py::test_dirty_object_type_protocol[123] PASSED [ 99%]
+../frozen_b6588bd/test_quality_addendum_b6588bd.py::test_equivalent_object_type_string_normalizes PASSED [100%]
+
+=================================== FAILURES ===================================
+_ test_x1_semantic_identity_both_directions[True-typed-to-opaque-metadata-ObjectRef] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-11/test_x1_semantic_identity_both24')
+ref_type = <class 'aios_core.contracts.refs.ObjectRef'>, place = 'metadata'
+direction = 'typed-to-opaque', legacy = True
+
+    @pytest.mark.parametrize("ref_type", [ObjectRef, SourceRef])
+    @pytest.mark.parametrize("place", PLACES)
+    @pytest.mark.parametrize("direction", ["opaque-to-typed", "typed-to-opaque"])
+    @pytest.mark.parametrize("legacy", [False, True])
+    def test_x1_semantic_identity_both_directions(tmp_path, ref_type, place, direction, legacy):
+        store = seeded(tmp_path)
+        typed = ref_type(object_id="target", revision=1)
+        opaque = typed.model_dump()
+        first, second = (opaque, typed) if direction == "opaque-to-typed" else (typed, opaque)
+        obj, request = request_at(place, first)
+        store.commit([obj], request)
+        if legacy:
+            remove_semantic_fingerprint(store.db_path, request.idempotency_key)
+        changed, changed_request = request_at(place, second)
+>       error_without_writes(SQLiteWorldStore(store.db_path), [changed], changed_request, ErrorCode.IDEMPOTENCY_CONFLICT)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:138: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+store = <aios_core.storage.sqlite_store.SQLiteWorldStore object at 0x7fab0efc22a0>
+objects = [Observation(object_id='reader', object_type=<ObjectType.OBSERVATION: 'observation'>, subject_id='subject', revision=1...et', 'revision': 1}}, source_kind='test', modality='json', value='safe', unit=None, data_quality={}, raw_locator=None)]
+request = OperationRequest(operation_id='op-request', session_id='session', operation_name='commit', arguments={'a': 1, 'b': 2}, expected_world_revision=1, reason='independent contract check', idempotency_key='request')
+expected = <ErrorCode.IDEMPOTENCY_CONFLICT: 'IDEMPOTENCY_CONFLICT'>
+
+    def error_without_writes(store, objects, request, expected):
+        before = state(store.db_path)
+        caught = None
+        result = None
+        try:
+            result = store.commit(objects, request)
+        except Exception as exc:
+            caught = exc
+        after = state(store.db_path)
+        assert after == before, "FAILED ATTEMPT CHANGED DURABLE TABLES"
+>       assert isinstance(caught, StoreError), (
+            f"expected StoreError({expected.value}); actual exception={type(caught).__name__}; result={result!r}"
+        )
+E       AssertionError: expected StoreError(IDEMPOTENCY_CONFLICT); actual exception=NoneType; result=CommitResult(operation_id='op-request', world_revision=2, object_refs=[('reader', 1)], idempotent_replay=True)
+E       assert False
+E        +  where False = isinstance(None, StoreError)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:91: AssertionError
+_ test_x1_semantic_identity_both_directions[True-typed-to-opaque-metadata-SourceRef] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-11/test_x1_semantic_identity_both25')
+ref_type = <class 'aios_core.contracts.refs.SourceRef'>, place = 'metadata'
+direction = 'typed-to-opaque', legacy = True
+
+    @pytest.mark.parametrize("ref_type", [ObjectRef, SourceRef])
+    @pytest.mark.parametrize("place", PLACES)
+    @pytest.mark.parametrize("direction", ["opaque-to-typed", "typed-to-opaque"])
+    @pytest.mark.parametrize("legacy", [False, True])
+    def test_x1_semantic_identity_both_directions(tmp_path, ref_type, place, direction, legacy):
+        store = seeded(tmp_path)
+        typed = ref_type(object_id="target", revision=1)
+        opaque = typed.model_dump()
+        first, second = (opaque, typed) if direction == "opaque-to-typed" else (typed, opaque)
+        obj, request = request_at(place, first)
+        store.commit([obj], request)
+        if legacy:
+            remove_semantic_fingerprint(store.db_path, request.idempotency_key)
+        changed, changed_request = request_at(place, second)
+>       error_without_writes(SQLiteWorldStore(store.db_path), [changed], changed_request, ErrorCode.IDEMPOTENCY_CONFLICT)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:138: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+store = <aios_core.storage.sqlite_store.SQLiteWorldStore object at 0x7fab0efc03b0>
+objects = [Observation(object_id='reader', object_type=<ObjectType.OBSERVATION: 'observation'>, subject_id='subject', revision=1...rce_locator': None}}, source_kind='test', modality='json', value='safe', unit=None, data_quality={}, raw_locator=None)]
+request = OperationRequest(operation_id='op-request', session_id='session', operation_name='commit', arguments={'a': 1, 'b': 2}, expected_world_revision=1, reason='independent contract check', idempotency_key='request')
+expected = <ErrorCode.IDEMPOTENCY_CONFLICT: 'IDEMPOTENCY_CONFLICT'>
+
+    def error_without_writes(store, objects, request, expected):
+        before = state(store.db_path)
+        caught = None
+        result = None
+        try:
+            result = store.commit(objects, request)
+        except Exception as exc:
+            caught = exc
+        after = state(store.db_path)
+        assert after == before, "FAILED ATTEMPT CHANGED DURABLE TABLES"
+>       assert isinstance(caught, StoreError), (
+            f"expected StoreError({expected.value}); actual exception={type(caught).__name__}; result={result!r}"
+        )
+E       AssertionError: expected StoreError(IDEMPOTENCY_CONFLICT); actual exception=NoneType; result=CommitResult(operation_id='op-request', world_revision=2, object_refs=[('reader', 1)], idempotent_replay=True)
+E       assert False
+E        +  where False = isinstance(None, StoreError)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:91: AssertionError
+_ test_x1_semantic_identity_both_directions[True-typed-to-opaque-value-ObjectRef] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-11/test_x1_semantic_identity_both26')
+ref_type = <class 'aios_core.contracts.refs.ObjectRef'>, place = 'value'
+direction = 'typed-to-opaque', legacy = True
+
+    @pytest.mark.parametrize("ref_type", [ObjectRef, SourceRef])
+    @pytest.mark.parametrize("place", PLACES)
+    @pytest.mark.parametrize("direction", ["opaque-to-typed", "typed-to-opaque"])
+    @pytest.mark.parametrize("legacy", [False, True])
+    def test_x1_semantic_identity_both_directions(tmp_path, ref_type, place, direction, legacy):
+        store = seeded(tmp_path)
+        typed = ref_type(object_id="target", revision=1)
+        opaque = typed.model_dump()
+        first, second = (opaque, typed) if direction == "opaque-to-typed" else (typed, opaque)
+        obj, request = request_at(place, first)
+        store.commit([obj], request)
+        if legacy:
+            remove_semantic_fingerprint(store.db_path, request.idempotency_key)
+        changed, changed_request = request_at(place, second)
+>       error_without_writes(SQLiteWorldStore(store.db_path), [changed], changed_request, ErrorCode.IDEMPOTENCY_CONFLICT)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:138: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+store = <aios_core.storage.sqlite_store.SQLiteWorldStore object at 0x7fab0ed24e90>
+objects = [Observation(object_id='reader', object_type=<ObjectType.OBSERVATION: 'observation'>, subject_id='subject', revision=1...d='test', modality='json', value={'object_id': 'target', 'revision': 1}, unit=None, data_quality={}, raw_locator=None)]
+request = OperationRequest(operation_id='op-request', session_id='session', operation_name='commit', arguments={'a': 1, 'b': 2}, expected_world_revision=1, reason='independent contract check', idempotency_key='request')
+expected = <ErrorCode.IDEMPOTENCY_CONFLICT: 'IDEMPOTENCY_CONFLICT'>
+
+    def error_without_writes(store, objects, request, expected):
+        before = state(store.db_path)
+        caught = None
+        result = None
+        try:
+            result = store.commit(objects, request)
+        except Exception as exc:
+            caught = exc
+        after = state(store.db_path)
+        assert after == before, "FAILED ATTEMPT CHANGED DURABLE TABLES"
+>       assert isinstance(caught, StoreError), (
+            f"expected StoreError({expected.value}); actual exception={type(caught).__name__}; result={result!r}"
+        )
+E       AssertionError: expected StoreError(IDEMPOTENCY_CONFLICT); actual exception=NoneType; result=CommitResult(operation_id='op-request', world_revision=2, object_refs=[('reader', 1)], idempotent_replay=True)
+E       assert False
+E        +  where False = isinstance(None, StoreError)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:91: AssertionError
+_ test_x1_semantic_identity_both_directions[True-typed-to-opaque-value-SourceRef] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-11/test_x1_semantic_identity_both27')
+ref_type = <class 'aios_core.contracts.refs.SourceRef'>, place = 'value'
+direction = 'typed-to-opaque', legacy = True
+
+    @pytest.mark.parametrize("ref_type", [ObjectRef, SourceRef])
+    @pytest.mark.parametrize("place", PLACES)
+    @pytest.mark.parametrize("direction", ["opaque-to-typed", "typed-to-opaque"])
+    @pytest.mark.parametrize("legacy", [False, True])
+    def test_x1_semantic_identity_both_directions(tmp_path, ref_type, place, direction, legacy):
+        store = seeded(tmp_path)
+        typed = ref_type(object_id="target", revision=1)
+        opaque = typed.model_dump()
+        first, second = (opaque, typed) if direction == "opaque-to-typed" else (typed, opaque)
+        obj, request = request_at(place, first)
+        store.commit([obj], request)
+        if legacy:
+            remove_semantic_fingerprint(store.db_path, request.idempotency_key)
+        changed, changed_request = request_at(place, second)
+>       error_without_writes(SQLiteWorldStore(store.db_path), [changed], changed_request, ErrorCode.IDEMPOTENCY_CONFLICT)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:138: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+store = <aios_core.storage.sqlite_store.SQLiteWorldStore object at 0x7fab0ed27050>
+objects = [Observation(object_id='reader', object_type=<ObjectType.OBSERVATION: 'observation'>, subject_id='subject', revision=1...', value={'object_id': 'target', 'revision': 1, 'source_locator': None}, unit=None, data_quality={}, raw_locator=None)]
+request = OperationRequest(operation_id='op-request', session_id='session', operation_name='commit', arguments={'a': 1, 'b': 2}, expected_world_revision=1, reason='independent contract check', idempotency_key='request')
+expected = <ErrorCode.IDEMPOTENCY_CONFLICT: 'IDEMPOTENCY_CONFLICT'>
+
+    def error_without_writes(store, objects, request, expected):
+        before = state(store.db_path)
+        caught = None
+        result = None
+        try:
+            result = store.commit(objects, request)
+        except Exception as exc:
+            caught = exc
+        after = state(store.db_path)
+        assert after == before, "FAILED ATTEMPT CHANGED DURABLE TABLES"
+>       assert isinstance(caught, StoreError), (
+            f"expected StoreError({expected.value}); actual exception={type(caught).__name__}; result={result!r}"
+        )
+E       AssertionError: expected StoreError(IDEMPOTENCY_CONFLICT); actual exception=NoneType; result=CommitResult(operation_id='op-request', world_revision=2, object_refs=[('reader', 1)], idempotent_replay=True)
+E       assert False
+E        +  where False = isinstance(None, StoreError)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:91: AssertionError
+_ test_x1_semantic_identity_both_directions[True-typed-to-opaque-arguments-ObjectRef] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-11/test_x1_semantic_identity_both28')
+ref_type = <class 'aios_core.contracts.refs.ObjectRef'>, place = 'arguments'
+direction = 'typed-to-opaque', legacy = True
+
+    @pytest.mark.parametrize("ref_type", [ObjectRef, SourceRef])
+    @pytest.mark.parametrize("place", PLACES)
+    @pytest.mark.parametrize("direction", ["opaque-to-typed", "typed-to-opaque"])
+    @pytest.mark.parametrize("legacy", [False, True])
+    def test_x1_semantic_identity_both_directions(tmp_path, ref_type, place, direction, legacy):
+        store = seeded(tmp_path)
+        typed = ref_type(object_id="target", revision=1)
+        opaque = typed.model_dump()
+        first, second = (opaque, typed) if direction == "opaque-to-typed" else (typed, opaque)
+        obj, request = request_at(place, first)
+        store.commit([obj], request)
+        if legacy:
+            remove_semantic_fingerprint(store.db_path, request.idempotency_key)
+        changed, changed_request = request_at(place, second)
+>       error_without_writes(SQLiteWorldStore(store.db_path), [changed], changed_request, ErrorCode.IDEMPOTENCY_CONFLICT)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:138: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+store = <aios_core.storage.sqlite_store.SQLiteWorldStore object at 0x7fab0ed252e0>
+objects = [Observation(object_id='reader', object_type=<ObjectType.OBSERVATION: 'observation'>, subject_id='subject', revision=1...active', metadata={}, source_kind='test', modality='json', value='safe', unit=None, data_quality={}, raw_locator=None)]
+request = OperationRequest(operation_id='op-request', session_id='session', operation_name='commit', arguments={'item': {'object...: 'target', 'revision': 1}}, expected_world_revision=1, reason='independent contract check', idempotency_key='request')
+expected = <ErrorCode.IDEMPOTENCY_CONFLICT: 'IDEMPOTENCY_CONFLICT'>
+
+    def error_without_writes(store, objects, request, expected):
+        before = state(store.db_path)
+        caught = None
+        result = None
+        try:
+            result = store.commit(objects, request)
+        except Exception as exc:
+            caught = exc
+        after = state(store.db_path)
+        assert after == before, "FAILED ATTEMPT CHANGED DURABLE TABLES"
+>       assert isinstance(caught, StoreError), (
+            f"expected StoreError({expected.value}); actual exception={type(caught).__name__}; result={result!r}"
+        )
+E       AssertionError: expected StoreError(IDEMPOTENCY_CONFLICT); actual exception=NoneType; result=CommitResult(operation_id='op-request', world_revision=2, object_refs=[('reader', 1)], idempotent_replay=True)
+E       assert False
+E        +  where False = isinstance(None, StoreError)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:91: AssertionError
+_ test_x1_semantic_identity_both_directions[True-typed-to-opaque-arguments-SourceRef] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-11/test_x1_semantic_identity_both29')
+ref_type = <class 'aios_core.contracts.refs.SourceRef'>, place = 'arguments'
+direction = 'typed-to-opaque', legacy = True
+
+    @pytest.mark.parametrize("ref_type", [ObjectRef, SourceRef])
+    @pytest.mark.parametrize("place", PLACES)
+    @pytest.mark.parametrize("direction", ["opaque-to-typed", "typed-to-opaque"])
+    @pytest.mark.parametrize("legacy", [False, True])
+    def test_x1_semantic_identity_both_directions(tmp_path, ref_type, place, direction, legacy):
+        store = seeded(tmp_path)
+        typed = ref_type(object_id="target", revision=1)
+        opaque = typed.model_dump()
+        first, second = (opaque, typed) if direction == "opaque-to-typed" else (typed, opaque)
+        obj, request = request_at(place, first)
+        store.commit([obj], request)
+        if legacy:
+            remove_semantic_fingerprint(store.db_path, request.idempotency_key)
+        changed, changed_request = request_at(place, second)
+>       error_without_writes(SQLiteWorldStore(store.db_path), [changed], changed_request, ErrorCode.IDEMPOTENCY_CONFLICT)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:138: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+store = <aios_core.storage.sqlite_store.SQLiteWorldStore object at 0x7fab0ed27e60>
+objects = [Observation(object_id='reader', object_type=<ObjectType.OBSERVATION: 'observation'>, subject_id='subject', revision=1...active', metadata={}, source_kind='test', modality='json', value='safe', unit=None, data_quality={}, raw_locator=None)]
+request = OperationRequest(operation_id='op-request', session_id='session', operation_name='commit', arguments={'item': {'object...1, 'source_locator': None}}, expected_world_revision=1, reason='independent contract check', idempotency_key='request')
+expected = <ErrorCode.IDEMPOTENCY_CONFLICT: 'IDEMPOTENCY_CONFLICT'>
+
+    def error_without_writes(store, objects, request, expected):
+        before = state(store.db_path)
+        caught = None
+        result = None
+        try:
+            result = store.commit(objects, request)
+        except Exception as exc:
+            caught = exc
+        after = state(store.db_path)
+        assert after == before, "FAILED ATTEMPT CHANGED DURABLE TABLES"
+>       assert isinstance(caught, StoreError), (
+            f"expected StoreError({expected.value}); actual exception={type(caught).__name__}; result={result!r}"
+        )
+E       AssertionError: expected StoreError(IDEMPOTENCY_CONFLICT); actual exception=NoneType; result=CommitResult(operation_id='op-request', world_revision=2, object_refs=[('reader', 1)], idempotent_replay=True)
+E       assert False
+E        +  where False = isinstance(None, StoreError)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:91: AssertionError
+_ test_x1_semantic_identity_both_directions[True-typed-to-opaque-selector.filters-ObjectRef] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-11/test_x1_semantic_identity_both30')
+ref_type = <class 'aios_core.contracts.refs.ObjectRef'>
+place = 'selector.filters', direction = 'typed-to-opaque', legacy = True
+
+    @pytest.mark.parametrize("ref_type", [ObjectRef, SourceRef])
+    @pytest.mark.parametrize("place", PLACES)
+    @pytest.mark.parametrize("direction", ["opaque-to-typed", "typed-to-opaque"])
+    @pytest.mark.parametrize("legacy", [False, True])
+    def test_x1_semantic_identity_both_directions(tmp_path, ref_type, place, direction, legacy):
+        store = seeded(tmp_path)
+        typed = ref_type(object_id="target", revision=1)
+        opaque = typed.model_dump()
+        first, second = (opaque, typed) if direction == "opaque-to-typed" else (typed, opaque)
+        obj, request = request_at(place, first)
+        store.commit([obj], request)
+        if legacy:
+            remove_semantic_fingerprint(store.db_path, request.idempotency_key)
+        changed, changed_request = request_at(place, second)
+>       error_without_writes(SQLiteWorldStore(store.db_path), [changed], changed_request, ErrorCode.IDEMPOTENCY_CONFLICT)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:138: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+store = <aios_core.storage.sqlite_store.SQLiteWorldStore object at 0x7fab0eea4680>
+objects = [EvidenceSet(object_id='reader', object_type=<ObjectType.EVIDENCE_SET: 'evidence_set'>, subject_id='subject', revision...=EvidenceCoverage(expected_count=None, observed_count=None, coverage_ratio=None, missing_description=[]), stale=False)]
+request = OperationRequest(operation_id='op-request', session_id='session', operation_name='commit', arguments={'a': 1, 'b': 2}, expected_world_revision=1, reason='independent contract check', idempotency_key='request')
+expected = <ErrorCode.IDEMPOTENCY_CONFLICT: 'IDEMPOTENCY_CONFLICT'>
+
+    def error_without_writes(store, objects, request, expected):
+        before = state(store.db_path)
+        caught = None
+        result = None
+        try:
+            result = store.commit(objects, request)
+        except Exception as exc:
+            caught = exc
+        after = state(store.db_path)
+        assert after == before, "FAILED ATTEMPT CHANGED DURABLE TABLES"
+>       assert isinstance(caught, StoreError), (
+            f"expected StoreError({expected.value}); actual exception={type(caught).__name__}; result={result!r}"
+        )
+E       AssertionError: expected StoreError(IDEMPOTENCY_CONFLICT); actual exception=NoneType; result=CommitResult(operation_id='op-request', world_revision=2, object_refs=[('reader', 1)], idempotent_replay=True)
+E       assert False
+E        +  where False = isinstance(None, StoreError)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:91: AssertionError
+_ test_x1_semantic_identity_both_directions[True-typed-to-opaque-selector.filters-SourceRef] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-11/test_x1_semantic_identity_both31')
+ref_type = <class 'aios_core.contracts.refs.SourceRef'>
+place = 'selector.filters', direction = 'typed-to-opaque', legacy = True
+
+    @pytest.mark.parametrize("ref_type", [ObjectRef, SourceRef])
+    @pytest.mark.parametrize("place", PLACES)
+    @pytest.mark.parametrize("direction", ["opaque-to-typed", "typed-to-opaque"])
+    @pytest.mark.parametrize("legacy", [False, True])
+    def test_x1_semantic_identity_both_directions(tmp_path, ref_type, place, direction, legacy):
+        store = seeded(tmp_path)
+        typed = ref_type(object_id="target", revision=1)
+        opaque = typed.model_dump()
+        first, second = (opaque, typed) if direction == "opaque-to-typed" else (typed, opaque)
+        obj, request = request_at(place, first)
+        store.commit([obj], request)
+        if legacy:
+            remove_semantic_fingerprint(store.db_path, request.idempotency_key)
+        changed, changed_request = request_at(place, second)
+>       error_without_writes(SQLiteWorldStore(store.db_path), [changed], changed_request, ErrorCode.IDEMPOTENCY_CONFLICT)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:138: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+store = <aios_core.storage.sqlite_store.SQLiteWorldStore object at 0x7fab0eea4a40>
+objects = [EvidenceSet(object_id='reader', object_type=<ObjectType.EVIDENCE_SET: 'evidence_set'>, subject_id='subject', revision...=EvidenceCoverage(expected_count=None, observed_count=None, coverage_ratio=None, missing_description=[]), stale=False)]
+request = OperationRequest(operation_id='op-request', session_id='session', operation_name='commit', arguments={'a': 1, 'b': 2}, expected_world_revision=1, reason='independent contract check', idempotency_key='request')
+expected = <ErrorCode.IDEMPOTENCY_CONFLICT: 'IDEMPOTENCY_CONFLICT'>
+
+    def error_without_writes(store, objects, request, expected):
+        before = state(store.db_path)
+        caught = None
+        result = None
+        try:
+            result = store.commit(objects, request)
+        except Exception as exc:
+            caught = exc
+        after = state(store.db_path)
+        assert after == before, "FAILED ATTEMPT CHANGED DURABLE TABLES"
+>       assert isinstance(caught, StoreError), (
+            f"expected StoreError({expected.value}); actual exception={type(caught).__name__}; result={result!r}"
+        )
+E       AssertionError: expected StoreError(IDEMPOTENCY_CONFLICT); actual exception=NoneType; result=CommitResult(operation_id='op-request', world_revision=2, object_refs=[('reader', 1)], idempotent_replay=True)
+E       assert False
+E        +  where False = isinstance(None, StoreError)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:91: AssertionError
+_____ test_x3_dirty_extra_never_silently_erased[False-shadow-extra-object] _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-11/test_x3_dirty_extra_never_sile8')
+target = 'object', method = 'shadow-extra', retry = False
+
+    @pytest.mark.parametrize("target", ["object", "operation", "selector", "ref"])
+    @pytest.mark.parametrize("method", ["model-copy", "pydantic-extra", "shadow-extra"])
+    @pytest.mark.parametrize("retry", [False, True])
+    def test_x3_dirty_extra_never_silently_erased(tmp_path, target, method, retry):
+        store = seeded(tmp_path)
+        obj, request = request_at("selector.filters" if target == "selector" else "metadata",
+                                  ObjectRef(object_id="target", revision=1) if target == "ref" else "safe")
+        if retry: store.commit([obj], request)
+        node = {"object": obj, "operation": request, "selector": getattr(obj, "selector", None),
+                "ref": obj.metadata.get("item")}[target]
+        name = next(iter(type(node).model_fields)) if method == "shadow-extra" else "unrecognized"
+        if method == "model-copy":
+            dirty = node.model_copy(update={name: "must-not-disappear"})
+        else:
+            dirty = node.model_copy(deep=True)
+            object.__setattr__(dirty, "__pydantic_extra__", {name: "must-not-disappear"})
+        if target == "object": obj = dirty
+        elif target == "operation": request = dirty
+        elif target == "selector": obj.selector = dirty
+        else: obj.metadata["item"] = dirty
+>       error_without_writes(store, [obj], request,
+                             ErrorCode.IDEMPOTENCY_CONFLICT if retry else ErrorCode.INVALID_ARGUMENT)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:249: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+store = <aios_core.storage.sqlite_store.SQLiteWorldStore object at 0x7fab0ed4ffe0>
+objects = [Observation(object_id='reader', object_type=<ObjectType.OBSERVATION: 'observation'>, subject_id='subject', revision=1...d='test', modality='json', value='safe', unit=None, data_quality={}, raw_locator=None, object_id='must-not-disappear')]
+request = OperationRequest(operation_id='op-request', session_id='session', operation_name='commit', arguments={'a': 1, 'b': 2}, expected_world_revision=1, reason='independent contract check', idempotency_key='request')
+expected = <ErrorCode.INVALID_ARGUMENT: 'INVALID_ARGUMENT'>
+
+    def error_without_writes(store, objects, request, expected):
+        before = state(store.db_path)
+        caught = None
+        result = None
+        try:
+            result = store.commit(objects, request)
+        except Exception as exc:
+            caught = exc
+        after = state(store.db_path)
+>       assert after == before, "FAILED ATTEMPT CHANGED DURABLE TABLES"
+E       AssertionError: FAILED ATTEMPT CHANGED DURABLE TABLES
+E       assert ((('world_revision', '2'),), ((1, '2026-09-14T14:57:46.923025+00:00', 'op-seed', 'session', 'independent contract check'), (2, '2026-09-14T14:57:46.924013+00:00', 'op-request', 'session', 'independent contract check')), (('target', 1, 'observation', 'subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"target","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}'), ('reader', 1, 'observation', 'subject', 2, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{"item":"safe"},"modality":"json","object_id":"reader","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}')), (('op-seed', 'session', 'commit', '{"a":1,"b":2}', 0, 'independent contract check', 'seed', 'committed', 1, None, None, '2026-09-14T14:57:46.923025+00:00'), ('op-request', 'session', 'commit', '{"a":1,"b":2}', 1, 'independent contract check', 'request', 'committed', 2, None, None, '2026-09-14T14:57:46.924013+00:00')), (('seed', 'op-seed', 1, '{"_request_fingerprint":"59f2845e698a376445410227cc1d9cbd22513266d213a1ce34ecba891902408f","idempotent_replay":false,"object_refs":[["target",1]],"operation_id":"op-seed","world_revision":1}'), ('request', 'op-request', 2, '{"_request_fingerprint":"1f549e1e67cf4f89b83def84a155f6f8a11eff9d9e9e66964da414e6a5ce3899","idempotent_replay":false,"object_refs":[["reader",1]],"operation_id":"op-request","world_revision":2}'))) == ((('world_revision', '1'),), ((1, '2026-09-14T14:57:46.923025+00:00', 'op-seed', 'session', 'independent contract check'),), (('target', 1, 'observation', 'subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"target","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}'),), (('op-seed', 'session', 'commit', '{"a":1,"b":2}', 0, 'independent contract check', 'seed', 'committed', 1, None, None, '2026-09-14T14:57:46.923025+00:00'),), (('seed', 'op-seed', 1, '{"_request_fingerprint":"59f2845e698a376445410227cc1d9cbd22513266d213a1ce34ecba891902408f","idempotent_replay":false,"object_refs":[["target",1]],"operation_id":"op-seed","world_revision":1}'),))
+E         
+E         At index 0 diff: (('world_revision', '2'),) != (('world_revision', '1'),)
+E         
+E         Full diff:
+E           (
+E               (
+E                   (
+E                       'world_revision',
+E         -             '1',
+E         ?              ^
+E         +             '2',
+E         ?              ^
+E                   ),
+E               ),
+E               (
+E                   (
+E                       1,
+E                       '2026-09-14T14:57:46.923025+00:00',
+E                       'op-seed',
+E         +             'session',
+E         +             'independent contract check',
+E         +         ),
+E         +         (
+E         +             2,
+E         +             '2026-09-14T14:57:46.924013+00:00',
+E         +             'op-request',
+E                       'session',
+E                       'independent contract check',
+E                   ),
+E               ),
+E               (
+E                   (
+E                       'target',
+E                       1,
+E                       'observation',
+E                       'subject',
+E                       1,
+E                       '2026-09-14T10:00:00.000000+00:00',
+E                       '2026-09-14T10:00:00.000000+00:00',
+E                       '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"target","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}',
+E         +         ),
+E         +         (
+E         +             'reader',
+E         +             1,
+E         +             'observation',
+E         +             'subject',
+E         +             2,
+E         +             '2026-09-14T10:00:00.000000+00:00',
+E         +             '2026-09-14T10:00:00.000000+00:00',
+E         +             '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{"item":"safe"},"modality":"json","object_id":"reader","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}',
+E                   ),
+E               ),
+E               (
+E                   (
+E                       'op-seed',
+E                       'session',
+E                       'commit',
+E                       '{"a":1,"b":2}',
+E                       0,
+E                       'independent contract check',
+E                       'seed',
+E                       'committed',
+E                       1,
+E                       None,
+E                       None,
+E                       '2026-09-14T14:57:46.923025+00:00',
+E                   ),
+E         +         (
+E         +             'op-request',
+E         +             'session',
+E         +             'commit',
+E         +             '{"a":1,"b":2}',
+E         +             1,
+E         +             'independent contract check',
+E         +             'request',
+E         +             'committed',
+E         +             2,
+E         +             None,
+E         +             None,
+E         +             '2026-09-14T14:57:46.924013+00:00',
+E         +         ),
+E               ),
+E               (
+E                   (
+E                       'seed',
+E                       'op-seed',
+E                       1,
+E                       '{"_request_fingerprint":"59f2845e698a376445410227cc1d9cbd22513266d213a1ce34ecba891902408f","idempotent_replay":false,"object_refs":[["target",1]],"operation_id":"op-seed","world_revision":1}',
+E                   ),
+E         +         (
+E         +             'request',
+E         +             'op-request',
+E         +             2,
+E         +             '{"_request_fingerprint":"1f549e1e67cf4f89b83def84a155f6f8a11eff9d9e9e66964da414e6a5ce3899","idempotent_replay":false,"object_refs":[["reader",1]],"operation_id":"op-request","world_revision":2}',
+E         +         ),
+E               ),
+E           )
+
+../frozen_b6588bd/test_redteam_b6588bd.py:90: AssertionError
+___ test_x3_dirty_extra_never_silently_erased[False-shadow-extra-operation] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-11/test_x3_dirty_extra_never_sile9')
+target = 'operation', method = 'shadow-extra', retry = False
+
+    @pytest.mark.parametrize("target", ["object", "operation", "selector", "ref"])
+    @pytest.mark.parametrize("method", ["model-copy", "pydantic-extra", "shadow-extra"])
+    @pytest.mark.parametrize("retry", [False, True])
+    def test_x3_dirty_extra_never_silently_erased(tmp_path, target, method, retry):
+        store = seeded(tmp_path)
+        obj, request = request_at("selector.filters" if target == "selector" else "metadata",
+                                  ObjectRef(object_id="target", revision=1) if target == "ref" else "safe")
+        if retry: store.commit([obj], request)
+        node = {"object": obj, "operation": request, "selector": getattr(obj, "selector", None),
+                "ref": obj.metadata.get("item")}[target]
+        name = next(iter(type(node).model_fields)) if method == "shadow-extra" else "unrecognized"
+        if method == "model-copy":
+            dirty = node.model_copy(update={name: "must-not-disappear"})
+        else:
+            dirty = node.model_copy(deep=True)
+            object.__setattr__(dirty, "__pydantic_extra__", {name: "must-not-disappear"})
+        if target == "object": obj = dirty
+        elif target == "operation": request = dirty
+        elif target == "selector": obj.selector = dirty
+        else: obj.metadata["item"] = dirty
+>       error_without_writes(store, [obj], request,
+                             ErrorCode.IDEMPOTENCY_CONFLICT if retry else ErrorCode.INVALID_ARGUMENT)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:249: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+store = <aios_core.storage.sqlite_store.SQLiteWorldStore object at 0x7fab0ef7eed0>
+objects = [Observation(object_id='reader', object_type=<ObjectType.OBSERVATION: 'observation'>, subject_id='subject', revision=1...ata={'item': 'safe'}, source_kind='test', modality='json', value='safe', unit=None, data_quality={}, raw_locator=None)]
+request = OperationRequest(operation_id='op-request', session_id='session', operation_name='commit', arguments={'a': 1, 'b': 2},...ed_world_revision=1, reason='independent contract check', idempotency_key='request', operation_id='must-not-disappear')
+expected = <ErrorCode.INVALID_ARGUMENT: 'INVALID_ARGUMENT'>
+
+    def error_without_writes(store, objects, request, expected):
+        before = state(store.db_path)
+        caught = None
+        result = None
+        try:
+            result = store.commit(objects, request)
+        except Exception as exc:
+            caught = exc
+        after = state(store.db_path)
+>       assert after == before, "FAILED ATTEMPT CHANGED DURABLE TABLES"
+E       AssertionError: FAILED ATTEMPT CHANGED DURABLE TABLES
+E       assert ((('world_revision', '2'),), ((1, '2026-09-14T14:57:46.938576+00:00', 'op-seed', 'session', 'independent contract check'), (2, '2026-09-14T14:57:46.939529+00:00', 'op-request', 'session', 'independent contract check')), (('target', 1, 'observation', 'subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"target","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}'), ('reader', 1, 'observation', 'subject', 2, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{"item":"safe"},"modality":"json","object_id":"reader","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}')), (('op-seed', 'session', 'commit', '{"a":1,"b":2}', 0, 'independent contract check', 'seed', 'committed', 1, None, None, '2026-09-14T14:57:46.938576+00:00'), ('op-request', 'session', 'commit', '{"a":1,"b":2}', 1, 'independent contract check', 'request', 'committed', 2, None, None, '2026-09-14T14:57:46.939529+00:00')), (('seed', 'op-seed', 1, '{"_request_fingerprint":"59f2845e698a376445410227cc1d9cbd22513266d213a1ce34ecba891902408f","idempotent_replay":false,"object_refs":[["target",1]],"operation_id":"op-seed","world_revision":1}'), ('request', 'op-request', 2, '{"_request_fingerprint":"1f549e1e67cf4f89b83def84a155f6f8a11eff9d9e9e66964da414e6a5ce3899","idempotent_replay":false,"object_refs":[["reader",1]],"operation_id":"op-request","world_revision":2}'))) == ((('world_revision', '1'),), ((1, '2026-09-14T14:57:46.938576+00:00', 'op-seed', 'session', 'independent contract check'),), (('target', 1, 'observation', 'subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"target","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}'),), (('op-seed', 'session', 'commit', '{"a":1,"b":2}', 0, 'independent contract check', 'seed', 'committed', 1, None, None, '2026-09-14T14:57:46.938576+00:00'),), (('seed', 'op-seed', 1, '{"_request_fingerprint":"59f2845e698a376445410227cc1d9cbd22513266d213a1ce34ecba891902408f","idempotent_replay":false,"object_refs":[["target",1]],"operation_id":"op-seed","world_revision":1}'),))
+E         
+E         At index 0 diff: (('world_revision', '2'),) != (('world_revision', '1'),)
+E         
+E         Full diff:
+E           (
+E               (
+E                   (
+E                       'world_revision',
+E         -             '1',
+E         ?              ^
+E         +             '2',
+E         ?              ^
+E                   ),
+E               ),
+E               (
+E                   (
+E                       1,
+E                       '2026-09-14T14:57:46.938576+00:00',
+E                       'op-seed',
+E         +             'session',
+E         +             'independent contract check',
+E         +         ),
+E         +         (
+E         +             2,
+E         +             '2026-09-14T14:57:46.939529+00:00',
+E         +             'op-request',
+E                       'session',
+E                       'independent contract check',
+E                   ),
+E               ),
+E               (
+E                   (
+E                       'target',
+E                       1,
+E                       'observation',
+E                       'subject',
+E                       1,
+E                       '2026-09-14T10:00:00.000000+00:00',
+E                       '2026-09-14T10:00:00.000000+00:00',
+E                       '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"target","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}',
+E         +         ),
+E         +         (
+E         +             'reader',
+E         +             1,
+E         +             'observation',
+E         +             'subject',
+E         +             2,
+E         +             '2026-09-14T10:00:00.000000+00:00',
+E         +             '2026-09-14T10:00:00.000000+00:00',
+E         +             '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{"item":"safe"},"modality":"json","object_id":"reader","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}',
+E                   ),
+E               ),
+E               (
+E                   (
+E                       'op-seed',
+E                       'session',
+E                       'commit',
+E                       '{"a":1,"b":2}',
+E                       0,
+E                       'independent contract check',
+E                       'seed',
+E                       'committed',
+E                       1,
+E                       None,
+E                       None,
+E                       '2026-09-14T14:57:46.938576+00:00',
+E                   ),
+E         +         (
+E         +             'op-request',
+E         +             'session',
+E         +             'commit',
+E         +             '{"a":1,"b":2}',
+E         +             1,
+E         +             'independent contract check',
+E         +             'request',
+E         +             'committed',
+E         +             2,
+E         +             None,
+E         +             None,
+E         +             '2026-09-14T14:57:46.939529+00:00',
+E         +         ),
+E               ),
+E               (
+E                   (
+E                       'seed',
+E                       'op-seed',
+E                       1,
+E                       '{"_request_fingerprint":"59f2845e698a376445410227cc1d9cbd22513266d213a1ce34ecba891902408f","idempotent_replay":false,"object_refs":[["target",1]],"operation_id":"op-seed","world_revision":1}',
+E                   ),
+E         +         (
+E         +             'request',
+E         +             'op-request',
+E         +             2,
+E         +             '{"_request_fingerprint":"1f549e1e67cf4f89b83def84a155f6f8a11eff9d9e9e66964da414e6a5ce3899","idempotent_replay":false,"object_refs":[["reader",1]],"operation_id":"op-request","world_revision":2}',
+E         +         ),
+E               ),
+E           )
+
+../frozen_b6588bd/test_redteam_b6588bd.py:90: AssertionError
+____ test_x3_dirty_extra_never_silently_erased[False-shadow-extra-selector] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-11/test_x3_dirty_extra_never_sile10')
+target = 'selector', method = 'shadow-extra', retry = False
+
+    @pytest.mark.parametrize("target", ["object", "operation", "selector", "ref"])
+    @pytest.mark.parametrize("method", ["model-copy", "pydantic-extra", "shadow-extra"])
+    @pytest.mark.parametrize("retry", [False, True])
+    def test_x3_dirty_extra_never_silently_erased(tmp_path, target, method, retry):
+        store = seeded(tmp_path)
+        obj, request = request_at("selector.filters" if target == "selector" else "metadata",
+                                  ObjectRef(object_id="target", revision=1) if target == "ref" else "safe")
+        if retry: store.commit([obj], request)
+        node = {"object": obj, "operation": request, "selector": getattr(obj, "selector", None),
+                "ref": obj.metadata.get("item")}[target]
+        name = next(iter(type(node).model_fields)) if method == "shadow-extra" else "unrecognized"
+        if method == "model-copy":
+            dirty = node.model_copy(update={name: "must-not-disappear"})
+        else:
+            dirty = node.model_copy(deep=True)
+            object.__setattr__(dirty, "__pydantic_extra__", {name: "must-not-disappear"})
+        if target == "object": obj = dirty
+        elif target == "operation": request = dirty
+        elif target == "selector": obj.selector = dirty
+        else: obj.metadata["item"] = dirty
+>       error_without_writes(store, [obj], request,
+                             ErrorCode.IDEMPOTENCY_CONFLICT if retry else ErrorCode.INVALID_ARGUMENT)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:249: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+store = <aios_core.storage.sqlite_store.SQLiteWorldStore object at 0x7fab0efc22d0>
+objects = [EvidenceSet(object_id='reader', object_type=<ObjectType.EVIDENCE_SET: 'evidence_set'>, subject_id='subject', revision...=EvidenceCoverage(expected_count=None, observed_count=None, coverage_ratio=None, missing_description=[]), stale=False)]
+request = OperationRequest(operation_id='op-request', session_id='session', operation_name='commit', arguments={'a': 1, 'b': 2}, expected_world_revision=1, reason='independent contract check', idempotency_key='request')
+expected = <ErrorCode.INVALID_ARGUMENT: 'INVALID_ARGUMENT'>
+
+    def error_without_writes(store, objects, request, expected):
+        before = state(store.db_path)
+        caught = None
+        result = None
+        try:
+            result = store.commit(objects, request)
+        except Exception as exc:
+            caught = exc
+        after = state(store.db_path)
+>       assert after == before, "FAILED ATTEMPT CHANGED DURABLE TABLES"
+E       AssertionError: FAILED ATTEMPT CHANGED DURABLE TABLES
+E       assert ((('world_revision', '2'),), ((1, '2026-09-14T14:57:46.952736+00:00', 'op-seed', 'session', 'independent contract check'), (2, '2026-09-14T14:57:46.954021+00:00', 'op-request', 'session', 'independent contract check')), (('target', 1, 'observation', 'subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"target","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}'), ('reader', 1, 'evidence_set', 'subject', 2, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"aggregation_method":null,"aggregation_version":null,"context_refs":[],"counter_refs":[],"coverage":{"coverage_ratio":null,"expected_count":null,"missing_description":[],"observed_count":null},"created_by":"architect-01","knowledge_window":{"knowledge_cutoff":"2026-09-14T10:00:00Z","world_revision":null},"learned_at":"2026-09-14T10:00:00Z","member_refs":[],"metadata":{},"object_id":"reader","object_type":"evidence_set","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"purpose":"independent selector check","recorded_at":"2026-09-14T10:00:00Z","revision":1,"selection_method":"explicit","selector":{"algorithm_version":"1","dimension_refs":[],"filters":{"item":"safe"},"selector_type":"explicit","subject_id":"subject","time_range":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true}},"source_refs":[],"stale":false,"status":"active","subject_id":"subject","support_refs":[]}')), (('op-seed', 'session', 'commit', '{"a":1,"b":2}', 0, 'independent contract check', 'seed', 'committed', 1, None, None, '2026-09-14T14:57:46.952736+00:00'), ('op-request', 'session', 'commit', '{"a":1,"b":2}', 1, 'independent contract check', 'request', 'committed', 2, None, None, '2026-09-14T14:57:46.954021+00:00')), (('seed', 'op-seed', 1, '{"_request_fingerprint":"59f2845e698a376445410227cc1d9cbd22513266d213a1ce34ecba891902408f","idempotent_replay":false,"object_refs":[["target",1]],"operation_id":"op-seed","world_revision":1}'), ('request', 'op-request', 2, '{"_request_fingerprint":"5ce3bb0f51b9e5d85e6a507e6552df499ecfdc970284a3136b31073840a39937","idempotent_replay":false,"object_refs":[["reader",1]],"operation_id":"op-request","world_revision":2}'))) == ((('world_revision', '1'),), ((1, '2026-09-14T14:57:46.952736+00:00', 'op-seed', 'session', 'independent contract check'),), (('target', 1, 'observation', 'subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"target","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}'),), (('op-seed', 'session', 'commit', '{"a":1,"b":2}', 0, 'independent contract check', 'seed', 'committed', 1, None, None, '2026-09-14T14:57:46.952736+00:00'),), (('seed', 'op-seed', 1, '{"_request_fingerprint":"59f2845e698a376445410227cc1d9cbd22513266d213a1ce34ecba891902408f","idempotent_replay":false,"object_refs":[["target",1]],"operation_id":"op-seed","world_revision":1}'),))
+E         
+E         At index 0 diff: (('world_revision', '2'),) != (('world_revision', '1'),)
+E         
+E         Full diff:
+E           (
+E               (
+E                   (
+E                       'world_revision',
+E         -             '1',
+E         ?              ^
+E         +             '2',
+E         ?              ^
+E                   ),
+E               ),
+E               (
+E                   (
+E                       1,
+E                       '2026-09-14T14:57:46.952736+00:00',
+E                       'op-seed',
+E         +             'session',
+E         +             'independent contract check',
+E         +         ),
+E         +         (
+E         +             2,
+E         +             '2026-09-14T14:57:46.954021+00:00',
+E         +             'op-request',
+E                       'session',
+E                       'independent contract check',
+E                   ),
+E               ),
+E               (
+E                   (
+E                       'target',
+E                       1,
+E                       'observation',
+E                       'subject',
+E                       1,
+E                       '2026-09-14T10:00:00.000000+00:00',
+E                       '2026-09-14T10:00:00.000000+00:00',
+E                       '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"target","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}',
+E         +         ),
+E         +         (
+E         +             'reader',
+E         +             1,
+E         +             'evidence_set',
+E         +             'subject',
+E         +             2,
+E         +             '2026-09-14T10:00:00.000000+00:00',
+E         +             '2026-09-14T10:00:00.000000+00:00',
+E         +             '{"aggregation_method":null,"aggregation_version":null,"context_refs":[],"counter_refs":[],"coverage":{"coverage_ratio":null,"expected_count":null,"missing_description":[],"observed_count":null},"created_by":"architect-01","knowledge_window":{"knowledge_cutoff":"2026-09-14T10:00:00Z","world_revision":null},"learned_at":"2026-09-14T10:00:00Z","member_refs":[],"metadata":{},"object_id":"reader","object_type":"evidence_set","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"purpose":"independent '
+E         +             'selector '
+E         +             'check","recorded_at":"2026-09-14T10:00:00Z","revision":1,"selection_method":"explicit","selector":{"algorithm_version":"1","dimension_refs":[],"filters":{"item":"safe"},"selector_type":"explicit","subject_id":"subject","time_range":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true}},"source_refs":[],"stale":false,"status":"active","subject_id":"subject","support_refs":[]}',
+E                   ),
+E               ),
+E               (
+E                   (
+E                       'op-seed',
+E                       'session',
+E                       'commit',
+E                       '{"a":1,"b":2}',
+E                       0,
+E                       'independent contract check',
+E                       'seed',
+E                       'committed',
+E                       1,
+E                       None,
+E                       None,
+E                       '2026-09-14T14:57:46.952736+00:00',
+E                   ),
+E         +         (
+E         +             'op-request',
+E         +             'session',
+E         +             'commit',
+E         +             '{"a":1,"b":2}',
+E         +             1,
+E         +             'independent contract check',
+E         +             'request',
+E         +             'committed',
+E         +             2,
+E         +             None,
+E         +             None,
+E         +             '2026-09-14T14:57:46.954021+00:00',
+E         +         ),
+E               ),
+E               (
+E                   (
+E                       'seed',
+E                       'op-seed',
+E                       1,
+E                       '{"_request_fingerprint":"59f2845e698a376445410227cc1d9cbd22513266d213a1ce34ecba891902408f","idempotent_replay":false,"object_refs":[["target",1]],"operation_id":"op-seed","world_revision":1}',
+E                   ),
+E         +         (
+E         +             'request',
+E         +             'op-request',
+E         +             2,
+E         +             '{"_request_fingerprint":"5ce3bb0f51b9e5d85e6a507e6552df499ecfdc970284a3136b31073840a39937","idempotent_replay":false,"object_refs":[["reader",1]],"operation_id":"op-request","world_revision":2}',
+E         +         ),
+E               ),
+E           )
+
+../frozen_b6588bd/test_redteam_b6588bd.py:90: AssertionError
+______ test_x3_dirty_extra_never_silently_erased[False-shadow-extra-ref] _______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-11/test_x3_dirty_extra_never_sile11')
+target = 'ref', method = 'shadow-extra', retry = False
+
+    @pytest.mark.parametrize("target", ["object", "operation", "selector", "ref"])
+    @pytest.mark.parametrize("method", ["model-copy", "pydantic-extra", "shadow-extra"])
+    @pytest.mark.parametrize("retry", [False, True])
+    def test_x3_dirty_extra_never_silently_erased(tmp_path, target, method, retry):
+        store = seeded(tmp_path)
+        obj, request = request_at("selector.filters" if target == "selector" else "metadata",
+                                  ObjectRef(object_id="target", revision=1) if target == "ref" else "safe")
+        if retry: store.commit([obj], request)
+        node = {"object": obj, "operation": request, "selector": getattr(obj, "selector", None),
+                "ref": obj.metadata.get("item")}[target]
+        name = next(iter(type(node).model_fields)) if method == "shadow-extra" else "unrecognized"
+        if method == "model-copy":
+            dirty = node.model_copy(update={name: "must-not-disappear"})
+        else:
+            dirty = node.model_copy(deep=True)
+            object.__setattr__(dirty, "__pydantic_extra__", {name: "must-not-disappear"})
+        if target == "object": obj = dirty
+        elif target == "operation": request = dirty
+        elif target == "selector": obj.selector = dirty
+        else: obj.metadata["item"] = dirty
+>       error_without_writes(store, [obj], request,
+                             ErrorCode.IDEMPOTENCY_CONFLICT if retry else ErrorCode.INVALID_ARGUMENT)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:249: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+store = <aios_core.storage.sqlite_store.SQLiteWorldStore object at 0x7fab0ee52690>
+objects = [Observation(object_id='reader', object_type=<ObjectType.OBSERVATION: 'observation'>, subject_id='subject', revision=1...ust-not-disappear')}, source_kind='test', modality='json', value='safe', unit=None, data_quality={}, raw_locator=None)]
+request = OperationRequest(operation_id='op-request', session_id='session', operation_name='commit', arguments={'a': 1, 'b': 2}, expected_world_revision=1, reason='independent contract check', idempotency_key='request')
+expected = <ErrorCode.INVALID_ARGUMENT: 'INVALID_ARGUMENT'>
+
+    def error_without_writes(store, objects, request, expected):
+        before = state(store.db_path)
+        caught = None
+        result = None
+        try:
+            result = store.commit(objects, request)
+        except Exception as exc:
+            caught = exc
+        after = state(store.db_path)
+>       assert after == before, "FAILED ATTEMPT CHANGED DURABLE TABLES"
+E       AssertionError: FAILED ATTEMPT CHANGED DURABLE TABLES
+E       assert ((('world_revision', '2'),), ((1, '2026-09-14T14:57:46.970588+00:00', 'op-seed', 'session', 'independent contract check'), (2, '2026-09-14T14:57:46.971738+00:00', 'op-request', 'session', 'independent contract check')), (('target', 1, 'observation', 'subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"target","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}'), ('reader', 1, 'observation', 'subject', 2, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{"item":{"object_id":"target","revision":1}},"modality":"json","object_id":"reader","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}')), (('op-seed', 'session', 'commit', '{"a":1,"b":2}', 0, 'independent contract check', 'seed', 'committed', 1, None, None, '2026-09-14T14:57:46.970588+00:00'), ('op-request', 'session', 'commit', '{"a":1,"b":2}', 1, 'independent contract check', 'request', 'committed', 2, None, None, '2026-09-14T14:57:46.971738+00:00')), (('seed', 'op-seed', 1, '{"_request_fingerprint":"59f2845e698a376445410227cc1d9cbd22513266d213a1ce34ecba891902408f","idempotent_replay":false,"object_refs":[["target",1]],"operation_id":"op-seed","world_revision":1}'), ('request', 'op-request', 2, '{"_request_fingerprint":"2c52ed7139f99b4b8f5fde10684749f7acb4d17dd55c08bb162771c6640c8428","idempotent_replay":false,"object_refs":[["reader",1]],"operation_id":"op-request","world_revision":2}'))) == ((('world_revision', '1'),), ((1, '2026-09-14T14:57:46.970588+00:00', 'op-seed', 'session', 'independent contract check'),), (('target', 1, 'observation', 'subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"target","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}'),), (('op-seed', 'session', 'commit', '{"a":1,"b":2}', 0, 'independent contract check', 'seed', 'committed', 1, None, None, '2026-09-14T14:57:46.970588+00:00'),), (('seed', 'op-seed', 1, '{"_request_fingerprint":"59f2845e698a376445410227cc1d9cbd22513266d213a1ce34ecba891902408f","idempotent_replay":false,"object_refs":[["target",1]],"operation_id":"op-seed","world_revision":1}'),))
+E         
+E         At index 0 diff: (('world_revision', '2'),) != (('world_revision', '1'),)
+E         
+E         Full diff:
+E           (
+E               (
+E                   (
+E                       'world_revision',
+E         -             '1',
+E         ?              ^
+E         +             '2',
+E         ?              ^
+E                   ),
+E               ),
+E               (
+E                   (
+E                       1,
+E                       '2026-09-14T14:57:46.970588+00:00',
+E                       'op-seed',
+E         +             'session',
+E         +             'independent contract check',
+E         +         ),
+E         +         (
+E         +             2,
+E         +             '2026-09-14T14:57:46.971738+00:00',
+E         +             'op-request',
+E                       'session',
+E                       'independent contract check',
+E                   ),
+E               ),
+E               (
+E                   (
+E                       'target',
+E                       1,
+E                       'observation',
+E                       'subject',
+E                       1,
+E                       '2026-09-14T10:00:00.000000+00:00',
+E                       '2026-09-14T10:00:00.000000+00:00',
+E                       '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"target","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}',
+E         +         ),
+E         +         (
+E         +             'reader',
+E         +             1,
+E         +             'observation',
+E         +             'subject',
+E         +             2,
+E         +             '2026-09-14T10:00:00.000000+00:00',
+E         +             '2026-09-14T10:00:00.000000+00:00',
+E         +             '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{"item":{"object_id":"target","revision":1}},"modality":"json","object_id":"reader","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}',
+E                   ),
+E               ),
+E               (
+E                   (
+E                       'op-seed',
+E                       'session',
+E                       'commit',
+E                       '{"a":1,"b":2}',
+E                       0,
+E                       'independent contract check',
+E                       'seed',
+E                       'committed',
+E                       1,
+E                       None,
+E                       None,
+E                       '2026-09-14T14:57:46.970588+00:00',
+E                   ),
+E         +         (
+E         +             'op-request',
+E         +             'session',
+E         +             'commit',
+E         +             '{"a":1,"b":2}',
+E         +             1,
+E         +             'independent contract check',
+E         +             'request',
+E         +             'committed',
+E         +             2,
+E         +             None,
+E         +             None,
+E         +             '2026-09-14T14:57:46.971738+00:00',
+E         +         ),
+E               ),
+E               (
+E                   (
+E                       'seed',
+E                       'op-seed',
+E                       1,
+E                       '{"_request_fingerprint":"59f2845e698a376445410227cc1d9cbd22513266d213a1ce34ecba891902408f","idempotent_replay":false,"object_refs":[["target",1]],"operation_id":"op-seed","world_revision":1}',
+E                   ),
+E         +         (
+E         +             'request',
+E         +             'op-request',
+E         +             2,
+E         +             '{"_request_fingerprint":"2c52ed7139f99b4b8f5fde10684749f7acb4d17dd55c08bb162771c6640c8428","idempotent_replay":false,"object_refs":[["reader",1]],"operation_id":"op-request","world_revision":2}',
+E         +         ),
+E               ),
+E           )
+
+../frozen_b6588bd/test_redteam_b6588bd.py:90: AssertionError
+_____ test_x3_dirty_extra_never_silently_erased[True-shadow-extra-object] ______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-11/test_x3_dirty_extra_never_sile20')
+target = 'object', method = 'shadow-extra', retry = True
+
+    @pytest.mark.parametrize("target", ["object", "operation", "selector", "ref"])
+    @pytest.mark.parametrize("method", ["model-copy", "pydantic-extra", "shadow-extra"])
+    @pytest.mark.parametrize("retry", [False, True])
+    def test_x3_dirty_extra_never_silently_erased(tmp_path, target, method, retry):
+        store = seeded(tmp_path)
+        obj, request = request_at("selector.filters" if target == "selector" else "metadata",
+                                  ObjectRef(object_id="target", revision=1) if target == "ref" else "safe")
+        if retry: store.commit([obj], request)
+        node = {"object": obj, "operation": request, "selector": getattr(obj, "selector", None),
+                "ref": obj.metadata.get("item")}[target]
+        name = next(iter(type(node).model_fields)) if method == "shadow-extra" else "unrecognized"
+        if method == "model-copy":
+            dirty = node.model_copy(update={name: "must-not-disappear"})
+        else:
+            dirty = node.model_copy(deep=True)
+            object.__setattr__(dirty, "__pydantic_extra__", {name: "must-not-disappear"})
+        if target == "object": obj = dirty
+        elif target == "operation": request = dirty
+        elif target == "selector": obj.selector = dirty
+        else: obj.metadata["item"] = dirty
+>       error_without_writes(store, [obj], request,
+                             ErrorCode.IDEMPOTENCY_CONFLICT if retry else ErrorCode.INVALID_ARGUMENT)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:249: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+store = <aios_core.storage.sqlite_store.SQLiteWorldStore object at 0x7fab0ee51cd0>
+objects = [Observation(object_id='reader', object_type=<ObjectType.OBSERVATION: 'observation'>, subject_id='subject', revision=1...d='test', modality='json', value='safe', unit=None, data_quality={}, raw_locator=None, object_id='must-not-disappear')]
+request = OperationRequest(operation_id='op-request', session_id='session', operation_name='commit', arguments={'a': 1, 'b': 2}, expected_world_revision=1, reason='independent contract check', idempotency_key='request')
+expected = <ErrorCode.IDEMPOTENCY_CONFLICT: 'IDEMPOTENCY_CONFLICT'>
+
+    def error_without_writes(store, objects, request, expected):
+        before = state(store.db_path)
+        caught = None
+        result = None
+        try:
+            result = store.commit(objects, request)
+        except Exception as exc:
+            caught = exc
+        after = state(store.db_path)
+        assert after == before, "FAILED ATTEMPT CHANGED DURABLE TABLES"
+>       assert isinstance(caught, StoreError), (
+            f"expected StoreError({expected.value}); actual exception={type(caught).__name__}; result={result!r}"
+        )
+E       AssertionError: expected StoreError(IDEMPOTENCY_CONFLICT); actual exception=NoneType; result=CommitResult(operation_id='op-request', world_revision=2, object_refs=[('reader', 1)], idempotent_replay=True)
+E       assert False
+E        +  where False = isinstance(None, StoreError)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:91: AssertionError
+____ test_x3_dirty_extra_never_silently_erased[True-shadow-extra-operation] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-11/test_x3_dirty_extra_never_sile21')
+target = 'operation', method = 'shadow-extra', retry = True
+
+    @pytest.mark.parametrize("target", ["object", "operation", "selector", "ref"])
+    @pytest.mark.parametrize("method", ["model-copy", "pydantic-extra", "shadow-extra"])
+    @pytest.mark.parametrize("retry", [False, True])
+    def test_x3_dirty_extra_never_silently_erased(tmp_path, target, method, retry):
+        store = seeded(tmp_path)
+        obj, request = request_at("selector.filters" if target == "selector" else "metadata",
+                                  ObjectRef(object_id="target", revision=1) if target == "ref" else "safe")
+        if retry: store.commit([obj], request)
+        node = {"object": obj, "operation": request, "selector": getattr(obj, "selector", None),
+                "ref": obj.metadata.get("item")}[target]
+        name = next(iter(type(node).model_fields)) if method == "shadow-extra" else "unrecognized"
+        if method == "model-copy":
+            dirty = node.model_copy(update={name: "must-not-disappear"})
+        else:
+            dirty = node.model_copy(deep=True)
+            object.__setattr__(dirty, "__pydantic_extra__", {name: "must-not-disappear"})
+        if target == "object": obj = dirty
+        elif target == "operation": request = dirty
+        elif target == "selector": obj.selector = dirty
+        else: obj.metadata["item"] = dirty
+>       error_without_writes(store, [obj], request,
+                             ErrorCode.IDEMPOTENCY_CONFLICT if retry else ErrorCode.INVALID_ARGUMENT)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:249: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+store = <aios_core.storage.sqlite_store.SQLiteWorldStore object at 0x7fab0efc13a0>
+objects = [Observation(object_id='reader', object_type=<ObjectType.OBSERVATION: 'observation'>, subject_id='subject', revision=1...ata={'item': 'safe'}, source_kind='test', modality='json', value='safe', unit=None, data_quality={}, raw_locator=None)]
+request = OperationRequest(operation_id='op-request', session_id='session', operation_name='commit', arguments={'a': 1, 'b': 2},...ed_world_revision=1, reason='independent contract check', idempotency_key='request', operation_id='must-not-disappear')
+expected = <ErrorCode.IDEMPOTENCY_CONFLICT: 'IDEMPOTENCY_CONFLICT'>
+
+    def error_without_writes(store, objects, request, expected):
+        before = state(store.db_path)
+        caught = None
+        result = None
+        try:
+            result = store.commit(objects, request)
+        except Exception as exc:
+            caught = exc
+        after = state(store.db_path)
+        assert after == before, "FAILED ATTEMPT CHANGED DURABLE TABLES"
+>       assert isinstance(caught, StoreError), (
+            f"expected StoreError({expected.value}); actual exception={type(caught).__name__}; result={result!r}"
+        )
+E       AssertionError: expected StoreError(IDEMPOTENCY_CONFLICT); actual exception=NoneType; result=CommitResult(operation_id='op-request', world_revision=2, object_refs=[('reader', 1)], idempotent_replay=True)
+E       assert False
+E        +  where False = isinstance(None, StoreError)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:91: AssertionError
+____ test_x3_dirty_extra_never_silently_erased[True-shadow-extra-selector] _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-11/test_x3_dirty_extra_never_sile22')
+target = 'selector', method = 'shadow-extra', retry = True
+
+    @pytest.mark.parametrize("target", ["object", "operation", "selector", "ref"])
+    @pytest.mark.parametrize("method", ["model-copy", "pydantic-extra", "shadow-extra"])
+    @pytest.mark.parametrize("retry", [False, True])
+    def test_x3_dirty_extra_never_silently_erased(tmp_path, target, method, retry):
+        store = seeded(tmp_path)
+        obj, request = request_at("selector.filters" if target == "selector" else "metadata",
+                                  ObjectRef(object_id="target", revision=1) if target == "ref" else "safe")
+        if retry: store.commit([obj], request)
+        node = {"object": obj, "operation": request, "selector": getattr(obj, "selector", None),
+                "ref": obj.metadata.get("item")}[target]
+        name = next(iter(type(node).model_fields)) if method == "shadow-extra" else "unrecognized"
+        if method == "model-copy":
+            dirty = node.model_copy(update={name: "must-not-disappear"})
+        else:
+            dirty = node.model_copy(deep=True)
+            object.__setattr__(dirty, "__pydantic_extra__", {name: "must-not-disappear"})
+        if target == "object": obj = dirty
+        elif target == "operation": request = dirty
+        elif target == "selector": obj.selector = dirty
+        else: obj.metadata["item"] = dirty
+>       error_without_writes(store, [obj], request,
+                             ErrorCode.IDEMPOTENCY_CONFLICT if retry else ErrorCode.INVALID_ARGUMENT)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:249: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+store = <aios_core.storage.sqlite_store.SQLiteWorldStore object at 0x7fab0ee532f0>
+objects = [EvidenceSet(object_id='reader', object_type=<ObjectType.EVIDENCE_SET: 'evidence_set'>, subject_id='subject', revision...=EvidenceCoverage(expected_count=None, observed_count=None, coverage_ratio=None, missing_description=[]), stale=False)]
+request = OperationRequest(operation_id='op-request', session_id='session', operation_name='commit', arguments={'a': 1, 'b': 2}, expected_world_revision=1, reason='independent contract check', idempotency_key='request')
+expected = <ErrorCode.IDEMPOTENCY_CONFLICT: 'IDEMPOTENCY_CONFLICT'>
+
+    def error_without_writes(store, objects, request, expected):
+        before = state(store.db_path)
+        caught = None
+        result = None
+        try:
+            result = store.commit(objects, request)
+        except Exception as exc:
+            caught = exc
+        after = state(store.db_path)
+        assert after == before, "FAILED ATTEMPT CHANGED DURABLE TABLES"
+>       assert isinstance(caught, StoreError), (
+            f"expected StoreError({expected.value}); actual exception={type(caught).__name__}; result={result!r}"
+        )
+E       AssertionError: expected StoreError(IDEMPOTENCY_CONFLICT); actual exception=NoneType; result=CommitResult(operation_id='op-request', world_revision=2, object_refs=[('reader', 1)], idempotent_replay=True)
+E       assert False
+E        +  where False = isinstance(None, StoreError)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:91: AssertionError
+_______ test_x3_dirty_extra_never_silently_erased[True-shadow-extra-ref] _______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-11/test_x3_dirty_extra_never_sile23')
+target = 'ref', method = 'shadow-extra', retry = True
+
+    @pytest.mark.parametrize("target", ["object", "operation", "selector", "ref"])
+    @pytest.mark.parametrize("method", ["model-copy", "pydantic-extra", "shadow-extra"])
+    @pytest.mark.parametrize("retry", [False, True])
+    def test_x3_dirty_extra_never_silently_erased(tmp_path, target, method, retry):
+        store = seeded(tmp_path)
+        obj, request = request_at("selector.filters" if target == "selector" else "metadata",
+                                  ObjectRef(object_id="target", revision=1) if target == "ref" else "safe")
+        if retry: store.commit([obj], request)
+        node = {"object": obj, "operation": request, "selector": getattr(obj, "selector", None),
+                "ref": obj.metadata.get("item")}[target]
+        name = next(iter(type(node).model_fields)) if method == "shadow-extra" else "unrecognized"
+        if method == "model-copy":
+            dirty = node.model_copy(update={name: "must-not-disappear"})
+        else:
+            dirty = node.model_copy(deep=True)
+            object.__setattr__(dirty, "__pydantic_extra__", {name: "must-not-disappear"})
+        if target == "object": obj = dirty
+        elif target == "operation": request = dirty
+        elif target == "selector": obj.selector = dirty
+        else: obj.metadata["item"] = dirty
+>       error_without_writes(store, [obj], request,
+                             ErrorCode.IDEMPOTENCY_CONFLICT if retry else ErrorCode.INVALID_ARGUMENT)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:249: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+store = <aios_core.storage.sqlite_store.SQLiteWorldStore object at 0x7fab0ee51ca0>
+objects = [Observation(object_id='reader', object_type=<ObjectType.OBSERVATION: 'observation'>, subject_id='subject', revision=1...ust-not-disappear')}, source_kind='test', modality='json', value='safe', unit=None, data_quality={}, raw_locator=None)]
+request = OperationRequest(operation_id='op-request', session_id='session', operation_name='commit', arguments={'a': 1, 'b': 2}, expected_world_revision=1, reason='independent contract check', idempotency_key='request')
+expected = <ErrorCode.IDEMPOTENCY_CONFLICT: 'IDEMPOTENCY_CONFLICT'>
+
+    def error_without_writes(store, objects, request, expected):
+        before = state(store.db_path)
+        caught = None
+        result = None
+        try:
+            result = store.commit(objects, request)
+        except Exception as exc:
+            caught = exc
+        after = state(store.db_path)
+        assert after == before, "FAILED ATTEMPT CHANGED DURABLE TABLES"
+>       assert isinstance(caught, StoreError), (
+            f"expected StoreError({expected.value}); actual exception={type(caught).__name__}; result={result!r}"
+        )
+E       AssertionError: expected StoreError(IDEMPOTENCY_CONFLICT); actual exception=NoneType; result=CommitResult(operation_id='op-request', world_revision=2, object_refs=[('reader', 1)], idempotent_replay=True)
+E       assert False
+E        +  where False = isinstance(None, StoreError)
+
+../frozen_b6588bd/test_redteam_b6588bd.py:91: AssertionError
+=========================== short test summary info ============================
+FAILED ../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[True-typed-to-opaque-metadata-ObjectRef] - AssertionError: expected StoreError(IDEMPOTENCY_CONFLICT); actual exception=NoneType; result=CommitResult(operation_id='op-request', world_revision=2, object_refs=[('reader', 1)], idempotent_replay=True)
+assert False
+ +  where False = isinstance(None, StoreError)
+FAILED ../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[True-typed-to-opaque-metadata-SourceRef] - AssertionError: expected StoreError(IDEMPOTENCY_CONFLICT); actual exception=NoneType; result=CommitResult(operation_id='op-request', world_revision=2, object_refs=[('reader', 1)], idempotent_replay=True)
+assert False
+ +  where False = isinstance(None, StoreError)
+FAILED ../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[True-typed-to-opaque-value-ObjectRef] - AssertionError: expected StoreError(IDEMPOTENCY_CONFLICT); actual exception=NoneType; result=CommitResult(operation_id='op-request', world_revision=2, object_refs=[('reader', 1)], idempotent_replay=True)
+assert False
+ +  where False = isinstance(None, StoreError)
+FAILED ../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[True-typed-to-opaque-value-SourceRef] - AssertionError: expected StoreError(IDEMPOTENCY_CONFLICT); actual exception=NoneType; result=CommitResult(operation_id='op-request', world_revision=2, object_refs=[('reader', 1)], idempotent_replay=True)
+assert False
+ +  where False = isinstance(None, StoreError)
+FAILED ../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[True-typed-to-opaque-arguments-ObjectRef] - AssertionError: expected StoreError(IDEMPOTENCY_CONFLICT); actual exception=NoneType; result=CommitResult(operation_id='op-request', world_revision=2, object_refs=[('reader', 1)], idempotent_replay=True)
+assert False
+ +  where False = isinstance(None, StoreError)
+FAILED ../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[True-typed-to-opaque-arguments-SourceRef] - AssertionError: expected StoreError(IDEMPOTENCY_CONFLICT); actual exception=NoneType; result=CommitResult(operation_id='op-request', world_revision=2, object_refs=[('reader', 1)], idempotent_replay=True)
+assert False
+ +  where False = isinstance(None, StoreError)
+FAILED ../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[True-typed-to-opaque-selector.filters-ObjectRef] - AssertionError: expected StoreError(IDEMPOTENCY_CONFLICT); actual exception=NoneType; result=CommitResult(operation_id='op-request', world_revision=2, object_refs=[('reader', 1)], idempotent_replay=True)
+assert False
+ +  where False = isinstance(None, StoreError)
+FAILED ../frozen_b6588bd/test_redteam_b6588bd.py::test_x1_semantic_identity_both_directions[True-typed-to-opaque-selector.filters-SourceRef] - AssertionError: expected StoreError(IDEMPOTENCY_CONFLICT); actual exception=NoneType; result=CommitResult(operation_id='op-request', world_revision=2, object_refs=[('reader', 1)], idempotent_replay=True)
+assert False
+ +  where False = isinstance(None, StoreError)
+FAILED ../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[False-shadow-extra-object] - AssertionError: FAILED ATTEMPT CHANGED DURABLE TABLES
+assert ((('world_revision', '2'),), ((1, '2026-09-14T14:57:46.923025+00:00', 'op-seed', 'session', 'independent contract check'), (2, '2026-09-14T14:57:46.924013+00:00', 'op-request', 'session', 'independent contract check')), (('target', 1, 'observation', 'subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"target","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}'), ('reader', 1, 'observation', 'subject', 2, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{"item":"safe"},"modality":"json","object_id":"reader","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}')), (('op-seed', 'session', 'commit', '{"a":1,"b":2}', 0, 'independent contract check', 'seed', 'committed', 1, None, None, '2026-09-14T14:57:46.923025+00:00'), ('op-request', 'session', 'commit', '{"a":1,"b":2}', 1, 'independent contract check', 'request', 'committed', 2, None, None, '2026-09-14T14:57:46.924013+00:00')), (('seed', 'op-seed', 1, '{"_request_fingerprint":"59f2845e698a376445410227cc1d9cbd22513266d213a1ce34ecba891902408f","idempotent_replay":false,"object_refs":[["target",1]],"operation_id":"op-seed","world_revision":1}'), ('request', 'op-request', 2, '{"_request_fingerprint":"1f549e1e67cf4f89b83def84a155f6f8a11eff9d9e9e66964da414e6a5ce3899","idempotent_replay":false,"object_refs":[["reader",1]],"operation_id":"op-request","world_revision":2}'))) == ((('world_revision', '1'),), ((1, '2026-09-14T14:57:46.923025+00:00', 'op-seed', 'session', 'independent contract check'),), (('target', 1, 'observation', 'subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"target","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}'),), (('op-seed', 'session', 'commit', '{"a":1,"b":2}', 0, 'independent contract check', 'seed', 'committed', 1, None, None, '2026-09-14T14:57:46.923025+00:00'),), (('seed', 'op-seed', 1, '{"_request_fingerprint":"59f2845e698a376445410227cc1d9cbd22513266d213a1ce34ecba891902408f","idempotent_replay":false,"object_refs":[["target",1]],"operation_id":"op-seed","world_revision":1}'),))
+  
+  At index 0 diff: (('world_revision', '2'),) != (('world_revision', '1'),)
+  
+  Full diff:
+    (
+        (
+            (
+                'world_revision',
+  -             '1',
+  ?              ^
+  +             '2',
+  ?              ^
+            ),
+        ),
+        (
+            (
+                1,
+                '2026-09-14T14:57:46.923025+00:00',
+                'op-seed',
+  +             'session',
+  +             'independent contract check',
+  +         ),
+  +         (
+  +             2,
+  +             '2026-09-14T14:57:46.924013+00:00',
+  +             'op-request',
+                'session',
+                'independent contract check',
+            ),
+        ),
+        (
+            (
+                'target',
+                1,
+                'observation',
+                'subject',
+                1,
+                '2026-09-14T10:00:00.000000+00:00',
+                '2026-09-14T10:00:00.000000+00:00',
+                '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"target","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}',
+  +         ),
+  +         (
+  +             'reader',
+  +             1,
+  +             'observation',
+  +             'subject',
+  +             2,
+  +             '2026-09-14T10:00:00.000000+00:00',
+  +             '2026-09-14T10:00:00.000000+00:00',
+  +             '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{"item":"safe"},"modality":"json","object_id":"reader","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}',
+            ),
+        ),
+        (
+            (
+                'op-seed',
+                'session',
+                'commit',
+                '{"a":1,"b":2}',
+                0,
+                'independent contract check',
+                'seed',
+                'committed',
+                1,
+                None,
+                None,
+                '2026-09-14T14:57:46.923025+00:00',
+            ),
+  +         (
+  +             'op-request',
+  +             'session',
+  +             'commit',
+  +             '{"a":1,"b":2}',
+  +             1,
+  +             'independent contract check',
+  +             'request',
+  +             'committed',
+  +             2,
+  +             None,
+  +             None,
+  +             '2026-09-14T14:57:46.924013+00:00',
+  +         ),
+        ),
+        (
+            (
+                'seed',
+                'op-seed',
+                1,
+                '{"_request_fingerprint":"59f2845e698a376445410227cc1d9cbd22513266d213a1ce34ecba891902408f","idempotent_replay":false,"object_refs":[["target",1]],"operation_id":"op-seed","world_revision":1}',
+            ),
+  +         (
+  +             'request',
+  +             'op-request',
+  +             2,
+  +             '{"_request_fingerprint":"1f549e1e67cf4f89b83def84a155f6f8a11eff9d9e9e66964da414e6a5ce3899","idempotent_replay":false,"object_refs":[["reader",1]],"operation_id":"op-request","world_revision":2}',
+  +         ),
+        ),
+    )
+FAILED ../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[False-shadow-extra-operation] - AssertionError: FAILED ATTEMPT CHANGED DURABLE TABLES
+assert ((('world_revision', '2'),), ((1, '2026-09-14T14:57:46.938576+00:00', 'op-seed', 'session', 'independent contract check'), (2, '2026-09-14T14:57:46.939529+00:00', 'op-request', 'session', 'independent contract check')), (('target', 1, 'observation', 'subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"target","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}'), ('reader', 1, 'observation', 'subject', 2, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{"item":"safe"},"modality":"json","object_id":"reader","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}')), (('op-seed', 'session', 'commit', '{"a":1,"b":2}', 0, 'independent contract check', 'seed', 'committed', 1, None, None, '2026-09-14T14:57:46.938576+00:00'), ('op-request', 'session', 'commit', '{"a":1,"b":2}', 1, 'independent contract check', 'request', 'committed', 2, None, None, '2026-09-14T14:57:46.939529+00:00')), (('seed', 'op-seed', 1, '{"_request_fingerprint":"59f2845e698a376445410227cc1d9cbd22513266d213a1ce34ecba891902408f","idempotent_replay":false,"object_refs":[["target",1]],"operation_id":"op-seed","world_revision":1}'), ('request', 'op-request', 2, '{"_request_fingerprint":"1f549e1e67cf4f89b83def84a155f6f8a11eff9d9e9e66964da414e6a5ce3899","idempotent_replay":false,"object_refs":[["reader",1]],"operation_id":"op-request","world_revision":2}'))) == ((('world_revision', '1'),), ((1, '2026-09-14T14:57:46.938576+00:00', 'op-seed', 'session', 'independent contract check'),), (('target', 1, 'observation', 'subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"target","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}'),), (('op-seed', 'session', 'commit', '{"a":1,"b":2}', 0, 'independent contract check', 'seed', 'committed', 1, None, None, '2026-09-14T14:57:46.938576+00:00'),), (('seed', 'op-seed', 1, '{"_request_fingerprint":"59f2845e698a376445410227cc1d9cbd22513266d213a1ce34ecba891902408f","idempotent_replay":false,"object_refs":[["target",1]],"operation_id":"op-seed","world_revision":1}'),))
+  
+  At index 0 diff: (('world_revision', '2'),) != (('world_revision', '1'),)
+  
+  Full diff:
+    (
+        (
+            (
+                'world_revision',
+  -             '1',
+  ?              ^
+  +             '2',
+  ?              ^
+            ),
+        ),
+        (
+            (
+                1,
+                '2026-09-14T14:57:46.938576+00:00',
+                'op-seed',
+  +             'session',
+  +             'independent contract check',
+  +         ),
+  +         (
+  +             2,
+  +             '2026-09-14T14:57:46.939529+00:00',
+  +             'op-request',
+                'session',
+                'independent contract check',
+            ),
+        ),
+        (
+            (
+                'target',
+                1,
+                'observation',
+                'subject',
+                1,
+                '2026-09-14T10:00:00.000000+00:00',
+                '2026-09-14T10:00:00.000000+00:00',
+                '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"target","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}',
+  +         ),
+  +         (
+  +             'reader',
+  +             1,
+  +             'observation',
+  +             'subject',
+  +             2,
+  +             '2026-09-14T10:00:00.000000+00:00',
+  +             '2026-09-14T10:00:00.000000+00:00',
+  +             '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{"item":"safe"},"modality":"json","object_id":"reader","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}',
+            ),
+        ),
+        (
+            (
+                'op-seed',
+                'session',
+                'commit',
+                '{"a":1,"b":2}',
+                0,
+                'independent contract check',
+                'seed',
+                'committed',
+                1,
+                None,
+                None,
+                '2026-09-14T14:57:46.938576+00:00',
+            ),
+  +         (
+  +             'op-request',
+  +             'session',
+  +             'commit',
+  +             '{"a":1,"b":2}',
+  +             1,
+  +             'independent contract check',
+  +             'request',
+  +             'committed',
+  +             2,
+  +             None,
+  +             None,
+  +             '2026-09-14T14:57:46.939529+00:00',
+  +         ),
+        ),
+        (
+            (
+                'seed',
+                'op-seed',
+                1,
+                '{"_request_fingerprint":"59f2845e698a376445410227cc1d9cbd22513266d213a1ce34ecba891902408f","idempotent_replay":false,"object_refs":[["target",1]],"operation_id":"op-seed","world_revision":1}',
+            ),
+  +         (
+  +             'request',
+  +             'op-request',
+  +             2,
+  +             '{"_request_fingerprint":"1f549e1e67cf4f89b83def84a155f6f8a11eff9d9e9e66964da414e6a5ce3899","idempotent_replay":false,"object_refs":[["reader",1]],"operation_id":"op-request","world_revision":2}',
+  +         ),
+        ),
+    )
+FAILED ../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[False-shadow-extra-selector] - AssertionError: FAILED ATTEMPT CHANGED DURABLE TABLES
+assert ((('world_revision', '2'),), ((1, '2026-09-14T14:57:46.952736+00:00', 'op-seed', 'session', 'independent contract check'), (2, '2026-09-14T14:57:46.954021+00:00', 'op-request', 'session', 'independent contract check')), (('target', 1, 'observation', 'subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"target","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}'), ('reader', 1, 'evidence_set', 'subject', 2, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"aggregation_method":null,"aggregation_version":null,"context_refs":[],"counter_refs":[],"coverage":{"coverage_ratio":null,"expected_count":null,"missing_description":[],"observed_count":null},"created_by":"architect-01","knowledge_window":{"knowledge_cutoff":"2026-09-14T10:00:00Z","world_revision":null},"learned_at":"2026-09-14T10:00:00Z","member_refs":[],"metadata":{},"object_id":"reader","object_type":"evidence_set","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"purpose":"independent selector check","recorded_at":"2026-09-14T10:00:00Z","revision":1,"selection_method":"explicit","selector":{"algorithm_version":"1","dimension_refs":[],"filters":{"item":"safe"},"selector_type":"explicit","subject_id":"subject","time_range":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true}},"source_refs":[],"stale":false,"status":"active","subject_id":"subject","support_refs":[]}')), (('op-seed', 'session', 'commit', '{"a":1,"b":2}', 0, 'independent contract check', 'seed', 'committed', 1, None, None, '2026-09-14T14:57:46.952736+00:00'), ('op-request', 'session', 'commit', '{"a":1,"b":2}', 1, 'independent contract check', 'request', 'committed', 2, None, None, '2026-09-14T14:57:46.954021+00:00')), (('seed', 'op-seed', 1, '{"_request_fingerprint":"59f2845e698a376445410227cc1d9cbd22513266d213a1ce34ecba891902408f","idempotent_replay":false,"object_refs":[["target",1]],"operation_id":"op-seed","world_revision":1}'), ('request', 'op-request', 2, '{"_request_fingerprint":"5ce3bb0f51b9e5d85e6a507e6552df499ecfdc970284a3136b31073840a39937","idempotent_replay":false,"object_refs":[["reader",1]],"operation_id":"op-request","world_revision":2}'))) == ((('world_revision', '1'),), ((1, '2026-09-14T14:57:46.952736+00:00', 'op-seed', 'session', 'independent contract check'),), (('target', 1, 'observation', 'subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"target","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}'),), (('op-seed', 'session', 'commit', '{"a":1,"b":2}', 0, 'independent contract check', 'seed', 'committed', 1, None, None, '2026-09-14T14:57:46.952736+00:00'),), (('seed', 'op-seed', 1, '{"_request_fingerprint":"59f2845e698a376445410227cc1d9cbd22513266d213a1ce34ecba891902408f","idempotent_replay":false,"object_refs":[["target",1]],"operation_id":"op-seed","world_revision":1}'),))
+  
+  At index 0 diff: (('world_revision', '2'),) != (('world_revision', '1'),)
+  
+  Full diff:
+    (
+        (
+            (
+                'world_revision',
+  -             '1',
+  ?              ^
+  +             '2',
+  ?              ^
+            ),
+        ),
+        (
+            (
+                1,
+                '2026-09-14T14:57:46.952736+00:00',
+                'op-seed',
+  +             'session',
+  +             'independent contract check',
+  +         ),
+  +         (
+  +             2,
+  +             '2026-09-14T14:57:46.954021+00:00',
+  +             'op-request',
+                'session',
+                'independent contract check',
+            ),
+        ),
+        (
+            (
+                'target',
+                1,
+                'observation',
+                'subject',
+                1,
+                '2026-09-14T10:00:00.000000+00:00',
+                '2026-09-14T10:00:00.000000+00:00',
+                '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"target","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}',
+  +         ),
+  +         (
+  +             'reader',
+  +             1,
+  +             'evidence_set',
+  +             'subject',
+  +             2,
+  +             '2026-09-14T10:00:00.000000+00:00',
+  +             '2026-09-14T10:00:00.000000+00:00',
+  +             '{"aggregation_method":null,"aggregation_version":null,"context_refs":[],"counter_refs":[],"coverage":{"coverage_ratio":null,"expected_count":null,"missing_description":[],"observed_count":null},"created_by":"architect-01","knowledge_window":{"knowledge_cutoff":"2026-09-14T10:00:00Z","world_revision":null},"learned_at":"2026-09-14T10:00:00Z","member_refs":[],"metadata":{},"object_id":"reader","object_type":"evidence_set","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"purpose":"independent '
+  +             'selector '
+  +             'check","recorded_at":"2026-09-14T10:00:00Z","revision":1,"selection_method":"explicit","selector":{"algorithm_version":"1","dimension_refs":[],"filters":{"item":"safe"},"selector_type":"explicit","subject_id":"subject","time_range":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true}},"source_refs":[],"stale":false,"status":"active","subject_id":"subject","support_refs":[]}',
+            ),
+        ),
+        (
+            (
+                'op-seed',
+                'session',
+                'commit',
+                '{"a":1,"b":2}',
+                0,
+                'independent contract check',
+                'seed',
+                'committed',
+                1,
+                None,
+                None,
+                '2026-09-14T14:57:46.952736+00:00',
+            ),
+  +         (
+  +             'op-request',
+  +             'session',
+  +             'commit',
+  +             '{"a":1,"b":2}',
+  +             1,
+  +             'independent contract check',
+  +             'request',
+  +             'committed',
+  +             2,
+  +             None,
+  +             None,
+  +             '2026-09-14T14:57:46.954021+00:00',
+  +         ),
+        ),
+        (
+            (
+                'seed',
+                'op-seed',
+                1,
+                '{"_request_fingerprint":"59f2845e698a376445410227cc1d9cbd22513266d213a1ce34ecba891902408f","idempotent_replay":false,"object_refs":[["target",1]],"operation_id":"op-seed","world_revision":1}',
+            ),
+  +         (
+  +             'request',
+  +             'op-request',
+  +             2,
+  +             '{"_request_fingerprint":"5ce3bb0f51b9e5d85e6a507e6552df499ecfdc970284a3136b31073840a39937","idempotent_replay":false,"object_refs":[["reader",1]],"operation_id":"op-request","world_revision":2}',
+  +         ),
+        ),
+    )
+FAILED ../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[False-shadow-extra-ref] - AssertionError: FAILED ATTEMPT CHANGED DURABLE TABLES
+assert ((('world_revision', '2'),), ((1, '2026-09-14T14:57:46.970588+00:00', 'op-seed', 'session', 'independent contract check'), (2, '2026-09-14T14:57:46.971738+00:00', 'op-request', 'session', 'independent contract check')), (('target', 1, 'observation', 'subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"target","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}'), ('reader', 1, 'observation', 'subject', 2, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{"item":{"object_id":"target","revision":1}},"modality":"json","object_id":"reader","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}')), (('op-seed', 'session', 'commit', '{"a":1,"b":2}', 0, 'independent contract check', 'seed', 'committed', 1, None, None, '2026-09-14T14:57:46.970588+00:00'), ('op-request', 'session', 'commit', '{"a":1,"b":2}', 1, 'independent contract check', 'request', 'committed', 2, None, None, '2026-09-14T14:57:46.971738+00:00')), (('seed', 'op-seed', 1, '{"_request_fingerprint":"59f2845e698a376445410227cc1d9cbd22513266d213a1ce34ecba891902408f","idempotent_replay":false,"object_refs":[["target",1]],"operation_id":"op-seed","world_revision":1}'), ('request', 'op-request', 2, '{"_request_fingerprint":"2c52ed7139f99b4b8f5fde10684749f7acb4d17dd55c08bb162771c6640c8428","idempotent_replay":false,"object_refs":[["reader",1]],"operation_id":"op-request","world_revision":2}'))) == ((('world_revision', '1'),), ((1, '2026-09-14T14:57:46.970588+00:00', 'op-seed', 'session', 'independent contract check'),), (('target', 1, 'observation', 'subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"target","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}'),), (('op-seed', 'session', 'commit', '{"a":1,"b":2}', 0, 'independent contract check', 'seed', 'committed', 1, None, None, '2026-09-14T14:57:46.970588+00:00'),), (('seed', 'op-seed', 1, '{"_request_fingerprint":"59f2845e698a376445410227cc1d9cbd22513266d213a1ce34ecba891902408f","idempotent_replay":false,"object_refs":[["target",1]],"operation_id":"op-seed","world_revision":1}'),))
+  
+  At index 0 diff: (('world_revision', '2'),) != (('world_revision', '1'),)
+  
+  Full diff:
+    (
+        (
+            (
+                'world_revision',
+  -             '1',
+  ?              ^
+  +             '2',
+  ?              ^
+            ),
+        ),
+        (
+            (
+                1,
+                '2026-09-14T14:57:46.970588+00:00',
+                'op-seed',
+  +             'session',
+  +             'independent contract check',
+  +         ),
+  +         (
+  +             2,
+  +             '2026-09-14T14:57:46.971738+00:00',
+  +             'op-request',
+                'session',
+                'independent contract check',
+            ),
+        ),
+        (
+            (
+                'target',
+                1,
+                'observation',
+                'subject',
+                1,
+                '2026-09-14T10:00:00.000000+00:00',
+                '2026-09-14T10:00:00.000000+00:00',
+                '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"target","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}',
+  +         ),
+  +         (
+  +             'reader',
+  +             1,
+  +             'observation',
+  +             'subject',
+  +             2,
+  +             '2026-09-14T10:00:00.000000+00:00',
+  +             '2026-09-14T10:00:00.000000+00:00',
+  +             '{"created_by":"architect-01","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{"item":{"object_id":"target","revision":1}},"modality":"json","object_id":"reader","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"test","source_refs":[],"status":"active","subject_id":"subject","unit":null,"value":"safe"}',
+            ),
+        ),
+        (
+            (
+                'op-seed',
+                'session',
+                'commit',
+                '{"a":1,"b":2}',
+                0,
+                'independent contract check',
+                'seed',
+                'committed',
+                1,
+                None,
+                None,
+                '2026-09-14T14:57:46.970588+00:00',
+            ),
+  +         (
+  +             'op-request',
+  +             'session',
+  +             'commit',
+  +             '{"a":1,"b":2}',
+  +             1,
+  +             'independent contract check',
+  +             'request',
+  +             'committed',
+  +             2,
+  +             None,
+  +             None,
+  +             '2026-09-14T14:57:46.971738+00:00',
+  +         ),
+        ),
+        (
+            (
+                'seed',
+                'op-seed',
+                1,
+                '{"_request_fingerprint":"59f2845e698a376445410227cc1d9cbd22513266d213a1ce34ecba891902408f","idempotent_replay":false,"object_refs":[["target",1]],"operation_id":"op-seed","world_revision":1}',
+            ),
+  +         (
+  +             'request',
+  +             'op-request',
+  +             2,
+  +             '{"_request_fingerprint":"2c52ed7139f99b4b8f5fde10684749f7acb4d17dd55c08bb162771c6640c8428","idempotent_replay":false,"object_refs":[["reader",1]],"operation_id":"op-request","world_revision":2}',
+  +         ),
+        ),
+    )
+FAILED ../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[True-shadow-extra-object] - AssertionError: expected StoreError(IDEMPOTENCY_CONFLICT); actual exception=NoneType; result=CommitResult(operation_id='op-request', world_revision=2, object_refs=[('reader', 1)], idempotent_replay=True)
+assert False
+ +  where False = isinstance(None, StoreError)
+FAILED ../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[True-shadow-extra-operation] - AssertionError: expected StoreError(IDEMPOTENCY_CONFLICT); actual exception=NoneType; result=CommitResult(operation_id='op-request', world_revision=2, object_refs=[('reader', 1)], idempotent_replay=True)
+assert False
+ +  where False = isinstance(None, StoreError)
+FAILED ../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[True-shadow-extra-selector] - AssertionError: expected StoreError(IDEMPOTENCY_CONFLICT); actual exception=NoneType; result=CommitResult(operation_id='op-request', world_revision=2, object_refs=[('reader', 1)], idempotent_replay=True)
+assert False
+ +  where False = isinstance(None, StoreError)
+FAILED ../frozen_b6588bd/test_redteam_b6588bd.py::test_x3_dirty_extra_never_silently_erased[True-shadow-extra-ref] - AssertionError: expected StoreError(IDEMPOTENCY_CONFLICT); actual exception=NoneType; result=CommitResult(operation_id='op-request', world_revision=2, object_refs=[('reader', 1)], idempotent_replay=True)
+assert False
+ +  where False = isinstance(None, StoreError)
+======================== 16 failed, 278 passed in 2.90s ========================

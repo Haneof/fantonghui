@@ -1,0 +1,132 @@
+[
+  {
+    "log": "combined-collect-only.log",
+    "command": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+      "-m",
+      "pytest",
+      "-o",
+      "addopts=",
+      "-o",
+      "pythonpath=/workspace/scratch/82c41c0036ab/xreview/src",
+      "--collect-only",
+      "-vv",
+      "/workspace/scratch/82c41c0036ab/frozen_b6588bd/test_redteam_b6588bd.py",
+      "/workspace/scratch/82c41c0036ab/frozen_b6588bd/test_quality_addendum_b6588bd.py"
+    ],
+    "start": "2026-09-14T14:57:35.309087+00:00",
+    "end": "2026-09-14T14:57:36.004161+00:00",
+    "exit_code": 0,
+    "sha256_before": {
+      "test_redteam_b6588bd.py": "780cd8d978ec584faa7678dd98c0d3f4a9db2a18a05a82f019144c72f5885647",
+      "test_quality_addendum_b6588bd.py": "ca6a49dcb648bda2593c3d79f489205cae928c72d5eceae88f276b29c612d641"
+    },
+    "sha256_after": {
+      "test_redteam_b6588bd.py": "780cd8d978ec584faa7678dd98c0d3f4a9db2a18a05a82f019144c72f5885647",
+      "test_quality_addendum_b6588bd.py": "ca6a49dcb648bda2593c3d79f489205cae928c72d5eceae88f276b29c612d641"
+    }
+  },
+  {
+    "log": "combined-suite.log",
+    "command": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+      "-m",
+      "pytest",
+      "-o",
+      "addopts=",
+      "-o",
+      "pythonpath=/workspace/scratch/82c41c0036ab/xreview/src",
+      "-vv",
+      "--tb=long",
+      "/workspace/scratch/82c41c0036ab/frozen_b6588bd/test_redteam_b6588bd.py",
+      "/workspace/scratch/82c41c0036ab/frozen_b6588bd/test_quality_addendum_b6588bd.py"
+    ],
+    "start": "2026-09-14T14:57:36.004743+00:00",
+    "end": "2026-09-14T14:57:40.008430+00:00",
+    "exit_code": 1,
+    "sha256_before": {
+      "test_redteam_b6588bd.py": "780cd8d978ec584faa7678dd98c0d3f4a9db2a18a05a82f019144c72f5885647",
+      "test_quality_addendum_b6588bd.py": "ca6a49dcb648bda2593c3d79f489205cae928c72d5eceae88f276b29c612d641"
+    },
+    "sha256_after": {
+      "test_redteam_b6588bd.py": "780cd8d978ec584faa7678dd98c0d3f4a9db2a18a05a82f019144c72f5885647",
+      "test_quality_addendum_b6588bd.py": "ca6a49dcb648bda2593c3d79f489205cae928c72d5eceae88f276b29c612d641"
+    }
+  },
+  {
+    "log": "formal-after-addendum.log",
+    "command": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+      "-m",
+      "pytest",
+      "-o",
+      "addopts=",
+      "-o",
+      "pythonpath=/workspace/scratch/82c41c0036ab/xreview/src",
+      "-vv",
+      "tests"
+    ],
+    "start": "2026-09-14T14:57:40.008930+00:00",
+    "end": "2026-09-14T14:57:45.146899+00:00",
+    "exit_code": 0,
+    "sha256_before": {
+      "test_redteam_b6588bd.py": "780cd8d978ec584faa7678dd98c0d3f4a9db2a18a05a82f019144c72f5885647",
+      "test_quality_addendum_b6588bd.py": "ca6a49dcb648bda2593c3d79f489205cae928c72d5eceae88f276b29c612d641"
+    },
+    "sha256_after": {
+      "test_redteam_b6588bd.py": "780cd8d978ec584faa7678dd98c0d3f4a9db2a18a05a82f019144c72f5885647",
+      "test_quality_addendum_b6588bd.py": "ca6a49dcb648bda2593c3d79f489205cae928c72d5eceae88f276b29c612d641"
+    }
+  },
+  {
+    "log": "reference-after-addendum.log",
+    "command": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+      "-m",
+      "pytest",
+      "-o",
+      "addopts=",
+      "-o",
+      "pythonpath=/workspace/scratch/82c41c0036ab/xreview/aios_core_r2_reference/src",
+      "-vv",
+      "aios_core_r2_reference/tests"
+    ],
+    "start": "2026-09-14T14:57:45.147333+00:00",
+    "end": "2026-09-14T14:57:45.565371+00:00",
+    "exit_code": 0,
+    "sha256_before": {
+      "test_redteam_b6588bd.py": "780cd8d978ec584faa7678dd98c0d3f4a9db2a18a05a82f019144c72f5885647",
+      "test_quality_addendum_b6588bd.py": "ca6a49dcb648bda2593c3d79f489205cae928c72d5eceae88f276b29c612d641"
+    },
+    "sha256_after": {
+      "test_redteam_b6588bd.py": "780cd8d978ec584faa7678dd98c0d3f4a9db2a18a05a82f019144c72f5885647",
+      "test_quality_addendum_b6588bd.py": "ca6a49dcb648bda2593c3d79f489205cae928c72d5eceae88f276b29c612d641"
+    }
+  },
+  {
+    "log": "combined-suite-pydantic2106.log",
+    "command": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+      "-m",
+      "pytest",
+      "-o",
+      "addopts=",
+      "-o",
+      "pythonpath=/workspace/scratch/82c41c0036ab/xreview/src",
+      "-vv",
+      "/workspace/scratch/82c41c0036ab/frozen_b6588bd/test_redteam_b6588bd.py",
+      "/workspace/scratch/82c41c0036ab/frozen_b6588bd/test_quality_addendum_b6588bd.py"
+    ],
+    "start": "2026-09-14T14:57:45.565921+00:00",
+    "end": "2026-09-14T14:57:48.807631+00:00",
+    "exit_code": 1,
+    "sha256_before": {
+      "test_redteam_b6588bd.py": "780cd8d978ec584faa7678dd98c0d3f4a9db2a18a05a82f019144c72f5885647",
+      "test_quality_addendum_b6588bd.py": "ca6a49dcb648bda2593c3d79f489205cae928c72d5eceae88f276b29c612d641"
+    },
+    "sha256_after": {
+      "test_redteam_b6588bd.py": "780cd8d978ec584faa7678dd98c0d3f4a9db2a18a05a82f019144c72f5885647",
+      "test_quality_addendum_b6588bd.py": "ca6a49dcb648bda2593c3d79f489205cae928c72d5eceae88f276b29c612d641"
+    }
+  }
+]
