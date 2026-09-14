@@ -86,7 +86,7 @@ def _canonical_json(value: Any) -> str:
 
 
 def canonical_json_dumps(value: Any) -> str:
-    """Serialize exactly the deterministic representation used for fingerprints."""
+    """Serialize exactly the deterministic representation used durably."""
 
     return _canonical_json(value)
 
@@ -177,17 +177,129 @@ def _object_entries(objects: Iterable[WorldObject]) -> list[dict[str, Any]]:
     return entries
 
 
+def _identity_json_from_encoded(value: Any) -> str:
+    return json.dumps(
+        value,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def _semantic_identity_value(value: Any) -> Any:
+    """Encode request identity without erasing runtime semantic types.
+
+    Durable JSON intentionally represents a typed ref as an ordinary JSON object.
+    That representation is fine for storage but insufficient for idempotency: a real
+    ``ObjectRef`` must not become replay-equivalent to an opaque lookalike dictionary
+    that never participates in M0-019 reference validation. Container tags make the
+    ref marker non-spoofable by an ordinary list/dict with the same visible values.
+    """
+
+    if isinstance(value, ObjectRef):
+        return ["$aios-ref", "object", value.object_id, value.revision]
+    if isinstance(value, SourceRef):
+        return [
+            "$aios-ref",
+            "source",
+            value.object_id,
+            value.revision,
+            value.source_locator,
+        ]
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, Enum):
+        return _semantic_identity_value(value.value)
+    if isinstance(value, BaseModel):
+        return _semantic_identity_value(
+            {
+                field_name: getattr(value, field_name)
+                for field_name in type(value).model_fields
+            }
+        )
+    if isinstance(value, Mapping):
+        entries: list[list[Any]] = []
+        for key, item in value.items():
+            if not isinstance(key, str):
+                raise DurableJSONError(
+                    "durable JSON object keys must be strings; "
+                    f"got {type(key).__name__}: {key!r}"
+                )
+            entries.append([key, _semantic_identity_value(item)])
+        entries.sort(key=lambda entry: entry[0])
+        return ["$mapping", entries]
+    if isinstance(value, (set, frozenset)):
+        normalized_items = [_semantic_identity_value(item) for item in value]
+        normalized_items.sort(key=_identity_json_from_encoded)
+        return ["$set", normalized_items]
+    if isinstance(value, (list, tuple)):
+        return ["$sequence", [_semantic_identity_value(item) for item in value]]
+    if isinstance(value, (datetime, date, time)):
+        return _JSON_ADAPTER.dump_python(value, mode="json")
+
+    try:
+        converted = _JSON_ADAPTER.dump_python(value, mode="json")
+    except (UnicodeError, PydanticSerializationError) as exc:
+        raise DurableJSONError(
+            f"value cannot be represented safely as durable JSON: {type(value).__name__}"
+        ) from exc
+    if converted is value:
+        raise DurableJSONError(
+            f"value is not durably JSON serializable: {type(value)!r}"
+        )
+    return _semantic_identity_value(converted)
+
+
+def _semantic_identity_json(value: Any) -> str:
+    return _identity_json_from_encoded(_semantic_identity_value(value))
+
+
+def _semantic_object_entries(objects: Iterable[WorldObject]) -> list[dict[str, Any]]:
+    entries: list[dict[str, Any]] = []
+    for obj in objects:
+        normalized = normalize_world_object_for_persistence(obj)
+        entries.append(
+            {
+                "object_id": normalized.object_id,
+                "revision": normalized.revision,
+                "payload": normalized,
+            }
+        )
+    entries.sort(key=lambda entry: (entry["object_id"], entry["revision"]))
+    return entries
+
+
 def request_fingerprint(
     operation: OperationRequest,
     objects: Iterable[WorldObject],
 ) -> str:
-    """Return canonical identity for one logical durable commit request.
+    """Return semantic identity for one logical durable commit request.
 
-    Replay identity is calculated from the same normalized representation that is
-    persisted. Unordered Python collections are converted deterministically before
-    either hashing or persistence, so process hash randomization cannot change an
-    accepted request's replay identity.
+    Persistence and replay both use canonical models, deterministic mapping/set
+    ordering and the same accepted scalar domain. Unlike the durable JSON payload,
+    this identity deliberately preserves real ObjectRef/SourceRef runtime semantics,
+    so a typed reference can never alias an opaque lookalike dict on retry.
     """
+
+    normalized_operation = normalize_operation_for_persistence(operation)
+    payload = {
+        "operation_id": normalized_operation.operation_id,
+        "session_id": normalized_operation.session_id,
+        "operation_name": normalized_operation.operation_name,
+        "arguments": normalized_operation.arguments,
+        "expected_world_revision": normalized_operation.expected_world_revision,
+        "reason": normalized_operation.reason,
+        "idempotency_key": normalized_operation.idempotency_key,
+        "objects": _semantic_object_entries(objects),
+    }
+    return hashlib.sha256(_semantic_identity_json(payload).encode("utf-8")).hexdigest()
+
+
+def legacy_request_fingerprint(
+    operation: OperationRequest,
+    objects: Iterable[WorldObject],
+) -> str:
+    """Return the pre-semantic fingerprint for legacy idempotency rows only."""
 
     normalized_operation = normalize_operation_for_persistence(operation)
     payload = {
@@ -209,7 +321,7 @@ def stored_request_fingerprint(
     operation_id: str,
     world_revision: int,
 ) -> str:
-    """Rebuild the normalized original request identity from durable records."""
+    """Rebuild the legacy normalized request identity from durable records."""
 
     operation_row = conn.execute(
         """
