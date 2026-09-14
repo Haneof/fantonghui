@@ -15,61 +15,57 @@
 | **核心程序员 / 主程序员** | `core-01` | 日常按总工命令写代码、补测试、提交施工结果 |
 | **GPT-6 架构审计员 / GPT-6 首席架构师** | `architect-01` | 重大架构争议、冻结契约变更或里程碑 Gate 的独立红队 |
 | **并行程序员1** | `parallel-01` | M0 Gate 后允许多 AI 并行开发时的第二条施工线 |
-| **并行程序员2** | `parallel-02` | 以后需要第三条并行施工线时启用 |
+| **并行程序员2** | `parallel-02` | 后续第三条并行施工线 |
 | **自动测试** | `ci` | GitHub Actions，负责机械测试事实，不负责架构判断 |
 
 ## 二、当前项目状态
 
-- 当前里程碑：M0 — Gate 前最后一步
+- 当前里程碑：**M0 最终 Gate**
 - M0 完成度：**21 / 22 FINAL PASS**
 - 已正式通过到：**M0-021**
 - M0-021 语义冻结：`8818dba83d97f73e3e48df97df9a18e3c450ba9d`
-- 下一任务：**M0-022 — M0 契约总测试与冻结快照 / M0 Gate**
-- M0-022 状态：**已授权 / 总工程师 Gate / 尚未开始**
-- 当前生产分支：`arena/01a09bc6-fantonghui`
-- 当前开发模式：核心生产代码仍为单写入者；M0 Gate 通过前不启用并行核心开发
+- M0-022 总工侧状态：**Gate 材料完成 / CI 全绿 / 等待 GPT-6 架构审计员**
+- M0-022 Gate 候选：`95cec4142bdd9a87011bbad197e05ec1d27aeb57`
+- M1 状态：**暂停不准开始**
+- 并行核心开发：**暂停不准开始**
 
 ## 三、当前人员与任务
 
 | 中文职位 | 内部编号 | 当前状态 | 当前任务 | 最近结果 | 下一步 |
 |---|---|---|---|---|---|
-| **总工程师 / 总工** | `chief-01` | **Gate 负责人** | M0-022 | **M0-021 FINAL PASS**；385 正式测试 + Reference 15 全通过 | 做总测试、schema snapshot、fixtures、Gate 总审 |
-| **核心程序员 / 主程序员** | `core-01` | **待命** | 无 | M0-010 收尾已验收 | Gate 后再分配 M1 施工任务 |
-| **GPT-6 架构审计员** | `architect-01` | **已授权 / Gate 必须介入** | M0 独立架构红队 | 尚未开始 | 独立审查 M0 冻结契约，出具 PASS / ruling / blocker |
-| **并行程序员1** | `parallel-01` | **未授权** | 无 | 无 | M0 Gate 通过后评估启用 |
+| **总工程师 / 总工** | `chief-01` | **等待架构审计** | M0-022 Gate | schema snapshot + 四类 fixture + Gate review 已完成；391+15 全绿 | 读取 GPT-6 红队报告后裁决 Gate |
+| **核心程序员 / 主程序员** | `core-01` | **待命** | 无 | 无新生产任务 | M0 Gate 后再分配 M1 |
+| **GPT-6 架构审计员** | `architect-01` | **已授权 / 必须执行 / 可开始** | M0 独立架构红队 | 尚无 `LATEST.md` 结果 | 独立审查并提交 PASS / ruling / blocker |
+| **并行程序员1** | `parallel-01` | **未授权** | 无 | 无 | Gate 后评估 |
 | **并行程序员2** | `parallel-02` | **未授权** | 无 | 无 | 后续按冲突面决定 |
-| **自动测试** | `ci` | **通过** | 每次 production push 自动回归 | M0-021 semantic HEAD：Python 3.12.14，385 passed；Reference 15 passed | M0-022 继续作为机械证据 |
+| **自动测试** | `ci` | **通过** | M0 Gate 候选回归 | Python 3.12.14，391 passed；Reference 15 passed | 保持 exact-head 机械证据 |
 
-## 四、M0-021 已冻结什么
+## 四、总工侧 Gate 已完成内容
 
-- Task 合法状态转换矩阵已经显式写入代码并完整枚举测试。
-- Event 合法状态转换矩阵已经显式写入代码并完整枚举测试。
-- `RUNNING -> WAITING_RESULT` 合法；`COMPLETED -> RUNNING` 非法。
-- `CANDIDATE -> REJECTED` 合法；`MERGED -> ACTIVE` 非法。
-- Task 的 `COMPLETED/FAILED/EXPIRED/CANCELLED` 都是终态。
-- Event 的 `MERGED/SPLIT` 是终态。
-- 对外 transition view 返回 immutable `frozenset`，调用者不能运行时篡改冻结矩阵。
-- 状态变化校验要求同一个 object_id 且正好 `revision + 1`，把状态变化表达成 append-only 新 revision。
+- 已加入冻结契约 schema/hash snapshot：`schemas/r2/m0_contract_snapshot.json`。
+- CI 会重新生成模型 schema hash、枚举和 Task/Event transition map；任何漂移都会失败，必须显式批准 snapshot 变化。
+- 已加入四个任务书强制 fixture：运动会、未知人物、未来预测、Goal/Task 分离。
+- 从 Gate 前归档 HEAD 到候选 HEAD，仅新增 snapshot 和测试文件，没有修改 production contract/storage/query/service/runtime 代码。
+- Gate 候选 `95cec414...` 的 exact-head CI：run `34814629456` / job `103882644741`，正式 **391 passed**，Reference **15 passed**，SUCCESS。
+- 第一次 snapshot bootstrap 使用空 `{}` 期望值，故意得到 1 个 mismatch 以捕获规范化输出；该失败已进入正式审查记录，没有隐藏。
 
-正式审查文件：`reviews/M0/M0-021_final_PASS_2026-09-14.md`
+正式总工 Gate readiness：`reviews/M0/M0-022_chief_gate_ready_2026-09-14.md`
 
-## 五、M0-022 Gate 已授权边界
+## 五、为什么现在还不能宣布 M0 完成
 
-M0 最后一项不是普通小任务，而是正式里程碑 Gate：
+M0 Gate 的治理规则要求 **GPT-6 架构审计员独立红队**。它必须把 M0-001~021 的既有 FINAL PASS 当成待验证主张，至少攻击：时间/knowledge cutoff、object/world revision、引用、证据链、反自证、Task/Wake/Action/Outcome、幂等与并发回滚、历史回放、Worker DB 权限边界、状态机、schema snapshot 和 Gate fixture。
 
-- 全量回归 M0-001~021 的 schema、枚举、时间、引用、revision、world revision、幂等、knowledge cutoff、Task/Event 状态机；
-- 导出 Pydantic JSON Schema 或稳定结构 hash 进入仓库，作为以后契约变化检测基准；
-- 至少覆盖运动会、未知人物、未来预测、Goal/Task 分离四个 Gate fixture；
-- 生成 M0 Gate report；
-- CI 全绿只是必要条件，不等于 M0 FINAL PASS；
-- **GPT-6 架构审计员必须独立红队审查**，通过后总工程师才能签 M0 Gate；
-- Gate 前不进入 M1，也不启用并行核心开发。
+要求输出：`ARCHITECTURE PASS | RULING REQUIRED | BLOCKER FOUND`。
 
-## 六、沟通与权限
+在该独立结果出现并由总工处理之前：
 
-用户只需说“继续下一任务”或某个角色“做完了”。总工程师自行读取真实分支、报告、diff、源码、review 与 CI。
+- **M0 仍是 21/22 FINAL PASS**；
+- **M0-022 不能签 FINAL PASS**；
+- **M1 不准开始**；
+- **并行核心开发不准启用**。
 
-- 施工 AI 不能自己宣布 FINAL PASS。
-- 总工程师负责最终验收、冻结 commit、授权下一任务。
-- GPT-6 架构审计员本轮已经进入强制 Gate 流程。
-- 自动测试全绿是必要条件，不替代架构审查。
+## 六、操作口令
+
+GPT-6 架构审计员完成后，项目负责人只需说：**“GPT-6架构审计员做完了”**。
+
+总工程师会自行读取云端 `governance/agent_reports/architect-01/LATEST.md`，检查真实报告、代码、CI 和 Gate 证据，然后决定：M0 FINAL PASS、要求 PATCH，或进入架构裁决。
