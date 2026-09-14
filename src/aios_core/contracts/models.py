@@ -306,7 +306,19 @@ class Dependency(WorldObject):
     object_type: Literal[ObjectType.DEPENDENCY] = ObjectType.DEPENDENCY
     dependent_ref: ObjectRef
     dependency_ref: ObjectRef
-    dependency_type: str
+    dependency_type: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_dependency_contract(self) -> "Dependency":
+        if self.dependent_ref.revision is None:
+            raise ValueError("dependent_ref requires pinned ObjectRef revision")
+        if self.dependency_ref.revision is None:
+            raise ValueError("dependency_ref requires pinned ObjectRef revision")
+        if not self.dependency_type.strip():
+            raise ValueError("dependency_type must not be blank")
+        if self.dependent_ref.object_id == self.dependency_ref.object_id:
+            raise ValueError("Dependency cannot directly depend on itself")
+        return self
 
 
 class Task(WorldObject):
