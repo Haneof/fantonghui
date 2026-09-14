@@ -1,68 +1,96 @@
-# AIOS 2.0 Cloud Control Panel
+# AIOS 2.0 云端总控面板
 
-This is the operator-facing cloud dashboard for AIOS development. The user should not need to paste agent reports into ChatGPT. The Chief Engineer reads the cloud state directly.
+这个文件是给项目负责人看的中文总面板。
 
-Last control-plane sync: 2026-09-14
-Control-plane branch: `governance/aios-control-plane`
+原则：人看中文职位名，机器继续保留稳定编号。以后你不需要记 `core-01`、`architect-01` 这些英文编号，只需要说“核心程序员”“GPT-6架构审计员”“并行程序员1”即可。
 
-## Current project state
+最后同步：2026-09-14
+控制面分支：`governance/aios-control-plane`
 
-- Milestone: M0 — IN PROGRESS
-- Frozen through: M0-010
-- Active task: M0-011 — DimensionDefinition / DimensionMembership / DimensionDerivation three-layer contract
-- Production branch: `arena/01a09bc6-fantonghui`
-- Frozen base: `949e90e58bd073c1da5d23664bfcb1cb8154ebde`
-- M0-012: HOLD
-- Core writer mode: SINGLE-WRITER
+## 一、中文职位名对照表
 
-## Role board
+| 你平时叫法 | 系统内部编号 | 是谁 / 干什么 |
+|---|---|---|
+| **总工程师 / 总工** | `chief-01` | 就是当前负责架构、审代码、签 FINAL PASS、发下一任务的总工程师 AI |
+| **核心程序员 / 主程序员** | `core-01` | 日常按总工命令写代码、补测试、提交结果的主要施工 AI |
+| **GPT-6 架构审计员 / GPT-6 首席架构师** | `architect-01` | 不是日常写代码；专门在重大架构争议、核心契约要推翻、里程碑 Gate 时做独立红队审计 |
+| **并行程序员1** | `parallel-01` | 以后允许多 AI 并行开发时启用的第二条施工线 |
+| **并行程序员2** | `parallel-02` | 以后需要第三条并行施工线时启用 |
+| **自动测试** | `ci` | GitHub Actions，只负责跑机械测试，不负责架构判断 |
 
-| Agent ID | Role | Preferred model class | Current status | Current task | Work/result location | Last authoritative result | Next action |
-|---|---|---|---|---|---|---|---|
-| `chief-01` | Chief Engineer | GPT-5.6 Sol-class or stronger | ACTIVE / OWNER | M0-011 — Dimension three-layer contract; taskbook marks this `总工程师亲自代码` | production branch + control plane + `reviews/`; chief result recorded by authoritative review/state updates | M0-010 FINAL PASS @ `949e90e58bd073c1da5d23664bfcb1cb8154ebde` | Design/implement/review M0-011 directly; keep M0-012 HOLD |
-| `core-01` | Core Implementation Engineer | strong coding agent / Terra-class / Gemini-class | REPORT SYNC THEN IDLE | M0-010-R1 closeout only | branch `arena/01a09bc6-fantonghui`; must write `governance/agent_reports/core-01/LATEST.md` | M0-010-R1 accepted; exact-head CI Python 3.12.14, 253 passed; production R1 NO CHANGE | Publish cloud `LATEST.md`, record M0-010 FINAL PASS acknowledgement, then stop; do not start M0-011 |
-| `architect-01` | Principal Architect / Red Team | GPT-6-class | STANDBY | None | future audit branch + `governance/agent_reports/architect-01/LATEST.md` | Not invoked for current task | Mandatory at M0 Gate; earlier only if routing trigger fires |
-| `parallel-01` | Parallel Implementation Engineer | strong coding agent / Terra/Gemini-class | NOT AUTHORIZED | None | future isolated branch + `governance/agent_reports/parallel-01/LATEST.md` | No core assignment | Wait for `PARALLEL_SAFE` assignment |
-| `parallel-02` | Parallel Implementation Engineer | strong coding agent / Terra/Gemini-class | NOT AUTHORIZED | None | future isolated branch + `governance/agent_reports/parallel-02/LATEST.md` | No core assignment | Wait for `PARALLEL_SAFE` assignment |
-| `ci` | Mechanical verifier | GitHub Actions | LAST RUN PASS | exact-head regression tests | GitHub Actions | `949e90e58bd073c1da5d23664bfcb1cb8154ebde`: Python 3.12.14, 253 passed, 1 expected adversarial warning | Re-run on next production push |
+### 你以后可以直接这样说
 
-## User interaction contract
+- `核心程序员做完了`
+- `GPT-6架构审计员做完了`
+- `并行程序员1做完了`
+- `并行程序员2做完了`
 
-The user does NOT need to copy/paste implementation summaries into the Chief Engineer chat.
+总工程师会自己根据中文叫法映射到内部编号并读取云端结果。
 
-The user only needs to send a short completion signal, for example:
+## 二、当前项目状态
 
-- `core-01 做完了`
-- `parallel-01 做完了`
-- `architect-01 做完了`
+- 当前里程碑：M0 — 进行中
+- 已正式通过到：M0-010
+- 当前任务：M0-011 — 维度三层契约
+- 当前生产分支：`arena/01a09bc6-fantonghui`
+- 当前冻结基线：`949e90e58bd073c1da5d23664bfcb1cb8154ebde`
+- M0-012：HOLD
+- 当前开发模式：核心代码仍然单写入者，不开启并行施工
 
-After such a signal, the Chief Engineer MUST:
+## 三、当前人员与任务
 
-1. read this panel and `ACTIVE_ASSIGNMENTS.md`;
-2. locate the agent's assigned branch and `LATEST.md` report;
-3. inspect actual branch HEAD, ancestry/diff, source, tests, review artifacts, and exact-head CI;
-4. never trust the report as proof by itself;
-5. issue the authoritative verdict;
-6. update `CURRENT_STATE.md`, this panel, and `ACTIVE_ASSIGNMENTS.md`;
-7. tell the user exactly which agent ID should read the cloud next and execute.
+| 中文职位 | 内部编号 | 当前状态 | 当前任务 | 最近结果 | 下一步 |
+|---|---|---|---|---|---|
+| **总工程师 / 总工** | `chief-01` | 正在负责 | M0-011 维度三层契约 | M0-010 FINAL PASS @ `949e90e` | 总工亲自设计/实现/审查 M0-011；M0-012 继续 HOLD |
+| **核心程序员 / 主程序员** | `core-01` | 只做收尾后待命 | M0-010-R1 云端汇报收尾 | M0-010-R1 已被总工接受；CI Python 3.12.14，253 passed；R1 无生产代码变化 | 写入自己的云端 `LATEST.md` 后停止，不得开始 M0-011 |
+| **GPT-6 架构审计员** | `architect-01` | 待命 | 当前无任务 | 尚未介入当前任务 | M0 Gate 必须介入；提前介入只按升级规则触发 |
+| **并行程序员1** | `parallel-01` | 未授权 | 无 | 无 | 等总工明确宣布可以并行 |
+| **并行程序员2** | `parallel-02` | 未授权 | 无 | 无 | 等总工明确宣布可以并行 |
+| **自动测试** | `ci` | 最近一次通过 | 精确 HEAD 自动回归测试 | `949e90e`：Python 3.12.14，253 passed，1 条预期对抗 warning | 下一次生产 push 自动重跑 |
 
-## Agent launch contract
+## 四、你和总工程师以后怎么沟通
 
-Core implementation agent:
+你不再复制粘贴 AI 的长报告。
 
-`你是 core-01。去 Haneof/fantonghui 的 governance/aios-control-plane 读取 AGENTS.md，认领你当前被分配的角色和任务，按云端规则执行。完成后按 AGENT_REPORT_PROTOCOL 写回 LATEST.md 并停止。`
+你只需要告诉总工程师一句：
 
-Principal Architect / GPT-6:
+- `核心程序员做完了`
+- `GPT-6架构审计员做完了`
+- `并行程序员1做完了`
 
-`你是 architect-01。读取云端 AGENTS.md 和你的角色/assignment；如果当前不是 ACTIVE/ESCALATED，不要自行开展架构审计。`
+总工程师必须自动执行：
 
-Future parallel agent:
+1. 读取本面板和 `ACTIVE_ASSIGNMENTS.md`；
+2. 找到对应 AI 的工作分支和 `LATEST.md`；
+3. 检查真实 HEAD、diff、源码、测试、review 证据、精确 HEAD 的 CI；
+4. 不把 AI 自报结果当作最终事实；
+5. 给出正式结论；
+6. 更新 `CURRENT_STATE.md`、本面板、`ACTIVE_ASSIGNMENTS.md`；
+7. 告诉你下一步应该叫哪个中文职位去云端读取任务。
 
-`你是 parallel-01。读取云端 AGENTS.md；只有你的 assignment 标记 PARALLEL_SAFE 才开始生产施工。`
+## 五、以后怎么叫 AI 开工
 
-## Authority rule
+### 核心程序员
 
-- Agent reports are execution evidence, not final truth.
-- Chief Engineer verdicts are authoritative project-state updates.
-- Principal Architect findings are audit inputs until incorporated by the Chief Engineer.
-- CI is mechanical evidence only.
+你可以直接发：
+
+`你是核心程序员（系统编号 core-01）。去 Haneof/fantonghui 的 governance/aios-control-plane 读取 AGENTS.md，读取你的当前职位和任务，按云端要求执行。完成后把结果写回自己的 LATEST.md，然后停止。`
+
+### GPT-6 架构审计员
+
+你可以直接发：
+
+`你是 GPT-6 架构审计员（系统编号 architect-01）。去云端读取 AGENTS.md 和你的当前任务。只有你的状态是 ACTIVE / ESCALATED 时才开始审计，否则保持待命。`
+
+### 并行程序员1
+
+你可以直接发：
+
+`你是并行程序员1（系统编号 parallel-01）。去云端读取 AGENTS.md。只有你的任务明确标记 PARALLEL_SAFE 才允许开始生产施工。`
+
+## 六、权限原则
+
+- 核心程序员和并行程序员只能报告“做完等待总工审查”，不能自己宣布 FINAL PASS。
+- 总工程师负责最终验收、冻结 commit、授权下一任务。
+- GPT-6 架构审计员只提供独立架构审计结论，最终项目状态仍由总工程师纳入。
+- 自动测试只提供机械测试事实，测试全绿不等于架构一定正确。
