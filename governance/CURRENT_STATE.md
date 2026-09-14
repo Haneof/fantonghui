@@ -21,34 +21,40 @@ This file is the short cloud checkpoint used to recover project state after long
 - M0-007 FINAL PASS — frozen commit `9bee623`
 - M0-008 FINAL PASS — frozen commit `65f1dd2`
 - M0-009 FINAL PASS — frozen commit `cda888f371fed812cda1b5e08d8a27db5e0c240a`
+- M0-010 FINAL PASS — frozen commit `949e90e58bd073c1da5d23664bfcb1cb8154ebde`
 
 ## Active task
 
-- M0-010 — Entity + Relation contract
-- Status: PATCH REQUIRED / TEST ONLY
+- M0-011 — DimensionDefinition / DimensionMembership / DimensionDerivation three-layer contract
+- Status: AUTHORIZED / CHIEF ENGINEER OWNED
 - Production branch: `arena/01a09bc6-fantonghui`
-- Reviewed implementation HEAD: `225eb7636f9e88f8373de32aa332eeb83c37fd16`
-- Production Entity/Relation validators: PASS / FROZEN pending final test hardening
-- M0-011: HOLD
+- Frozen base: `949e90e58bd073c1da5d23664bfcb1cb8154ebde`
+- Owner: `chief-01`
+- `core-01`: no production assignment until explicitly reassigned
+- M0-012: HOLD
 
-## Current blockers
+## M0-010 final verification
 
-Chief review of M0-010 found two test-contract defects:
-
-1. `ER01` contains a false-green `assert "object_type" in e_hints or True` and does not actually freeze Entity/Relation `object_type` annotations as exact `Literal[...]` types.
-2. `ER18` uses nonexistent Relation endpoint entity IDs. If durable persistence revalidation is removed, reference validation can fail on missing endpoints before the intended floating `evidence_set_refs` bypass is exercised, so the adversarial test does not prove the claimed failure mode. ER18 must use real committed Entity endpoints.
-
-The patch must be test-only; no `src/aios_core/**` production change is authorized.
+- R1 was test-only; no `src/aios_core/**` change from `225eb76` to `949e90e`
+- false-green `or True` removed
+- Entity object_type exact `Literal[ObjectType.ENTITY]` frozen
+- Relation object_type exact `Literal[ObjectType.RELATION]` frozen
+- ER18 now uses real committed Entity endpoints and isolates floating evidence mutation
+- exact-head GitHub Actions SUCCESS
+- CPython 3.12.14 / pytest 8.4.2 / 253 passed
+- archived local evidence: 253 passed + Reference 15 passed
 
 ## Recent architectural freeze
 
-M0-009 additionally froze a generic durable-write invariant:
+M0-009 froze a generic durable-write invariant:
 
 `SQLiteWorldStore.commit` must revalidate the complete current Pydantic object graph before durable writes so post-validation mutation cannot bypass object contracts.
 
 The preserved order is:
 
 idempotency replay → expected world revision → persistence revalidation → revision/type validation → reference validation → durable write.
+
+M0-010 froze stable Entity identity and independent Relation history/provenance.
 
 ## Chief-review discipline
 
@@ -61,4 +67,4 @@ idempotency replay → expected world revision → persistence revalidation → 
 
 If chat context is lost, do not reconstruct project state from memory. Re-read:
 
-`AGENTS.md` → this file → `TASK_PROGRESS_R2.md` → `ACTIVE_ASSIGNMENTS.md` → current task reviews → taskbook.
+`AGENTS.md` → `governance/CONTROL_PANEL.md` → this file → `governance/ACTIVE_ASSIGNMENTS.md` → `TASK_PROGRESS_R2.md` → current task reviews → taskbook.
