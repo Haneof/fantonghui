@@ -5,7 +5,7 @@ Last authoritative update: 2026-09-14
 ## Current milestone
 
 - Milestone: M0 — freeze world contracts and core storage
-- Status: IN PROGRESS / GATE BLOCKERS PATCHED / WAITING ARCHITECT RE-REVIEW
+- Status: IN PROGRESS / FOLLOW-UP PATCH GREEN / WAITING REQUIRED ARCHITECT RE-REVIEW
 - M1: BLOCKED
 - Parallel core development: BLOCKED
 - Production branch: `arena/01a09bc6-fantonghui`
@@ -16,65 +16,93 @@ Original M0-022 Chief Gate candidate:
 - `95cec4142bdd9a87011bbad197e05ec1d27aeb57`
 - CI: 391 formal + 15 Reference, SUCCESS
 
-Independent architecture red-team:
-- report commit: `c6b0191797ab3ef06b4ee031003431a0d9527d48`
+Independent architecture red-team #1:
+- governance report commit: `c6b0191797ab3ef06b4ee031003431a0d9527d48`
 - verdict: `BLOCKER FOUND`
-- blockers accepted by Chief: B1 idempotency aliasing, B2 Worker isolation overclaim/threat-model mismatch, B3 Dependency cycle guard not connected to durable write boundary
+- accepted findings: B1 idempotency aliasing, B2 Worker-isolation overclaim/threat-model mismatch, B3 durable Dependency cycle bypass
+
+Independent red-team #2 discovered on another arena branch:
+- branch: `arena/01a09edf-fantonghui`
+- report commit: `42f19a3f39a1e4ac375ac315d6dcf8f487725830`
+- verdict: `BLOCKER FOUND`
+- important new finding: B4 floating self-reference bypasses M0-019 self-evidence guard
+- additional hardening item: B5 raw SQLite exception leakage / lock behavior
+- R3 ruling item: public historical "what AI knew then" query must bind world snapshot + knowledge cutoff
 
 ## Reopened contracts
 
-The Gate invalidated the previous closure of two foundational contracts until patch re-review:
+Until independent re-review closes them:
 
-- M0-015 Dependency — REOPENED for durable cycle rejection
-- M0-016 Operation/idempotency — REOPENED for altered-request conflict semantics
+- M0-015 Dependency — REOPENED / PATCHED
+- M0-016 Operation/idempotency — REOPENED / PATCHED
+- M0-019 reference validation — REOPENED / PATCHED
 
-M0-001/M0-017 Worker-isolation wording is narrowed by Chief architectural ruling: M0 is a trusted reviewed-code modular-monolith dependency boundary, not a hostile-Python sandbox.
+M0-001/M0-017 Worker-isolation wording remains narrowed: M0 is a trusted reviewed-code modular monolith, not a hostile-Python sandbox.
+M0-020 storage/query primitives remain frozen; R3 adds a mandatory future service-binding rule rather than changing the low-level API.
 
-## Current patch candidate
+## Current patch lineage
 
-Chief patch lineage includes:
-- semantic B1/B3 patch: `8ab574c6b33b2238b468c812992a92ba56ab3f71`
+- B1/B3 semantic patch: `8ab574c6b33b2238b468c812992a92ba56ab3f71`
 - B2 static-policy hardening: `e06bc80e43ea26be2be726232158cb2719092f11`
-- Chief blocker-resolution ruling/review: `8b3bca9ef3bf8fde2ee09b73a2631a3a2f12db0a`
+- B4/B5 semantic patch: `a99326c5034118b3a497e3be0d53ac9466445467`
+- M0-018 rollback test aligned with protocol error boundary: `268d403836b107a1969a9a5d8b85e4955baec9bf`
+- production progress archive after green evidence: `83577317e96224f9cdb271a8a835a4e48f3aa78c`
 
-Exact-head CI on `8b3bca9...`:
-- run `34821050459`
-- job `103902471146`
+Exact green CI on `268d403...`:
+- run `34823226166`
+- job `103909332923`
 - CPython 3.12.14 / pytest 8.4.2
-- formal: **400 passed**, 1 known adversarial warning
+- formal: **405 passed**, 1 known adversarial warning
 - Reference: **15 passed**
 - conclusion: SUCCESS
+
+The immediately prior archive run `34822952167` intentionally exposed one stale test expectation after B5 changed the public error boundary: production correctly returned `StoreError` instead of raw `sqlite3.IntegrityError`; 404 tests passed including all five new B4/B5 probes. The stale test was then corrected, preserving rollback semantics.
 
 ## Patched semantics
 
 ### B1 idempotency
 
-An existing idempotency key now replays only when the entire durable commit request fingerprint matches: operation identity/session/name/arguments/expected revision/reason/key plus intended object IDs/revisions and canonical payloads. Object input order is ignored. Same key with any mismatch returns `IDEMPOTENCY_CONFLICT` before stale-world checking and performs no mutation.
-
-The fingerprint is reconstructed from the atomically persisted `operations` row and the operation world revision's `object_revisions`; no runtime schema ALTER is introduced, preserving compatibility with M0 databases.
+An existing idempotency key replays only when the full durable commit request fingerprint matches. Same key with any identity/payload mismatch returns `IDEMPOTENCY_CONFLICT` before stale-world checking and performs no mutation.
 
 ### B3 Dependency cycles
 
-Whenever a commit contains Dependency objects, the durable SQLite write boundary now builds the current Dependency graph from latest durable Dependency revisions plus pending transaction revisions and rejects a resulting exact-version cycle with `DEPENDENCY_INVALID` / `reason=dependency_cycle` before any write.
+Whenever a commit contains Dependency objects, the durable SQLite boundary checks the union of latest durable Dependency edges and pending transaction edges. A resulting exact-version cycle is rejected with `DEPENDENCY_INVALID` before writes.
 
-Relation cycles remain legal. Persistent reverse indexes and correction propagation remain later work.
+### B2 Worker isolation
 
-### B2 Worker isolation threat model
+M0 threat model is trusted reviewed Python code. Worker must use Core public interfaces; production wiring must not hand it DB paths, sqlite connections, or storage objects. Static checks are defense-in-depth, not sandbox proof.
 
-M0 does not claim a hostile Python sandbox inside one interpreter. The enforceable M0 rule is trusted reviewed code + architecture dependency policy: AI Worker must use Core public interfaces and production wiring must not hand it DB paths, sqlite connections, or storage objects. Static checks now also catch the red-team's obvious constant-string dynamic-import examples. A stronger process/capability boundary becomes mandatory if the future threat model permits untrusted executable code.
+### B4 floating self-reference
 
-Chief review: `reviews/M0/M0_gate_blocker_resolution_2026-09-14.md`
+Any declared ObjectRef/SourceRef pointing to the same stable object with `revision=None` is rejected at the durable reference-validation boundary, because it may resolve to current/pending self and is semantically equivalent to current-revision self-evidence. Historical pinned self-links such as `X@2 -> X@1` remain legal.
+
+### B5 protocol boundary
+
+- reused `operation_id` with a different idempotency key now returns `IDEMPOTENCY_CONFLICT` instead of relying on a raw SQLite UNIQUE error;
+- SQLite busy/lock is mapped to `VERSION_CONFLICT` / `reason=storage_busy` with an explicit busy timeout;
+- raw sqlite integrity/operational exceptions are not public Core protocol responses.
+
+## R3 — double-lens service ruling
+
+M0-020 low-level store reads may still use world revision and knowledge cutoff independently. However, any M1 public query claiming to answer "what the AI knew then" must bind both:
+
+1. a resolved world snapshot revision, and
+2. a knowledge cutoff.
+
+M2 Session executor must bind all Session reads to `Session.snapshot_world_revision` plus the session's knowledge-cutoff semantics. Worker must not receive raw store-read capability. These are mandatory future milestone Gates.
+
+Chief review: `reviews/M0/M0_gate_followup_B4_B5_R3_2026-09-14.md`
 
 ## Current assignments
 
-- `chief-01`: patch verified mechanically; preparing independent architect re-review
+- `chief-01`: patch mechanically green; waiting for independent architect re-review of latest candidate
 - `core-01`: IDLE
-- `architect-01`: REQUIRED TO RE-REVIEW B1/B2/B3 patch before M0 can pass
+- `architect-01`: REQUIRED TO RE-REVIEW B1/B2/B3/B4/B5 + R3 before M0 can pass
 - `parallel-01/02`: NOT AUTHORIZED
 
 ## Gate rule
 
-M0 remains not passed. Chief must not authorize M1 or sign M0-022 FINAL PASS until `architect-01` independently verifies the patched branch and returns an acceptable Gate verdict.
+M0 remains not passed. Chief must not authorize M1, mark M0 22/22, or enable parallel core development until architect-01 independently reviews the latest patch and returns an acceptable Gate verdict.
 
 ## Recovery rule
 
