@@ -63,6 +63,98 @@ class StoreError(AIOSProtocolError):
         super().__init__(code, message, context=context)
 
 
+_SQLITE_INT64_MIN = -(1 << 63)
+_SQLITE_INT64_MAX = (1 << 63) - 1
+
+
+def _normalize_query_integer(value: object, field_name: str) -> int:
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, int)
+        or value < _SQLITE_INT64_MIN
+        or value > _SQLITE_INT64_MAX
+    ):
+        raise StoreError(
+            ErrorCode.INVALID_ARGUMENT,
+            f"{field_name} is outside the supported SQLite integer range",
+            context={
+                "field": field_name,
+                "value": repr(value),
+                "reason": "query_integer_out_of_range",
+            },
+        )
+    return value
+
+
+def _normalize_query_cutoff(value: datetime, field_name: str = "knowledge_cutoff") -> str:
+    try:
+        return canonical_utc_iso(value, field_name)
+    except (OverflowError, OSError, TypeError, ValueError) as exc:
+        raise StoreError(
+            ErrorCode.INVALID_ARGUMENT,
+            f"{field_name} is not a supported timestamp",
+            context={
+                "field": field_name,
+                "reason": "query_timestamp_invalid",
+            },
+        ) from exc
+
+
+def _parse_world_revision_row(row: sqlite3.Row | None) -> int:
+    if row is None:
+        raise StoreError(
+            ErrorCode.STORAGE_FAILURE,
+            "world store is missing the world revision record",
+            context={"reason": "missing_world_revision"},
+        )
+    try:
+        value = int(row["value"])
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise StoreError(
+            ErrorCode.STORAGE_FAILURE,
+            "world store contains an invalid world revision",
+            context={"reason": "corrupt_world_revision"},
+        ) from exc
+    if value < 0 or value > _SQLITE_INT64_MAX:
+        raise StoreError(
+            ErrorCode.STORAGE_FAILURE,
+            "world store contains an out-of-range world revision",
+            context={"reason": "corrupt_world_revision"},
+        )
+    return value
+
+
+def _decode_durable_object_json(
+    raw: object,
+    *,
+    reason: str,
+    object_id: str | None = None,
+) -> dict:
+    try:
+        if not isinstance(raw, (str, bytes, bytearray)):
+            raise TypeError("durable JSON payload must be text or bytes")
+        value = json.loads(raw)
+    except (json.JSONDecodeError, UnicodeError, TypeError, RecursionError) as exc:
+        context: dict[str, JsonValue] = {"reason": reason}
+        if object_id is not None:
+            context["object_id"] = object_id
+        raise StoreError(
+            ErrorCode.STORAGE_FAILURE,
+            "durable JSON payload is corrupt",
+            context=context,
+        ) from exc
+    if not isinstance(value, dict):
+        context = {"reason": reason}
+        if object_id is not None:
+            context["object_id"] = object_id
+        raise StoreError(
+            ErrorCode.STORAGE_FAILURE,
+            "durable JSON payload has an invalid shape",
+            context=context,
+        )
+    return value
+
+
 class SQLiteWorldStore:
     """Append-only object revision store with global world revisions.
 
@@ -202,7 +294,7 @@ class SQLiteWorldStore:
             row = conn.execute(
                 "SELECT value FROM world_meta WHERE key='world_revision'"
             ).fetchone()
-            return int(row["value"])
+            return _parse_world_revision_row(row)
 
     def _get_idempotent_result(
         self,
@@ -246,7 +338,10 @@ class SQLiteWorldStore:
                 },
             ) from exc
 
-        data = json.loads(row["result_json"])
+        data = _decode_durable_object_json(
+            row["result_json"],
+            reason="corrupt_idempotency_result",
+        )
         original_fingerprint = data.pop(_REQUEST_FINGERPRINT_KEY, None)
         if original_fingerprint is None:
             # Rows written before semantic fingerprints were persisted can only be
@@ -264,11 +359,29 @@ class SQLiteWorldStore:
                         "reason": "request_revalidation_failed",
                     },
                 ) from exc
-            original_fingerprint = stored_request_fingerprint(
-                conn,
-                operation_id=str(row["operation_id"]),
-                world_revision=int(row["world_revision"]),
-            )
+            try:
+                original_fingerprint = stored_request_fingerprint(
+                    conn,
+                    operation_id=str(row["operation_id"]),
+                    world_revision=int(row["world_revision"]),
+                )
+            except (
+                DurableJSONError,
+                json.JSONDecodeError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+                OverflowError,
+            ) as exc:
+                raise StoreError(
+                    ErrorCode.STORAGE_FAILURE,
+                    "legacy idempotency records are internally inconsistent",
+                    context={
+                        "idempotency_key": lookup_key,
+                        "operation_id": str(row["operation_id"]),
+                        "reason": "corrupt_legacy_idempotency_state",
+                    },
+                ) from exc
         elif not isinstance(original_fingerprint, str):
             raise StoreError(
                 ErrorCode.STORAGE_FAILURE,
@@ -293,7 +406,18 @@ class SQLiteWorldStore:
             )
 
         data["idempotent_replay"] = True
-        return CommitResult.model_validate(data)
+        try:
+            return CommitResult.model_validate(data)
+        except (ValidationError, TypeError, ValueError) as exc:
+            raise StoreError(
+                ErrorCode.STORAGE_FAILURE,
+                "idempotency result payload is inconsistent with its contract",
+                context={
+                    "idempotency_key": lookup_key,
+                    "operation_id": str(row["operation_id"]),
+                    "reason": "corrupt_idempotency_result",
+                },
+            ) from exc
 
     def _latest_revision(self, conn: sqlite3.Connection, object_id: str) -> int | None:
         row = conn.execute(
@@ -496,10 +620,10 @@ class SQLiteWorldStore:
                         },
                     )
 
-                current_world_revision = int(
+                current_world_revision = _parse_world_revision_row(
                     conn.execute(
                         "SELECT value FROM world_meta WHERE key='world_revision'"
-                    ).fetchone()["value"]
+                    ).fetchone()
                 )
                 if operation.expected_world_revision != current_world_revision:
                     raise StoreError(
@@ -727,14 +851,18 @@ class SQLiteWorldStore:
         clauses = ["object_id=?"]
         params: list[object] = [object_id]
         if revision is not None:
+            revision = _normalize_query_integer(revision, "revision")
             clauses.append("revision=?")
             params.append(revision)
         if as_of_world_revision is not None:
+            as_of_world_revision = _normalize_query_integer(
+                as_of_world_revision, "as_of_world_revision"
+            )
             clauses.append("world_revision<=?")
             params.append(as_of_world_revision)
         if knowledge_cutoff is not None:
             clauses.append("learned_at<=?")
-            params.append(canonical_utc_iso(knowledge_cutoff, "knowledge_cutoff"))
+            params.append(_normalize_query_cutoff(knowledge_cutoff))
         sql = (
             "SELECT payload_json FROM object_revisions WHERE "
             + " AND ".join(clauses)
@@ -751,7 +879,11 @@ class SQLiteWorldStore:
                         "revision": revision,
                     },
                 )
-            return json.loads(row["payload_json"])
+            return _decode_durable_object_json(
+                row["payload_json"],
+                reason="corrupt_object_payload",
+                object_id=object_id,
+            )
 
     def list_payloads(
         self,
@@ -762,6 +894,10 @@ class SQLiteWorldStore:
         knowledge_cutoff: datetime | None = None,
     ) -> list[dict]:
         """Return the newest visible revision of each object under the supplied cutoff."""
+        if as_of_world_revision is not None:
+            as_of_world_revision = _normalize_query_integer(
+                as_of_world_revision, "as_of_world_revision"
+            )
         if as_of_world_revision is not None or knowledge_cutoff is not None:
             return self._list_payloads_historical(
                 object_type=object_type,
@@ -792,7 +928,14 @@ class SQLiteWorldStore:
             ORDER BY o.recorded_at ASC
         """
         with self._connection() as conn:
-            return [json.loads(row["payload_json"]) for row in conn.execute(sql, tuple(params)).fetchall()]
+            rows = conn.execute(sql, tuple(params)).fetchall()
+        return [
+            _decode_durable_object_json(
+                row["payload_json"],
+                reason="corrupt_object_payload",
+            )
+            for row in rows
+        ]
 
     def _list_payloads_historical(
         self,
@@ -809,11 +952,14 @@ class SQLiteWorldStore:
         clauses = ["1=1"]
         params: list[object] = []
         if as_of_world_revision is not None:
+            as_of_world_revision = _normalize_query_integer(
+                as_of_world_revision, "as_of_world_revision"
+            )
             clauses.append("world_revision<=?")
             params.append(as_of_world_revision)
         if knowledge_cutoff is not None:
             clauses.append("learned_at<=?")
-            params.append(canonical_utc_iso(knowledge_cutoff, "knowledge_cutoff"))
+            params.append(_normalize_query_cutoff(knowledge_cutoff))
         sql = (
             "SELECT object_id, revision, object_type, subject_id, recorded_at, payload_json "
             "FROM object_revisions WHERE "
@@ -834,7 +980,16 @@ class SQLiteWorldStore:
                 continue
             if subject_id is not None and row["subject_id"] != subject_id:
                 continue
-            selected.append((row["recorded_at"], json.loads(row["payload_json"])))
+            selected.append(
+                (
+                    row["recorded_at"],
+                    _decode_durable_object_json(
+                        row["payload_json"],
+                        reason="corrupt_object_payload",
+                        object_id=object_id,
+                    ),
+                )
+            )
 
         selected.sort(key=lambda item: item[0])
         return [payload for _, payload in selected]

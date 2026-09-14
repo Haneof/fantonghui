@@ -5,6 +5,7 @@ import json
 import math
 import sqlite3
 from collections.abc import Iterable, Mapping
+from dataclasses import fields, is_dataclass
 from datetime import date, datetime, time
 from enum import Enum
 from typing import Any, TypeVar, cast
@@ -258,6 +259,21 @@ def _persistence_snapshot(
         if isinstance(value, SourceRef):
             return SourceRef.model_validate(snapshot)
         return snapshot
+
+    if is_dataclass(value) and not isinstance(value, type):
+        marker = id(value)
+        if marker in active:
+            return value
+        active.add(marker)
+        try:
+            return {
+                field.name: _persistence_snapshot(
+                    getattr(value, field.name), active=active, depth=depth + 1
+                )
+                for field in fields(value)
+            }
+        finally:
+            active.remove(marker)
 
     if isinstance(value, Mapping):
         marker = id(value)

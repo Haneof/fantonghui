@@ -63,7 +63,12 @@ def as_utc(
     field_name: str = "timestamp",
 ) -> datetime:
     require_aware(value, field_name)
-    return value.astimezone(timezone.utc)
+    try:
+        return value.astimezone(timezone.utc)
+    except (OverflowError, OSError, ValueError) as exc:
+        raise ValueError(
+            f"{field_name} is outside the supported datetime range"
+        ) from exc
 
 
 def canonical_utc_iso(
