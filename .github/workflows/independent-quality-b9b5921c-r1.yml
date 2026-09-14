@@ -1,0 +1,162 @@
+name: Independent quality review b9b5921c R1
+
+on:
+  push:
+    branches:
+      - review/independent-quality-b9b5921c-r1
+    paths:
+      - .github/workflows/independent-quality-b9b5921c-r1.yml
+
+permissions:
+  contents: write
+
+jobs:
+  independent-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+        with:
+          ref: b9b5921c3e31a40528b0b96e689ae721c334bd7c
+          path: candidate
+          persist-credentials: false
+
+      - name: Checkout review evidence branch
+        uses: actions/checkout@v4
+        with:
+          ref: review/independent-quality-b9b5921c-r1
+          path: review
+          fetch-depth: 1
+
+      - name: Set up Python 3.12.14
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12.14
+
+      - name: Install exact review environment
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e './candidate[dev]'
+          python -m pip install 'pydantic==2.13.5' 'pytest==8.4.2'
+
+      - name: Verify exact candidate and frozen test hash
+        shell: bash
+        run: |
+          set -euo pipefail
+          EVIDENCE="$GITHUB_WORKSPACE/review/reviews/M0/independent-quality-review-b9b5921c"
+          TEST_SOURCE="$EVIDENCE/test_independent_robustness.py"
+          test "$(git -C candidate rev-parse HEAD)" = "b9b5921c3e31a40528b0b96e689ae721c334bd7c"
+          cd "$EVIDENCE"
+          sha256sum -c SHA256SUMS | tee hash_verification.txt
+          cp "$TEST_SOURCE" "$GITHUB_WORKSPACE/candidate/test_independent_robustness_b9b5921c.py"
+          test "$(sha256sum "$GITHUB_WORKSPACE/candidate/test_independent_robustness_b9b5921c.py" | awk '{print $1}')" = "d2c09a428f0f53d49b0ed21af6fd2e9bcdf7b62cef502330081c84e1a8d08042"
+
+      - name: Record environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          EVIDENCE="$GITHUB_WORKSPACE/review/reviews/M0/independent-quality-review-b9b5921c"
+          {
+            python --version
+            python -c "import pydantic; print('pydantic', pydantic.__version__)"
+            pytest --version
+            python -c "import pytest; print('pytest_module', pytest.__version__)"
+            echo "candidate_sha=$(git -C candidate rev-parse HEAD)"
+            echo "candidate_branch=arena/integrator-x5-x7-repair-20260914"
+            echo "review_branch=review/independent-quality-b9b5921c-r1"
+          } > "$EVIDENCE/environment.txt" 2>&1
+
+      - name: Collect frozen independent suite only
+        shell: bash
+        run: |
+          set +e
+          EVIDENCE="$GITHUB_WORKSPACE/review/reviews/M0/independent-quality-review-b9b5921c"
+          cd "$GITHUB_WORKSPACE/candidate"
+          python -m pytest test_independent_robustness_b9b5921c.py --collect-only -q -o addopts='' > "$EVIDENCE/collect-only.log" 2>&1
+          rc=$?
+          echo "$rc" > "$EVIDENCE/collect-only.exitcode"
+          python - "$EVIDENCE/collect-only.log" "$EVIDENCE/collect_count.txt" <<'PY'
+          import re
+          import sys
+          text = open(sys.argv[1], encoding='utf-8').read()
+          matches = re.findall(r'(\d+) tests? collected', text)
+          if not matches:
+              matches = re.findall(r'collected (\d+) items?', text)
+          open(sys.argv[2], 'w', encoding='utf-8').write((matches[-1] if matches else 'UNKNOWN') + '\n')
+          PY
+          exit 0
+
+      - name: Persist freeze and collect-only evidence before execution
+        shell: bash
+        run: |
+          set -euo pipefail
+          git -C review config user.name 'independent-quality-reviewer'
+          git -C review config user.email 'independent-quality-reviewer@users.noreply.github.com'
+          git -C review add reviews/M0/independent-quality-review-b9b5921c/environment.txt
+          git -C review add reviews/M0/independent-quality-review-b9b5921c/hash_verification.txt
+          git -C review add reviews/M0/independent-quality-review-b9b5921c/collect-only.log
+          git -C review add reviews/M0/independent-quality-review-b9b5921c/collect-only.exitcode
+          git -C review add reviews/M0/independent-quality-review-b9b5921c/collect_count.txt
+          if ! git -C review diff --cached --quiet; then
+            git -C review commit -m 'review: persist frozen collect-only evidence'
+            git -C review push origin HEAD:review/independent-quality-b9b5921c-r1
+          fi
+
+      - name: Stop on collection error without executing tests
+        shell: bash
+        run: |
+          EVIDENCE="$GITHUB_WORKSPACE/review/reviews/M0/independent-quality-review-b9b5921c"
+          test "$(cat "$EVIDENCE/collect-only.exitcode")" = "0"
+
+      - name: Run frozen independent robustness suite
+        shell: bash
+        run: |
+          set +e
+          EVIDENCE="$GITHUB_WORKSPACE/review/reviews/M0/independent-quality-review-b9b5921c"
+          cd "$GITHUB_WORKSPACE/candidate"
+          python -m pytest test_independent_robustness_b9b5921c.py -v -o addopts='' > "$EVIDENCE/robustness-suite.log" 2>&1
+          echo "$?" > "$EVIDENCE/robustness-suite.exitcode"
+          exit 0
+
+      - name: Run repository formal pytest suite
+        shell: bash
+        run: |
+          set +e
+          EVIDENCE="$GITHUB_WORKSPACE/review/reviews/M0/independent-quality-review-b9b5921c"
+          cd "$GITHUB_WORKSPACE/candidate"
+          python -m pytest -v > "$EVIDENCE/formal-pytest.log" 2>&1
+          echo "$?" > "$EVIDENCE/formal-pytest.exitcode"
+          exit 0
+
+      - name: Run Reference suite
+        shell: bash
+        run: |
+          set +e
+          EVIDENCE="$GITHUB_WORKSPACE/review/reviews/M0/independent-quality-review-b9b5921c"
+          cd "$GITHUB_WORKSPACE/candidate"
+          PYTHONPATH=aios_core_r2_reference/src python -m pytest aios_core_r2_reference/tests -v > "$EVIDENCE/reference-suite.log" 2>&1
+          echo "$?" > "$EVIDENCE/reference-suite.exitcode"
+          exit 0
+
+      - name: Persist execution evidence
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          git -C review config user.name 'independent-quality-reviewer'
+          git -C review config user.email 'independent-quality-reviewer@users.noreply.github.com'
+          git -C review add reviews/M0/independent-quality-review-b9b5921c
+          if ! git -C review diff --cached --quiet; then
+            git -C review commit -m 'review: persist independent execution evidence'
+            git -C review push origin HEAD:review/independent-quality-b9b5921c-r1
+          fi
+
+      - name: Gate on all three suites
+        shell: bash
+        run: |
+          set -euo pipefail
+          EVIDENCE="$GITHUB_WORKSPACE/review/reviews/M0/independent-quality-review-b9b5921c"
+          test "$(cat "$EVIDENCE/robustness-suite.exitcode")" = "0"
+          test "$(cat "$EVIDENCE/formal-pytest.exitcode")" = "0"
+          test "$(cat "$EVIDENCE/reference-suite.exitcode")" = "0"
