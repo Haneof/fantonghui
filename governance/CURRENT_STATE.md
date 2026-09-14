@@ -8,7 +8,7 @@ This file is the short cloud checkpoint used to recover project state after long
 
 - Milestone: M0 — freeze world contracts and core storage
 - Status: IN PROGRESS
-- Progress: 12/22 tasks FINAL PASS
+- Progress: 13/22 tasks FINAL PASS
 - Core development mode: SINGLE-WRITER for production contracts until M0 Gate
 
 ## Frozen tasks
@@ -24,40 +24,41 @@ This file is the short cloud checkpoint used to recover project state after long
 - M0-009 FINAL PASS — `cda888f371fed812cda1b5e08d8a27db5e0c240a`
 - M0-010 FINAL PASS — `949e90e58bd073c1da5d23664bfcb1cb8154ebde`
 - M0-011 FINAL PASS — `295d2a162f8814c9479d7281bd5988ccd2d8b6f5`
-- M0-012 FINAL PASS — semantic frozen commit `5ab6ed1c21f2c3f2664104faff3494113bdd5bc1`
+- M0-012 FINAL PASS — `5ab6ed1c21f2c3f2664104faff3494113bdd5bc1`
+- M0-013 FINAL PASS — semantic frozen commit `f30987395a034d4e9f826c9193dc82e00165a2e8`
 
-## M0-012 accepted contract
+## M0-013 accepted contract
 
-EventAnchor is an interpretation/anchor over the multidimensional world, not raw fact storage.
+Goal is a first-class long-lived WorldObject distinct from Task.
 
 Accepted invariants:
-- lifecycle values remain `CANDIDATE, ACTIVE, RESOLVED, REVISED, REJECTED, MERGED, SPLIT`;
-- low-confidence candidates are legal; create never requires confidence=1;
-- primary Claim refs, generic EvidenceSet refs, explicit support/counter EvidenceSet refs, and event-history refs are pinned provenance;
-- participant refs may remain floating navigation by stable Entity ID;
-- REVISED requires historical supersedes refs; MERGED/SPLIT retain explicit links;
-- REVISED/REJECTED/MERGED/SPLIT record `revision_reason`;
-- append-only revisions preserve the original event interpretation and allow world-revision replay;
-- Event payload does not copy raw Observation contents;
-- M0-009 persistence-boundary revalidation blocks post-validation provenance mutation.
+- exact R2 GoalStatus values: `PROPOSED, ACTIVE, PAUSED, ACHIEVED, ABANDONED, UNKNOWN`;
+- Goal default status is `PROPOSED`;
+- explicit user goals and AI-inferred user goals remain distinct source semantics even if text is identical;
+- `AI_SELF` is not the same as `USER_INFERRED`; App goals remain explicit `APP` source;
+- Goal carries owner/source/title/description/status/success criteria/related dimensions-events-tasks-apps/confidence;
+- Task links Goal by `ObjectRef | None`, never by a free-text Goal string;
+- committing a Goal does not automatically create a Task;
+- denial of an inferred Goal is represented by a new Goal revision; related Task links remain identifiable for later review;
+- full automatic Task review/cancellation/propagation remains deferred to later service/dependency milestones.
 
 Exact semantic-head CI:
-- GitHub Actions run `34806790239`
-- job `103860118133`
+- GitHub Actions run `34807182442`
+- job `103861241239`
 - CPython 3.12.14 / pytest 8.4.2
-- formal: 284 passed, 1 previously accepted adversarial warning
+- formal: 297 passed, 1 previously accepted adversarial warning
 - Reference: 15 passed
 
-Formal review: `reviews/M0/M0-012_final_PASS_2026-09-14.md`
+Formal review: `reviews/M0/M0-013_final_PASS_2026-09-14.md`
 
 ## Active / next task
 
-- M0-013 — Goal（目标）一等对象
+- M0-014 — Task / Wake / Session / Action / Outcome 基础契约
 - Status: AUTHORIZED / CHIEF ENGINEER OWNED / NOT STARTED
 - Owner: `chief-01`
 - Production branch: `arena/01a09bc6-fantonghui`
-- M0-012 semantic base for next work: `5ab6ed1c21f2c3f2664104faff3494113bdd5bc1`
-- production branch also contains M0-012 review/progress archival commits after semantic freeze
+- M0-013 semantic base for next work: `f30987395a034d4e9f826c9193dc82e00165a2e8`
+- M0-014 scope is schema/fixture freeze only; scheduling remains M2
 - `core-01`: IDLE / no production assignment
 - `architect-01`: STANDBY; mandatory at M0 Gate, no current escalation trigger
 - `parallel-01/02`: NOT AUTHORIZED
