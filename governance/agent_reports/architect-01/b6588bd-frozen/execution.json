@@ -1,0 +1,84 @@
+[
+  {
+    "log": "collect-only.log",
+    "command": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+      "-m",
+      "pytest",
+      "-o",
+      "addopts=",
+      "-o",
+      "pythonpath=/workspace/scratch/82c41c0036ab/xreview/src",
+      "--collect-only",
+      "-vv",
+      "/workspace/scratch/82c41c0036ab/frozen_b6588bd/test_redteam_b6588bd.py"
+    ],
+    "cwd": "/workspace/scratch/82c41c0036ab/xreview",
+    "start": "2026-09-14T14:34:40.739880+00:00",
+    "end": "2026-09-14T14:34:41.268009+00:00",
+    "exit_code": 0,
+    "test_sha256_before": "780cd8d978ec584faa7678dd98c0d3f4a9db2a18a05a82f019144c72f5885647",
+    "test_sha256_after": "780cd8d978ec584faa7678dd98c0d3f4a9db2a18a05a82f019144c72f5885647"
+  },
+  {
+    "log": "redteam.log",
+    "command": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+      "-m",
+      "pytest",
+      "-o",
+      "addopts=",
+      "-o",
+      "pythonpath=/workspace/scratch/82c41c0036ab/xreview/src",
+      "-vv",
+      "--tb=long",
+      "/workspace/scratch/82c41c0036ab/frozen_b6588bd/test_redteam_b6588bd.py"
+    ],
+    "cwd": "/workspace/scratch/82c41c0036ab/xreview",
+    "start": "2026-09-14T14:34:41.268438+00:00",
+    "end": "2026-09-14T14:34:44.559144+00:00",
+    "exit_code": 1,
+    "test_sha256_before": "780cd8d978ec584faa7678dd98c0d3f4a9db2a18a05a82f019144c72f5885647",
+    "test_sha256_after": "780cd8d978ec584faa7678dd98c0d3f4a9db2a18a05a82f019144c72f5885647"
+  },
+  {
+    "log": "formal.log",
+    "command": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+      "-m",
+      "pytest",
+      "-o",
+      "addopts=",
+      "-o",
+      "pythonpath=/workspace/scratch/82c41c0036ab/xreview/src",
+      "-vv",
+      "tests"
+    ],
+    "cwd": "/workspace/scratch/82c41c0036ab/xreview",
+    "start": "2026-09-14T14:34:44.559470+00:00",
+    "end": "2026-09-14T14:34:50.747615+00:00",
+    "exit_code": 0,
+    "test_sha256_before": "780cd8d978ec584faa7678dd98c0d3f4a9db2a18a05a82f019144c72f5885647",
+    "test_sha256_after": "780cd8d978ec584faa7678dd98c0d3f4a9db2a18a05a82f019144c72f5885647"
+  },
+  {
+    "log": "reference.log",
+    "command": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+      "-m",
+      "pytest",
+      "-o",
+      "addopts=",
+      "-o",
+      "pythonpath=/workspace/scratch/82c41c0036ab/xreview/aios_core_r2_reference/src",
+      "-vv",
+      "aios_core_r2_reference/tests"
+    ],
+    "cwd": "/workspace/scratch/82c41c0036ab/xreview",
+    "start": "2026-09-14T14:34:50.747996+00:00",
+    "end": "2026-09-14T14:34:51.331561+00:00",
+    "exit_code": 0,
+    "test_sha256_before": "780cd8d978ec584faa7678dd98c0d3f4a9db2a18a05a82f019144c72f5885647",
+    "test_sha256_after": "780cd8d978ec584faa7678dd98c0d3f4a9db2a18a05a82f019144c72f5885647"
+  }
+]
