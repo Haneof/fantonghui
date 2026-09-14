@@ -1,0 +1,32 @@
+name: M0 Gate B4 B5 follow-up patch
+
+on:
+  push:
+    branches:
+      - arena/01a09bc6-fantonghui
+    paths:
+      - .github/workflows/m0-gate-followup-patch.yml
+      - tools/apply_m0_gate_followup_patch.py
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply B4 B5 follow-up patch
+        run: python tools/apply_m0_gate_followup_patch.py
+      - name: Commit semantic patch
+        run: |
+          git config user.name "chief-01"
+          git config user.email "131862491+Haneof@users.noreply.github.com"
+          git add -A
+          git commit -m "M0 Gate patch B4 B5 self-reference and storage errors"
+          git push origin HEAD:arena/01a09bc6-fantonghui
