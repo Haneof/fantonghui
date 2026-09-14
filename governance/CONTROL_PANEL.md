@@ -2,7 +2,7 @@
 
 这个文件是给项目负责人看的中文总面板。
 
-原则：人看中文职位名，机器继续保留稳定编号。以后你不需要记英文编号，只需要说“总工程师”“核心程序员”“GPT-6架构审计员”“并行程序员1”即可。
+原则：人看中文职位名，机器保留稳定编号。
 
 最后同步：2026-09-14
 控制面分支：`governance/aios-control-plane`
@@ -21,11 +21,11 @@
 ## 二、当前项目状态
 
 - 当前里程碑：M0 — 进行中
-- M0 完成度：**11 / 22 FINAL PASS**
-- 已正式通过到：**M0-011**
-- M0-011 语义冻结：`295d2a162f8814c9479d7281bd5988ccd2d8b6f5`
-- 下一任务：**M0-012 — EventAnchor（事件锚点）契约与生命周期**
-- M0-012 状态：**已授权 / 总工程师负责 / 尚未开始**
+- M0 完成度：**12 / 22 FINAL PASS**
+- 已正式通过到：**M0-012**
+- M0-012 语义冻结：`5ab6ed1c21f2c3f2664104faff3494113bdd5bc1`
+- 下一任务：**M0-013 — Goal（目标）一等对象**
+- M0-013 状态：**已授权 / 总工程师负责 / 尚未开始**
 - 当前生产分支：`arena/01a09bc6-fantonghui`
 - 当前开发模式：核心生产代码仍为单写入者
 
@@ -33,43 +33,32 @@
 
 | 中文职位 | 内部编号 | 当前状态 | 当前任务 | 最近结果 | 下一步 |
 |---|---|---|---|---|---|
-| **总工程师 / 总工** | `chief-01` | 当前负责人 | M0-012（尚未开始） | **M0-011 FINAL PASS**；268 正式测试 + Reference 15 全通过 | 下一轮由总工开始 M0-012 |
+| **总工程师 / 总工** | `chief-01` | 当前负责人 | M0-013（尚未开始） | **M0-012 FINAL PASS**；284 正式测试 + Reference 15 全通过 | 亲自推进 M0-013 |
 | **核心程序员 / 主程序员** | `core-01` | **待命** | 无 | M0-010 收尾已验收 | 等总工以后分配施工任务 |
 | **GPT-6 架构审计员** | `architect-01` | **待命** | 当前无任务 | 尚未触发架构升级 | M0 Gate 必须介入；当前无需启动 |
 | **并行程序员1** | `parallel-01` | **未授权** | 无 | 无 | 等总工宣布可并行 |
 | **并行程序员2** | `parallel-02` | **未授权** | 无 | 无 | 等总工宣布可并行 |
-| **自动测试** | `ci` | **通过** | 每次 core push 自动回归 | M0-011 semantic HEAD：Python 3.12.14，268 passed；Reference 15 passed | 后续 push 自动重跑 |
+| **自动测试** | `ci` | **通过** | 每次 core push 自动回归 | M0-012 semantic HEAD：Python 3.12.14，284 passed；Reference 15 passed | 后续 push 自动重跑 |
 
-## 四、M0-011 已冻结什么
+## 四、M0-012 已冻结什么
 
-- 维度正式拆为 Definition / Membership / Derivation 三层。
-- 维度数据形态不被限制为曲线或数值向量。
-- 一个世界对象可以同时挂载多个维度。
-- 高层“学习能力”等派生维度可以向下追溯数学/英语/编程等输入。
-- Derivation 输入可以引用维度、事件、Claim、Summary、EvidenceSet 等，而不是只接数值。
-- Membership / Derivation 的历史依据使用 pinned revision，避免未来版本漂移污染旧认知。
-- 原始 Observation 只被引用，不复制成每个维度自己的私有原始数据。
-- DimensionLifecycle 已严格对齐 R2：候选、试用、活跃、低活跃、休眠，以及合并/拆分/修正/拒绝/重新激活。
-- Reference 15 从现在开始进入 GitHub Actions 自动测试，不再靠人工本地报告。
+- EventAnchor 是对多维世界的认知解释/锚点，不是底层 Observation 本身。
+- 生命周期支持 CANDIDATE / ACTIVE / RESOLVED / REVISED / REJECTED / MERGED / SPLIT。
+- 候选事件可低置信度创建，不要求 confidence=1。
+- Claim、EvidenceSet、修订/合并/拆分历史依据使用 pinned revision。
+- 保留既有 `evidence_set_refs`，并明确增加 support/counter EvidenceSet 引用。
+- REVISED、REJECTED、MERGED、SPLIT 保留 revision_reason；修订/合并/拆分保持明确历史指向。
+- “学校运动会 → 校内田径测试”案例证明旧判断和修正原因均可历史回放，不能通过改标题抹掉过去。
+- Event 不复制原始 Observation payload。
+- 构造后篡改 provenance 仍由 M0-009 durable persistence revalidation 拦截。
 
-正式审查文件：`reviews/M0/M0-011_final_PASS_2026-09-14.md`
+正式审查文件：`reviews/M0/M0-012_final_PASS_2026-09-14.md`
 
-## 五、你和总工程师以后怎么沟通
+## 五、沟通与权限
 
-你不再复制粘贴 AI 的长报告。
+用户只需说“继续下一任务”或某个角色“做完了”。总工程师自行读取真实分支、报告、diff、源码、review 与 CI。
 
-你只需要说：
-
-- `核心程序员做完了`
-- `GPT-6架构审计员做完了`
-- `并行程序员1做完了`
-- `总工程师继续下一任务`
-
-总工程师会自动读取云端任务、真实分支、结果报告、diff、源码、review 与 CI，然后更新本面板并告诉你下一步叫谁。
-
-## 六、权限原则
-
-- 核心程序员和并行程序员不能自己宣布 FINAL PASS。
+- 施工 AI 不能自己宣布 FINAL PASS。
 - 总工程师负责最终验收、冻结 commit、授权下一任务。
-- GPT-6 架构审计员提供独立审计结论，最终项目状态由总工程师纳入。
-- 自动测试全绿只是必要条件，不等于架构自动正确。
+- GPT-6 架构审计员在 M0 Gate 必须介入；当前无升级触发。
+- 自动测试全绿是必要条件，不替代架构审查。
