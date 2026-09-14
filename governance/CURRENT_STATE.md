@@ -28,10 +28,26 @@ This file is the short cloud checkpoint used to recover project state after long
 - M0-011 — DimensionDefinition / DimensionMembership / DimensionDerivation three-layer contract
 - Status: AUTHORIZED / CHIEF ENGINEER OWNED
 - Production branch: `arena/01a09bc6-fantonghui`
-- Frozen base: `949e90e58bd073c1da5d23664bfcb1cb8154ebde`
+- Frozen production base: `949e90e58bd073c1da5d23664bfcb1cb8154ebde`
+- Current working branch HEAD after governance-only closeout sync: `a06ac1a5b634c852a5252373795a3727f7a4ba02`
 - Owner: `chief-01`
-- `core-01`: no production assignment until explicitly reassigned
+- `core-01`: IDLE / no production assignment
 - M0-012: HOLD
+
+## core-01 closeout verification
+
+The Chief Engineer independently verified the M0-010-R1 cloud report sync:
+
+- report path: `governance/agent_reports/core-01/LATEST.md`
+- accepted production commit remains `949e90e58bd073c1da5d23664bfcb1cb8154ebde`
+- current branch HEAD is `a06ac1a5b634c852a5252373795a3727f7a4ba02`
+- compare `949e90e..a06ac1a`: ahead-only; only `governance/agent_reports/core-01/LATEST.md` changed
+- no `src/aios_core/**` changes
+- exact-head GitHub Actions SUCCESS
+- CPython 3.12.14 / pytest 8.4.2 / 253 passed
+- core-01 correctly did not start M0-011
+
+Therefore `core-01` is now IDLE.
 
 ## M0-010 final verification
 
