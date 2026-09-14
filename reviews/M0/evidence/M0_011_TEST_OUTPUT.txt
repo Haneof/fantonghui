@@ -1,0 +1,30 @@
+M0-011 exact-head GitHub Actions evidence
+Date: 2026-09-14
+Semantic frozen commit: 295d2a162f8814c9479d7281bd5988ccd2d8b6f5
+Workflow run: 34805946078
+Job: 103857745942
+Runner: Ubuntu 24.04
+Python: 3.12.14
+pytest: 8.4.2
+
+Formal suite:
+collected 268 items
+268 passed, 1 warning in 3.01s
+
+Expected warning:
+tests/unit/test_evidence_set.py::test_e23_time_range_mutation
+PydanticSerializationUnexpectedValue for intentionally mutated time_range='now-14d'.
+This is the previously accepted M0-009 adversarial fixture warning.
+
+M0-011 tests include:
+- test_dimension_lifecycle.py: 1 passed
+- test_dimension_membership_persistence.py: 1 passed
+- test_dimensions.py: 13 passed
+
+Reference suite (now executed by GitHub Actions):
+collected 15 items
+15 passed in 0.23s
+
+Conclusion:
+FORMAL 268/268 PASS
+REFERENCE 15/15 PASS
