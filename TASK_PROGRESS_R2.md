@@ -4,13 +4,13 @@
 > 宪法基线：`AIOS宪法2.0.txt` + R1/R2
 > 当前主线：`aios-2.0`
 > 工作分支：`arena/01a09bc6-fantonghui`
-> 最后更新：2026-09-14 (M0-017 FINAL PASS)
+> 最后更新：2026-09-14 (M0-018 FINAL PASS)
 
 ## 里程碑总览
 
 | 里程碑 | 目标 | 状态 | 完成度 |
 |---|---|---|---|
-| M0 | 冻结世界契约与核心存储 | 进行中 IN PROGRESS | 17/22 FINAL PASS |
+| M0 | 冻结世界契约与核心存储 | 进行中 IN PROGRESS | 18/22 FINAL PASS |
 | M1 | 可写、可查、可下钻的共同世界 | 未开始 | 0/16 |
 | M2 | 主动运行闭环 | 未开始 | 0/15 |
 | M3 | 长期纠错与多尺度认知 | 未开始 | 0/11 |
@@ -41,4 +41,5 @@
 | M0-015 | Dependency（依赖）契约 | FINAL PASS | 329+15 | 3b4e8b6 | exact-version Dependency, pinned endpoints, open dependency_type, direct self-dependency拒绝, explicit dependency cycle guard, Relation环不受影响, exact-revision reverse impact scan, CI SUCCESS Python 3.12.14 |
 | M0-016 | OperationRequest、审计与幂等契约 | FINAL PASS | 341+15 | cdbd7ff | exact OperationRequest fields, nonblank identity/reason/key, same-key replay before version check, world revision advances once, VERSION_CONFLICT not swallowed, durable operation audit query/restart, CI SUCCESS Python 3.12.14 |
 | M0-017 | SQLite 追加式世界存储 schema | FINAL PASS | 353+15 | c9bd2d8 | world_meta/world_commits/object_revisions/operations/idempotency, WAL+foreign keys, restart-safe, append-only revisions, rollback atomicity, multi-object one world revision, stale writer VERSION_CONFLICT, AI Worker DB isolation, CI SUCCESS Python 3.12.14 |
-| M0-018 | 全局 World Revision 与原子提交 | AUTHORIZED / CHIEF ENGINEER OWNED / NOT STARTED | - | - | 单事务多对象共享 next world revision；BEGIN IMMEDIATE；失败不推进版本；总工程师亲自代码 |
+| M0-018 | 全局 World Revision 与原子提交 | FINAL PASS | 358+15 | f007351 | one logical commit=one world revision, 3 objects share one revision, true mid-insert rollback, concurrent writers only one succeeds, Session snapshot stays fixed, failed tx consumes no revision, CI SUCCESS Python 3.12.14 |
+| M0-019 | 引用存在性与同事务引用验证 | AUTHORIZED / CHIEF ENGINEER OWNED / NOT STARTED | - | - | pinned/floating visibility、same-tx refs、missing refs、knowledge cutoff；总工程师亲自代码 |
