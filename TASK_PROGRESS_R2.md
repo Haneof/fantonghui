@@ -4,13 +4,13 @@
 > 宪法基线：`AIOS宪法2.0.txt` + R1/R2
 > 当前主线：`aios-2.0`
 > 工作分支：`arena/01a09bc6-fantonghui`
-> 最后更新：2026-09-14 (M0-015 FINAL PASS)
+> 最后更新：2026-09-14 (M0-016 FINAL PASS)
 
 ## 里程碑总览
 
 | 里程碑 | 目标 | 状态 | 完成度 |
 |---|---|---|---|
-| M0 | 冻结世界契约与核心存储 | 进行中 IN PROGRESS | 15/22 FINAL PASS |
+| M0 | 冻结世界契约与核心存储 | 进行中 IN PROGRESS | 16/22 FINAL PASS |
 | M1 | 可写、可查、可下钻的共同世界 | 未开始 | 0/16 |
 | M2 | 主动运行闭环 | 未开始 | 0/15 |
 | M3 | 长期纠错与多尺度认知 | 未开始 | 0/11 |
@@ -39,4 +39,5 @@
 | M0-013 | Goal（目标）一等对象 | FINAL PASS | 297+15 | f309873 | Goal!=Task, R2 GoalStatus exact, explicit/inferred/App source semantics, Goal不自动建Task, 否认推断目标后Task仍可追溯复核, CI SUCCESS Python 3.12.14 |
 | M0-014 | Task / Wake / Session / Action / Outcome 基础契约 | FINAL PASS | 315+15 | af49c27 | durable Task, Wake provenance, Session snapshot/checkpoint, stable execution_id, Action!=Outcome, outcome可UNKNOWN, 消息送达!=帮助成功, CI SUCCESS Python 3.12.14 |
 | M0-015 | Dependency（依赖）契约 | FINAL PASS | 329+15 | 3b4e8b6 | exact-version Dependency, pinned endpoints, open dependency_type, direct self-dependency拒绝, explicit dependency cycle guard, Relation环不受影响, exact-revision reverse impact scan, CI SUCCESS Python 3.12.14 |
-| M0-016 | OperationRequest、审计与幂等契约 | AUTHORIZED / CHIEF ENGINEER OWNED / NOT STARTED | - | - | 冻结 operation_id/session_id/expected_world_revision/reason/idempotency_key；安全重试；总工程师亲自代码 |
+| M0-016 | OperationRequest、审计与幂等契约 | FINAL PASS | 341+15 | cdbd7ff | exact OperationRequest fields, nonblank identity/reason/key, same-key replay before version check, world revision advances once, VERSION_CONFLICT not swallowed, durable operation audit query/restart, CI SUCCESS Python 3.12.14 |
+| M0-017 | SQLite 追加式世界存储 schema | AUTHORIZED / CHIEF ENGINEER OWNED / NOT STARTED | - | - | 建库/重启/连续提交/rollback/多 revision/并发 expected revision；总工程师亲自代码 |
