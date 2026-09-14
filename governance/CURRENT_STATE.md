@@ -8,76 +8,69 @@ This file is the short cloud checkpoint used to recover project state after long
 
 - Milestone: M0 — freeze world contracts and core storage
 - Status: IN PROGRESS
+- Progress: 11/22 tasks FINAL PASS
 - Core development mode: SINGLE-WRITER for production contracts until M0 Gate
 
 ## Frozen tasks
 
-- M0-001 FINAL PASS — frozen commit `8197c4f`
-- M0-002 FINAL PASS — frozen commit `3430e13`
-- M0-003 FINAL PASS — frozen commit `f705e38`
-- M0-004 FINAL PASS — frozen commit `3678ab8`
-- M0-005 FINAL PASS — frozen commit `e15a0f9`
-- M0-006 FINAL PASS — frozen commit `eacd160`
-- M0-007 FINAL PASS — frozen commit `9bee623`
-- M0-008 FINAL PASS — frozen commit `65f1dd2`
-- M0-009 FINAL PASS — frozen commit `cda888f371fed812cda1b5e08d8a27db5e0c240a`
-- M0-010 FINAL PASS — frozen commit `949e90e58bd073c1da5d23664bfcb1cb8154ebde`
+- M0-001 FINAL PASS — `8197c4f`
+- M0-002 FINAL PASS — `3430e13`
+- M0-003 FINAL PASS — `f705e38`
+- M0-004 FINAL PASS — `3678ab8`
+- M0-005 FINAL PASS — `e15a0f9`
+- M0-006 FINAL PASS — `eacd160`
+- M0-007 FINAL PASS — `9bee623`
+- M0-008 FINAL PASS — `65f1dd2`
+- M0-009 FINAL PASS — `cda888f371fed812cda1b5e08d8a27db5e0c240a`
+- M0-010 FINAL PASS — `949e90e58bd073c1da5d23664bfcb1cb8154ebde`
+- M0-011 FINAL PASS — semantic frozen commit `295d2a162f8814c9479d7281bd5988ccd2d8b6f5`
 
-## Active task
+## M0-011 accepted contract
 
-- M0-011 — DimensionDefinition / DimensionMembership / DimensionDerivation three-layer contract
-- Status: AUTHORIZED / CHIEF ENGINEER OWNED
-- Production branch: `arena/01a09bc6-fantonghui`
-- Frozen production base: `949e90e58bd073c1da5d23664bfcb1cb8154ebde`
-- Current working branch HEAD after governance-only closeout sync: `a06ac1a5b634c852a5252373795a3727f7a4ba02`
+Dimension architecture is frozen into three first-class WorldObjects:
+
+- `DimensionDefinition`: what a dimension means and its data shape/lifecycle/update metadata.
+- `DimensionMembership`: which world object is mounted to which dimension, with pinned historical provenance refs.
+- `DimensionDerivation`: how a higher-level dimension derives from pinned heterogeneous inputs/evidence/counterexamples.
+
+Accepted invariants:
+
+- `data_shape` is not curve/vector-only.
+- one object may persist under multiple memberships.
+- derivation inputs remain generic `ObjectRef` and can represent dimensions/events/Claims/Summaries/EvidenceSets.
+- raw Observation content is referenced, not copied into dimension-private storage.
+- Membership and Derivation historical/provenance refs are pinned.
+- post-validation mutation remains blocked by M0-009 durable revalidation.
+- R2 DimensionLifecycle exact values: `CANDIDATE, TRIAL, ACTIVE, LOW_ACTIVITY, DORMANT, MERGED, SPLIT, REVISED, REJECTED, REACTIVATED`.
+
+Exact semantic-head CI:
+
+- GitHub Actions run `34805946078`
+- CPython 3.12.14 / pytest 8.4.2
+- formal: 268 passed, 1 previously accepted adversarial warning
+- Reference: 15 passed
+- Reference suite is now part of GitHub Actions for every core build.
+
+Formal review: `reviews/M0/M0-011_final_PASS_2026-09-14.md`
+
+## Active / next task
+
+- M0-012 — EventAnchor（事件锚点）契约与生命周期
+- Status: AUTHORIZED / CHIEF ENGINEER OWNED / NOT STARTED
 - Owner: `chief-01`
+- Production branch: `arena/01a09bc6-fantonghui`
+- M0-011 semantic base for next work: `295d2a162f8814c9479d7281bd5988ccd2d8b6f5`
+- production branch also contains M0-011 review/progress archival commits after the semantic freeze
 - `core-01`: IDLE / no production assignment
-- M0-012: HOLD
-
-## core-01 closeout verification
-
-The Chief Engineer independently verified the M0-010-R1 cloud report sync:
-
-- report path: `governance/agent_reports/core-01/LATEST.md`
-- accepted production commit remains `949e90e58bd073c1da5d23664bfcb1cb8154ebde`
-- current branch HEAD is `a06ac1a5b634c852a5252373795a3727f7a4ba02`
-- compare `949e90e..a06ac1a`: ahead-only; only `governance/agent_reports/core-01/LATEST.md` changed
-- no `src/aios_core/**` changes
-- exact-head GitHub Actions SUCCESS
-- CPython 3.12.14 / pytest 8.4.2 / 253 passed
-- core-01 correctly did not start M0-011
-
-Therefore `core-01` is now IDLE.
-
-## M0-010 final verification
-
-- R1 was test-only; no `src/aios_core/**` change from `225eb76` to `949e90e`
-- false-green `or True` removed
-- Entity object_type exact `Literal[ObjectType.ENTITY]` frozen
-- Relation object_type exact `Literal[ObjectType.RELATION]` frozen
-- ER18 now uses real committed Entity endpoints and isolates floating evidence mutation
-- exact-head GitHub Actions SUCCESS
-- CPython 3.12.14 / pytest 8.4.2 / 253 passed
-- archived local evidence: 253 passed + Reference 15 passed
-
-## Recent architectural freeze
-
-M0-009 froze a generic durable-write invariant:
-
-`SQLiteWorldStore.commit` must revalidate the complete current Pydantic object graph before durable writes so post-validation mutation cannot bypass object contracts.
-
-The preserved order is:
-
-idempotency replay → expected world revision → persistence revalidation → revision/type validation → reference validation → durable write.
-
-M0-010 froze stable Entity identity and independent Relation history/provenance.
+- `architect-01`: STANDBY; mandatory at M0 Gate, no current escalation trigger
+- `parallel-01/02`: NOT AUTHORIZED
 
 ## Chief-review discipline
 
 - Coding agents never self-declare FINAL PASS.
 - Chief Engineer independently checks actual GitHub HEAD, compare/diff, source, tests, reviews, and exact-head CI.
 - A task is frozen only when the Chief Engineer names the exact accepted commit.
-- The next core task remains HOLD until the current task is FINAL PASS.
+- Frozen semantic commits may be followed by review/governance-only archival commits; those do not silently change the accepted production contract.
 
 ## Recovery rule
 
