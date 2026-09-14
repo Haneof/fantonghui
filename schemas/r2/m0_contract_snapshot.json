@@ -42,7 +42,7 @@
     "aios_core.contracts.models.EvidenceSelector": "27cfb93f96fd725b209f1afbd4a066e4f0b8d5dd98ee3b13fd5173c4cfab5d97",
     "aios_core.contracts.models.EvidenceSet": "30758dfa624fe67642cc2994c7b851fb1513a59cca34a1d961bb37db77f8d73c",
     "aios_core.contracts.models.Goal": "d4cc974eee21690f1901b5b2126b6001e65d3bf1b026183ba837d675a233c0f2",
-    "aios_core.contracts.models.Observation": "b58727fbd4b7b3a9984d0ff1742b56b42fb22967809e961362559c2c7561fc",
+    "aios_core.contracts.models.Observation": "b58727fbd4b7b7c3a9984d0ff1742b56b42fb22967809e961362559c2c7561fc",
     "aios_core.contracts.models.OperationExperience": "64f1c968176fa6afce4e08d9ccd10a6ab79911daf6bc0c6ee371e5f72d0a092f",
     "aios_core.contracts.models.Outcome": "6c4033e4e44031f07cc078bc99a6254722b67c5f4c7887214de30e21335b45b0",
     "aios_core.contracts.models.Relation": "79683cad62623b65b6f47268540f7f156e629c915da19fd8f3b48dd9683be0e4",
