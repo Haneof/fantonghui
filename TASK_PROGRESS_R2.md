@@ -4,13 +4,13 @@
 > 宪法基线：`AIOS宪法2.0.txt` + R1/R2
 > 当前主线：`aios-2.0`
 > 工作分支：`arena/01a09bc6-fantonghui`
-> 最后更新：2026-09-14 23:59 UTC (M0-007 R1 PATCH COMPLETE)
+> 最后更新：2026-09-14 23:59 UTC (M0-008 CODE COMPLETE)
 
 ## 里程碑总览
 
 | 里程碑 | 目标 | 状态 | 完成度 |
 |---|---|---|---|
-| M0 | 冻结世界契约与核心存储 | 进行中 IN PROGRESS | 6/22 FINAL PASS + M0-007 R1 PATCH COMPLETE |
+| M0 | 冻结世界契约与核心存储 | 进行中 IN PROGRESS | 7/22 FINAL PASS + M0-008 CODE COMPLETE |
 | M1 | 可写、可查、可下钻的共同世界 | 未开始 | 0/16 |
 | M2 | 主动运行闭环 | 未开始 | 0/15 |
 | M3 | 长期纠错与多尺度认知 | 未开始 | 0/11 |
@@ -30,4 +30,5 @@
 | M0-004 | 唯一时间轴、三类时间、跨时区规范化与 Knowledge Cutoff | FINAL PASS | 146+15 | 3678ab8 | time.py SHA256 0a243b69... |
 | M0-005 | WorldObject 公共字段与 Append-Only Revision | FINAL PASS | 163+15 | e15a0f9 | 11字段, revision+1, append-only, world vs object分离, object_type immutable |
 | M0-006 | ObjectRef / SourceRef 版本化引用、历史钉住与引用知识可见性 | FINAL PASS | 181+15 | eacd160 | pinned vs floating, knowledge visibility, canary, DST, Dependency exact ObjectRef, CI SUCCESS Python 3.12.14 |
-| M0-007 | Observation（基础观测）契约冻结 | R1 PATCH COMPLETE / WAITING CHIEF REVIEW | 194+15 | 待 | Observation基础观测, 无高层语义, 统一时间轴, !=Wake, raw_locator, 无衍生, helper不掩盖时间, O05严格 |
+| M0-007 | Observation（基础观测）契约冻结 | FINAL PASS | 194+15 | 9bee623 | Observation基础观测, 无高层语义, 统一时间轴, !=Wake, 无衍生, helper纪律, CI SUCCESS Python 3.12.14 |
+| M0-008 | Claim（主张）语义模型冻结 | CODE COMPLETE / WAITING CHIEF REVIEW | 210+15 | 待 | Claim语义, claim_type vs knowledge_state, FACT!=truth, confidence独立, 多Claim拆分, 独立revision, unknown_items, 无语义副作用 |
