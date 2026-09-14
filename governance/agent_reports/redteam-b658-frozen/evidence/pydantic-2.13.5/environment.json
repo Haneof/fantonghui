@@ -1,0 +1,13 @@
+{
+  "candidate_sha": "b6588bdaaa36d9dace4f9959dda0a89a370e1674",
+  "python": "3.12.14 (main, Sep 14 2026, 14:54:22) [GCC 12.2.0]",
+  "platform": "Linux-6.1.158+-x86_64-with-glibc2.36",
+  "pydantic": "2.13.5",
+  "pytest": "8.4.2",
+  "sqlite": "3.40.1",
+  "test_sha256_before": "180dc1bac647e6cee6688dd4475dab8a063cc9fa9545acdc0e907036e9bea97d",
+  "started_at_utc": "2026-09-14T14:55:25.032650+00:00",
+  "audit_commit": null,
+  "github_run_id": null,
+  "integer_digit_limit": 4300
+}

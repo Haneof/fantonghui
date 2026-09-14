@@ -1,0 +1,9 @@
+{
+  "collect-only": 0,
+  "redteam": 1,
+  "formal": 0,
+  "reference": 0,
+  "test_sha256_after": "180dc1bac647e6cee6688dd4475dab8a063cc9fa9545acdc0e907036e9bea97d",
+  "unchanged_test": true,
+  "finished_at_utc": "2026-09-14T14:55:41.975598+00:00"
+}

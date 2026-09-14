@@ -1,0 +1,1401 @@
+COMMAND: ['/home/user/redteam-b658/venv213/bin/python', '-m', 'pytest', '-vv', '--tb=short', '/home/user/fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py', '-o', 'pythonpath=/home/user/redteam-b658/exact/src', '-o', 'addopts=', '-p', 'no:cacheprovider']
+CANDIDATE: b6588bdaaa36d9dace4f9959dda0a89a370e1674
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-8.4.2, pluggy-1.6.0 -- /home/user/redteam-b658/venv213/bin/python
+rootdir: /home/user/fantonghui
+configfile: pyproject.toml
+collecting ... collected 394 items
+
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x1_bidirectional_identity_restart_stale[opaque-to-typed-ObjectRef-metadata] PASSED [  0%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x1_bidirectional_identity_restart_stale[opaque-to-typed-ObjectRef-value] PASSED [  0%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x1_bidirectional_identity_restart_stale[opaque-to-typed-ObjectRef-arguments] PASSED [  0%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x1_bidirectional_identity_restart_stale[opaque-to-typed-ObjectRef-filters] PASSED [  1%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x1_bidirectional_identity_restart_stale[opaque-to-typed-SourceRef-metadata] PASSED [  1%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x1_bidirectional_identity_restart_stale[opaque-to-typed-SourceRef-value] PASSED [  1%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x1_bidirectional_identity_restart_stale[opaque-to-typed-SourceRef-arguments] PASSED [  1%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x1_bidirectional_identity_restart_stale[opaque-to-typed-SourceRef-filters] PASSED [  2%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x1_bidirectional_identity_restart_stale[typed-to-opaque-ObjectRef-metadata] PASSED [  2%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x1_bidirectional_identity_restart_stale[typed-to-opaque-ObjectRef-value] PASSED [  2%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x1_bidirectional_identity_restart_stale[typed-to-opaque-ObjectRef-arguments] PASSED [  2%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x1_bidirectional_identity_restart_stale[typed-to-opaque-ObjectRef-filters] PASSED [  3%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x1_bidirectional_identity_restart_stale[typed-to-opaque-SourceRef-metadata] PASSED [  3%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x1_bidirectional_identity_restart_stale[typed-to-opaque-SourceRef-value] PASSED [  3%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x1_bidirectional_identity_restart_stale[typed-to-opaque-SourceRef-arguments] PASSED [  3%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x1_bidirectional_identity_restart_stale[typed-to-opaque-SourceRef-filters] PASSED [  4%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x1_marker_spoof_is_not_reference_identity[ObjectRef-metadata] PASSED [  4%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x1_marker_spoof_is_not_reference_identity[ObjectRef-value] PASSED [  4%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x1_marker_spoof_is_not_reference_identity[ObjectRef-arguments] PASSED [  4%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x1_marker_spoof_is_not_reference_identity[ObjectRef-filters] PASSED [  5%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x1_marker_spoof_is_not_reference_identity[SourceRef-metadata] PASSED [  5%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x1_marker_spoof_is_not_reference_identity[SourceRef-value] PASSED [  5%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x1_marker_spoof_is_not_reference_identity[SourceRef-arguments] PASSED [  5%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x1_marker_spoof_is_not_reference_identity[SourceRef-filters] PASSED [  6%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_no_bidirectional_typed_opaque_false_replay[opaque-to-typed-ObjectRef-metadata] PASSED [  6%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_no_bidirectional_typed_opaque_false_replay[opaque-to-typed-ObjectRef-value] PASSED [  6%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_no_bidirectional_typed_opaque_false_replay[opaque-to-typed-ObjectRef-arguments] PASSED [  6%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_no_bidirectional_typed_opaque_false_replay[opaque-to-typed-SourceRef-metadata] PASSED [  7%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_no_bidirectional_typed_opaque_false_replay[opaque-to-typed-SourceRef-value] PASSED [  7%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_no_bidirectional_typed_opaque_false_replay[opaque-to-typed-SourceRef-arguments] PASSED [  7%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_no_bidirectional_typed_opaque_false_replay[typed-to-opaque-ObjectRef-metadata] FAILED [  7%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_no_bidirectional_typed_opaque_false_replay[typed-to-opaque-ObjectRef-value] FAILED [  8%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_no_bidirectional_typed_opaque_false_replay[typed-to-opaque-ObjectRef-arguments] FAILED [  8%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_no_bidirectional_typed_opaque_false_replay[typed-to-opaque-SourceRef-metadata] FAILED [  8%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_no_bidirectional_typed_opaque_false_replay[typed-to-opaque-SourceRef-value] FAILED [  8%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_no_bidirectional_typed_opaque_false_replay[typed-to-opaque-SourceRef-arguments] FAILED [  9%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_pure_json_exact_replay[metadata] PASSED [  9%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_pure_json_exact_replay[value] PASSED [  9%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_pure_json_exact_replay[arguments] PASSED [  9%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_unverifiable_typed_exact_fails_closed[ObjectRef-metadata] PASSED [ 10%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_unverifiable_typed_exact_fails_closed[ObjectRef-value] PASSED [ 10%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_unverifiable_typed_exact_fails_closed[ObjectRef-arguments] PASSED [ 10%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_unverifiable_typed_exact_fails_closed[ObjectRef-filters] PASSED [ 10%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_unverifiable_typed_exact_fails_closed[SourceRef-metadata] PASSED [ 11%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_unverifiable_typed_exact_fails_closed[SourceRef-value] PASSED [ 11%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_unverifiable_typed_exact_fails_closed[SourceRef-arguments] PASSED [ 11%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_unverifiable_typed_exact_fails_closed[SourceRef-filters] PASSED [ 11%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-metadata-surrogate] PASSED [ 12%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-metadata-bytes] PASSED [ 12%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-metadata-object] PASSED [ 12%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-metadata-huge-int] PASSED [ 12%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-metadata-nan] PASSED [ 13%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-metadata-infinity] PASSED [ 13%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-metadata-negative-infinity] PASSED [ 13%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-metadata-list-cycle] PASSED [ 13%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-metadata-dict-cycle] PASSED [ 14%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-metadata-depth] PASSED [ 14%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-value-surrogate] PASSED [ 14%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-value-bytes] PASSED [ 14%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-value-object] PASSED [ 15%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-value-huge-int] PASSED [ 15%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-value-nan] PASSED [ 15%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-value-infinity] PASSED [ 15%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-value-negative-infinity] PASSED [ 16%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-value-list-cycle] PASSED [ 16%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-value-dict-cycle] PASSED [ 16%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-value-depth] PASSED [ 17%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-arguments-surrogate] PASSED [ 17%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-arguments-bytes] PASSED [ 17%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-arguments-object] PASSED [ 17%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-arguments-huge-int] PASSED [ 18%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-arguments-nan] PASSED [ 18%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-arguments-infinity] PASSED [ 18%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-arguments-negative-infinity] PASSED [ 18%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-arguments-list-cycle] PASSED [ 19%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-arguments-dict-cycle] PASSED [ 19%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-arguments-depth] PASSED [ 19%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-filters-surrogate] PASSED [ 19%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-filters-bytes] PASSED [ 20%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-filters-object] PASSED [ 20%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-filters-huge-int] PASSED [ 20%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-filters-nan] PASSED [ 20%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-filters-infinity] PASSED [ 21%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-filters-negative-infinity] PASSED [ 21%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-filters-list-cycle] PASSED [ 21%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-filters-dict-cycle] PASSED [ 21%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[False-filters-depth] PASSED [ 22%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-metadata-surrogate] PASSED [ 22%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-metadata-bytes] PASSED [ 22%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-metadata-object] PASSED [ 22%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-metadata-huge-int] PASSED [ 23%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-metadata-nan] PASSED [ 23%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-metadata-infinity] PASSED [ 23%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-metadata-negative-infinity] PASSED [ 23%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-metadata-list-cycle] PASSED [ 24%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-metadata-dict-cycle] PASSED [ 24%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-metadata-depth] PASSED [ 24%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-value-surrogate] PASSED [ 24%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-value-bytes] PASSED [ 25%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-value-object] PASSED [ 25%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-value-huge-int] PASSED [ 25%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-value-nan] PASSED [ 25%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-value-infinity] PASSED [ 26%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-value-negative-infinity] PASSED [ 26%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-value-list-cycle] PASSED [ 26%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-value-dict-cycle] PASSED [ 26%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-value-depth] PASSED [ 27%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-arguments-surrogate] PASSED [ 27%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-arguments-bytes] PASSED [ 27%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-arguments-object] PASSED [ 27%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-arguments-huge-int] PASSED [ 28%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-arguments-nan] PASSED [ 28%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-arguments-infinity] PASSED [ 28%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-arguments-negative-infinity] PASSED [ 28%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-arguments-list-cycle] PASSED [ 29%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-arguments-dict-cycle] PASSED [ 29%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-arguments-depth] PASSED [ 29%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-filters-surrogate] PASSED [ 29%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-filters-bytes] PASSED [ 30%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-filters-object] PASSED [ 30%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-filters-huge-int] PASSED [ 30%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-filters-nan] PASSED [ 30%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-filters-infinity] PASSED [ 31%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-filters-negative-infinity] PASSED [ 31%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-filters-list-cycle] PASSED [ 31%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-filters-dict-cycle] PASSED [ 31%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x2_serialization_protocol_atomicity[True-filters-depth] PASSED [ 32%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_nested_extra_roundtrip_and_changed_retry[False-metadata] PASSED [ 32%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_nested_extra_roundtrip_and_changed_retry[False-value] PASSED [ 32%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_nested_extra_roundtrip_and_changed_retry[False-arguments] PASSED [ 32%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_nested_extra_roundtrip_and_changed_retry[False-filters] PASSED [ 33%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_nested_extra_roundtrip_and_changed_retry[True-metadata] PASSED [ 33%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_nested_extra_roundtrip_and_changed_retry[True-value] PASSED [ 33%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_nested_extra_roundtrip_and_changed_retry[True-arguments] PASSED [ 34%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_nested_extra_roundtrip_and_changed_retry[True-filters] PASSED [ 34%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_dirty_unknown_fields_must_not_be_silently_erased[False-rogue-world] PASSED [ 34%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_dirty_unknown_fields_must_not_be_silently_erased[False-rogue-operation] PASSED [ 34%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_dirty_unknown_fields_must_not_be_silently_erased[False-rogue-ObjectRef] PASSED [ 35%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_dirty_unknown_fields_must_not_be_silently_erased[False-rogue-SourceRef] PASSED [ 35%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_dirty_unknown_fields_must_not_be_silently_erased[False-_rogue-world] FAILED [ 35%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_dirty_unknown_fields_must_not_be_silently_erased[False-_rogue-operation] FAILED [ 35%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_dirty_unknown_fields_must_not_be_silently_erased[False-_rogue-ObjectRef] FAILED [ 36%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_dirty_unknown_fields_must_not_be_silently_erased[False-_rogue-SourceRef] FAILED [ 36%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_dirty_unknown_fields_must_not_be_silently_erased[True-rogue-world] PASSED [ 36%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_dirty_unknown_fields_must_not_be_silently_erased[True-rogue-operation] PASSED [ 36%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_dirty_unknown_fields_must_not_be_silently_erased[True-rogue-ObjectRef] PASSED [ 37%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_dirty_unknown_fields_must_not_be_silently_erased[True-rogue-SourceRef] PASSED [ 37%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_dirty_unknown_fields_must_not_be_silently_erased[True-_rogue-world] FAILED [ 37%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_dirty_unknown_fields_must_not_be_silently_erased[True-_rogue-operation] FAILED [ 37%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_dirty_unknown_fields_must_not_be_silently_erased[True-_rogue-ObjectRef] FAILED [ 38%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_dirty_unknown_fields_must_not_be_silently_erased[True-_rogue-SourceRef] FAILED [ 38%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b10_canonical_subtype_extra_allow_is_not_authority[False] PASSED [ 38%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b10_canonical_subtype_extra_allow_is_not_authority[True] PASSED [ 38%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_canonical_ref_roundtrip_and_restart_retry[1-ObjectRef-metadata] PASSED [ 39%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_canonical_ref_roundtrip_and_restart_retry[1-ObjectRef-value] PASSED [ 39%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_canonical_ref_roundtrip_and_restart_retry[1-ObjectRef-arguments] PASSED [ 39%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_canonical_ref_roundtrip_and_restart_retry[1-ObjectRef-filters] PASSED [ 39%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_canonical_ref_roundtrip_and_restart_retry[1-SourceRef-metadata] PASSED [ 40%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_canonical_ref_roundtrip_and_restart_retry[1-SourceRef-value] PASSED [ 40%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_canonical_ref_roundtrip_and_restart_retry[1-SourceRef-arguments] PASSED [ 40%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_canonical_ref_roundtrip_and_restart_retry[1-SourceRef-filters] PASSED [ 40%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_canonical_ref_roundtrip_and_restart_retry[None-ObjectRef-metadata] PASSED [ 41%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_canonical_ref_roundtrip_and_restart_retry[None-ObjectRef-value] PASSED [ 41%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_canonical_ref_roundtrip_and_restart_retry[None-ObjectRef-arguments] PASSED [ 41%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_canonical_ref_roundtrip_and_restart_retry[None-ObjectRef-filters] PASSED [ 41%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_canonical_ref_roundtrip_and_restart_retry[None-SourceRef-metadata] PASSED [ 42%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_canonical_ref_roundtrip_and_restart_retry[None-SourceRef-value] PASSED [ 42%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_canonical_ref_roundtrip_and_restart_retry[None-SourceRef-arguments] PASSED [ 42%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_canonical_ref_roundtrip_and_restart_retry[None-SourceRef-filters] PASSED [ 42%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-string-ObjectRef-metadata] PASSED [ 43%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-string-ObjectRef-value] PASSED [ 43%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-string-ObjectRef-arguments] PASSED [ 43%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-string-ObjectRef-filters] PASSED [ 43%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-string-SourceRef-metadata] PASSED [ 44%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-string-SourceRef-value] PASSED [ 44%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-string-SourceRef-arguments] PASSED [ 44%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-string-SourceRef-filters] PASSED [ 44%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-negative-ObjectRef-metadata] PASSED [ 45%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-negative-ObjectRef-value] PASSED [ 45%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-negative-ObjectRef-arguments] PASSED [ 45%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-negative-ObjectRef-filters] PASSED [ 45%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-negative-SourceRef-metadata] PASSED [ 46%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-negative-SourceRef-value] PASSED [ 46%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-negative-SourceRef-arguments] PASSED [ 46%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-negative-SourceRef-filters] PASSED [ 46%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-zero-ObjectRef-metadata] PASSED [ 47%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-zero-ObjectRef-value] PASSED [ 47%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-zero-ObjectRef-arguments] PASSED [ 47%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-zero-ObjectRef-filters] PASSED [ 47%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-zero-SourceRef-metadata] PASSED [ 48%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-zero-SourceRef-value] PASSED [ 48%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-zero-SourceRef-arguments] PASSED [ 48%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-zero-SourceRef-filters] PASSED [ 48%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-fractional-ObjectRef-metadata] PASSED [ 49%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-fractional-ObjectRef-value] PASSED [ 49%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-fractional-ObjectRef-arguments] PASSED [ 49%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-fractional-ObjectRef-filters] PASSED [ 50%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-fractional-SourceRef-metadata] PASSED [ 50%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-fractional-SourceRef-value] PASSED [ 50%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-fractional-SourceRef-arguments] PASSED [ 50%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-fractional-SourceRef-filters] PASSED [ 51%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-list-ObjectRef-metadata] PASSED [ 51%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-list-ObjectRef-value] PASSED [ 51%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-list-ObjectRef-arguments] PASSED [ 51%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-list-ObjectRef-filters] PASSED [ 52%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-list-SourceRef-metadata] PASSED [ 52%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-list-SourceRef-value] PASSED [ 52%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-list-SourceRef-arguments] PASSED [ 52%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[False-list-SourceRef-filters] PASSED [ 53%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-string-ObjectRef-metadata] PASSED [ 53%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-string-ObjectRef-value] PASSED [ 53%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-string-ObjectRef-arguments] PASSED [ 53%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-string-ObjectRef-filters] PASSED [ 54%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-string-SourceRef-metadata] PASSED [ 54%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-string-SourceRef-value] PASSED [ 54%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-string-SourceRef-arguments] PASSED [ 54%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-string-SourceRef-filters] PASSED [ 55%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-negative-ObjectRef-metadata] PASSED [ 55%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-negative-ObjectRef-value] PASSED [ 55%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-negative-ObjectRef-arguments] PASSED [ 55%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-negative-ObjectRef-filters] PASSED [ 56%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-negative-SourceRef-metadata] PASSED [ 56%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-negative-SourceRef-value] PASSED [ 56%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-negative-SourceRef-arguments] PASSED [ 56%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-negative-SourceRef-filters] PASSED [ 57%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-zero-ObjectRef-metadata] PASSED [ 57%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-zero-ObjectRef-value] PASSED [ 57%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-zero-ObjectRef-arguments] PASSED [ 57%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-zero-ObjectRef-filters] PASSED [ 58%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-zero-SourceRef-metadata] PASSED [ 58%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-zero-SourceRef-value] PASSED [ 58%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-zero-SourceRef-arguments] PASSED [ 58%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-zero-SourceRef-filters] PASSED [ 59%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-fractional-ObjectRef-metadata] PASSED [ 59%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-fractional-ObjectRef-value] PASSED [ 59%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-fractional-ObjectRef-arguments] PASSED [ 59%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-fractional-ObjectRef-filters] PASSED [ 60%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-fractional-SourceRef-metadata] PASSED [ 60%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-fractional-SourceRef-value] PASSED [ 60%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-fractional-SourceRef-arguments] PASSED [ 60%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-fractional-SourceRef-filters] PASSED [ 61%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-list-ObjectRef-metadata] PASSED [ 61%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-list-ObjectRef-value] PASSED [ 61%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-list-ObjectRef-arguments] PASSED [ 61%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-list-ObjectRef-filters] PASSED [ 62%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-list-SourceRef-metadata] PASSED [ 62%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-list-SourceRef-value] PASSED [ 62%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-list-SourceRef-arguments] PASSED [ 62%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x4_invalid_dirty_ref_atomic_rejection[True-list-SourceRef-filters] PASSED [ 63%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[False-rev-text] PASSED [ 63%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[False-rev-list] PASSED [ 63%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[False-rev-none] PASSED [ 63%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[False-rev-negative] PASSED [ 64%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[False-id-list] PASSED [ 64%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[False-id-none] PASSED [ 64%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[False-id-empty] PASSED [ 64%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[False-id-surrogate] PASSED [ 65%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[False-key-list] PASSED [ 65%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[False-key-none] PASSED [ 65%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[False-key-empty] PASSED [ 65%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[False-key-blank] PASSED [ 66%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[False-key-bytes-invalid] PASSED [ 66%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[False-key-surrogate] PASSED [ 66%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[True-rev-text] PASSED [ 67%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[True-rev-list] PASSED [ 67%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[True-rev-none] PASSED [ 67%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[True-rev-negative] PASSED [ 67%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[True-id-list] PASSED [ 68%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[True-id-none] PASSED [ 68%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[True-id-empty] PASSED [ 68%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[True-id-surrogate] PASSED [ 68%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[True-key-list] PASSED [ 69%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[True-key-none] PASSED [ 69%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[True-key-empty] PASSED [ 69%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[True-key-blank] PASSED [ 69%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[True-key-bytes-invalid] PASSED [ 70%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_dirty_operation_routing_never_leaks_binder_values[True-key-surrogate] PASSED [ 70%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b6_coercible_operation_identity_normalizes_before_routing[False-expected_world_revision-1] PASSED [ 70%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b6_coercible_operation_identity_normalizes_before_routing[False-idempotency_key-case] PASSED [ 70%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b6_coercible_operation_identity_normalizes_before_routing[False-operation_id-op-case] PASSED [ 71%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b6_coercible_operation_identity_normalizes_before_routing[True-expected_world_revision-1] PASSED [ 71%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b6_coercible_operation_identity_normalizes_before_routing[True-idempotency_key-case] PASSED [ 71%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b6_coercible_operation_identity_normalizes_before_routing[True-operation_id-op-case] PASSED [ 71%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[False-int-metadata] PASSED [ 72%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[False-int-value] PASSED [ 72%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[False-int-arguments] PASSED [ 72%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[False-int-filters] PASSED [ 72%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[False-float-metadata] PASSED [ 73%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[False-float-value] PASSED [ 73%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[False-float-arguments] PASSED [ 73%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[False-float-filters] PASSED [ 73%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[False-none-metadata] PASSED [ 74%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[False-none-value] PASSED [ 74%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[False-none-arguments] PASSED [ 74%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[False-none-filters] PASSED [ 74%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[False-bytes-metadata] PASSED [ 75%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[False-bytes-value] PASSED [ 75%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[False-bytes-arguments] PASSED [ 75%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[False-bytes-filters] PASSED [ 75%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[False-tuple-metadata] PASSED [ 76%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[False-tuple-value] PASSED [ 76%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[False-tuple-arguments] PASSED [ 76%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[False-tuple-filters] PASSED [ 76%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[False-bool-metadata] PASSED [ 77%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[False-bool-value] PASSED [ 77%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[False-bool-arguments] PASSED [ 77%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[False-bool-filters] PASSED [ 77%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[True-int-metadata] PASSED [ 78%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[True-int-value] PASSED [ 78%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[True-int-arguments] PASSED [ 78%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[True-int-filters] PASSED [ 78%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[True-float-metadata] PASSED [ 79%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[True-float-value] PASSED [ 79%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[True-float-arguments] PASSED [ 79%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[True-float-filters] PASSED [ 79%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[True-none-metadata] PASSED [ 80%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[True-none-value] PASSED [ 80%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[True-none-arguments] PASSED [ 80%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[True-none-filters] PASSED [ 80%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[True-bytes-metadata] PASSED [ 81%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[True-bytes-value] PASSED [ 81%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[True-bytes-arguments] PASSED [ 81%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[True-bytes-filters] PASSED [ 81%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[True-tuple-metadata] PASSED [ 82%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[True-tuple-value] PASSED [ 82%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[True-tuple-arguments] PASSED [ 82%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[True-tuple-filters] PASSED [ 82%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[True-bool-metadata] PASSED [ 83%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[True-bool-value] PASSED [ 83%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[True-bool-arguments] PASSED [ 83%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b11_nested_mapping_keys_must_be_strings[True-bool-filters] PASSED [ 84%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[list-ObjectRef-missing] PASSED [ 84%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[list-ObjectRef-self-pinned] PASSED [ 84%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[list-ObjectRef-self-floating] PASSED [ 84%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[list-ObjectRef-cutoff] PASSED [ 85%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[list-SourceRef-missing] PASSED [ 85%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[list-SourceRef-self-pinned] PASSED [ 85%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[list-SourceRef-self-floating] PASSED [ 85%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[list-SourceRef-cutoff] PASSED [ 86%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[tuple-ObjectRef-missing] PASSED [ 86%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[tuple-ObjectRef-self-pinned] PASSED [ 86%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[tuple-ObjectRef-self-floating] PASSED [ 86%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[tuple-ObjectRef-cutoff] PASSED [ 87%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[tuple-SourceRef-missing] PASSED [ 87%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[tuple-SourceRef-self-pinned] PASSED [ 87%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[tuple-SourceRef-self-floating] PASSED [ 87%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[tuple-SourceRef-cutoff] PASSED [ 88%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[mapping-ObjectRef-missing] PASSED [ 88%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[mapping-ObjectRef-self-pinned] PASSED [ 88%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[mapping-ObjectRef-self-floating] PASSED [ 88%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[mapping-ObjectRef-cutoff] PASSED [ 89%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[mapping-SourceRef-missing] PASSED [ 89%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[mapping-SourceRef-self-pinned] PASSED [ 89%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[mapping-SourceRef-self-floating] PASSED [ 89%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[mapping-SourceRef-cutoff] PASSED [ 90%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[set-ObjectRef-missing] PASSED [ 90%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[set-ObjectRef-self-pinned] PASSED [ 90%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[set-ObjectRef-self-floating] PASSED [ 90%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[set-ObjectRef-cutoff] PASSED [ 91%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[set-SourceRef-missing] PASSED [ 91%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[set-SourceRef-self-pinned] PASSED [ 91%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[set-SourceRef-self-floating] PASSED [ 91%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[set-SourceRef-cutoff] PASSED [ 92%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[frozenset-ObjectRef-missing] PASSED [ 92%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[frozenset-ObjectRef-self-pinned] PASSED [ 92%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[frozenset-ObjectRef-self-floating] PASSED [ 92%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[frozenset-ObjectRef-cutoff] PASSED [ 93%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[frozenset-SourceRef-missing] PASSED [ 93%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[frozenset-SourceRef-self-pinned] PASSED [ 93%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[frozenset-SourceRef-self-floating] PASSED [ 93%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b4_reference_validation_survives_containers[frozenset-SourceRef-cutoff] PASSED [ 94%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b10_dirty_discriminator_uses_canonical_contract[False-none] PASSED [ 94%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b10_dirty_discriminator_uses_canonical_contract[False-list] PASSED [ 94%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b10_dirty_discriminator_uses_canonical_contract[False-dict] PASSED [ 94%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b10_dirty_discriminator_uses_canonical_contract[False-int] PASSED [ 95%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b10_dirty_discriminator_uses_canonical_contract[False-unknown] PASSED [ 95%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b10_dirty_discriminator_uses_canonical_contract[True-none] PASSED [ 95%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b10_dirty_discriminator_uses_canonical_contract[True-list] PASSED [ 95%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b10_dirty_discriminator_uses_canonical_contract[True-dict] PASSED [ 96%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b10_dirty_discriminator_uses_canonical_contract[True-int] PASSED [ 96%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b10_dirty_discriminator_uses_canonical_contract[True-unknown] PASSED [ 96%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b10_base_class_cannot_impersonate_observation PASSED [ 96%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b1_changed_nested_plain_data_conflicts[metadata] PASSED [ 97%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b1_changed_nested_plain_data_conflicts[value] PASSED [ 97%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b1_changed_nested_plain_data_conflicts[arguments] PASSED [ 97%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b1_changed_nested_plain_data_conflicts[filters] PASSED [ 97%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b6_shared_acyclic_alias_and_json_coercions[metadata] PASSED [ 98%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b6_shared_acyclic_alias_and_json_coercions[value] PASSED [ 98%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b6_shared_acyclic_alias_and_json_coercions[arguments] PASSED [ 98%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b6_shared_acyclic_alias_and_json_coercions[filters] PASSED [ 98%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b6_unordered_value_durable_normal_form_replay[metadata] FAILED [ 99%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b6_unordered_value_durable_normal_form_replay[value] FAILED [ 99%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b6_unordered_value_durable_normal_form_replay[arguments] FAILED [ 99%]
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_cross_process_hash_seed_restart_preserves_complete_rows PASSED [100%]
+
+=================================== FAILURES ===================================
+_ test_legacy_no_bidirectional_typed_opaque_false_replay[typed-to-opaque-ObjectRef-metadata] _
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:166: in test_legacy_no_bidirectional_typed_opaque_false_replay
+    reject(SQLiteWorldStore(store.db_path), [changed[0]], changed[1], ErrorCode.IDEMPOTENCY_CONFLICT)
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:64: in reject
+    with pytest.raises(StoreError) as exc:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+_ test_legacy_no_bidirectional_typed_opaque_false_replay[typed-to-opaque-ObjectRef-value] _
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:166: in test_legacy_no_bidirectional_typed_opaque_false_replay
+    reject(SQLiteWorldStore(store.db_path), [changed[0]], changed[1], ErrorCode.IDEMPOTENCY_CONFLICT)
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:64: in reject
+    with pytest.raises(StoreError) as exc:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+_ test_legacy_no_bidirectional_typed_opaque_false_replay[typed-to-opaque-ObjectRef-arguments] _
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:166: in test_legacy_no_bidirectional_typed_opaque_false_replay
+    reject(SQLiteWorldStore(store.db_path), [changed[0]], changed[1], ErrorCode.IDEMPOTENCY_CONFLICT)
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:64: in reject
+    with pytest.raises(StoreError) as exc:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+_ test_legacy_no_bidirectional_typed_opaque_false_replay[typed-to-opaque-SourceRef-metadata] _
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:166: in test_legacy_no_bidirectional_typed_opaque_false_replay
+    reject(SQLiteWorldStore(store.db_path), [changed[0]], changed[1], ErrorCode.IDEMPOTENCY_CONFLICT)
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:64: in reject
+    with pytest.raises(StoreError) as exc:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+_ test_legacy_no_bidirectional_typed_opaque_false_replay[typed-to-opaque-SourceRef-value] _
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:166: in test_legacy_no_bidirectional_typed_opaque_false_replay
+    reject(SQLiteWorldStore(store.db_path), [changed[0]], changed[1], ErrorCode.IDEMPOTENCY_CONFLICT)
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:64: in reject
+    with pytest.raises(StoreError) as exc:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+_ test_legacy_no_bidirectional_typed_opaque_false_replay[typed-to-opaque-SourceRef-arguments] _
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:166: in test_legacy_no_bidirectional_typed_opaque_false_replay
+    reject(SQLiteWorldStore(store.db_path), [changed[0]], changed[1], ErrorCode.IDEMPOTENCY_CONFLICT)
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:64: in reject
+    with pytest.raises(StoreError) as exc:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+_ test_x3_dirty_unknown_fields_must_not_be_silently_erased[False-_rogue-world] _
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:64: in reject
+    with pytest.raises(StoreError) as exc:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+
+During handling of the above exception, another exception occurred:
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:256: in test_x3_dirty_unknown_fields_must_not_be_silently_erased
+    reject(SQLiteWorldStore(store.db_path), [dirty], changed_request,
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:68: in reject
+    assert state(store) == before, 'rejected request mutated complete durable state'
+E   AssertionError: rejected request mutated complete durable state
+E   assert (2, ((1, '2026-09-14T14:55:28.440229+00:00', 'op-seed', None, 'new frozen adversarial gate'), (2, '2026-09-14T14:55:28.443950+00:00', 'op-case', None, 'new frozen adversarial gate')), (('anchor', 1, 'observation', 'gate-subject', 1, '2026-09-14T09:00:00.000000+00:00', '2026-09-14T09:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"anchor","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}'), ('future', 1, 'observation', 'gate-subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"future","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}'), ('holder', 1, 'observation', 'gate-subject', 2, '2026-09-14T09:00:00.000000+00:00', '2026-09-14T09:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"holder","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":"safe"}')), (('op-case', None, 'world.commit', '{}', 1, 'new frozen adversarial gate', 'case', 'committed', 2, None, None, '2026-09-14T14:55:28.443950+00:00'), ('op-seed', None, 'world.commit', '{}', 0, 'new frozen adversarial gate', 'seed', 'committed', 1, None, None, '2026-09-14T14:55:28.440229+00:00')), (('case', 'op-case', 2, '{"_request_fingerprint":"f79c8e4a1303f2db271774ff2e74d36cb2cc31b20214be306f3385773f9054c0","idempotent_replay":false,"object_refs":[["holder",1]],"operation_id":"op-case","world_revision":2}'), ('seed', 'op-seed', 1, '{"_request_fingerprint":"6f2cb1454e1a45a8dfeacfc7cfb75be147a47db3c00cd39db8227467ceeed593","idempotent_replay":false,"object_refs":[["anchor",1],["future",1]],"operation_id":"op-seed","world_revision":1}'))) == (1, ((1, '2026-09-14T14:55:28.440229+00:00', 'op-seed', None, 'new frozen adversarial gate'),), (('anchor', 1, 'observation', 'gate-subject', 1, '2026-09-14T09:00:00.000000+00:00', '2026-09-14T09:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"anchor","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}'), ('future', 1, 'observation', 'gate-subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"future","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}')), (('op-seed', None, 'world.commit', '{}', 0, 'new frozen adversarial gate', 'seed', 'committed', 1, None, None, '2026-09-14T14:55:28.440229+00:00'),), (('seed', 'op-seed', 1, '{"_request_fingerprint":"6f2cb1454e1a45a8dfeacfc7cfb75be147a47db3c00cd39db8227467ceeed593","idempotent_replay":false,"object_refs":[["anchor",1],["future",1]],"operation_id":"op-seed","world_revision":1}'),))
+E     
+E     At index 0 diff: 2 != 1
+E     
+E     Full diff:
+E       (
+E     -     1,
+E     ?     ^
+E     +     2,
+E     ?     ^
+E           (
+E               (
+E                   1,
+E                   '2026-09-14T14:55:28.440229+00:00',
+E                   'op-seed',
+E     +             None,
+E     +             'new frozen adversarial gate',
+E     +         ),
+E     +         (
+E     +             2,
+E     +             '2026-09-14T14:55:28.443950+00:00',
+E     +             'op-case',
+E                   None,
+E                   'new frozen adversarial gate',
+E               ),
+E           ),
+E           (
+E               (
+E                   'anchor',
+E                   1,
+E                   'observation',
+E                   'gate-subject',
+E                   1,
+E                   '2026-09-14T09:00:00.000000+00:00',
+E                   '2026-09-14T09:00:00.000000+00:00',
+E                   '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"anchor","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}',
+E               ),
+E               (
+E                   'future',
+E                   1,
+E                   'observation',
+E                   'gate-subject',
+E                   1,
+E                   '2026-09-14T10:00:00.000000+00:00',
+E                   '2026-09-14T10:00:00.000000+00:00',
+E                   '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"future","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}',
+E               ),
+E     +         (
+E     +             'holder',
+E     +             1,
+E     +             'observation',
+E     +             'gate-subject',
+E     +             2,
+E     +             '2026-09-14T09:00:00.000000+00:00',
+E     +             '2026-09-14T09:00:00.000000+00:00',
+E     +             '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"holder","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":"safe"}',
+E     +         ),
+E           ),
+E           (
+E     +         (
+E     +             'op-case',
+E     +             None,
+E     +             'world.commit',
+E     +             '{}',
+E     +             1,
+E     +             'new frozen adversarial gate',
+E     +             'case',
+E     +             'committed',
+E     +             2,
+E     +             None,
+E     +             None,
+E     +             '2026-09-14T14:55:28.443950+00:00',
+E     +         ),
+E               (
+E                   'op-seed',
+E                   None,
+E                   'world.commit',
+E                   '{}',
+E                   0,
+E                   'new frozen adversarial gate',
+E                   'seed',
+E                   'committed',
+E                   1,
+E                   None,
+E                   None,
+E                   '2026-09-14T14:55:28.440229+00:00',
+E               ),
+E           ),
+E           (
+E               (
+E     +             'case',
+E     +             'op-case',
+E     +             2,
+E     +             '{"_request_fingerprint":"f79c8e4a1303f2db271774ff2e74d36cb2cc31b20214be306f3385773f9054c0","idempotent_replay":false,"object_refs":[["holder",1]],"operation_id":"op-case","world_revision":2}',
+E     +         ),
+E     +         (
+E                   'seed',
+E                   'op-seed',
+E                   1,
+E                   '{"_request_fingerprint":"6f2cb1454e1a45a8dfeacfc7cfb75be147a47db3c00cd39db8227467ceeed593","idempotent_replay":false,"object_refs":[["anchor",1],["future",1]],"operation_id":"op-seed","world_revision":1}',
+E               ),
+E           ),
+E       )
+_ test_x3_dirty_unknown_fields_must_not_be_silently_erased[False-_rogue-operation] _
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:64: in reject
+    with pytest.raises(StoreError) as exc:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+
+During handling of the above exception, another exception occurred:
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:256: in test_x3_dirty_unknown_fields_must_not_be_silently_erased
+    reject(SQLiteWorldStore(store.db_path), [dirty], changed_request,
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:68: in reject
+    assert state(store) == before, 'rejected request mutated complete durable state'
+E   AssertionError: rejected request mutated complete durable state
+E   assert (2, ((1, '2026-09-14T14:55:28.476360+00:00', 'op-seed', None, 'new frozen adversarial gate'), (2, '2026-09-14T14:55:28.479374+00:00', 'op-case', None, 'new frozen adversarial gate')), (('anchor', 1, 'observation', 'gate-subject', 1, '2026-09-14T09:00:00.000000+00:00', '2026-09-14T09:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"anchor","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}'), ('future', 1, 'observation', 'gate-subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"future","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}'), ('holder', 1, 'observation', 'gate-subject', 2, '2026-09-14T09:00:00.000000+00:00', '2026-09-14T09:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"holder","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":"safe"}')), (('op-case', None, 'world.commit', '{}', 1, 'new frozen adversarial gate', 'case', 'committed', 2, None, None, '2026-09-14T14:55:28.479374+00:00'), ('op-seed', None, 'world.commit', '{}', 0, 'new frozen adversarial gate', 'seed', 'committed', 1, None, None, '2026-09-14T14:55:28.476360+00:00')), (('case', 'op-case', 2, '{"_request_fingerprint":"f79c8e4a1303f2db271774ff2e74d36cb2cc31b20214be306f3385773f9054c0","idempotent_replay":false,"object_refs":[["holder",1]],"operation_id":"op-case","world_revision":2}'), ('seed', 'op-seed', 1, '{"_request_fingerprint":"6f2cb1454e1a45a8dfeacfc7cfb75be147a47db3c00cd39db8227467ceeed593","idempotent_replay":false,"object_refs":[["anchor",1],["future",1]],"operation_id":"op-seed","world_revision":1}'))) == (1, ((1, '2026-09-14T14:55:28.476360+00:00', 'op-seed', None, 'new frozen adversarial gate'),), (('anchor', 1, 'observation', 'gate-subject', 1, '2026-09-14T09:00:00.000000+00:00', '2026-09-14T09:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"anchor","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}'), ('future', 1, 'observation', 'gate-subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"future","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}')), (('op-seed', None, 'world.commit', '{}', 0, 'new frozen adversarial gate', 'seed', 'committed', 1, None, None, '2026-09-14T14:55:28.476360+00:00'),), (('seed', 'op-seed', 1, '{"_request_fingerprint":"6f2cb1454e1a45a8dfeacfc7cfb75be147a47db3c00cd39db8227467ceeed593","idempotent_replay":false,"object_refs":[["anchor",1],["future",1]],"operation_id":"op-seed","world_revision":1}'),))
+E     
+E     At index 0 diff: 2 != 1
+E     
+E     Full diff:
+E       (
+E     -     1,
+E     ?     ^
+E     +     2,
+E     ?     ^
+E           (
+E               (
+E                   1,
+E                   '2026-09-14T14:55:28.476360+00:00',
+E                   'op-seed',
+E     +             None,
+E     +             'new frozen adversarial gate',
+E     +         ),
+E     +         (
+E     +             2,
+E     +             '2026-09-14T14:55:28.479374+00:00',
+E     +             'op-case',
+E                   None,
+E                   'new frozen adversarial gate',
+E               ),
+E           ),
+E           (
+E               (
+E                   'anchor',
+E                   1,
+E                   'observation',
+E                   'gate-subject',
+E                   1,
+E                   '2026-09-14T09:00:00.000000+00:00',
+E                   '2026-09-14T09:00:00.000000+00:00',
+E                   '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"anchor","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}',
+E               ),
+E               (
+E                   'future',
+E                   1,
+E                   'observation',
+E                   'gate-subject',
+E                   1,
+E                   '2026-09-14T10:00:00.000000+00:00',
+E                   '2026-09-14T10:00:00.000000+00:00',
+E                   '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"future","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}',
+E               ),
+E     +         (
+E     +             'holder',
+E     +             1,
+E     +             'observation',
+E     +             'gate-subject',
+E     +             2,
+E     +             '2026-09-14T09:00:00.000000+00:00',
+E     +             '2026-09-14T09:00:00.000000+00:00',
+E     +             '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"holder","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":"safe"}',
+E     +         ),
+E           ),
+E           (
+E     +         (
+E     +             'op-case',
+E     +             None,
+E     +             'world.commit',
+E     +             '{}',
+E     +             1,
+E     +             'new frozen adversarial gate',
+E     +             'case',
+E     +             'committed',
+E     +             2,
+E     +             None,
+E     +             None,
+E     +             '2026-09-14T14:55:28.479374+00:00',
+E     +         ),
+E               (
+E                   'op-seed',
+E                   None,
+E                   'world.commit',
+E                   '{}',
+E                   0,
+E                   'new frozen adversarial gate',
+E                   'seed',
+E                   'committed',
+E                   1,
+E                   None,
+E                   None,
+E                   '2026-09-14T14:55:28.476360+00:00',
+E               ),
+E           ),
+E           (
+E               (
+E     +             'case',
+E     +             'op-case',
+E     +             2,
+E     +             '{"_request_fingerprint":"f79c8e4a1303f2db271774ff2e74d36cb2cc31b20214be306f3385773f9054c0","idempotent_replay":false,"object_refs":[["holder",1]],"operation_id":"op-case","world_revision":2}',
+E     +         ),
+E     +         (
+E                   'seed',
+E                   'op-seed',
+E                   1,
+E                   '{"_request_fingerprint":"6f2cb1454e1a45a8dfeacfc7cfb75be147a47db3c00cd39db8227467ceeed593","idempotent_replay":false,"object_refs":[["anchor",1],["future",1]],"operation_id":"op-seed","world_revision":1}',
+E               ),
+E           ),
+E       )
+_ test_x3_dirty_unknown_fields_must_not_be_silently_erased[False-_rogue-ObjectRef] _
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:64: in reject
+    with pytest.raises(StoreError) as exc:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+
+During handling of the above exception, another exception occurred:
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:256: in test_x3_dirty_unknown_fields_must_not_be_silently_erased
+    reject(SQLiteWorldStore(store.db_path), [dirty], changed_request,
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:68: in reject
+    assert state(store) == before, 'rejected request mutated complete durable state'
+E   AssertionError: rejected request mutated complete durable state
+E   assert (2, ((1, '2026-09-14T14:55:28.513918+00:00', 'op-seed', None, 'new frozen adversarial gate'), (2, '2026-09-14T14:55:28.517052+00:00', 'op-case', None, 'new frozen adversarial gate')), (('anchor', 1, 'observation', 'gate-subject', 1, '2026-09-14T09:00:00.000000+00:00', '2026-09-14T09:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"anchor","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}'), ('future', 1, 'observation', 'gate-subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"future","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}'), ('holder', 1, 'observation', 'gate-subject', 2, '2026-09-14T09:00:00.000000+00:00', '2026-09-14T09:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{"probe":{"nested":[{"object_id":"anchor","revision":1}]}},"modality":"json","object_id":"holder","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}')), (('op-case', None, 'world.commit', '{}', 1, 'new frozen adversarial gate', 'case', 'committed', 2, None, None, '2026-09-14T14:55:28.517052+00:00'), ('op-seed', None, 'world.commit', '{}', 0, 'new frozen adversarial gate', 'seed', 'committed', 1, None, None, '2026-09-14T14:55:28.513918+00:00')), (('case', 'op-case', 2, '{"_request_fingerprint":"393a80998295cc7ec8570e45c2a71b045fd516d25cf264211c6491a0380278c9","idempotent_replay":false,"object_refs":[["holder",1]],"operation_id":"op-case","world_revision":2}'), ('seed', 'op-seed', 1, '{"_request_fingerprint":"6f2cb1454e1a45a8dfeacfc7cfb75be147a47db3c00cd39db8227467ceeed593","idempotent_replay":false,"object_refs":[["anchor",1],["future",1]],"operation_id":"op-seed","world_revision":1}'))) == (1, ((1, '2026-09-14T14:55:28.513918+00:00', 'op-seed', None, 'new frozen adversarial gate'),), (('anchor', 1, 'observation', 'gate-subject', 1, '2026-09-14T09:00:00.000000+00:00', '2026-09-14T09:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"anchor","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}'), ('future', 1, 'observation', 'gate-subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"future","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}')), (('op-seed', None, 'world.commit', '{}', 0, 'new frozen adversarial gate', 'seed', 'committed', 1, None, None, '2026-09-14T14:55:28.513918+00:00'),), (('seed', 'op-seed', 1, '{"_request_fingerprint":"6f2cb1454e1a45a8dfeacfc7cfb75be147a47db3c00cd39db8227467ceeed593","idempotent_replay":false,"object_refs":[["anchor",1],["future",1]],"operation_id":"op-seed","world_revision":1}'),))
+E     
+E     At index 0 diff: 2 != 1
+E     
+E     Full diff:
+E       (
+E     -     1,
+E     ?     ^
+E     +     2,
+E     ?     ^
+E           (
+E               (
+E                   1,
+E                   '2026-09-14T14:55:28.513918+00:00',
+E                   'op-seed',
+E     +             None,
+E     +             'new frozen adversarial gate',
+E     +         ),
+E     +         (
+E     +             2,
+E     +             '2026-09-14T14:55:28.517052+00:00',
+E     +             'op-case',
+E                   None,
+E                   'new frozen adversarial gate',
+E               ),
+E           ),
+E           (
+E               (
+E                   'anchor',
+E                   1,
+E                   'observation',
+E                   'gate-subject',
+E                   1,
+E                   '2026-09-14T09:00:00.000000+00:00',
+E                   '2026-09-14T09:00:00.000000+00:00',
+E                   '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"anchor","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}',
+E               ),
+E               (
+E                   'future',
+E                   1,
+E                   'observation',
+E                   'gate-subject',
+E                   1,
+E                   '2026-09-14T10:00:00.000000+00:00',
+E                   '2026-09-14T10:00:00.000000+00:00',
+E                   '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"future","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}',
+E               ),
+E     +         (
+E     +             'holder',
+E     +             1,
+E     +             'observation',
+E     +             'gate-subject',
+E     +             2,
+E     +             '2026-09-14T09:00:00.000000+00:00',
+E     +             '2026-09-14T09:00:00.000000+00:00',
+E     +             '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{"probe":{"nested":[{"object_id":"anchor","revision":1}]}},"modality":"json","object_id":"holder","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}',
+E     +         ),
+E           ),
+E           (
+E     +         (
+E     +             'op-case',
+E     +             None,
+E     +             'world.commit',
+E     +             '{}',
+E     +             1,
+E     +             'new frozen adversarial gate',
+E     +             'case',
+E     +             'committed',
+E     +             2,
+E     +             None,
+E     +             None,
+E     +             '2026-09-14T14:55:28.517052+00:00',
+E     +         ),
+E               (
+E                   'op-seed',
+E                   None,
+E                   'world.commit',
+E                   '{}',
+E                   0,
+E                   'new frozen adversarial gate',
+E                   'seed',
+E                   'committed',
+E                   1,
+E                   None,
+E                   None,
+E                   '2026-09-14T14:55:28.513918+00:00',
+E               ),
+E           ),
+E           (
+E               (
+E     +             'case',
+E     +             'op-case',
+E     +             2,
+E     +             '{"_request_fingerprint":"393a80998295cc7ec8570e45c2a71b045fd516d25cf264211c6491a0380278c9","idempotent_replay":false,"object_refs":[["holder",1]],"operation_id":"op-case","world_revision":2}',
+E     +         ),
+E     +         (
+E                   'seed',
+E                   'op-seed',
+E                   1,
+E                   '{"_request_fingerprint":"6f2cb1454e1a45a8dfeacfc7cfb75be147a47db3c00cd39db8227467ceeed593","idempotent_replay":false,"object_refs":[["anchor",1],["future",1]],"operation_id":"op-seed","world_revision":1}',
+E               ),
+E           ),
+E       )
+_ test_x3_dirty_unknown_fields_must_not_be_silently_erased[False-_rogue-SourceRef] _
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:64: in reject
+    with pytest.raises(StoreError) as exc:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+
+During handling of the above exception, another exception occurred:
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:256: in test_x3_dirty_unknown_fields_must_not_be_silently_erased
+    reject(SQLiteWorldStore(store.db_path), [dirty], changed_request,
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:68: in reject
+    assert state(store) == before, 'rejected request mutated complete durable state'
+E   AssertionError: rejected request mutated complete durable state
+E   assert (2, ((1, '2026-09-14T14:55:28.547846+00:00', 'op-seed', None, 'new frozen adversarial gate'), (2, '2026-09-14T14:55:28.551129+00:00', 'op-case', None, 'new frozen adversarial gate')), (('anchor', 1, 'observation', 'gate-subject', 1, '2026-09-14T09:00:00.000000+00:00', '2026-09-14T09:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"anchor","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}'), ('future', 1, 'observation', 'gate-subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"future","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}'), ('holder', 1, 'observation', 'gate-subject', 2, '2026-09-14T09:00:00.000000+00:00', '2026-09-14T09:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{"probe":{"nested":[{"object_id":"anchor","revision":1,"source_locator":null}]}},"modality":"json","object_id":"holder","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}')), (('op-case', None, 'world.commit', '{}', 1, 'new frozen adversarial gate', 'case', 'committed', 2, None, None, '2026-09-14T14:55:28.551129+00:00'), ('op-seed', None, 'world.commit', '{}', 0, 'new frozen adversarial gate', 'seed', 'committed', 1, None, None, '2026-09-14T14:55:28.547846+00:00')), (('case', 'op-case', 2, '{"_request_fingerprint":"a79a799cddb62344c79f40d3ef451d31e3bb70207713e1bc965e02d6198187d6","idempotent_replay":false,"object_refs":[["holder",1]],"operation_id":"op-case","world_revision":2}'), ('seed', 'op-seed', 1, '{"_request_fingerprint":"6f2cb1454e1a45a8dfeacfc7cfb75be147a47db3c00cd39db8227467ceeed593","idempotent_replay":false,"object_refs":[["anchor",1],["future",1]],"operation_id":"op-seed","world_revision":1}'))) == (1, ((1, '2026-09-14T14:55:28.547846+00:00', 'op-seed', None, 'new frozen adversarial gate'),), (('anchor', 1, 'observation', 'gate-subject', 1, '2026-09-14T09:00:00.000000+00:00', '2026-09-14T09:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"anchor","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}'), ('future', 1, 'observation', 'gate-subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"future","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}')), (('op-seed', None, 'world.commit', '{}', 0, 'new frozen adversarial gate', 'seed', 'committed', 1, None, None, '2026-09-14T14:55:28.547846+00:00'),), (('seed', 'op-seed', 1, '{"_request_fingerprint":"6f2cb1454e1a45a8dfeacfc7cfb75be147a47db3c00cd39db8227467ceeed593","idempotent_replay":false,"object_refs":[["anchor",1],["future",1]],"operation_id":"op-seed","world_revision":1}'),))
+E     
+E     At index 0 diff: 2 != 1
+E     
+E     Full diff:
+E       (
+E     -     1,
+E     ?     ^
+E     +     2,
+E     ?     ^
+E           (
+E               (
+E                   1,
+E                   '2026-09-14T14:55:28.547846+00:00',
+E                   'op-seed',
+E     +             None,
+E     +             'new frozen adversarial gate',
+E     +         ),
+E     +         (
+E     +             2,
+E     +             '2026-09-14T14:55:28.551129+00:00',
+E     +             'op-case',
+E                   None,
+E                   'new frozen adversarial gate',
+E               ),
+E           ),
+E           (
+E               (
+E                   'anchor',
+E                   1,
+E                   'observation',
+E                   'gate-subject',
+E                   1,
+E                   '2026-09-14T09:00:00.000000+00:00',
+E                   '2026-09-14T09:00:00.000000+00:00',
+E                   '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"anchor","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}',
+E               ),
+E               (
+E                   'future',
+E                   1,
+E                   'observation',
+E                   'gate-subject',
+E                   1,
+E                   '2026-09-14T10:00:00.000000+00:00',
+E                   '2026-09-14T10:00:00.000000+00:00',
+E                   '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"future","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}',
+E               ),
+E     +         (
+E     +             'holder',
+E     +             1,
+E     +             'observation',
+E     +             'gate-subject',
+E     +             2,
+E     +             '2026-09-14T09:00:00.000000+00:00',
+E     +             '2026-09-14T09:00:00.000000+00:00',
+E     +             '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{"probe":{"nested":[{"object_id":"anchor","revision":1,"source_locator":null}]}},"modality":"json","object_id":"holder","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}',
+E     +         ),
+E           ),
+E           (
+E     +         (
+E     +             'op-case',
+E     +             None,
+E     +             'world.commit',
+E     +             '{}',
+E     +             1,
+E     +             'new frozen adversarial gate',
+E     +             'case',
+E     +             'committed',
+E     +             2,
+E     +             None,
+E     +             None,
+E     +             '2026-09-14T14:55:28.551129+00:00',
+E     +         ),
+E               (
+E                   'op-seed',
+E                   None,
+E                   'world.commit',
+E                   '{}',
+E                   0,
+E                   'new frozen adversarial gate',
+E                   'seed',
+E                   'committed',
+E                   1,
+E                   None,
+E                   None,
+E                   '2026-09-14T14:55:28.547846+00:00',
+E               ),
+E           ),
+E           (
+E               (
+E     +             'case',
+E     +             'op-case',
+E     +             2,
+E     +             '{"_request_fingerprint":"a79a799cddb62344c79f40d3ef451d31e3bb70207713e1bc965e02d6198187d6","idempotent_replay":false,"object_refs":[["holder",1]],"operation_id":"op-case","world_revision":2}',
+E     +         ),
+E     +         (
+E                   'seed',
+E                   'op-seed',
+E                   1,
+E                   '{"_request_fingerprint":"6f2cb1454e1a45a8dfeacfc7cfb75be147a47db3c00cd39db8227467ceeed593","idempotent_replay":false,"object_refs":[["anchor",1],["future",1]],"operation_id":"op-seed","world_revision":1}',
+E               ),
+E           ),
+E       )
+_ test_x3_dirty_unknown_fields_must_not_be_silently_erased[True-_rogue-world] __
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:256: in test_x3_dirty_unknown_fields_must_not_be_silently_erased
+    reject(SQLiteWorldStore(store.db_path), [dirty], changed_request,
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:64: in reject
+    with pytest.raises(StoreError) as exc:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+_ test_x3_dirty_unknown_fields_must_not_be_silently_erased[True-_rogue-operation] _
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:256: in test_x3_dirty_unknown_fields_must_not_be_silently_erased
+    reject(SQLiteWorldStore(store.db_path), [dirty], changed_request,
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:64: in reject
+    with pytest.raises(StoreError) as exc:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+_ test_x3_dirty_unknown_fields_must_not_be_silently_erased[True-_rogue-ObjectRef] _
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:256: in test_x3_dirty_unknown_fields_must_not_be_silently_erased
+    reject(SQLiteWorldStore(store.db_path), [dirty], changed_request,
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:64: in reject
+    with pytest.raises(StoreError) as exc:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+_ test_x3_dirty_unknown_fields_must_not_be_silently_erased[True-_rogue-SourceRef] _
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:256: in test_x3_dirty_unknown_fields_must_not_be_silently_erased
+    reject(SQLiteWorldStore(store.db_path), [dirty], changed_request,
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:64: in reject
+    with pytest.raises(StoreError) as exc:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+_________ test_b6_unordered_value_durable_normal_form_replay[metadata] _________
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:404: in test_b6_unordered_value_durable_normal_form_replay
+    replay(SQLiteWorldStore(store.db_path), [obj2], request2)
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:74: in replay
+    result = store.commit(objects, request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/sqlite_store.py:466: in commit
+    replay = self._get_idempotent_result(conn, operation, object_list)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/sqlite_store.py:284: in _get_idempotent_result
+    raise StoreError(
+E   aios_core.storage.sqlite_store.StoreError: idempotency key was already used for a different request
+__________ test_b6_unordered_value_durable_normal_form_replay[value] ___________
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:404: in test_b6_unordered_value_durable_normal_form_replay
+    replay(SQLiteWorldStore(store.db_path), [obj2], request2)
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:74: in replay
+    result = store.commit(objects, request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/sqlite_store.py:466: in commit
+    replay = self._get_idempotent_result(conn, operation, object_list)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/sqlite_store.py:284: in _get_idempotent_result
+    raise StoreError(
+E   aios_core.storage.sqlite_store.StoreError: idempotency key was already used for a different request
+________ test_b6_unordered_value_durable_normal_form_replay[arguments] _________
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:404: in test_b6_unordered_value_durable_normal_form_replay
+    replay(SQLiteWorldStore(store.db_path), [obj2], request2)
+../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py:74: in replay
+    result = store.commit(objects, request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/sqlite_store.py:466: in commit
+    replay = self._get_idempotent_result(conn, operation, object_list)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/sqlite_store.py:284: in _get_idempotent_result
+    raise StoreError(
+E   aios_core.storage.sqlite_store.StoreError: idempotency key was already used for a different request
+=========================== short test summary info ============================
+FAILED ../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_no_bidirectional_typed_opaque_false_replay[typed-to-opaque-ObjectRef-metadata] - Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+FAILED ../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_no_bidirectional_typed_opaque_false_replay[typed-to-opaque-ObjectRef-value] - Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+FAILED ../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_no_bidirectional_typed_opaque_false_replay[typed-to-opaque-ObjectRef-arguments] - Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+FAILED ../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_no_bidirectional_typed_opaque_false_replay[typed-to-opaque-SourceRef-metadata] - Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+FAILED ../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_no_bidirectional_typed_opaque_false_replay[typed-to-opaque-SourceRef-value] - Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+FAILED ../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_legacy_no_bidirectional_typed_opaque_false_replay[typed-to-opaque-SourceRef-arguments] - Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+FAILED ../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_dirty_unknown_fields_must_not_be_silently_erased[False-_rogue-world] - AssertionError: rejected request mutated complete durable state
+assert (2, ((1, '2026-09-14T14:55:28.440229+00:00', 'op-seed', None, 'new frozen adversarial gate'), (2, '2026-09-14T14:55:28.443950+00:00', 'op-case', None, 'new frozen adversarial gate')), (('anchor', 1, 'observation', 'gate-subject', 1, '2026-09-14T09:00:00.000000+00:00', '2026-09-14T09:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"anchor","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}'), ('future', 1, 'observation', 'gate-subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"future","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}'), ('holder', 1, 'observation', 'gate-subject', 2, '2026-09-14T09:00:00.000000+00:00', '2026-09-14T09:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"holder","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":"safe"}')), (('op-case', None, 'world.commit', '{}', 1, 'new frozen adversarial gate', 'case', 'committed', 2, None, None, '2026-09-14T14:55:28.443950+00:00'), ('op-seed', None, 'world.commit', '{}', 0, 'new frozen adversarial gate', 'seed', 'committed', 1, None, None, '2026-09-14T14:55:28.440229+00:00')), (('case', 'op-case', 2, '{"_request_fingerprint":"f79c8e4a1303f2db271774ff2e74d36cb2cc31b20214be306f3385773f9054c0","idempotent_replay":false,"object_refs":[["holder",1]],"operation_id":"op-case","world_revision":2}'), ('seed', 'op-seed', 1, '{"_request_fingerprint":"6f2cb1454e1a45a8dfeacfc7cfb75be147a47db3c00cd39db8227467ceeed593","idempotent_replay":false,"object_refs":[["anchor",1],["future",1]],"operation_id":"op-seed","world_revision":1}'))) == (1, ((1, '2026-09-14T14:55:28.440229+00:00', 'op-seed', None, 'new frozen adversarial gate'),), (('anchor', 1, 'observation', 'gate-subject', 1, '2026-09-14T09:00:00.000000+00:00', '2026-09-14T09:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"anchor","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}'), ('future', 1, 'observation', 'gate-subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"future","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}')), (('op-seed', None, 'world.commit', '{}', 0, 'new frozen adversarial gate', 'seed', 'committed', 1, None, None, '2026-09-14T14:55:28.440229+00:00'),), (('seed', 'op-seed', 1, '{"_request_fingerprint":"6f2cb1454e1a45a8dfeacfc7cfb75be147a47db3c00cd39db8227467ceeed593","idempotent_replay":false,"object_refs":[["anchor",1],["future",1]],"operation_id":"op-seed","world_revision":1}'),))
+  
+  At index 0 diff: 2 != 1
+  
+  Full diff:
+    (
+  -     1,
+  ?     ^
+  +     2,
+  ?     ^
+        (
+            (
+                1,
+                '2026-09-14T14:55:28.440229+00:00',
+                'op-seed',
+  +             None,
+  +             'new frozen adversarial gate',
+  +         ),
+  +         (
+  +             2,
+  +             '2026-09-14T14:55:28.443950+00:00',
+  +             'op-case',
+                None,
+                'new frozen adversarial gate',
+            ),
+        ),
+        (
+            (
+                'anchor',
+                1,
+                'observation',
+                'gate-subject',
+                1,
+                '2026-09-14T09:00:00.000000+00:00',
+                '2026-09-14T09:00:00.000000+00:00',
+                '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"anchor","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}',
+            ),
+            (
+                'future',
+                1,
+                'observation',
+                'gate-subject',
+                1,
+                '2026-09-14T10:00:00.000000+00:00',
+                '2026-09-14T10:00:00.000000+00:00',
+                '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"future","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}',
+            ),
+  +         (
+  +             'holder',
+  +             1,
+  +             'observation',
+  +             'gate-subject',
+  +             2,
+  +             '2026-09-14T09:00:00.000000+00:00',
+  +             '2026-09-14T09:00:00.000000+00:00',
+  +             '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"holder","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":"safe"}',
+  +         ),
+        ),
+        (
+  +         (
+  +             'op-case',
+  +             None,
+  +             'world.commit',
+  +             '{}',
+  +             1,
+  +             'new frozen adversarial gate',
+  +             'case',
+  +             'committed',
+  +             2,
+  +             None,
+  +             None,
+  +             '2026-09-14T14:55:28.443950+00:00',
+  +         ),
+            (
+                'op-seed',
+                None,
+                'world.commit',
+                '{}',
+                0,
+                'new frozen adversarial gate',
+                'seed',
+                'committed',
+                1,
+                None,
+                None,
+                '2026-09-14T14:55:28.440229+00:00',
+            ),
+        ),
+        (
+            (
+  +             'case',
+  +             'op-case',
+  +             2,
+  +             '{"_request_fingerprint":"f79c8e4a1303f2db271774ff2e74d36cb2cc31b20214be306f3385773f9054c0","idempotent_replay":false,"object_refs":[["holder",1]],"operation_id":"op-case","world_revision":2}',
+  +         ),
+  +         (
+                'seed',
+                'op-seed',
+                1,
+                '{"_request_fingerprint":"6f2cb1454e1a45a8dfeacfc7cfb75be147a47db3c00cd39db8227467ceeed593","idempotent_replay":false,"object_refs":[["anchor",1],["future",1]],"operation_id":"op-seed","world_revision":1}',
+            ),
+        ),
+    )
+FAILED ../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_dirty_unknown_fields_must_not_be_silently_erased[False-_rogue-operation] - AssertionError: rejected request mutated complete durable state
+assert (2, ((1, '2026-09-14T14:55:28.476360+00:00', 'op-seed', None, 'new frozen adversarial gate'), (2, '2026-09-14T14:55:28.479374+00:00', 'op-case', None, 'new frozen adversarial gate')), (('anchor', 1, 'observation', 'gate-subject', 1, '2026-09-14T09:00:00.000000+00:00', '2026-09-14T09:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"anchor","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}'), ('future', 1, 'observation', 'gate-subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"future","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}'), ('holder', 1, 'observation', 'gate-subject', 2, '2026-09-14T09:00:00.000000+00:00', '2026-09-14T09:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"holder","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":"safe"}')), (('op-case', None, 'world.commit', '{}', 1, 'new frozen adversarial gate', 'case', 'committed', 2, None, None, '2026-09-14T14:55:28.479374+00:00'), ('op-seed', None, 'world.commit', '{}', 0, 'new frozen adversarial gate', 'seed', 'committed', 1, None, None, '2026-09-14T14:55:28.476360+00:00')), (('case', 'op-case', 2, '{"_request_fingerprint":"f79c8e4a1303f2db271774ff2e74d36cb2cc31b20214be306f3385773f9054c0","idempotent_replay":false,"object_refs":[["holder",1]],"operation_id":"op-case","world_revision":2}'), ('seed', 'op-seed', 1, '{"_request_fingerprint":"6f2cb1454e1a45a8dfeacfc7cfb75be147a47db3c00cd39db8227467ceeed593","idempotent_replay":false,"object_refs":[["anchor",1],["future",1]],"operation_id":"op-seed","world_revision":1}'))) == (1, ((1, '2026-09-14T14:55:28.476360+00:00', 'op-seed', None, 'new frozen adversarial gate'),), (('anchor', 1, 'observation', 'gate-subject', 1, '2026-09-14T09:00:00.000000+00:00', '2026-09-14T09:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"anchor","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}'), ('future', 1, 'observation', 'gate-subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"future","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}')), (('op-seed', None, 'world.commit', '{}', 0, 'new frozen adversarial gate', 'seed', 'committed', 1, None, None, '2026-09-14T14:55:28.476360+00:00'),), (('seed', 'op-seed', 1, '{"_request_fingerprint":"6f2cb1454e1a45a8dfeacfc7cfb75be147a47db3c00cd39db8227467ceeed593","idempotent_replay":false,"object_refs":[["anchor",1],["future",1]],"operation_id":"op-seed","world_revision":1}'),))
+  
+  At index 0 diff: 2 != 1
+  
+  Full diff:
+    (
+  -     1,
+  ?     ^
+  +     2,
+  ?     ^
+        (
+            (
+                1,
+                '2026-09-14T14:55:28.476360+00:00',
+                'op-seed',
+  +             None,
+  +             'new frozen adversarial gate',
+  +         ),
+  +         (
+  +             2,
+  +             '2026-09-14T14:55:28.479374+00:00',
+  +             'op-case',
+                None,
+                'new frozen adversarial gate',
+            ),
+        ),
+        (
+            (
+                'anchor',
+                1,
+                'observation',
+                'gate-subject',
+                1,
+                '2026-09-14T09:00:00.000000+00:00',
+                '2026-09-14T09:00:00.000000+00:00',
+                '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"anchor","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}',
+            ),
+            (
+                'future',
+                1,
+                'observation',
+                'gate-subject',
+                1,
+                '2026-09-14T10:00:00.000000+00:00',
+                '2026-09-14T10:00:00.000000+00:00',
+                '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"future","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}',
+            ),
+  +         (
+  +             'holder',
+  +             1,
+  +             'observation',
+  +             'gate-subject',
+  +             2,
+  +             '2026-09-14T09:00:00.000000+00:00',
+  +             '2026-09-14T09:00:00.000000+00:00',
+  +             '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"holder","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":"safe"}',
+  +         ),
+        ),
+        (
+  +         (
+  +             'op-case',
+  +             None,
+  +             'world.commit',
+  +             '{}',
+  +             1,
+  +             'new frozen adversarial gate',
+  +             'case',
+  +             'committed',
+  +             2,
+  +             None,
+  +             None,
+  +             '2026-09-14T14:55:28.479374+00:00',
+  +         ),
+            (
+                'op-seed',
+                None,
+                'world.commit',
+                '{}',
+                0,
+                'new frozen adversarial gate',
+                'seed',
+                'committed',
+                1,
+                None,
+                None,
+                '2026-09-14T14:55:28.476360+00:00',
+            ),
+        ),
+        (
+            (
+  +             'case',
+  +             'op-case',
+  +             2,
+  +             '{"_request_fingerprint":"f79c8e4a1303f2db271774ff2e74d36cb2cc31b20214be306f3385773f9054c0","idempotent_replay":false,"object_refs":[["holder",1]],"operation_id":"op-case","world_revision":2}',
+  +         ),
+  +         (
+                'seed',
+                'op-seed',
+                1,
+                '{"_request_fingerprint":"6f2cb1454e1a45a8dfeacfc7cfb75be147a47db3c00cd39db8227467ceeed593","idempotent_replay":false,"object_refs":[["anchor",1],["future",1]],"operation_id":"op-seed","world_revision":1}',
+            ),
+        ),
+    )
+FAILED ../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_dirty_unknown_fields_must_not_be_silently_erased[False-_rogue-ObjectRef] - AssertionError: rejected request mutated complete durable state
+assert (2, ((1, '2026-09-14T14:55:28.513918+00:00', 'op-seed', None, 'new frozen adversarial gate'), (2, '2026-09-14T14:55:28.517052+00:00', 'op-case', None, 'new frozen adversarial gate')), (('anchor', 1, 'observation', 'gate-subject', 1, '2026-09-14T09:00:00.000000+00:00', '2026-09-14T09:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"anchor","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}'), ('future', 1, 'observation', 'gate-subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"future","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}'), ('holder', 1, 'observation', 'gate-subject', 2, '2026-09-14T09:00:00.000000+00:00', '2026-09-14T09:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{"probe":{"nested":[{"object_id":"anchor","revision":1}]}},"modality":"json","object_id":"holder","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}')), (('op-case', None, 'world.commit', '{}', 1, 'new frozen adversarial gate', 'case', 'committed', 2, None, None, '2026-09-14T14:55:28.517052+00:00'), ('op-seed', None, 'world.commit', '{}', 0, 'new frozen adversarial gate', 'seed', 'committed', 1, None, None, '2026-09-14T14:55:28.513918+00:00')), (('case', 'op-case', 2, '{"_request_fingerprint":"393a80998295cc7ec8570e45c2a71b045fd516d25cf264211c6491a0380278c9","idempotent_replay":false,"object_refs":[["holder",1]],"operation_id":"op-case","world_revision":2}'), ('seed', 'op-seed', 1, '{"_request_fingerprint":"6f2cb1454e1a45a8dfeacfc7cfb75be147a47db3c00cd39db8227467ceeed593","idempotent_replay":false,"object_refs":[["anchor",1],["future",1]],"operation_id":"op-seed","world_revision":1}'))) == (1, ((1, '2026-09-14T14:55:28.513918+00:00', 'op-seed', None, 'new frozen adversarial gate'),), (('anchor', 1, 'observation', 'gate-subject', 1, '2026-09-14T09:00:00.000000+00:00', '2026-09-14T09:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"anchor","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}'), ('future', 1, 'observation', 'gate-subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"future","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}')), (('op-seed', None, 'world.commit', '{}', 0, 'new frozen adversarial gate', 'seed', 'committed', 1, None, None, '2026-09-14T14:55:28.513918+00:00'),), (('seed', 'op-seed', 1, '{"_request_fingerprint":"6f2cb1454e1a45a8dfeacfc7cfb75be147a47db3c00cd39db8227467ceeed593","idempotent_replay":false,"object_refs":[["anchor",1],["future",1]],"operation_id":"op-seed","world_revision":1}'),))
+  
+  At index 0 diff: 2 != 1
+  
+  Full diff:
+    (
+  -     1,
+  ?     ^
+  +     2,
+  ?     ^
+        (
+            (
+                1,
+                '2026-09-14T14:55:28.513918+00:00',
+                'op-seed',
+  +             None,
+  +             'new frozen adversarial gate',
+  +         ),
+  +         (
+  +             2,
+  +             '2026-09-14T14:55:28.517052+00:00',
+  +             'op-case',
+                None,
+                'new frozen adversarial gate',
+            ),
+        ),
+        (
+            (
+                'anchor',
+                1,
+                'observation',
+                'gate-subject',
+                1,
+                '2026-09-14T09:00:00.000000+00:00',
+                '2026-09-14T09:00:00.000000+00:00',
+                '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"anchor","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}',
+            ),
+            (
+                'future',
+                1,
+                'observation',
+                'gate-subject',
+                1,
+                '2026-09-14T10:00:00.000000+00:00',
+                '2026-09-14T10:00:00.000000+00:00',
+                '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"future","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}',
+            ),
+  +         (
+  +             'holder',
+  +             1,
+  +             'observation',
+  +             'gate-subject',
+  +             2,
+  +             '2026-09-14T09:00:00.000000+00:00',
+  +             '2026-09-14T09:00:00.000000+00:00',
+  +             '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{"probe":{"nested":[{"object_id":"anchor","revision":1}]}},"modality":"json","object_id":"holder","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}',
+  +         ),
+        ),
+        (
+  +         (
+  +             'op-case',
+  +             None,
+  +             'world.commit',
+  +             '{}',
+  +             1,
+  +             'new frozen adversarial gate',
+  +             'case',
+  +             'committed',
+  +             2,
+  +             None,
+  +             None,
+  +             '2026-09-14T14:55:28.517052+00:00',
+  +         ),
+            (
+                'op-seed',
+                None,
+                'world.commit',
+                '{}',
+                0,
+                'new frozen adversarial gate',
+                'seed',
+                'committed',
+                1,
+                None,
+                None,
+                '2026-09-14T14:55:28.513918+00:00',
+            ),
+        ),
+        (
+            (
+  +             'case',
+  +             'op-case',
+  +             2,
+  +             '{"_request_fingerprint":"393a80998295cc7ec8570e45c2a71b045fd516d25cf264211c6491a0380278c9","idempotent_replay":false,"object_refs":[["holder",1]],"operation_id":"op-case","world_revision":2}',
+  +         ),
+  +         (
+                'seed',
+                'op-seed',
+                1,
+                '{"_request_fingerprint":"6f2cb1454e1a45a8dfeacfc7cfb75be147a47db3c00cd39db8227467ceeed593","idempotent_replay":false,"object_refs":[["anchor",1],["future",1]],"operation_id":"op-seed","world_revision":1}',
+            ),
+        ),
+    )
+FAILED ../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_dirty_unknown_fields_must_not_be_silently_erased[False-_rogue-SourceRef] - AssertionError: rejected request mutated complete durable state
+assert (2, ((1, '2026-09-14T14:55:28.547846+00:00', 'op-seed', None, 'new frozen adversarial gate'), (2, '2026-09-14T14:55:28.551129+00:00', 'op-case', None, 'new frozen adversarial gate')), (('anchor', 1, 'observation', 'gate-subject', 1, '2026-09-14T09:00:00.000000+00:00', '2026-09-14T09:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"anchor","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}'), ('future', 1, 'observation', 'gate-subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"future","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}'), ('holder', 1, 'observation', 'gate-subject', 2, '2026-09-14T09:00:00.000000+00:00', '2026-09-14T09:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{"probe":{"nested":[{"object_id":"anchor","revision":1,"source_locator":null}]}},"modality":"json","object_id":"holder","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}')), (('op-case', None, 'world.commit', '{}', 1, 'new frozen adversarial gate', 'case', 'committed', 2, None, None, '2026-09-14T14:55:28.551129+00:00'), ('op-seed', None, 'world.commit', '{}', 0, 'new frozen adversarial gate', 'seed', 'committed', 1, None, None, '2026-09-14T14:55:28.547846+00:00')), (('case', 'op-case', 2, '{"_request_fingerprint":"a79a799cddb62344c79f40d3ef451d31e3bb70207713e1bc965e02d6198187d6","idempotent_replay":false,"object_refs":[["holder",1]],"operation_id":"op-case","world_revision":2}'), ('seed', 'op-seed', 1, '{"_request_fingerprint":"6f2cb1454e1a45a8dfeacfc7cfb75be147a47db3c00cd39db8227467ceeed593","idempotent_replay":false,"object_refs":[["anchor",1],["future",1]],"operation_id":"op-seed","world_revision":1}'))) == (1, ((1, '2026-09-14T14:55:28.547846+00:00', 'op-seed', None, 'new frozen adversarial gate'),), (('anchor', 1, 'observation', 'gate-subject', 1, '2026-09-14T09:00:00.000000+00:00', '2026-09-14T09:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"anchor","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}'), ('future', 1, 'observation', 'gate-subject', 1, '2026-09-14T10:00:00.000000+00:00', '2026-09-14T10:00:00.000000+00:00', '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"future","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}')), (('op-seed', None, 'world.commit', '{}', 0, 'new frozen adversarial gate', 'seed', 'committed', 1, None, None, '2026-09-14T14:55:28.547846+00:00'),), (('seed', 'op-seed', 1, '{"_request_fingerprint":"6f2cb1454e1a45a8dfeacfc7cfb75be147a47db3c00cd39db8227467ceeed593","idempotent_replay":false,"object_refs":[["anchor",1],["future",1]],"operation_id":"op-seed","world_revision":1}'),))
+  
+  At index 0 diff: 2 != 1
+  
+  Full diff:
+    (
+  -     1,
+  ?     ^
+  +     2,
+  ?     ^
+        (
+            (
+                1,
+                '2026-09-14T14:55:28.547846+00:00',
+                'op-seed',
+  +             None,
+  +             'new frozen adversarial gate',
+  +         ),
+  +         (
+  +             2,
+  +             '2026-09-14T14:55:28.551129+00:00',
+  +             'op-case',
+                None,
+                'new frozen adversarial gate',
+            ),
+        ),
+        (
+            (
+                'anchor',
+                1,
+                'observation',
+                'gate-subject',
+                1,
+                '2026-09-14T09:00:00.000000+00:00',
+                '2026-09-14T09:00:00.000000+00:00',
+                '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{},"modality":"json","object_id":"anchor","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}',
+            ),
+            (
+                'future',
+                1,
+                'observation',
+                'gate-subject',
+                1,
+                '2026-09-14T10:00:00.000000+00:00',
+                '2026-09-14T10:00:00.000000+00:00',
+                '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T10:00:00Z","metadata":{},"modality":"json","object_id":"future","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T10:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}',
+            ),
+  +         (
+  +             'holder',
+  +             1,
+  +             'observation',
+  +             'gate-subject',
+  +             2,
+  +             '2026-09-14T09:00:00.000000+00:00',
+  +             '2026-09-14T09:00:00.000000+00:00',
+  +             '{"created_by":"redteam-b658-new","data_quality":{},"learned_at":"2026-09-14T09:00:00Z","metadata":{"probe":{"nested":[{"object_id":"anchor","revision":1,"source_locator":null}]}},"modality":"json","object_id":"holder","object_type":"observation","occurred":{"end":null,"precision":"unknown","start":null,"timezone_name":null,"unknown":true},"raw_locator":null,"recorded_at":"2026-09-14T09:00:00Z","revision":1,"source_kind":"audit","source_refs":[],"status":"active","subject_id":"gate-subject","unit":null,"value":null}',
+  +         ),
+        ),
+        (
+  +         (
+  +             'op-case',
+  +             None,
+  +             'world.commit',
+  +             '{}',
+  +             1,
+  +             'new frozen adversarial gate',
+  +             'case',
+  +             'committed',
+  +             2,
+  +             None,
+  +             None,
+  +             '2026-09-14T14:55:28.551129+00:00',
+  +         ),
+            (
+                'op-seed',
+                None,
+                'world.commit',
+                '{}',
+                0,
+                'new frozen adversarial gate',
+                'seed',
+                'committed',
+                1,
+                None,
+                None,
+                '2026-09-14T14:55:28.547846+00:00',
+            ),
+        ),
+        (
+            (
+  +             'case',
+  +             'op-case',
+  +             2,
+  +             '{"_request_fingerprint":"a79a799cddb62344c79f40d3ef451d31e3bb70207713e1bc965e02d6198187d6","idempotent_replay":false,"object_refs":[["holder",1]],"operation_id":"op-case","world_revision":2}',
+  +         ),
+  +         (
+                'seed',
+                'op-seed',
+                1,
+                '{"_request_fingerprint":"6f2cb1454e1a45a8dfeacfc7cfb75be147a47db3c00cd39db8227467ceeed593","idempotent_replay":false,"object_refs":[["anchor",1],["future",1]],"operation_id":"op-seed","world_revision":1}',
+            ),
+        ),
+    )
+FAILED ../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_dirty_unknown_fields_must_not_be_silently_erased[True-_rogue-world] - Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+FAILED ../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_dirty_unknown_fields_must_not_be_silently_erased[True-_rogue-operation] - Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+FAILED ../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_dirty_unknown_fields_must_not_be_silently_erased[True-_rogue-ObjectRef] - Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+FAILED ../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_x3_dirty_unknown_fields_must_not_be_silently_erased[True-_rogue-SourceRef] - Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+FAILED ../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b6_unordered_value_durable_normal_form_replay[metadata] - aios_core.storage.sqlite_store.StoreError: idempotency key was already used for a different request
+FAILED ../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b6_unordered_value_durable_normal_form_replay[value] - aios_core.storage.sqlite_store.StoreError: idempotency key was already used for a different request
+FAILED ../../fantonghui/governance/agent_reports/redteam-b658-frozen/test_adversarial_b658.py::test_b6_unordered_value_durable_normal_form_replay[arguments] - aios_core.storage.sqlite_store.StoreError: idempotency key was already used for a different request
+======================== 17 failed, 377 passed in 7.36s ========================
