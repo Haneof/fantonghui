@@ -53,18 +53,43 @@ class SQLiteWorldStore:
       * historical reads can reconstruct what was visible at a world revision.
     """
 
+    SQLITE_BUSY_TIMEOUT_MS = 5000
+
     def __init__(self, db_path: str | Path):
         self.db_path = str(db_path)
         self._initialize()
 
     @contextmanager
     def _connection(self) -> Iterator[sqlite3.Connection]:
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(
+            self.db_path,
+            timeout=self.SQLITE_BUSY_TIMEOUT_MS / 1000.0,
+        )
         conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA foreign_keys = ON")
-        conn.execute("PRAGMA journal_mode = WAL")
         try:
+            conn.execute("PRAGMA foreign_keys = ON")
+            conn.execute(f"PRAGMA busy_timeout = {self.SQLITE_BUSY_TIMEOUT_MS}")
+            conn.execute("PRAGMA journal_mode = WAL")
             yield conn
+        except sqlite3.IntegrityError as exc:
+            raise StoreError(
+                ErrorCode.INVALID_ARGUMENT,
+                "SQLite integrity constraint rejected the operation",
+                context={"reason": "sqlite_integrity_error"},
+            ) from exc
+        except sqlite3.OperationalError as exc:
+            message = str(exc).lower()
+            if "locked" in message or "busy" in message:
+                raise StoreError(
+                    ErrorCode.VERSION_CONFLICT,
+                    "world store is busy; retry from a fresh snapshot",
+                    context={"reason": "storage_busy"},
+                ) from exc
+            raise StoreError(
+                ErrorCode.INVALID_ARGUMENT,
+                "SQLite operational failure",
+                context={"reason": "sqlite_operational_error"},
+            ) from exc
         finally:
             conn.close()
 
@@ -342,6 +367,22 @@ class SQLiteWorldStore:
                     conn.rollback()
                     return replay
 
+                reused_operation = conn.execute(
+                    "SELECT idempotency_key FROM operations WHERE operation_id=?",
+                    (operation.operation_id,),
+                ).fetchone()
+                if reused_operation is not None:
+                    raise StoreError(
+                        ErrorCode.IDEMPOTENCY_CONFLICT,
+                        "operation_id was already committed with a different idempotency key",
+                        context={
+                            "operation_id": operation.operation_id,
+                            "idempotency_key": operation.idempotency_key,
+                            "original_idempotency_key": str(reused_operation["idempotency_key"]),
+                            "reason": "operation_id_reused",
+                        },
+                    )
+
                 current_world_revision = int(
                     conn.execute(
                         "SELECT value FROM world_meta WHERE key='world_revision'"
@@ -420,13 +461,17 @@ class SQLiteWorldStore:
 
                 for obj in object_list:
                     for ref in self._collect_refs(obj):
-                        if ref.object_id == obj.object_id and ref.revision == obj.revision:
+                        if ref.object_id == obj.object_id and (
+                            ref.revision is None or ref.revision == obj.revision
+                        ):
                             raise StoreError(
                                 ErrorCode.DEPENDENCY_INVALID,
-                                f"object {obj.object_id} cannot cite its own current revision as evidence/source",
+                                f"object {obj.object_id} cannot cite its own current/floating revision as evidence/source",
                                 context={
                                     "object_id": obj.object_id,
                                     "revision": obj.revision,
+                                    "referenced_revision": ref.revision,
+                                    "reason": "self_reference",
                                 },
                             )
                         if not self._reference_exists(
