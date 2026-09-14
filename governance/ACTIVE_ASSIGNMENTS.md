@@ -7,29 +7,33 @@ This is the cloud roster. AI agents must not self-assign production work.
 - Agent ID: `chief-01`
 - 中文职位：总工程师 / 总工
 - Status: AUTHORIZED / OWNER / NOT STARTED
-- Task: M0-015 — Dependency（依赖）契约
+- Task: M0-016 — OperationRequest、审计与幂等契约
 - Role prompt: `governance/roles/CHIEF_ENGINEER.md`
 - Production branch: `arena/01a09bc6-fantonghui`
-- Previous frozen semantic commit: `af49c27c95527ca1d2b28cddd88115b0264b48c4` (M0-014 FINAL PASS)
+- Previous frozen semantic commit: `3b4e8b603e52830d8be44d33141f722bbba244a0` (M0-015 FINAL PASS)
 - Parallel safety: NOT PARALLEL_SAFE for another core writer
 
 ### Authority basis
 
-The authoritative taskbook marks M0-015 `负责人级别：总工程师亲自代码` and depends on M0-006 + M0-009.
+The authoritative taskbook marks M0-016 `负责人级别：总工程师亲自代码` and depends on M0-002 + M0-005.
 
-### M0-015 high-level outcome
+### M0-016 high-level outcome
 
-Freeze Dependency as the explicit version-aware dependency record needed for later correction propagation and reverse lookup.
+Freeze the world-modification operation envelope and safe retry semantics around the existing store contract:
 
-Required boundaries:
-- keep `dependent_ref`, `dependency_ref`, `dependency_type` explicit;
-- dependency history must identify exact object revisions when representing evidence/causal review provenance;
-- ordinary semantic relations are not automatically Dependency objects;
-- evidence/proof dependency must not gain credibility through a self-supporting cycle;
-- cover representative chains such as Claim→EvidenceSet→Observation, Summary→Claim, Task→Event;
-- do not prematurely implement the full M3 correction propagation/reverse-index runtime.
+- `operation_id`;
+- `session_id`;
+- `operation_name` / arguments;
+- `expected_world_revision` optimistic concurrency;
+- `reason`;
+- `idempotency_key`;
+- retry with the same idempotency key must return the original result rather than duplicate the write;
+- stale expected world revision must fail clearly;
+- preserve auditability of committed operations.
 
-`core-01` must NOT start M0-015 unless this assignment is explicitly changed.
+Do not prematurely implement external Action execution idempotency or distributed transaction machinery beyond the M0 task boundary.
+
+`core-01` must NOT start M0-016 unless this assignment is explicitly changed.
 
 ## Assignment B — `core-01` 核心程序员 / 主程序员
 
@@ -72,15 +76,16 @@ Current instruction: remain IDLE until the Chief Engineer assigns a new task.
 
 ## Last authoritative completion
 
-M0-014 FINAL PASS:
+M0-015 FINAL PASS:
 
-- semantic frozen commit: `af49c27c95527ca1d2b28cddd88115b0264b48c4`
-- formal suite: 315 passed
+- semantic frozen commit: `3b4e8b603e52830d8be44d33141f722bbba244a0`
+- formal suite: 329 passed
 - Reference suite: 15 passed
 - Python: 3.12.14
-- durable Task/Wake/Session/Action/Outcome boundary frozen
-- Action != Outcome; message delivery != help success; outcome may remain unknown
-- formal review: `reviews/M0/M0-014_final_PASS_2026-09-14.md`
+- exact-version Dependency edges frozen
+- explicit dependency cycles detectable/rejectable; Relation cycles remain allowed
+- exact-revision reverse impact scan frozen as contract helper; persistent propagation remains M3
+- formal review: `reviews/M0/M0-015_final_PASS_2026-09-14.md`
 
 ## Operator handoff rule
 
