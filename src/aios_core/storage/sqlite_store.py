@@ -5,9 +5,9 @@ import sqlite3
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import Iterable, Iterator, TypeVar
+from typing import Annotated, Iterable, Iterator, TypeVar
 
-from pydantic import BaseModel, JsonValue, ValidationError
+from pydantic import BaseModel, Field, JsonValue, TypeAdapter, ValidationError
 
 from aios_core.contracts.base import WorldObject
 from aios_core.contracts.enums import ErrorCode, ObjectType
@@ -29,6 +29,22 @@ from aios_core.storage.idempotency import (
 
 T = TypeVar("T", bound=WorldObject)
 _REQUEST_FINGERPRINT_KEY = "_request_fingerprint"
+_IDEMPOTENCY_KEY_ADAPTER = TypeAdapter(Annotated[str, Field(min_length=1)])
+
+
+def _normalize_idempotency_lookup_key(value: object) -> str:
+    """Normalize only the routing key before touching SQLite.
+
+    Full request normalization happens after lookup for fresh requests and inside
+    request_fingerprint for retries. Keeping lookup normalization field-scoped lets
+    an existing key classify a dirty retry as IDEMPOTENCY_CONFLICT while preventing
+    unvalidated values from reaching the SQLite binder.
+    """
+
+    key = _IDEMPOTENCY_KEY_ADAPTER.validate_python(value)
+    if not key.strip():
+        raise ValueError("idempotency_key must not be blank")
+    return key
 
 
 class StoreError(AIOSProtocolError):
@@ -196,13 +212,25 @@ class SQLiteWorldStore:
         operation: OperationRequest,
         objects: list[WorldObject],
     ) -> CommitResult | None:
+        try:
+            lookup_key = _normalize_idempotency_lookup_key(operation.idempotency_key)
+        except (ValidationError, ValueError, TypeError) as exc:
+            raise StoreError(
+                ErrorCode.INVALID_ARGUMENT,
+                "idempotency key failed persistence validation",
+                context={
+                    "operation_id": str(operation.operation_id),
+                    "reason": "idempotency_key_revalidation_failed",
+                },
+            ) from exc
+
         row = conn.execute(
             """
             SELECT operation_id, world_revision, result_json
             FROM idempotency_records
             WHERE idempotency_key=?
             """,
-            (operation.idempotency_key,),
+            (lookup_key,),
         ).fetchone()
         if not row:
             return None
@@ -214,8 +242,8 @@ class SQLiteWorldStore:
                 ErrorCode.IDEMPOTENCY_CONFLICT,
                 "idempotency key retry is not a valid equivalent request",
                 context={
-                    "idempotency_key": operation.idempotency_key,
-                    "operation_id": operation.operation_id,
+                    "idempotency_key": lookup_key,
+                    "operation_id": str(operation.operation_id),
                     "reason": "request_revalidation_failed",
                 },
             ) from exc
@@ -233,8 +261,8 @@ class SQLiteWorldStore:
                     ErrorCode.IDEMPOTENCY_CONFLICT,
                     "idempotency key retry is not a valid equivalent request",
                     context={
-                        "idempotency_key": operation.idempotency_key,
-                        "operation_id": operation.operation_id,
+                        "idempotency_key": lookup_key,
+                        "operation_id": str(operation.operation_id),
                         "reason": "request_revalidation_failed",
                     },
                 ) from exc
@@ -248,7 +276,7 @@ class SQLiteWorldStore:
                 ErrorCode.STORAGE_FAILURE,
                 "idempotency record contains an invalid request fingerprint",
                 context={
-                    "idempotency_key": operation.idempotency_key,
+                    "idempotency_key": lookup_key,
                     "operation_id": str(row["operation_id"]),
                     "reason": "corrupt_idempotency_fingerprint",
                 },
@@ -259,9 +287,9 @@ class SQLiteWorldStore:
                 ErrorCode.IDEMPOTENCY_CONFLICT,
                 "idempotency key was already used for a different request",
                 context={
-                    "idempotency_key": operation.idempotency_key,
+                    "idempotency_key": lookup_key,
                     "original_operation_id": str(row["operation_id"]),
-                    "operation_id": operation.operation_id,
+                    "operation_id": str(operation.operation_id),
                     "reason": "request_fingerprint_mismatch",
                 },
             )
@@ -449,7 +477,7 @@ class SQLiteWorldStore:
                         ErrorCode.INVALID_ARGUMENT,
                         "operation request failed persistence validation",
                         context={
-                            "operation_id": operation.operation_id,
+                            "operation_id": str(operation.operation_id),
                             "reason": "operation_persistence_revalidation_failed",
                         },
                     ) from exc
