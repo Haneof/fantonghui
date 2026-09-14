@@ -1,0 +1,9 @@
+{
+  "candidate": "b6588bdaaa36d9dace4f9959dda0a89a370e1674",
+  "test_file": "test_adversarial_b658.py",
+  "sha256": "180dc1bac647e6cee6688dd4475dab8a063cc9fa9545acdc0e907036e9bea97d",
+  "frozen_at_utc": "2026-09-14T14:46:55.774672+00:00",
+  "execution_status_at_freeze": "NOT COLLECTED; NOT EXECUTED",
+  "provenance": "Entirely new suite. Not a reconstruction of the unavailable original 100 probes.",
+  "policy": "No in-place test/expected-outcome edits after freeze; preserve failures, including any test defects."
+}
