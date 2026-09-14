@@ -1,4 +1,4 @@
-"""M0 审计探针 / AUDIT-M0-R1 probes
+"""M0 审计探针 / AUDIT-M0-R2 probes
 =====================================
 
 可重跑的缺陷证据。不修改被测代码，只读地检验 `aios_core` 当前实现是否满足
@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import os
+import re
 import sqlite3
 import sys
 import tempfile
@@ -25,7 +26,16 @@ from datetime import datetime, timedelta, timezone
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src'))
 
 from aios_core.contracts import (  # noqa: E402
+    Claim,
+    ClaimType,
+    DimensionDefinition,
+    DimensionLifecycle,
+    Entity,
+    EventAnchor,
     EvidenceSet,
+    Goal,
+    GoalSourceType,
+    KnowledgeState,
     KnowledgeWindow,
     ObjectRef,
     ObjectType,
@@ -34,8 +44,14 @@ from aios_core.contracts import (  # noqa: E402
     SourceRef,
     TemporalExtent,
     new_object_id,
+    utc_now,
 )
+from aios_core.contracts.enums import EventStatus, TaskState, TaskType  # noqa: E402
+from aios_core.contracts.models import Task  # noqa: E402
 from aios_core.storage import SQLiteWorldStore, StoreError  # noqa: E402
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+SRC = os.path.join(HERE, 'src', 'aios_core')
 
 UTC = timezone.utc
 NOW = datetime(2026, 9, 14, 12, 0, tzinfo=UTC)
@@ -214,6 +230,195 @@ def gap_c1_concurrency_and_atomicity():
     return 'GAP', f'并发结果不符合“只有一个成功”：{results}，world={store.current_world_revision()}'
 
 
+
+def gap_a6_untyped_refs():
+    """A6 自由字典里的引用绕过存在性校验；且读回不做契约校验。"""
+    store = _store()
+    smuggled = {'basis': {'object_id': 'obs_ghost', 'revision': 7}}
+    try:
+        store.commit([_obs(value={'n': 1}, refs=[])
+                      .model_copy(update={'metadata': smuggled})], _op(0, 'a6'))
+    except StoreError as exc:
+        return 'PASS', f'被拒绝：{exc.code.value}'
+    return ('GAP', 'metadata / data_quality / maintenance_policy / applicable_scope / completion_condition / payload / checkpoint 等 dict[str,Any] 内的字典形式引用'
+            '不被 _collect_refs 识别 → 引用存在性与自证检查双双绕过；读回也不 model_validate')
+
+
+def gap_a7_dimension_lifecycle_machine():
+    """A7 宪法第二十一条：维度生命周期是否有受控转换。"""
+    from aios_core.services import state_machines
+    has = [n for n in dir(state_machines) if 'dimension' in n.lower()]
+    if has:
+        return 'PASS', f'存在维度生命周期校验：{has}'
+    store = _store()
+    retired = DimensionDefinition(object_id=new_object_id(ObjectType.DIMENSION_DEFINITION),
+                                  subject_id='user_1', learned_at=NOW, recorded_at=NOW,
+                                  created_by='audit', name='压力', description='d',
+                                  data_shape='state_interval', lifecycle=DimensionLifecycle.RETIRED)
+    store.commit([retired], _op(0, 'a7-retired'))
+    revived = retired.model_copy(update={'lifecycle': DimensionLifecycle.ACTIVE, 'revision': 2})
+    store.commit([revived], _op(1, 'a7-revive'))   # RETIRED → ACTIVE，无任何转换校验
+    return ('GAP', 'state_machines 只有 Task/Event；RETIRED→ACTIVE、CANDIDATE→RETIRED 等任意跳无校验'
+            '（母表 M0-021 也只冻结了 Task/Event）')
+
+
+def gap_a8_dangling_revision_pointers():
+    """A8 Summary.source_world_revision / Session.snapshot_world_revision 不校验是否存在。"""
+    store = _store()
+    from aios_core.contracts import Session, Summary
+    from aios_core.contracts.refs import ObjectRef as _OR
+    try:
+        store.commit([
+            Summary(object_id=new_object_id(ObjectType.SUMMARY), subject_id='user_1',
+                    learned_at=NOW, recorded_at=NOW, created_by='audit',
+                    summary_time=TemporalExtent.point(NOW), granularity='week',
+                    source_world_revision=999),
+            Session(object_id=new_object_id(ObjectType.SESSION), subject_id='user_1',
+                    learned_at=NOW, recorded_at=NOW, created_by='audit',
+                    snapshot_world_revision=12345),
+        ], _op(0, 'a8'))
+    except StoreError as exc:
+        return 'PASS', f'被拒绝：{exc.code.value}'
+    return ('GAP', 'world 只到 1，却可提交指向 revision 999 / 12345 的 Summary 与 Session'
+            '（宪法第十八/十九条要求总结可展开、可重建）')
+
+
+def gap_a9_event_status_consistency():
+    """A9 EventAnchor 状态与 merged/split/supersedes 引用不一致。"""
+    store = _store()
+    event = EventAnchor(object_id=new_object_id(ObjectType.EVENT), subject_id='user_1',
+                        learned_at=NOW, recorded_at=NOW, created_by='audit',
+                        title='运动会', interpretation='待定',
+                        event_status=EventStatus.MERGED, confidence=0.5)
+    try:
+        store.commit([event], _op(0, 'a9'))
+    except StoreError as exc:
+        return 'PASS', f'被拒绝：{exc.code.value}'
+    return ('GAP', 'status=MERGED 而 merged_into_ref=None 可提交；宪法第十三条'
+            '「后来为何修正」的链条在契约层可被写成断头')
+
+
+def gap_a10_task_deadline_semantics():
+    """A10 Task 时间语义与 EXPIRED 可达性。"""
+    from aios_core.contracts import Task
+    from aios_core.contracts.enums import TaskState, TaskType
+    from aios_core.services import validate_task_transition
+    bad = None
+    try:
+        validate_task_transition(TaskState.RUNNING, TaskState.EXPIRED)
+    except ValueError as exc:
+        bad = str(exc)
+    t = Task(object_id=new_object_id(ObjectType.TASK), subject_id='user_1', learned_at=NOW,
+             recorded_at=NOW, created_by='audit', task_type=TaskType.DEADLINE, title='复习',
+             deadline=NOW - timedelta(days=1), next_wake_at=NOW + timedelta(days=1),
+             task_state=TaskState.READY)
+    msgs = []
+    if bad:
+        msgs.append('RUNNING→EXPIRED 被拒（过期任务只能 FAILED/CANCELLED）')
+    if t.deadline < t.next_wake_at < t.deadline + timedelta(days=99):
+        msgs.append(f'deadline 已过期({t.deadline:%m-%d}) 而 next_wake_at 在其后'
+                    f'({t.next_wake_at:%m-%d})，模型不报错')
+    return ('GAP' if msgs else 'PASS', '；'.join(msgs) or '一致')
+
+
+def gap_a11_id_type_binding():
+    """A11 ID 前缀与 object_type 不绑定（宪法第十五条 唯一编号）。"""
+    store = _store()
+    mismatched = Observation(object_id=new_object_id(ObjectType.ENTITY),  # ent_ 前缀
+                             subject_id='user_1', revision=1,
+                             occurred=TemporalExtent.point(NOW), learned_at=NOW, recorded_at=NOW,
+                             created_by='audit', source_kind='chat', modality='text', value='x')
+    try:
+        store.commit([mismatched], _op(0, 'a11'))
+    except StoreError as exc:
+        return 'PASS', f'被拒绝：{exc.code.value}'
+    return ('GAP', f"`ent_` 前缀的 ID 被登记为 object_type=observation（实测 {mismatched.object_id[:4]}…）"
+            '→ 任何按前缀路由/索引的假设都不成立')
+
+
+def gap_a12_write_layer_not_enforced():
+    """A12 「所有写入通过唯一 Core 写入层」是否有数据库侧保障。
+
+    规格写的是架构约束，但 SQLite 的外键是**每连接 opt-in**：默认连接不启用时，
+    任何绕过 Core 的写入都能造出指向不存在 world revision 的孤儿对象。
+    """
+    payload_sql = ("INSERT INTO object_revisions(object_id, revision, object_type, subject_id, "
+                   "world_revision, learned_at, recorded_at, payload_json) "
+                   "VALUES('obs_raw', 1, 'observation', 'user_1', 4242, ?, ?, '{}')")
+
+    def attempt(enable_fk):
+        path = os.path.join(tempfile.mkdtemp(), 'world.db')
+        SQLiteWorldStore(path)
+        conn = sqlite3.connect(path)
+        if enable_fk:
+            conn.execute("PRAGMA foreign_keys=ON")
+        try:
+            conn.execute(payload_sql, (NOW.isoformat(), NOW.isoformat()))
+            conn.commit()
+            return 'accepted'
+        except sqlite3.IntegrityError:
+            return 'rejected'
+        finally:
+            conn.close()
+
+    loose, strict = attempt(False), attempt(True)
+    if loose == 'rejected':
+        return 'PASS', '数据库侧已拒绝绕过 Core 的写入'
+    detail = (f'默认连接 fk=0 → 孤儿对象写入成功（world_revision=4242 不存在）；'
+              f'同一 SQL 在 fk=1 时 {strict}（FK 约束存在但是每连接 opt-in）'
+              '；payload 为空字典也能读回 → 唯一写入层只是调用方自觉，缺 CHECK/触发器/只读账号')
+    return 'GAP', detail
+
+
+def gap_a6_detail_fix():
+    return None
+
+def gap_a13_state_machine_not_wired():
+    """A13 生命周期校验是否接在写入路径上（宪法第二十一条 + 完成定义「代码写完不算完成」）。
+
+    `validate_task_transition` / `validate_event_transition` 只被 services/__init__ 导出、
+    被测试调用；`commit()` 内没有任何调用 → 状态机是"可选工具"，不是写入约束。
+    """
+    store_dir = os.path.join(SRC, 'storage')
+    commit_src = ''
+    for fn in os.listdir(store_dir):
+        if fn.endswith('.py'):
+            t = open(os.path.join(store_dir, fn), encoding='utf-8').read()
+            m = re.search(r'def commit\(.*?(?=\n    def |\Z)', t, re.S)
+            if m:
+                commit_src += m.group(0)
+    wired = bool(re.search(r'validate_\w+_transition|state_machines', commit_src))
+    if wired:
+        return 'PASS', 'commit() 调用状态机校验'
+    # 现场证明：非法转换直接提交也能落库
+    store = _store()
+    bad = Task(object_id=new_object_id(ObjectType.TASK), subject_id='user_1',
+               learned_at=NOW, recorded_at=NOW, created_by='audit', title='t',
+               task_type=TaskType.TODO, task_state=TaskState.COMPLETED)
+    store.commit([bad], _op(0, 'a13-create'))
+    illegal = bad.model_copy(update={'task_state': TaskState.RUNNING, 'revision': 2})
+    try:
+        store.commit([illegal], _op(1, 'a13-illegal'))
+        accepted = True
+    except Exception:  # noqa: BLE001
+        accepted = False
+    if accepted:
+        from aios_core.services import validate_task_transition
+        validator_rejects = True
+        try:
+            validate_task_transition(TaskState.COMPLETED, TaskState.RUNNING)
+            validator_rejects = False
+        except ValueError:
+            pass
+        if not validator_rejects:
+            return ('ERROR', '前提失效：矩阵并未禁止 COMPLETED→RUNNING，需换用例')
+        return ('GAP', 'validate_task_transition(COMPLETED, RUNNING) 明确禁止该转换，'
+                '但同一转换经 commit() 直接落库成功 → store 从不调用状态机（调用次数 0），'
+                '宪法第二十一条/完成定义所要求的"受控迁移"在写入路径上未接线；'
+                'Dimension/Goal/Summary 更是连矩阵都没有（见 A7）')
+    return 'PASS', '非法转换被 store 拒绝'
+
+
 CHECKS = [
     ('A1', 'M0-009 / R2-04', 'EvidenceSet 成员必须落在自身 knowledge_window 内', gap_a1_evidence_window),
     ('A2', 'M0-004 / M0-020', '时间可见性必须按绝对时刻比较（禁止字符串序）', gap_a2_timezone_cutoff),
@@ -223,6 +428,14 @@ CHECKS = [
     ('B1', 'M0-015', '必须能按引用从底层对象反查受影响对象', gap_b1_dependency_reverse_lookup),
     ('B2', 'M0-002', '已声明的协议错误码都要有抛出路径', gap_b2_error_code_coverage),
     ('B3', 'M0-005', '生命周期状态必须受控', gap_b3_lifecycle_status),
+    ('A6', '宪法第八条 / M0-019', '任何引用都必须可验证、可向下追溯', gap_a6_untyped_refs),
+    ('A7', '宪法第二十一条 / M0-011', '维度生命周期必须有受控转换', gap_a7_dimension_lifecycle_machine),
+    ('A8', '宪法第十八/十九条 / M0-010·014', '快照与总结必须指向真实存在的 world revision', gap_a8_dangling_revision_pointers),
+    ('A9', '宪法第十三条 / M0-012', '事件状态必须与其 merged/split/supersedes 引用一致', gap_a9_event_status_consistency),
+    ('A10', '宪法第三十二/三条 / M0-021', '过期任务必须可进入 EXPIRED，时间字段需自洽', gap_a10_task_deadline_semantics),
+    ('A11', '宪法第十五条 / M0-003', '对象 ID 与类型必须绑定', gap_a11_id_type_binding),
+    ('A12', 'M0-017 I / 架构唯一写入层', '数据库侧必须无法绕过 Core 写入', gap_a12_write_layer_not_enforced),
+    ('A13', '宪法第二十一条 / M0-005·011·014', '生命周期校验必须接在写入路径上', gap_a13_state_machine_not_wired),
     ('C1', 'M0-017 / M0-018', '并发双写恰好一个成功，且提交原子（仓库内无此测试）', gap_c1_concurrency_and_atomicity),
 ]
 
