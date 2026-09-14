@@ -1,0 +1,74 @@
+{
+  "test_real_missing_refs_cannot_be_laundered_through_standard_wrappers": {
+    "passed": 30,
+    "failed": 6
+  },
+  "test_wrapped_typed_ref_does_not_alias_plain_json_on_restart": {
+    "passed": 40,
+    "failed": 8
+  },
+  "test_accepted_wrapped_dirty_ref_is_canonical_not_a_string_revision": {
+    "passed": 8,
+    "failed": 4
+  },
+  "test_reference_integer_bounds_never_escape_sqlite_binder": {
+    "passed": 18,
+    "failed": 18
+  },
+  "test_calendar_utc_overflow_is_a_protocol_error": {
+    "passed": 0,
+    "failed": 12
+  },
+  "test_huge_world_revision_cannot_leak_integer_string_conversion": {
+    "passed": 1,
+    "failed": 1
+  },
+  "test_supported_scalars_roundtrip_to_their_durable_normal_form": {
+    "passed": 36,
+    "failed": 0
+  },
+  "test_valid_opaque_identifiers_are_lossless_and_parameterized": {
+    "passed": 8,
+    "failed": 0
+  },
+  "test_opaque_object_identifiers_resolve_without_truncation": {
+    "passed": 6,
+    "failed": 0
+  },
+  "test_corrupt_cached_results_cannot_be_returned_or_blame_the_caller": {
+    "passed": 1,
+    "failed": 8
+  },
+  "test_corrupt_payload_read_is_classified_storage_failure": {
+    "passed": 0,
+    "failed": 3
+  },
+  "test_late_sql_failure_rolls_back_every_row_and_does_not_consume_key": {
+    "passed": 4,
+    "failed": 0
+  },
+  "test_duplicate_object_batch_never_partially_commits": {
+    "passed": 2,
+    "failed": 0
+  },
+  "test_same_transaction_mutual_refs_and_reversed_batch_exact_replay": {
+    "passed": 1,
+    "failed": 0
+  },
+  "test_current_self_reference_cannot_hide_behind_historical_version": {
+    "passed": 4,
+    "failed": 0
+  },
+  "test_pinned_historical_self_reference_is_valid_and_replayable": {
+    "passed": 2,
+    "failed": 0
+  },
+  "test_evidence_cutoff_microsecond_edge_is_consistent": {
+    "passed": 6,
+    "failed": 0
+  },
+  "test_world_object_string_revision_and_iso_times_normalize_before_persistence": {
+    "passed": 1,
+    "failed": 0
+  }
+}

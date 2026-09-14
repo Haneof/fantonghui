@@ -1,0 +1,15 @@
+{
+  "candidate": "b9b5921c3e31a40528b0b96e689ae721c334bd7c",
+  "audit_commit": "659bf46408edb80a598813591369138d0616c6d6",
+  "python": "3.12.14 (main, Sep 14 2026, 14:54:22) [GCC 12.2.0]",
+  "pydantic": "2.13.5",
+  "pytest": "8.4.2",
+  "sqlite": "3.40.1",
+  "platform": "Linux-6.1.158+-x86_64-with-glibc2.36",
+  "int_max_str_digits": 4300,
+  "test_hashes_before": {
+    "test_robustness_b9.py": "c6b66e3b2828bbb140cba3919581e3f413e1064ce3dfd7b957c2daee2e632d54",
+    "regression/test_adversarial_b658.py": "180dc1bac647e6cee6688dd4475dab8a063cc9fa9545acdc0e907036e9bea97d"
+  },
+  "started_at_utc": "2026-09-14T15:55:48.466551+00:00"
+}
