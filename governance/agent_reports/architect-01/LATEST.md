@@ -1,213 +1,437 @@
 BLOCKER FOUND
 
-# architect-01 — M0 Gate independent architecture red-team
+# architect-01 — M0 Gate 正式独立复审
 
-- agent_id: `architect-01`
-- role: Principal Architect / Red Team
-- task: M0 GATE INDEPENDENT ARCHITECTURE RED-TEAM
-- status: `BLOCKER FOUND`
-- production branch audited: `arena/01a09bc6-fantonghui`
-- frozen semantic base: `8818dba83d97f73e3e48df97df9a18e3c450ba9d`
-- Chief Gate candidate: `95cec4142bdd9a87011bbad197e05ec1d27aeb57`
-- production branch documentation head observed: `1ea11a11197d4a5d61659e0f6254aef1f5f46581`
-- governance branch base observed: `41b5a65ea122a1c10d9a553ed9eccd2a70a1925e`
-- report date: 2026-09-14
+agent_id: architect-01  
+role: Principal Architect / Architecture Red Team  
+task: M0 GATE FOLLOW-UP PATCH INDEPENDENT RE-REVIEW  
+status: BLOCKER FOUND  
+working_branch: governance/aios-control-plane  
+base_commit: 95cec4142bdd9a87011bbad197e05ec1d27aeb57  
+head_commit: 268d403836b107a1969a9a5d8b85e4955baec9bf（被审生产 candidate，不是报告提交）  
+production_files_changed: NONE  
+test_result: exact candidate 本地 formal 405 passed / 1 known warning；独立探针 31 passed / 2 deliberate mutation warnings  
+reference_result: 独立设置 Reference PYTHONPATH 后 15 passed  
+ci_status: candidate run 34823226166 / job 103909332923 SUCCESS，经 GitHub 原始日志核验  
+requested_chief_action: 保持 M0 Gate 未通过；处理 B6/B7、B5 未闭合项和 R4 裁决后再复审。  
+报告更新提交可由本文件 Git 历史定位；不把它与生产 candidate 混为一谈。
 
-## 1. Verdict
+## 1. Verdict 与边界
 
-M0 should not pass at the current candidate. At least two independently reproducible foundational failures exist:
+本轮发现可复现的基础错误，不能给 ARCHITECTURE PASS：
 
-1. an idempotency key is accepted as an unconditional alias for a prior result even when the retry has a different operation identity, arguments, expected world revision, and object set;
-2. the claimed AI Worker raw-SQLite isolation is an AST convention test, not an architectural capability boundary, and is bypassed by ordinary dynamic import or indirect access.
+- **B6（新，High / BLOCKER）**：B1 fingerprint 在重试时读取未规范化输入，却从首次提交的规范化结果重建原请求；同一已成功输入可以在重启后被错误判为 IDEMPOTENCY_CONFLICT。
+- **B7（新，High / BLOCKER）**：OperationRequest 的 after-validator 赋值失败不回滚字段，store 又不重新验证 operation，因而冻结契约禁止的空白 reason 可成功写入 durable audit。
+- **B5 未完全关闭**：连接建立在异常包装的 try 外，可泄漏 raw OperationalError；内部 SQL/schema 故障被宽泛归为 INVALID_ARGUMENT，错误恢复类别需要正式裁决。
 
-A third foundational concern is that the proof/dependency cycle guard is not connected to the durable write boundary. The current tests prove that a caller who remembers to invoke the helper can detect a supplied in-memory cycle; they do not prove that a proof cycle cannot be persisted.
+B1 的普通 JSON 精确请求比较已修复，B3/B4 原始漏洞已关闭；这不抵消 B6/B7。B2 trusted-reviewed-code 和 R3 双透镜后续绑定裁决有任务书依据，本轮接受其明确范围。修正上一轮把同进程非沙箱能力直接定为 M0 blocker 的过强判断，不要求 M0 引入 hostile-code sandbox。
 
-The Gate fixtures and schema snapshot are green but do not falsify these paths. Final Gate authority remains with `chief-01`; this report does not declare M0 FINAL PASS.
+EvidenceSet 的成员/窗口不一致已实测，但其 M0/M1 enforcement 分界有两种有文本依据的解释，列为 **R4 — RULING REQUIRED**，不静默降为普通 residual，也不假装已证明必须在 M0 实现完整 Evidence service。
 
-## 2. Cloud evidence actually read
+最终 M0 FINAL PASS 权限属于 chief-01。本报告没有修改生产实现，没有自行修补后批准，没有进入 M1。
 
-Read directly from GitHub clone/API, not supplied chat excerpts:
+## 2. 实际证据与基线
 
-- `AGENTS.md`
-- `governance/CONTROL_PANEL.md`
-- `governance/CURRENT_STATE.md`
-- `governance/ACTIVE_ASSIGNMENTS.md`
-- `governance/ROLE_REGISTRY.md`
-- `governance/MODEL_ROUTING_POLICY.md`
-- `governance/MULTI_AGENT_POLICY.md`
-- `governance/AGENT_REPORT_PROTOCOL.md`
-- `governance/roles/PRINCIPAL_ARCHITECT_RED_TEAM.md`
-- `governance/agent_reports/architect-01/REQUEST.md`
-- `TASK_PROGRESS_R2.md`
-- `AIOS宪法2.0.txt`
-- `AIOS宪法2.0及开发规格修改案_R1.md`
-- `AIOS宪法2.0及开发规格修改案_R2.md`
-- `AIOS_Core_详细开发任务拆分_R2_总工程师版.md`
-- all M0 `*_final_PASS_2026-09-14.md` reviews present at the production head and the associated M0 evidence inventory
-- all current production modules under `src/aios_core`, the architecture tests, contract/unit tests, and the M0 Gate fixtures
-- `schemas/r2/m0_contract_snapshot.json`
-- `tests/unit/contracts/test_m0_schema_snapshot.py`
-- `tests/integration/test_m0_gate_fixtures.py`
-- `reviews/M0/M0-022_chief_gate_ready_2026-09-14.md`
-- `reviews/M0/evidence/M0_022_GATE_PACKET.md`
-- Git history/diff from `8818dba...` through candidate `95cec414...`, plus later review/evidence-only production commits through `1ea11a1...`
-- GitHub Actions run `34814629456`, job `103882644741`, including raw log
-- GitHub Actions bootstrap run `34814547088`, job `103882399817`, including raw log
+直接 git fetch GitHub 仓库 `Haneof/fantonghui`，在 detached worktree 检查 `268d403836b107a1969a9a5d8b85e4955baec9bf`。本轮治理 HEAD 观察值为 `afcd92459a9ed3941811152c45e7b7c4d8acf4c5`。
 
-Note: the two M0-022 review/evidence files are later production-branch documentation commits (`f7f9071...`, `d4a6e55...`) and are not present in candidate `95cec414...` itself. That is acceptable as evidence-location chronology, but they must not be represented as files contained in the candidate tree.
+| 项目 | 独立核验结果 |
+|---|---|
+| 原 candidate | 95cec4142bdd9a87011bbad197e05ec1d27aeb57，是本轮 candidate 祖先 |
+| 本轮 candidate | 268d403836b107a1969a9a5d8b85e4955baec9bf |
+| production archive | 83577317e96224f9cdb271a8a835a4e48f3aa78c；相对 candidate 仅 TASK_PROGRESS_R2.md 变化 |
+| B1/B3 | 8ab574c6b33b2238b468c812992a92ba56ab3f71 在祖先链中；fingerprint 文件先由 6d519bd1398b21f9a59b18df2905d306effb6a8a 引入 |
+| B2 | e06bc80e43ea26be2be726232158cb2719092f11 在祖先链中，新增静态政策测试 |
+| B4/B5 | a99326c5034118b3a497e3be0d53ac9466445467 在祖先链中 |
+| 268d403 diff | 只修改 tests/unit/test_world_revision_atomicity.py 的异常预期及说明；没有改变生产语义 |
+| 原 candidate 到本轮 production diff | 仅 storage/idempotency.py 和 storage/sqlite_store.py；contracts/query/dependency helpers/state machines/schema 均无 diff |
+| 第一轮报告 | c6b0191797ab3ef06b4ee031003431a0d9527d48，仅作为待验证输入 |
+| 另一红队 | 42f19a3f39a1e4ac375ac315d6dcf8f487725830 的报告，读取其 B4/B5/R3、residual 与定级分歧 |
 
-## 3. Mechanical verification
+本轮读取/定位的治理文件：AGENTS.md、CONTROL_PANEL、CURRENT_STATE、ACTIVE_ASSIGNMENTS、REQUEST、REREVIEW_REQUEST、PRINCIPAL_ARCHITECT_RED_TEAM、AGENT_REPORT_PROTOCOL，以及本对话前轮已读取的 ROLE_REGISTRY / MODEL_ROUTING_POLICY / MULTI_AGENT_POLICY。当前授权明确允许独立复审并替换本报告。
 
-- Candidate checkout: exact detached `95cec4142bdd9a87011bbad197e05ec1d27aeb57`.
-- Local Python 3.12 / pytest 8.4.2 run: `391 passed`, with the one known Pydantic serializer warning in `test_e23_time_range_mutation`.
-- Cloud green CI: exact candidate SHA; job conclusion `success`; formal suite collected and passed 391 tests; Reference step passed 15 tests; CPython 3.12.14.
-- Bootstrap CI: job conclusion `failure`; formal result was exactly `390 passed / 1 failed / 1 warning`; the failure was `test_m0_schema_snapshot_matches_frozen_contract`, where expected `{}` differed from the emitted generated snapshot. The four Gate fixtures passed before that failure. The Reference step was skipped because pytest failed.
+本轮重新核对的权威章节：宪法/R1/R2 的隔离、时间、证据与冻结条款；R2 §5.2/5.3；权威 taskbook §0.3、M0-001/002/006/009/015/016/017/018/019/020/021/022、M1-006，以及 Session/M2 绑定条款。没有把前轮“全部源码已读”的广泛声明当成本轮证明；本轮重点是 patch 全文、未变模块对照和完整回归。
 
-### Bootstrap finding
+重点源码/测试：storage/idempotency.py、sqlite_store.py；contracts/base.py、models.py、operations.py、errors.py；query/history.py、dependency/graph.py、services/state_machines.py；tests/unit/test_m0_gate_blockers.py、test_m0_gate_followup.py、test_operations.py、test_world_revision_atomicity.py、test_history_m020.py、M0-019 / EvidenceSet / Dependency / state-machine tests；tests/architecture/test_boundaries.py、test_worker_static_policy.py；snapshot test 和四个 fixture。
 
-The team's narrow explanation is supported by the raw log and commit sequence (`189f874...` test, `0ab566c...` empty seed, `6f08930...` fixtures, `95cec414...` generated snapshot). I found no evidence that bootstrap run `34814547088` hid another failing invariant. It is benign only as a one-time capture mechanism; it is not evidence that the captured schema is semantically complete.
+Chief reviews 已从真实生产树读取：
 
-## 4. Reproducible blockers
+- reviews/M0/M0_gate_blocker_resolution_2026-09-14.md
+- reviews/M0/M0_gate_followup_B4_B5_R3_2026-09-14.md
+- M0-009/016/017/020/021 的冻结 review（前轮读取与本轮涉及章节复核）
 
-### B1 — altered request with reused idempotency key is silently accepted
+## 3. CI、失败归因与本地运行
 
-- Severity: Critical / M0 Gate blocker
-- Frozen contract to reopen: M0-016 (`cdbd7ff1d42ba292a2e0ca9972f0c9eccd4666c3`), with storage behavior inherited by M0-017/M0-018 and candidate `95cec414...`
-- Affected files: `src/aios_core/storage/sqlite_store.py`, `src/aios_core/contracts/operations.py`, `tests/unit/test_operations.py`
+| 证据 | 结果 |
+|---|---|
+| run 34823226166 / job 103909332923 | checkout 268d403...；CPython 3.12.14、Pydantic 2.13.5、pytest 8.4.2；405 passed / 1 warning；Reference 15 passed；SUCCESS |
+| run 34822952167 / job 103908457587 | checkout 6adacd45c0ed6392017742365d9c9850b75ee0c4；404 passed / 1 failed / 1 warning；Reference skipped |
+| exact candidate 本地 | CPython 3.12.14 / pytest 8.4.2；formal 405 passed / 1 warning；Reference 使用自身 src PYTHONPATH 后 15 passed |
+| 独立探针 | 31 passed / 2 deliberate warnings；其中若干测试是“断言漏洞仍存在”，绝不代表 31 个 invariant 全部成立 |
 
-Minimal counterexample:
+失败 run 的唯一失败是 `test_w02_failed_mid_insert_rolls_back_the_entire_world_transaction`：触发器确实抛 `sqlite3.IntegrityError: forced M0-018 mid-transaction failure`，新的 `_connection` 将其包装为 StoreError，而旧测试只捕获 raw IntegrityError。268d403 保留了五表 rollback/no-gap 断言，只改预期异常类型及 code/reason。**“旧测试期待过时”这一窄解释成立；“所有 B5 错误分类已经正确”不由此成立。** 失败 run 本身未走到异常上下文后的 rollback 断言，不能单靠它证明原子性；本轮通过完整绿色测试与额外故障探针验证了该点。
 
-1. Commit object `o@1` with `operation_id=op1`, `idempotency_key=K`, arguments `{value: ORIGINAL}`, expected world revision 0.
-2. Submit a different object `evil@1` with `operation_id=op2`, the same key `K`, arguments `{value: ALTERED}`, and even expected world revision 999.
-3. `SQLiteWorldStore.commit()` executes `_get_idempotent_result()` before comparing any request fingerprint and returns the result for `op1` with `idempotent_replay=True`.
-4. No `IDEMPOTENCY_CONFLICT` is raised; the returned operation ID is `op1`, and the second caller receives a success-shaped result for a request that was never executed.
+测试命令：
 
-Observed output:
+```sh
+python -m pytest tests -o addopts='' -q
+PYTHONPATH=aios_core_r2_reference/src python -m pytest aios_core_r2_reference/tests -o addopts='' -q
+PYTHONPATH="$PWD/src" python -m pytest /path/to/redteam_reaudit.py -q -s
+```
 
-`IDEMPOTENCY_ALTERED_REPLAY {'operation_id': 'op1', 'world_revision': 1, 'object_refs': [('o', 1)], 'idempotent_replay': True}; evil_exists=False`
+附录提供独立探针全文。探针初版因 `contracts.__all__` 导致 wildcard import 缺少名称而失败；改成显式 import 后再运行。该初版失败是审计 harness 错误，未计作生产问题。
 
-Mechanism: `idempotency_records` stores only key → prior result/operation, while replay does not compare canonical operation name, arguments, object payload/object refs, session, or operation identity. The existing tests retry the exact same request only. The presence of `ErrorCode.IDEMPOTENCY_CONFLICT` does not make this path safe because the store never emits it here.
+## 4. B1 复审：普通路径关闭，B6 仍阻止整体关闭
 
-Why it breaks M1–M8: network retry bugs, key reuse, crash recovery, or an altered action/write can be acknowledged as the wrong prior operation. A Worker may checkpoint false success, omit intended world changes, or associate the wrong external action with a durable result. This destroys trustworthy replay and audit semantics.
+逐字段独立改变 operation_id、session_id、operation_name、arguments、expected_world_revision、reason：均 IDEMPOTENCY_CONFLICT，且比较 world_meta/world_commits/object_revisions/operations/idempotency_records 五表，状态逐项不变。
 
-Minimum repair boundary:
+改变对象 ID/集合/revision/payload：均拒绝。arguments 字典键顺序与 objects 输入顺序改变：仍可 replay。正常 exact retry 在旧 expected revision 检查前 replay，重开 store 后相同。两个同步起跑的 same-key/different-request writer：一个成功，另一个 IDEMPOTENCY_CONFLICT，世界只推进一次。
 
-- define and freeze the canonical idempotency request fingerprint (at minimum operation name, normalized arguments, intended object IDs/revisions and canonical serialized payloads; decide explicitly whether operation_id/session/reason/expected revision participate);
-- persist that fingerprint atomically with the idempotency record;
-- exact match returns the prior result before stale-world checking;
-- same key plus non-matching fingerprint returns `IDEMPOTENCY_CONFLICT` without mutation;
-- add restart, concurrent-writer, crash/replay, and altered-object/request tests.
+从原 95cec41 store 实现创建的旧格式数据库（相同当前模型，模型文件未变）在新 store 上正常 replay，并拒绝 altered payload；未运行 ALTER/migration。重建正常 durable JSON 请求时，operation row 加该 world revision 的所有对象确实足够，因为一次 world commit 对应唯一 operation。
 
-### B2 — AI Worker raw SQLite isolation is not an enforceable architecture boundary
+但“重建等价于原始请求”只在序列化输入与持久化输出相同的前提下成立。此隐藏前提被 B6 推翻。
 
-- Severity: High / foundational isolation blocker
-- Frozen contract to reopen: M0-001 and the isolation claim repeated in M0-017 (`c9bd2d85ff0047515f6f4cc5b9e7058c70cff6dc`)
-- Affected files: `tests/architecture/test_boundaries.py`, `tests/architecture/test_scanner_regression.py`, package/runtime topology under `src/ai_worker` and `src/aios_core/storage`
+### B6 — pre-validation fingerprint 与 post-validation durable payload 不一致
 
-Minimal counterexamples that the scanner reports as legal:
+分类：**BLOCKER / High**。受影响 candidate：268d403...；引入比较路径的 patch：8ab574c...，fingerprint 文件 6d519bd...。受影响冻结契约：M0-016 safe retry、M0-009 persistence normalization；需重开/保持 M0-016 reopened，不必改世界对象字段。
 
-- `__import__('sqlite3').connect(path)`
-- `import importlib; importlib.import_module('aios_core.storage').SQLiteWorldStore(path)`
-- a helper module outside `src/ai_worker` imports storage and hands the Worker a store/connection
-- dependency injection passes a `sqlite3.Connection` or `SQLiteWorldStore` object into Worker code
+最小复现：
 
-The scanner visits only static `ast.Import` and `ast.ImportFrom` nodes in `src/ai_worker`. The packages execute in the same Python process/environment; `aios_core.storage` publicly exports `SQLiteWorldStore`; there is no process boundary, capability-limited interface, restricted import environment, or runtime authorization check.
+1. 创建合法 Observation o@1 并提交。
+2. 创建合法 EvidenceSet es，随后执行 `es.coverage.observed_count = "1"`。EvidenceCoverage 未开启 validate_assignment，此操作不报错。
+3. `store.commit([es], request)` 成功；durable revalidation 将字符串 `"1"` 规范化为整数 `1`，存储 payload 为整数。原来的 es 实例未被修改，仍含字符串。
+4. 重启 store，再次 `commit([es], 同一 request)`，返回 IDEMPOTENCY_CONFLICT。
 
-Why it breaks M1–M8: once Worker code becomes non-empty, accidental or agent-generated indirect access can bypass Core query/write policy, snapshot enforcement, reference validation, hidden-truth separation assumptions, and audit/idempotency. Tests currently prove only that prohibited literal import statements are absent.
+机制：idempotency `_object_entries()` 使用传入 obj.model_dump_json()；原请求 fingerprint 从 durable object_revisions 重建，该 payload 来自 `type(obj).model_validate(obj.model_dump(...))` 的新实例。第一次没有 key 时不计算/存储 incoming identity，也没有检验规范化前后是否一致。因而同一被接受请求对应两个 fingerprint。
 
-Minimum repair boundary: Chief must choose and freeze whether this is (A) a trusted-code lint convention, in which case governance/reviews must stop claiming “cannot obtain raw connection”, or (B) a real capability boundary, in which case Worker must run behind a narrow Core API/process boundary and never receive DB paths/connections/storage objects. Add adversarial dynamic-import, alias/helper, and dependency-injection tests appropriate to the chosen threat model.
+现有测试为什么没抓住：B1 tests 都使用规范化后的普通 Observation；M0-009 mutation tests 只检查非法值被拒绝，没有检查“可被 coercion 接受的 mutation”成功后重试。serializer warning 不使第一次提交失败，不能当作拒绝证据。
 
-### B3 — proof cycles can be durably persisted without invoking the cycle guard
+M1–M8 风险：崩溃/网络丢回执后调用方无法恢复同一已成功操作，可能转用新 key 或进入错误恢复路径。当前实现并未重复写入，但破坏 safe exact retry 的基础承诺。
 
-- Severity: High
-- Frozen contract to reopen or explicitly narrow: M0-015 (`3b4e8b603e52830d8be44d33141f722bbba244a0`)
-- Affected files: `src/aios_core/dependency/graph.py`, `src/aios_core/storage/sqlite_store.py`, future dependency service boundary, `tests/unit/test_dependency.py`
+最小修复边界：Chief 选择一致的 identity 规则。推荐将可接受输入规范化与 durable request identity 固定为同一表示；如果必须严格保留当前 replay→expected→full validation 顺序，可在首次写入拒绝会改变 durable serialization 的未规范化输入，或持久化原请求 identity 并制定显式兼容策略。不能只在发生 conflict 后把所有 mismatch 吞掉。新增 coercible nested mutation、重启 replay、同 payload 不同内存表示测试。任何验证顺序改变必须明确复审，不能为了 B6 破坏 stale replay。
 
-The cycle helper correctly detects a supplied collection such as `A@1 -> B@1 -> C@1 -> A@1`. However, `SQLiteWorldStore.commit()` validates each `Dependency` structurally and validates endpoint existence, but never loads the existing dependency graph or invokes `validate_dependency_graph_acyclic`. No current dependency service enforces it. Therefore a caller can persist the edges over one or more commits, and nothing marks the graph invalid.
+### B7 — OperationRequest 赋值校验失败后仍可落库
 
-This contradicts the final review's broad wording that multi-node proof cycles are “detected and rejected” and the taskbook acceptance that constructed evidence cycles are rejected or flagged. The tests only call the helper directly.
+分类：**BLOCKER / High（durable audit contract）**。受影响 commit：M0-016 cdbd7ff1d42ba292a2e0ca9972f0c9eccd4666c3 至本轮 candidate 均保留此路径；本轮新增发现，不是 B1/B3 patch 新引入。文件：contracts/operations.py、storage/sqlite_store.py、tests/unit/test_operations.py。
 
-Why it breaks M1–M8: correction propagation and confidence/provenance traversal can enter self-supporting loops; an AI inference can indirectly become evidence for itself; reverse impact traversal may avoid infinite loops using `visited`, but that does not make the proof epistemically valid.
+最小复现：
 
-Minimum repair boundary: define the single authorized `dependency.create` persistence boundary, check the union of durable exact-version edges and pending edges atomically, reject/flag cycles there, and prohibit generic callers from persisting Dependency outside that boundary. Test cycles split across commits, same-transaction cycles, concurrent stale writers, and exact-revision correction chains.
+```python
+r = op()
+try:
+    r.reason = " "
+except ValidationError:
+    pass
+assert r.reason == " "
+store.commit([obs()], r)  # 成功
+assert store.operation_record(r.operation_id)["reason"] == " "
+```
 
-## 5. Mandatory attack areas
+Pydantic after-validator 在赋值后抛错，并不恢复旧字段。store 只重验 WorldObject，不重验 OperationRequest；空白 reason 满足 SQLite NOT NULL，成功写进 operations 和 world_commits。相同机制可影响使用 after-validator 检查的空白身份字段。
 
-1. **Canonical timeline:** aware datetime validation, instant comparison via UTC, IANA Task timezone validation, and fixed-shape UTC index values are sound for covered cases. `occurred`, `learned_at`, and `recorded_at` are distinct. Residual: stored payload retains original offsets while indexed columns are UTC; consumers must compare instants, not payload strings.
-2. **Knowledge Cutoff:** store selection correctly intersects `learned_at <= cutoff` with optional world revision and chooses the newest visible object revision. No direct future-payload leak was reproduced when both constraints are used. Residual: cutoff alone is not a session snapshot; backfilled objects with old `learned_at` become visible to a later retrospective query. Session consumers must always pin world revision.
-3. **Object vs world revision:** separated and transactionally enforced; object revision is `+1`, one commit advances one world revision, rollback/concurrent stale writers are covered. Same object cannot currently contribute multiple sequential revisions in one commit; this is acceptable unless a later bulk-import contract requires it.
-4. **Pinned/floating refs:** evidence/provenance paths are mostly pinned; floating refs intentionally remain for identity/navigation. Same-transaction existence and learned-time visibility work. Residual: `KnowledgeWindow.world_revision` is not cross-checked against referenced objects or the resulting transaction revision; same-transaction EvidenceSet fixtures use window revision 0 while citing an object that becomes visible at revision 1. This needs an explicit Chief ruling before relying on that field for reproducible evidence snapshots.
-5. **Persistence mutation:** generic Pydantic graph revalidation blocks tested post-construction mutations. Plain `metadata`/arbitrary dictionaries are intentionally opaque and are not reference contracts. The durable boundary is effective for declared model refs.
-6. **Claim epistemics:** `claim_type` and `knowledge_state` are distinct; claimant and subject are distinct; FACT does not mechanically imply truth/confidence. Core intentionally performs structural, not semantic truth judgment. Fixture coverage is narrow and does not prevent a caller from constructing semantically bad FACT claims; later services/evaluators must enforce policy.
-7. **EvidenceSet:** fixed cutoff, pinned lists, selector time extent, roles, coverage, stale field, and mutation defense exist. Risks: role lists need not be subsets/partitions of `member_refs`; coverage fields have no internal arithmetic consistency rule; selector reproducibility depends on future materialization service; `knowledge_window.world_revision` inconsistency noted above.
-8. **Entity identity:** stable object ID survives canonical name/alias revision; canonical name is not a key. Identity claims are pinned. Merge/split/entity-resolution service semantics remain deferred, so long-term deduplication correctness is not yet proved.
-9. **Relation/Event/DimensionDerivation/Goal replay:** pinned provenance is strong where validators require it; Relation endpoints and Event participants intentionally float for entity navigation. Event revisions preserve explicit history fields. Goal status/progress proof and several generic related refs depend on later services/Dependency records.
-10. **Dependency:** exact-version reverse scan and in-memory cycle detection work; persistent reverse index/correction propagation are correctly deferred. Durable anti-cycle enforcement is missing (B3).
-11. **Goal != Task:** separate object types/lifecycles are frozen; the fixture proves Task completion does not mutate Goal in the generic store. It does not prove future goal assessment services will require success criteria/evidence.
-12. **Task/Wake/Session/Action/Outcome:** separate contracts exist; Wake is not Observation; Action and Outcome are distinct; no automatic message-delivery=help-success rule exists. `Outcome.outcome_state` is an open string, so `UNKNOWN` can be represented but not canonically constrained. Full runtime semantics are deferred.
-13. **execution_id/OperationRequest/idempotency:** `execution_id` is a stable field but uniqueness/external side-effect recovery is deferred. OperationRequest audit and stale-writer checks work. Altered-request idempotency fails critically (B1).
-14. **SQLite atomicity:** `BEGIN IMMEDIATE`, one global revision per multi-object commit, validations-before-inserts, rollback, stale writer, restart, WAL, and foreign keys were verified. Simulated process kill at every SQLite instruction was not performed; SQLite transaction guarantees are relied upon.
-15. **Session snapshot isolation:** the historical query facade can pin a supplied revision, but `Session.snapshot_world_revision` is data only. Nothing automatically binds all reads during a Session to it. The M2 workspace/session executor is explicitly deferred; it must be a Gate before Worker reads become real.
-16. **Worker DB isolation:** failed as a real architectural constraint (B2). Current evidence is only static lint plus an empty Worker package.
-17. **Task/Event state machines:** transition matrices and revision helpers are correct and exhaustive. Generic store accepts a direct `COMPLETED@1 -> RUNNING@2` write if the caller skips the helper; reproduced output was `TERMINAL_RESURRECTION_PERSISTED running`. M0-021 review explicitly calls storage enforcement a non-goal and requires later state-changing Core services to invoke validators. This is therefore a mandatory future service Gate, not an additional undisclosed M0-021 blocker.
-18. **Schema snapshot:** useful for Pydantic JSON-schema shape, enum values, and explicit Task/Event maps. It cannot detect validator-body, query, persistence, dependency-graph, permission-boundary, normalization, or idempotency semantic changes. Removing `EvidenceSet` cutoff validation or changing `SQLiteWorldStore.commit()` behavior leaves the snapshot unchanged. The broad-coverage test counts models/enums but does not bind behavioral contracts. Treat it as structural drift detection only.
-19. **Four fixtures:** all four pass, but each is a narrow demonstrator. Sports-day manually calls the validator and omits evidence/provenance; unknown-person proves nullable name round-trip but not later identity resolution; future-prediction proves one well-formed prediction but not prevention of semantic promotion; Goal/Task proves no generic-store side effect but not future service behavior.
-20. **Authority documents:** R2/taskbook and frozen code are broadly aligned on the inspected M0 structures. Two scope/wording conflicts require Chief clarification: (a) M0-001/M0-017 say Worker cannot obtain raw SQLite while implementation provides only lint; (b) M0-015 review says cycles are rejected while implementation only offers an optional helper. `TASK_PROGRESS_R2.md` differs between the production candidate lineage and governance current-state summary due to historical progress commits; governance is clearly intended as the current control plane, but progress documents should be reconciled after the Gate.
+现有 `test_o04_validate_assignment_keeps_frozen_operation_identity_valid` 只断言赋值抛错，不检查异常后对象状态或持久化拒绝。因此测试名/结论强于证据。
 
-## 6. Gate fixture evaluation
+违反 M0-016 的非空白 identity/reason 契约，破坏 M1–M8 操作审计可信性。最小修复：对 operation 做一致的不可变快照及必要的边界重验证，或在字段写入前校验/冻结请求；保留精确 replay 优先规则，测试失败赋值后 commit、嵌套 arguments mutation、成功审计行 round-trip。保持 M0-016 reopened；不是要改变错误枚举。
 
-| Fixture | What it proves | What it does not prove |
+## 5. B2、B3、B4
+
+### B2 — CLOSED NOW（当前威胁模型声明）；M1 wiring 仍强制 Gate
+
+taskbook M0-001 §C 明确允许 import-lint 或测试扫描，§D 明确模块化单体，§F 无业务 API、只冻结模块依赖。§0.3 不要求微服务。M0-017 §I 禁止 Worker 获得 connection，解释为 reviewed production wiring 禁止注入 capability 与上述文字一致；它没有要求在 M0 执行不可信 Python。
+
+README §6 原本已明确“代码架构政策检查，不是操作系统级安全沙箱”；本轮新增 test_worker_static_policy 与 Chief review 明确同一范围。旧 M0-017 review 的“因此没有暴露”只能作为历史窄主张，不能再当 sandbox proof；新裁决已明确取代更强措辞。本轮检索没有发现新增文档继续宣称恶意 Python 技术上绝对无法绕过。
+
+静态 scanner 确实检查 __import__('sqlite3')、importlib.import_module('aios_core.storage') 及常见 importlib 别名。旧 test_boundaries scanner 本身仍只检测静态 import，新测试补充该缺口；不能混淆两者。任意计算字符串、辅助模块、依赖注入等不是其可完备证明范围。Worker 当前只有 docstring，未发现生产注入路径；这只证明当前无 wiring，不证明未来安全。
+
+M1 启用 Worker I/O 前检查 DB path/Connection/store/raw-read capability 的所有构造、参数、闭包和返回值路径；不把 HistoricalWorldQuery 的可选 cutoff 直接暴露为安全 AI query。执行 untrusted Python 前必须重新做真实隔离 Gate。
+
+### B3 — CLOSED NOW（标准 Dependency 模型的当前 exact-version graph）
+
+实测 same-tx 两边/三边环、跨提交两边/三边环全部 DEPENDENCY_INVALID，五表不变。Dependency d@2 替换 d@1 时，图按 latest durable + pending replacement 计算，旧 edge 不错误残留；新闭环仍拒绝。并发反向边使用同一 expected snapshot 时一个成功、另一个 VERSION_CONFLICT；输家刷新 expected 后补环则 DEPENDENCY_INVALID。
+
+exact-version distinction 实测 a@1→b@1→a@2 可提交，这是 exact graph 中的非环，不应按 stable ID 误杀。普通 Relation 环与 generic Holder 之间 mutual refs 仍合法。全套 Dependency/Relation tests 通过。
+
+判环位于 BEGIN IMMEDIATE 内、writes 前，仅针对 isinstance(Dependency) 的 pending 模型和 durable Dependency rows；未加入 M3 reverse index/自动修正。当前图判环不能等同“所有历史版本和所有高层 provenance 自证都已解决”；M1 构造标准模型/生成依赖边，M3 独立依据和跨 revision 增信规则仍必须 Gate。未来不能允许用非标准 WorldObject 子类伪装 Dependency 绕过这一 dispatch；当前 production wiring 未提供该入口。
+
+### B4 — CLOSED NOW
+
+现有 Claim ObjectRef、SourceRef tests 通过；新增 generic typed Holder floating self 测试拒绝并逐表比较零 mutation。统一 recursive collector 的 guard 在 lookup/pending fallback 前拒绝 same object_id 的 None/current revision。历史 X@2→X@1 成功；已有 cutoff tests 验证历史目标仍需可见。两个不同 stable IDs 的 same-tx mutual refs 成功，不把整个世界图变成 DAG。
+
+## 6. B5 — 部分修复，不能整体关闭
+
+已关闭：operation_id 已提交后换 key → IDEMPOTENCY_CONFLICT；真实 BEGIN IMMEDIATE 锁重叠 → VERSION_CONFLICT / storage_busy；mid-insert trigger abort 完全 rollback；解除锁/删除故障 trigger 后同请求正常提交、不消耗 revision。
+
+额外进程故障：独立子进程在第一个 object INSERT 实际完成、transaction 尚未 commit 时 os._exit(77)。重开数据库五表与故障前相同；同请求可在 world revision 1 成功。该测试是 crash-before-commit，不声称覆盖 fsync、电源丢失或所有 commit syscall 边界。
+
+### B5-a — raw connect failure（未关闭，BLOCKER / Medium）
+
+`SQLiteWorldStore(tmp_path / 'missing' / 'x')`（父目录不存在）抛出 raw sqlite3.OperationalError。`sqlite3.connect(...)` 在 `_connection` 的 try 之前，不受新 mapping 覆盖；每次读写都重新连接，因此已创建 store 的底层路径变得不可用也有同类风险。修复范围：a99326c... 的 `_connection` 连接生命周期，含安全 close/初始化错误。无需改变数据库 schema。现有 lock test 只让 BEGIN IMMEDIATE 失败，未攻击 connect。
+
+### B5-b — 非 lock 故障被归为 INVALID_ARGUMENT（RULING REQUIRED）
+
+在 disposable DB 中移除 operations 表以模拟 schema 损坏/不匹配，然后提交完全合法请求：返回 StoreError(INVALID_ARGUMENT, reason=sqlite_operational_error)，cause 为 no such table。此请求参数无错；刷新或改请求无法修复内部 schema。该 fault injection 不声称正常用户能通过公开 API 删除表，而是攻击明确要求的基础设施故障分类。
+
+source `_connection` 将所有 IntegrityError 和非 lock OperationalError 一概映射 INVALID_ARGUMENT；sqlite3.DatabaseError 的其他子类也未统一处理。锁判定基于错误文本中的 locked/busy 子串，而非 SQLite result code，不能作为完备分类。
+
+冲突来源：M0-002 §A 要求可机器分支、避免错误恢复；B5 当前 patch 却把内部实现故障归到输入错误。冻结 ErrorCode 没有明确 INTERNAL/STORAGE_FAILURE 类别。
+
+方案 A：正式扩充协议，区分 storage unavailable/internal/corruption 与 invalid request，保留诊断 cause；优点恢复语义明确，代价需重开 M0-002/schema snapshot。
+
+方案 B：维持 ErrorCode 集合，但正式定义非输入故障的 envelope/context 和停止/重试规则，并要求所有 consumer 按该契约分支；代价是 code 单独不再足够，不能仍称 INVALID_ARGUMENT 为纯输入错。
+
+推荐 A，至少不得把 no-table/read-only/disk/I/O 故障默认为可通过修改请求修复。chief 必须选择；未实现的 M2 retry engine 不使当前错误分类自动正确。B5-a 可独立修复，B5-b 裁决需先于 frozen protocol 关闭。
+
+## 7. R3 与 R4
+
+### R3 — ACCEPTABLE M0 RESIDUAL — M1 GATE / M2 GATE
+
+精确 P6 前提“recorded_at 比 learned_at 更早”不能经正常模型+store 写入：base.validate_times 要求 recorded_at >= learned_at；本轮实测模型拒绝，不能偷偷绕验证构造后声称正常 API 漏洞。
+
+真正可行的等价攻击：现在 commit 一个 learned_at=明天、recorded_at=后天的对象（committed_at 是物理提交时间）。只传 world revision 会返回它；只传今天 cutoff 则隐藏它。另在 world 2 新增 learned_at=今天的回填对象，cutoff-only 会看到，但 world 1 + cutoff 不可见。双透镜严格交集成立。
+
+taskbook M0-020 §D 明确“后续 query 服务包装”，M0-020 review 接受独立透镜。没有找到要求删除 M0 内部单透镜 API 的原文，因此接受 Chief scope。M1 public historical AI view 必须双绑定，M2 每次 Session read 必须沿用固定 world+knowledge boundary，refresh 必须显式。当前 HistoricalWorldQuery 可省略 cutoff，不能直接把这个 facade 当作已满足上述 public Gate。
+
+### R4 — EvidenceSet 成员/冻结窗口一致性：RULING REQUIRED
+
+实测：o@1 learned_at=10:00；es learned_at=10:00、knowledge_window.cutoff=09:00、world_revision=1、member_refs=[o@1]。commit(es) 成功；但用 es 自己的双透镜读取 o@1 会 NOT_FOUND。不是普通 query 双透镜实现出错，而是 durable EvidenceSet 自称的窗口与成员矛盾。
+
+source 只检查 es.cutoff<=es.learned_at；store refs 全用 es.learned_at，而不是 es.cutoff。member/support/counter/context 均经同一宽窗口处理。现有 E13 只比较 cutoff 与 EvidenceSet 本身 learned_at，没比较成员。
+
+冲突来源：R2 §5.3 要保存“当时的信息截止时间”和“成员版本或可重建成员集合”；M0-006 §D 要存储引用在 cutoff 内可见；另一方面 M0-009 review 明确 world_revision 只是 round-trip、M1-006 才负责真实赋值；M1-006 §C/D 明确 selector 按 cutoff 材料化并冻结 world/cutoff。
+
+方案 A：M0 durable boundary 对 EvidenceSet 成员使用 frozen cutoff，另裁决 same-tx world_revision（不能简单禁止所有当前 pending refs）；修复现存自相矛盾 snapshot，需重开 M0-009/019。
+
+方案 B：M0 仅保存待服务验证的结构，M1-006 负责成员时间/世界范围/角色一致性，所有消费者在该 Gate 前不得信任或展开此为有效 proof；允许后移但必须明确标识未验证状态与禁止使用规则，不能继续泛称 durable EvidenceSet 已具可复核快照保证。
+
+推荐 A 对 learned cutoff 先做最小约束，并正式裁决 same-tx world semantics；若 Chief 选择 B，需书面缩窄当前 guarantee、冻结 M1-006 验证入口。本轮不单方面选择一种解释“消掉”冲突。此问题前轮已作为 residual 出现，故不冒称全新 B 编号。
+
+## 8. M0 全局 regression
+
+| 领域 | 结论与限制 |
+|---|---|
+| M0-009 顺序 | 当前仍 replay/conflict → reused operation_id check → expected world → WorldObject revalidation → revision/type → reference → Dependency graph → writes。B6 暴露前后表示不一致，B7 暴露 operation 未重验；没有把它们误报为所有对象重验失效 |
+| M0-018 | 一事务一 world、object +1、mid-insert rollback、无 gap、stale writer/race、crash-before-commit 均通过 |
+| M0-019 | missing ref、same-tx、mutual non-proof、floating/current self、历史 pinned self 回归通过 |
+| M0-020 | exact object/world/cutoff 交集通过；mutable subject 在选择最新可见 revision 后过滤，无旧 subject resurrection；public binding 留待 R3 Gate |
+| M0-021 | 完整矩阵及 revision helpers 通过。generic store 可绕 helper 的事实仍在，按 taskbook/冻结 non-goals，由 M1 Event 和 M2 Task service 强制调用；未声称 storage 已强制 domain transition |
+| Claim/Entity/Relation/Goal/active contracts | 全套回归通过，production contract 文件未改；不声称测试证明语义真值、Goal 达成或外部动作效果 |
+| Structural snapshot | 候选文件与原 candidate 未变，测试通过。独立在内存将 _reference_exists 改为永远 True 后 snapshot 完全相同，实证 behavioral false-green；未改任何 production 文件 |
+
+四个 mandatory fixture 均绿，解释边界如下：sports-day 证明 Event revisions 可读，不证明多模态证据推理或持久边界强制 transition；unknown-person 证明 nullable name/alias 保存，不证明身份消解；future-prediction 证明指定类型 round-trip，不证明语义防升格；Goal/Task 证明 Task 完成不自动改 Goal，不证明 assess_progress 正确。它们满足 M0 的具名 fixture 要求，不能用作 M1/M2 服务的替代 Gate。
+
+## 9. 十项 residual 分类（全部列出）
+
+| 项目 | 分类 | 必须执行的后续边界 |
 |---|---|---|
-| sports-day | two Event revisions can be stored and read by world revision | evidence-backed event creation, automatic transition enforcement, revise/reject/merge/split provenance |
-| unknown-person | nullable canonical name, alias, empty identity refs persist | stable identity resolution, collision/merge handling, later pinned identity claim behavior |
-| future-prediction | one prediction remains typed prediction after round-trip | semantic prevention of future FACT creation or high-confidence promotion |
-| Goal/Task | completing a Task does not automatically mutate an already stored Goal | goal assessment service cannot equate task completion with achieved criteria |
+| 1 EvidenceSet member learned_at vs cutoff | RULING REQUIRED | R4；world_revision/same-tx 与角色/coverage 一并明确。不能自动接受前轮 residual 标签 |
+| 2 ObjectRef/SourceRef endpoint type | ACCEPTABLE M0 RESIDUAL — M1 GATE | 本轮实测 Claim.support_evidence_set_refs 指向 Observation 可提交；M1 各 typed service 验证端点类型和标准模型 registry，禁止非标准子类冒充正式类型 |
+| 3 plain dict pseudo-ref | ACCEPTABLE M0 RESIDUAL — M1 GATE | 本轮实测 metadata 内 missing dict ref 可存；opaque data 不自称 ref，但 consumer 一旦解释成引用必须转正式类型并重验，禁止旁路 provenance |
+| 4 recorded_at ownership | RULING REQUIRED | committed_at 是实际物理 clock，recorded_at 目前由调用方提供且必须>=learned。预载未来资料与“实际写入时间”字面冲突须定所有权；建议保留物理 committed_at、明确模拟时间/导入时间，M1 ingestion 不允许任意伪造知识时间 |
+| 5 open-string status | ACCEPTABLE M0 RESIDUAL — M2 GATE | Outcome UNKNOWN/Session 状态、Task/Action 恢复词汇须在 runtime 启用前冻结；M1 Evidence/Goal service 先约束其状态/判定，不能把 Task complete 当 Goal achieved |
+| 6 schema behavioral false-green | ACCEPTABLE M0 RESIDUAL — M1 GATE | 当前仅称 structural snapshot；未来每个 invariant 有直接 adversarial test 和 code review；不要求纯 JSON Schema 承担行为证明 |
+| 7 reverse index/correction propagation | ACCEPTABLE M0 RESIDUAL — M3 GATE | durable exact graph 判环只解决当前显式 edges；M1 正确生成依赖，M3 独立依据、跨 revision 自证、stale/rebuild 与修正传播都必须验证 |
+| 8 CI dependency drift | ACCEPTABLE M0 RESIDUAL — M1 GATE | 当前依赖范围 pydantic>=2.10,<3 / pytest>=8,<9，ubuntu-latest/action tags 非锁定。该次 3.12.14/2.13.5/8.4.2 已核验，不能推广到未来；M1 建可重放锁定/版本升级回归政策 |
+| 9 Worker raw-read future capability | ACCEPTABLE M0 RESIDUAL — M1 GATE | B2/R3 production wiring review 必须在任何 Worker world I/O 前完成；static scanner 不是 capability proof |
+| 10 Session snapshot+cutoff | ACCEPTABLE M0 RESIDUAL — M2 GATE | 固定双透镜贯穿每次读取及恢复，显式 refresh；跨 world 写入不得自动扩大 Session 可见范围 |
 
-They satisfy the taskbook's requirement to reproduce four fixtures, but they are not proofs of the full named invariants.
+recorded_at 裁决的 competing options：A 按物理入库由 store 赋值，则未来 learned 预置须改变模拟 ingestion/时间 invariant；B 明确它是调用方/虚拟时间轴的记录时刻，以 world_commits.committed_at 单独表示物理提交，需更新术语和生产入口约束。推荐 B 保留模拟器能力，但必须正式说明，不能把两者混用。关联 M0-004/005/020，尚未因本轮修改任何字段。
 
-## 7. Schema snapshot evaluation
+## 10. 给 chief-01 的明确下一步
 
-The bootstrap capture is authentic and the stored snapshot matches the generated candidate shape. The design nevertheless has a large false-green class:
+1. M0 不签 FINAL PASS，M1/并行施工继续暂停。
+2. 保持 M0-016 reopened，修 B6 fingerprint normalization 和 B7 operation persistence validation，分别增加独立回归，保持 exact stale replay 优先。
+3. 完成 B5-a 连接生命周期异常边界；对 B5-b 非输入存储故障分类正式裁决，需要时重开 M0-002，不以“无 raw exception”替代语义判断。
+4. 对 R4 EvidenceSet 窗口及 recorded_at 所有权发正式 ruling，写清 M0 当前保证与 M1 consumer 前置 Gate。
+5. B2/B3/B4 可记录为本轮已验证的窄关闭项，不能藉此关闭整个 M0。
+6. 取得新 exact candidate 全量与 Reference CI，保留失败 run，邀请下一次独立复审。不要只更新 snapshot/改异常测试使其变绿。
 
-- Pydantic `model_validator` body changes do not necessarily change JSON Schema.
-- `as_utc`, reference visibility, historical selection, transaction order, idempotency logic, dependency cycle logic, architecture scanner logic, and state-transition helper implementation are outside the model hashes.
-- Only Task/Event transition outputs are separately captured; other behavioral tables/policies are not.
-- The snapshot can also be updated together with an unauthorized contract change and will turn green; governance/code review, not the hash, is the approval boundary.
+## 11. 审计限制与可复现附件
 
-Recommendation: retain this snapshot, rename its claim to **structural contract snapshot**, and add behavior canaries/fingerprints for the few foundational semantics intended to be mechanically frozen. Do not hash source blindly as a substitute for tests; add falsifying tests for each invariant.
+没有修改生产源码、现有测试或冻结文档。独立探针只在临时 DB/子进程中执行；持久化的交付只有此报告。没有实测设备断电、磁盘物理损坏、所有 SQLite Error subclass、超大图压力或任意不可信 Python。故障注入/当前 graph 测试不代表这些情况已获证明。
 
-## 8. Residual risks (not all are M0 blockers)
+以下脚本应保存为独立 `redteam_reaudit.py`，从 exact candidate 根目录以 PYTHONPATH=src 运行。`test_old_database_replay` 的旧源码路径需指向另一个 exact 95cec41 checkout；其它测试不需要旧 worktree。31 tests 包含对已确认缺陷的正向断言，未来转生产回归时应改为期待修复后的不变量。
 
-- `KnowledgeWindow.world_revision` semantics for same-transaction evidence are ambiguous and unenforced.
-- EvidenceSet role membership and coverage arithmetic consistency are not enforced.
-- open-string statuses (`WorldObject.status`, `Outcome.outcome_state`, `Session.session_state`) permit vocabulary drift until service contracts freeze them.
-- `operation_id` collision with a different idempotency key surfaces a raw SQLite integrity error rather than a protocol error.
-- no explicit DB schema version/migration framework exists yet; long-term replay across schema evolution is unproved.
-- query coverage is only a returned-object count, intentionally not completeness.
-- entity merge/split and identity collision policy are deferred.
-- generic storage cannot enforce domain transition policy; future services are trusted until a single write capability is enforced.
-- persistence revalidation emits an expected serializer warning for deliberately corrupted nested state; warning behavior may change across Pydantic versions.
 
-## 9. Deliberately deferred beyond M0
+```python
+from datetime import datetime, timezone, timedelta
+from concurrent.futures import ThreadPoolExecutor
+from threading import Barrier
+import sqlite3
+import json
+import pytest
+from pydantic import ValidationError
+from aios_core.contracts.models import Observation, Dependency, EvidenceSet
+from aios_core.contracts.refs import ObjectRef
+from aios_core.contracts.enums import ObjectType, ErrorCode
+from aios_core.contracts.time import KnowledgeWindow
+from aios_core.contracts.operations import OperationRequest
+from aios_core.contracts.base import WorldObject
+from aios_core.contracts.models import EvidenceCoverage
+from aios_core.storage import SQLiteWorldStore, StoreError
 
-Not treated as defects merely for being absent:
+T=datetime(2026,9,14,10,tzinfo=timezone.utc)
+def common(i, **kw):
+    return dict(object_id=i,subject_id='s',learned_at=T,recorded_at=T,created_by='audit',**kw)
+def obs(i='o',**kw):
+    return Observation(**common(i),source_kind='test',modality='text',value=kw.pop('value','v'),**kw)
+def op(n=0,k='k',**kw):
+    d=dict(operation_id=k,session_id='s',operation_name='commit',arguments={'a':1,'b':2},expected_world_revision=n,reason='audit',idempotency_key=k);d.update(kw);return OperationRequest(**d)
+def dep(i,a,b,rev=1):
+    return Dependency(**common(i,revision=rev),dependent_ref=ObjectRef(object_id=a,revision=1),dependency_ref=ObjectRef(object_id=b,revision=1),dependency_type='proof')
+def state(s):
+    with sqlite3.connect(s.db_path) as c:
+        return [c.execute('SELECT * FROM '+t).fetchall() for t in ('world_meta','world_commits','object_revisions','operations','idempotency_records')]
+def reject(s,objects,request,code):
+    before=state(s)
+    with pytest.raises(StoreError) as e:s.commit(objects,request)
+    assert e.value.code==code
+    assert state(s)==before
+    return e.value
 
-- M1 world services, search, drill-down, selector materialization, entity resolution, event expansion, and authorized dependency service;
-- M2 scheduler, Wake runtime, Session executor/checkpoint recovery, action/outcome external side-effect engine, execution_id uniqueness and retry reconciliation;
-- M3 persistent reverse dependency index, correction propagation, stale/rebuild workflows, multi-scale summary recomputation;
-- full schema migration machinery, distributed coordination, and long-duration replay/performance work in later milestones.
+@pytest.mark.parametrize('field,value',[('operation_id','other'),('session_id','other'),('operation_name','other'),('arguments',{'a':2}),('expected_world_revision',99),('reason','other')])
+def test_identity(tmp_path,field,value):
+    s=SQLiteWorldStore(tmp_path/'x');o=obs();r=op();s.commit([o],r)
+    reject(s,[o],r.model_copy(update={field:value}),ErrorCode.IDEMPOTENCY_CONFLICT)
+@pytest.mark.parametrize('change',['id','revision','value','set'])
+def test_object_identity(tmp_path,change):
+    s=SQLiteWorldStore(tmp_path/'x');o=obs();r=op();s.commit([o],r)
+    altered={'id':[obs('p')],'revision':[o.model_copy(update={'revision':2})],'value':[obs(value='changed')],'set':[o,obs('p')]}[change]
+    reject(s,altered,r,ErrorCode.IDEMPOTENCY_CONFLICT)
+def test_order_restart(tmp_path):
+    s=SQLiteWorldStore(tmp_path/'x');a,b=obs('a'),obs('b');r=op();s.commit([a,b],r);s=SQLiteWorldStore(tmp_path/'x');before=state(s)
+    assert s.commit([b,a],r.model_copy(update={'arguments':{'b':2,'a':1}})).idempotent_replay
+    assert state(s)==before
+def test_samekey_race(tmp_path):
+    a=SQLiteWorldStore(tmp_path/'x');b=SQLiteWorldStore(tmp_path/'x');bar=Barrier(2)
+    def run(pair):
+        s,i=pair;bar.wait()
+        try:s.commit([obs(i)],op(operation_id=i));return 'ok'
+        except StoreError as e:return e.code.value
+    with ThreadPoolExecutor(2) as ex:results=list(ex.map(run,[(a,'a'),(b,'b')]))
+    assert sorted(results)==['IDEMPOTENCY_CONFLICT','ok'];assert a.current_world_revision()==1
+@pytest.mark.parametrize('length',[2,3])
+@pytest.mark.parametrize('split',[False,True])
+def test_cycles(tmp_path,length,split):
+    s=SQLiteWorldStore(tmp_path/'x');ids=['a','b','c'][:length];s.commit([obs(i) for i in ids],op())
+    ds=[dep('d'+str(n),i,ids[(n+1)%length]) for n,i in enumerate(ids)]
+    if split:s.commit(ds[:-1],op(1,'first'));ds=ds[-1:]
+    reject(s,ds,op(s.current_world_revision(),'cycle'),ErrorCode.DEPENDENCY_INVALID)
+def test_edge_revision_and_race(tmp_path):
+    s=SQLiteWorldStore(tmp_path/'x');s.commit([obs('a'),obs('b'),obs('c')],op());s.commit([dep('d','a','b')],op(1,'edge'))
+    s.commit([dep('d','a','c',2),dep('e','b','a')],op(2,'replace'))
+    reject(s,[dep('f','c','a')],op(3,'cycle'),ErrorCode.DEPENDENCY_INVALID)
+def test_competing_edges(tmp_path):
+    s=SQLiteWorldStore(tmp_path/'x');s.commit([obs('a'),obs('b')],op());stores=[SQLiteWorldStore(tmp_path/'x') for _ in range(2)];bar=Barrier(2)
+    edges=[dep('d','a','b'),dep('e','b','a')]
+    def run(i):
+        bar.wait()
+        try:stores[i].commit([edges[i]],op(1,str(i)));return 'ok'
+        except StoreError as e:return e.code.value
+    with ThreadPoolExecutor(2) as ex:res=list(ex.map(run,range(2)))
+    assert sorted(res)==['VERSION_CONFLICT','ok']
+    loser=res.index('VERSION_CONFLICT');reject(s,[edges[loser]],op(2,'retry'),ErrorCode.DEPENDENCY_INVALID)
+class Holder(WorldObject):
+    link:ObjectRef
+def test_holder_self_mutual_history(tmp_path):
+    s=SQLiteWorldStore(tmp_path/'x')
+    def holder(i,ref,revision=1):return Holder(**common(i,revision=revision),object_type=ObjectType.OBSERVATION,link=ref)
+    reject(s,[holder('a',ObjectRef(object_id='a'))],op(),ErrorCode.DEPENDENCY_INVALID)
+    s.commit([holder('a',ObjectRef(object_id='b')),holder('b',ObjectRef(object_id='a'))],op())
+    s.commit([holder('a',ObjectRef(object_id='a',revision=1),2)],op(1,'history'))
+def test_failure_after_insert_and_recovery(tmp_path):
+    s=SQLiteWorldStore(tmp_path/'x')
+    with sqlite3.connect(s.db_path) as c:c.execute("CREATE TRIGGER fail BEFORE INSERT ON object_revisions WHEN NEW.object_id='b' BEGIN SELECT RAISE(ABORT,'audit failure'); END")
+    reject(s,[obs('a'),obs('b')],op(),ErrorCode.INVALID_ARGUMENT)
+    with sqlite3.connect(s.db_path) as c:c.execute('DROP TRIGGER fail')
+    assert s.commit([obs('a'),obs('b')],op()).world_revision==1
+    assert SQLiteWorldStore(s.db_path).commit([obs('a'),obs('b')],op()).idempotent_replay
+def test_busy_recovery(tmp_path):
+    s=SQLiteWorldStore(tmp_path/'x');s.SQLITE_BUSY_TIMEOUT_MS=10
+    with sqlite3.connect(s.db_path) as c:
+        c.execute('BEGIN IMMEDIATE');e=reject(s,[obs()],op(),ErrorCode.VERSION_CONFLICT);assert e.context['reason']=='storage_busy';c.rollback()
+    assert s.commit([obs()],op()).world_revision==1
+def test_evidence_cutoff_counterexample(tmp_path):
+    s=SQLiteWorldStore(tmp_path/'x');o=obs();s.commit([o],op())
+    es=EvidenceSet(**common('es'),purpose='past snapshot',knowledge_window=KnowledgeWindow(knowledge_cutoff=T-timedelta(hours=1),world_revision=1),member_refs=[ObjectRef(object_id='o',revision=1)],selection_method='explicit')
+    s.commit([es],op(1,'es'))
+    with pytest.raises(StoreError):s.get_payload('o',revision=1,as_of_world_revision=1,knowledge_cutoff=es.knowledge_window.knowledge_cutoff)
+    print('R4: persisted EvidenceSet includes member learned AFTER its frozen cutoff')
+def test_fingerprint_normalization_counterexample(tmp_path):
+    s=SQLiteWorldStore(tmp_path/'x');s.commit([obs()],op())
+    es=EvidenceSet(**common('es'),purpose='proof',knowledge_window=KnowledgeWindow(knowledge_cutoff=T),member_refs=[ObjectRef(object_id='o',revision=1)],selection_method='explicit')
+    es.coverage.observed_count='1'
+    r=op(1,'es');s.commit([es],r)
+    assert s.get_payload('es')['coverage']['observed_count']==1
+    reject(SQLiteWorldStore(s.db_path),[es],r,ErrorCode.IDEMPOTENCY_CONFLICT)
+    print('B6: identical accepted input fails replay after persistence coerces nested value')
+def test_sqlite_nonlock_counterexamples(tmp_path):
+    with pytest.raises(sqlite3.OperationalError):SQLiteWorldStore(tmp_path/'missing'/'x')
+    s=SQLiteWorldStore(tmp_path/'x')
+    with sqlite3.connect(s.db_path) as c:c.execute('DROP TABLE operations')
+    with pytest.raises(StoreError) as e:s.commit([obs()],op())
+    assert e.value.code==ErrorCode.INVALID_ARGUMENT
+    print('B5: connect failure RAW OperationalError; missing internal table classified INVALID_ARGUMENT')
+def test_double_lens(tmp_path):
+    s=SQLiteWorldStore(tmp_path/'x');future=obs().model_copy(update={'learned_at':T+timedelta(days=1),'recorded_at':T+timedelta(days=2)})
+    s.commit([future],op());assert s.get_payload('o',as_of_world_revision=1)
+    with pytest.raises(StoreError):s.get_payload('o',as_of_world_revision=1,knowledge_cutoff=T)
+    s.commit([obs('late')],op(1,'late'));assert s.get_payload('late',knowledge_cutoff=T)
+    with pytest.raises(StoreError):s.get_payload('late',as_of_world_revision=1,knowledge_cutoff=T)
+    with pytest.raises(ValidationError):Observation.model_validate(future.model_dump()|{'recorded_at':T})
 
-These deferrals remain safe only if M1/M2 services cannot bypass the Core persistence/query capability boundaries.
+def test_exact_revision_graph_is_not_stable_id_dag(tmp_path):
+    s=SQLiteWorldStore(tmp_path/'x');a=obs('a');b=obs('b');s.commit([a,b],op())
+    s.commit([a.model_copy(update={'revision':2})],op(1,'rev2'))
+    d=dep('d','a','b');e=dep('e','b','a');e.dependency_ref=ObjectRef(object_id='a',revision=2)
+    s.commit([d,e],op(2,'exact'))
+    # a@1 -> b@1 -> a@2 is not a cycle on exact versions.
+    assert s.current_world_revision()==3
+def test_old_database_replay(tmp_path):
+    import importlib.util
+    spec=importlib.util.spec_from_file_location('old_store','/workspace/scratch/82c41c0036ab/candidate/src/aios_core/storage/sqlite_store.py')
+    old=importlib.util.module_from_spec(spec);spec.loader.exec_module(old)
+    r=op();o=obs();old.SQLiteWorldStore(tmp_path/'x').commit([o],r)
+    s=SQLiteWorldStore(tmp_path/'x');assert s.commit([o],r).idempotent_replay
+    reject(s,[obs(value='altered')],r,ErrorCode.IDEMPOTENCY_CONFLICT)
+def test_process_crash_after_object_insert(tmp_path):
+    import multiprocessing
+    import os
+    from contextlib import contextmanager
+    s=SQLiteWorldStore(tmp_path/'x');before=state(s)
+    def child():
+        class CrashStore(SQLiteWorldStore):
+            @contextmanager
+            def _connection(self):
+                with super()._connection() as conn:
+                    class Proxy:
+                        def __getattr__(self,n):return getattr(conn,n)
+                        def execute(self,sql,*args):
+                            result=conn.execute(sql,*args)
+                            if 'INSERT INTO object_revisions(' in sql:os._exit(77)
+                            return result
+                    yield Proxy()
+        CrashStore(s.db_path).commit([obs('a'),obs('b')],op())
+    p=multiprocessing.get_context('fork').Process(target=child);p.start();p.join(10)
+    assert p.exitcode==77;assert state(s)==before
+    assert s.commit([obs('a'),obs('b')],op()).world_revision==1
+def test_operation_mutation_protocol(tmp_path):
+    s=SQLiteWorldStore(tmp_path/'x');r=op()
+    with pytest.raises(ValidationError):r.reason=' '
+    # Pydantic after-validator failure does not roll back assignment.
+    assert r.reason==' '
+    s.commit([obs()],r)
+    assert s.operation_record('k')['reason']==' '
+    print('B7: OperationRequest failed assignment still persists: reason blank')
+def test_structural_snapshot_false_green(monkeypatch):
+    import runpy
+    m=runpy.run_path('tests/unit/contracts/test_m0_schema_snapshot.py');build=m['build_current_snapshot'];before=build()
+    monkeypatch.setattr(SQLiteWorldStore,'_reference_exists',lambda *a,**kw:True)
+    assert build()==before
+def test_endpoint_and_opaque_dict(tmp_path):
+    from aios_core.contracts.models import Claim
+    from aios_core.contracts.enums import ClaimType, KnowledgeState
+    s=SQLiteWorldStore(tmp_path/'x');s.commit([obs()],op())
+    c=Claim(**common('c'),claimant_id='ai',claim_type=ClaimType.HYPOTHESIS,content='x',asserted_at=T,knowledge_state=KnowledgeState.HYPOTHESIS,confidence=.2,support_evidence_set_refs=[ObjectRef(object_id='o',revision=1)],metadata={'fake_ref':{'object_id':'missing','revision':1}})
+    s.commit([c],op(1,'claim'))
+    assert s.get_payload('c')['support_evidence_set_refs'][0]['object_id']=='o'
 
-## 10. Required next action for chief-01
-
-1. Do not sign M0-022 or authorize M1.
-2. Reopen M0-016 and implement/freeze altered-request idempotency conflict semantics with a canonical persisted fingerprint.
-3. Issue an architectural ruling on Worker isolation threat model: honest lint convention versus real process/capability boundary. Align code, tests, and governance wording.
-4. Reopen or explicitly narrow M0-015: make proof-cycle rejection durable at the authorized dependency write boundary, or state that M0 only supplies a helper and add an M1 blocker before any Dependency writes.
-5. Rule on `KnowledgeWindow.world_revision` for same-transaction EvidenceSets and add consistency tests.
-6. Add the red-team counterexamples to the formal suite, rerun exact-head Python 3.12 CI and Reference suite, then request a new independent architecture Gate on the patched exact commit.
-
-## 11. Scope integrity
-
-No production code, frozen schema, tests, reviews, or task history were modified by architect-01. Only this authorized report file is added/updated on the governance branch.
+```
