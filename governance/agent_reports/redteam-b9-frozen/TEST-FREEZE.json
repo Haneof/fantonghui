@@ -1,0 +1,11 @@
+{
+  "candidate": "b9b5921c3e31a40528b0b96e689ae721c334bd7c",
+  "frozen_at_utc": "2026-09-14T15:55:15.433508+00:00",
+  "status": "BEFORE COLLECTION AND EXECUTION",
+  "policy": "Assertions and parameters are immutable after this freeze; any test defect must be reported without editing original results.",
+  "tests": {
+    "test_robustness_b9.py": "c6b66e3b2828bbb140cba3919581e3f413e1064ce3dfd7b957c2daee2e632d54",
+    "regression/test_adversarial_b658.py": "180dc1bac647e6cee6688dd4475dab8a063cc9fa9545acdc0e907036e9bea97d"
+  },
+  "regression_provenance": "Own 394-case frozen suite copied byte-for-byte, not the unavailable original 100 probes."
+}
