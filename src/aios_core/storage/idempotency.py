@@ -9,9 +9,11 @@ from enum import Enum
 from typing import Any, TypeVar, cast
 
 from pydantic import BaseModel, TypeAdapter
+from pydantic_core import PydanticSerializationError
 
 from aios_core.contracts.base import WorldObject
 from aios_core.contracts.operations import OperationRequest
+from aios_core.contracts.refs import ObjectRef, SourceRef
 from aios_core.contracts.registry import canonical_model_for_object_type
 
 TWorldObject = TypeVar("TWorldObject", bound=WorldObject)
@@ -57,10 +59,18 @@ def canonical_json_value(value: Any) -> Any:
         return _JSON_ADAPTER.dump_python(value, mode="json")
 
     # Keep Pydantic's JSON-mode semantics for supported scalar/custom values such
-    # as bytes while recursively canonicalizing any container it returns.
-    converted = _JSON_ADAPTER.dump_python(value, mode="json")
+    # as bytes while recursively canonicalizing any container it returns. Conversion
+    # failures are part of the durable-input contract, never raw protocol exceptions.
+    try:
+        converted = _JSON_ADAPTER.dump_python(value, mode="json")
+    except (UnicodeError, PydanticSerializationError) as exc:
+        raise DurableJSONError(
+            f"value cannot be represented safely as durable JSON: {type(value).__name__}"
+        ) from exc
     if converted is value:
-        raise TypeError(f"value is not durably JSON serializable: {type(value)!r}")
+        raise DurableJSONError(
+            f"value is not durably JSON serializable: {type(value)!r}"
+        )
     return canonical_json_value(converted)
 
 
@@ -79,6 +89,40 @@ def canonical_json_dumps(value: Any) -> str:
     return _canonical_json(value)
 
 
+def _persistence_snapshot(value: Any) -> Any:
+    """Build a deep revalidation snapshot without erasing real typed references.
+
+    ``BaseModel.model_dump`` recursively turns models stored below ``Any`` into
+    plain dictionaries. That is normally useful for revalidation, but ObjectRef and
+    SourceRef carry semantic meaning for the store even when they occur in an opaque
+    ``Any`` container. Preserve those frozen reference instances while converting
+    every other model/container recursively so the canonical outer model is still
+    fully revalidated and custom subtype fields cannot bypass ``extra='forbid'``.
+    """
+
+    if isinstance(value, (ObjectRef, SourceRef)):
+        return value
+    if isinstance(value, BaseModel):
+        return {
+            field_name: _persistence_snapshot(getattr(value, field_name))
+            for field_name in type(value).model_fields
+        }
+    if isinstance(value, Mapping):
+        return {
+            key: _persistence_snapshot(item)
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [_persistence_snapshot(item) for item in value]
+    if isinstance(value, tuple):
+        return tuple(_persistence_snapshot(item) for item in value)
+    if isinstance(value, set):
+        return {_persistence_snapshot(item) for item in value}
+    if isinstance(value, frozenset):
+        return frozenset(_persistence_snapshot(item) for item in value)
+    return value
+
+
 def normalize_operation_for_persistence(operation: OperationRequest) -> OperationRequest:
     """Return a newly validated snapshot of a possibly mutated request instance.
 
@@ -86,7 +130,7 @@ def normalize_operation_for_persistence(operation: OperationRequest) -> Operatio
     an instance. Durable boundaries therefore never trust the live instance directly.
     """
 
-    snapshot = operation.model_dump(mode="python", round_trip=True)
+    snapshot = _persistence_snapshot(operation)
     return OperationRequest.model_validate(snapshot)
 
 
@@ -95,10 +139,12 @@ def normalize_world_object_for_persistence(obj: TWorldObject) -> WorldObject:
 
     The caller's runtime Python class is not an authority. A base/custom WorldObject
     cannot claim a reserved canonical ObjectType while bypassing that subtype's
-    required fields and validators.
+    required fields and validators. Real ObjectRef/SourceRef instances nested under
+    ``Any`` remain typed so recursive reference validation cannot be laundered by
+    the normalization boundary.
     """
 
-    snapshot = obj.model_dump(mode="python", round_trip=True)
+    snapshot = _persistence_snapshot(obj)
     canonical_model = canonical_model_for_object_type(obj.object_type)
     return canonical_model.model_validate(snapshot)
 
