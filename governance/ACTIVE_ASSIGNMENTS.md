@@ -7,30 +7,30 @@ This is the cloud roster. AI agents must not self-assign production work.
 - Agent ID: `chief-01`
 - 中文职位：总工程师 / 总工
 - Status: AUTHORIZED / OWNER / NOT STARTED
-- Task: M0-018 — 全局 World Revision 与原子提交
+- Task: M0-020 — 历史世界读取与 Knowledge Cutoff
 - Role prompt: `governance/roles/CHIEF_ENGINEER.md`
 - Production branch: `arena/01a09bc6-fantonghui`
-- Frozen base: `c9bd2d85ff0047515f6f4cc5b9e7058c70cff6dc` (M0-017 FINAL PASS)
+- Frozen base: `f1dc7cc8ca07131f75d7afe5c505f534c2f3dbe8` (M0-019 FINAL PASS)
 - Parallel safety: NOT PARALLEL_SAFE for another core writer
 
 ### Authority basis
 
-The authoritative taskbook marks M0-018 `负责人级别：总工程师亲自代码` and depends on M0-017.
+The authoritative taskbook marks M0-020 `负责人级别：总工程师亲自代码` and depends on M0-004 and M0-018.
 
-### M0-018 required outcome
+### M0-020 required outcome
 
-Formally freeze global World Revision + atomic commit semantics:
-- transaction begins against `expected_world_revision`;
-- one successful transaction produces exactly one next global world revision;
-- all objects in that transaction share that same world revision;
-- world meta advances only after the transaction succeeds;
-- stale expected revision returns `VERSION_CONFLICT` and does not overwrite another writer;
-- failed validation/write rolls back and must not advance world revision or leave partial objects;
-- preserve append-only object history and existing idempotency ordering;
-- use the existing SQLite transactional boundary (`BEGIN IMMEDIATE`);
-- do not pull later scheduling/recovery/runtime semantics into this task.
+Formally freeze historical world reads and knowledge-cutoff semantics:
+- read an exact object revision;
+- read latest object state as of a world revision;
+- read latest object state visible before a knowledge cutoff;
+- combine world revision and knowledge cutoff without future leakage;
+- list queries must select the newest visible revision per object under the same constraints;
+- learned_at, not recorded_at alone, controls knowledge visibility;
+- preserve UTC/DST-safe comparisons and historical replay;
+- expose the actual historical slice cleanly for later query/workspace layers;
+- do not let AI Worker bypass Core with direct SQL.
 
-`core-01` must NOT start M0-018 unless this assignment is explicitly changed.
+`core-01` must NOT start M0-020 unless this assignment is explicitly changed.
 
 ## Assignment B — `core-01` 核心程序员 / 主程序员
 
@@ -73,16 +73,16 @@ Current instruction: remain IDLE until the Chief Engineer assigns a new task.
 
 ## Last authoritative completion
 
-M0-017 FINAL PASS:
+M0-019 FINAL PASS:
 
-- acceptance commit: `c9bd2d85ff0047515f6f4cc5b9e7058c70cff6dc`
-- formal suite: 353 passed
+- semantic frozen commit: `f1dc7cc8ca07131f75d7afe5c505f534c2f3dbe8`
+- formal suite: 366 passed
 - Reference suite: 15 passed
 - Python: 3.12.14
-- WAL + foreign keys + required first-stage tables/indexes frozen
-- restart/append-only history/rollback/multi-object atomicity/stale-writer conflict verified
-- AI Worker raw DB isolation remains enforced by architecture tests
-- formal review: `reviews/M0/M0-017_final_PASS_2026-09-14.md`
+- reference validation mandatory at persistence boundary; public bypass removed
+- missing/future refs rejected, same-transaction legal refs preserved
+- current-revision self-citation rejected; historical self-link remains legal
+- formal review: `reviews/M0/M0-019_final_PASS_2026-09-14.md`
 
 ## Operator handoff rule
 
