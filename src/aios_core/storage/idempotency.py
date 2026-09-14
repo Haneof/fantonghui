@@ -548,6 +548,62 @@ def request_fingerprint(
     return hashlib.sha256(encoded).hexdigest()
 
 
+def _contains_typed_reference(
+    value: Any,
+    *,
+    active: set[int] | None = None,
+) -> bool:
+    """Return whether runtime semantics include a real typed reference.
+
+    Legacy idempotency rows persisted only durable JSON and therefore cannot prove
+    whether a ref-shaped object was originally an opaque mapping or a real
+    ObjectRef/SourceRef. When semantic fingerprints are absent, typed-ref retries
+    must fail closed instead of guessing equivalence from the lossy JSON shape.
+    """
+
+    if isinstance(value, (ObjectRef, SourceRef)):
+        return True
+    if active is None:
+        active = set()
+    if isinstance(value, BaseModel):
+        marker = id(value)
+        if marker in active:
+            return False
+        active.add(marker)
+        try:
+            return any(
+                _contains_typed_reference(item, active=active)
+                for item in _model_items(value).values()
+            )
+        finally:
+            active.remove(marker)
+    if isinstance(value, Mapping):
+        marker = id(value)
+        if marker in active:
+            return False
+        active.add(marker)
+        try:
+            return any(
+                _contains_typed_reference(key, active=active)
+                or _contains_typed_reference(item, active=active)
+                for key, item in value.items()
+            )
+        finally:
+            active.remove(marker)
+    if isinstance(value, (list, tuple, set, frozenset)):
+        marker = id(value)
+        if marker in active:
+            return False
+        active.add(marker)
+        try:
+            return any(
+                _contains_typed_reference(item, active=active) for item in value
+            )
+        finally:
+            active.remove(marker)
+    return False
+
+
 def legacy_request_fingerprint(
     operation: OperationRequest,
     objects: Iterable[WorldObject],
@@ -555,6 +611,13 @@ def legacy_request_fingerprint(
     """Return the pre-semantic fingerprint for legacy idempotency rows only."""
 
     normalized_operation = normalize_operation_for_persistence(operation)
+    normalized_objects = [normalize_world_object_for_persistence(obj) for obj in objects]
+    if _contains_typed_reference(normalized_operation) or any(
+        _contains_typed_reference(obj) for obj in normalized_objects
+    ):
+        raise DurableJSONError(
+            "legacy idempotency identity cannot prove typed-reference semantics"
+        )
     payload = {
         "operation_id": normalized_operation.operation_id,
         "session_id": normalized_operation.session_id,
@@ -563,7 +626,7 @@ def legacy_request_fingerprint(
         "expected_world_revision": normalized_operation.expected_world_revision,
         "reason": normalized_operation.reason,
         "idempotency_key": normalized_operation.idempotency_key,
-        "objects": _object_entries(objects),
+        "objects": _object_entries(normalized_objects),
     }
     try:
         encoded = _canonical_json(payload).encode("utf-8")
