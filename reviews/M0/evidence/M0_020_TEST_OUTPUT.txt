@@ -1,0 +1,24 @@
+M0-020 exact semantic HEAD
+commit: 426ea4c8e1292f0dd5f57e01f8663014071f7004
+GitHub Actions run: 34813251515
+job: 103878594196
+runner: Ubuntu 24.04.5
+python: CPython 3.12.14
+pytest: 8.4.2
+
+formal suite:
+collected 377 items
+377 passed, 1 warning in 3.76s
+
+M0-020 focused file:
+tests/unit/test_history_m020.py ........... [11 passed]
+
+reference suite:
+collected 15 items
+15 passed in 0.27s
+
+conclusion: SUCCESS
+
+Known warning:
+tests/unit/test_evidence_set.py::test_e23_time_range_mutation
+Previously accepted M0-009 adversarial serializer warning; no new M0-020 warning.

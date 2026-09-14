@@ -1,0 +1,18 @@
+M0-016 exact semantic head: cdbd7ff1d42ba292a2e0ca9972f0c9eccd4666c3
+GitHub Actions run: 34810519222
+Job: 103870768750
+Runner: Ubuntu 24.04.5
+Python: 3.12.14
+pytest: 8.4.2
+
+Formal suite:
+341 passed, 1 warning in 3.11s
+
+Reference contract suite:
+15 passed in 0.24s
+
+Workflow conclusion: SUCCESS
+
+Expected warning:
+tests/unit/test_evidence_set.py::test_e23_time_range_mutation
+PydanticSerializationUnexpectedValue for deliberate adversarial mutation; previously accepted under M0-009.

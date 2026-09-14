@@ -1,0 +1,30 @@
+M0-015 Dependency contract — exact semantic-head CI evidence
+Date: 2026-09-14
+Branch: arena/01a09bc6-fantonghui
+Frozen semantic candidate: 3b4e8b603e52830d8be44d33141f722bbba244a0
+GitHub Actions run: 34809518146
+Job: 103867871731
+Runner: Ubuntu 24.04.5
+Python: CPython 3.12.14
+pytest: 8.4.2
+
+Formal suite:
+- collected 329 items
+- tests/unit/test_dependency.py: 14 passed
+- total: 329 passed, 1 warning
+- warning is the previously accepted M0-009 adversarial Pydantic serialization warning from test_e23_time_range_mutation
+
+Reference contract suite:
+- collected 15 items
+- 15 passed
+
+Result: SUCCESS
+
+Scope compare from previous archive base fc4be9d7405d0afb38ec168839554c8259eef644 to semantic candidate 3b4e8b603e52830d8be44d33141f722bbba244a0:
+- ahead-only, 5 commits, behind 0
+- src/aios_core/contracts/models.py: +13/-1
+- src/aios_core/dependency/__init__.py: +18/-1
+- src/aios_core/dependency/graph.py: +124
+- tests/unit/test_dependency.py: +363
+
+No SQLite schema migration, no persistent reverse index, no automatic correction propagation, and no Relation cycle ban were introduced.

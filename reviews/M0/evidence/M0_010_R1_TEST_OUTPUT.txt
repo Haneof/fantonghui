@@ -1,0 +1,42 @@
+============================= test session starts ==============================
+platform linux -- Python 3.11.2, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/user/fantonghui
+configfile: pyproject.toml
+testpaths: tests
+collected 253 items
+
+tests/architecture/test_boundaries.py ......                             [  2%]
+tests/architecture/test_scanner_regression.py ............               [  7%]
+tests/unit/test_claim.py .................                               [ 13%]
+tests/unit/test_contracts.py .....                                       [ 15%]
+tests/unit/test_entity_relation.py ...................                   [ 23%]
+tests/unit/test_errors.py .......................................        [ 38%]
+tests/unit/test_evidence_set.py .......................                  [ 47%]
+tests/unit/test_ids.py ...............................                   [ 60%]
+tests/unit/test_observation.py .............                             [ 65%]
+tests/unit/test_refs.py ..................                               [ 72%]
+tests/unit/test_state_machines.py ....                                   [ 73%]
+tests/unit/test_store.py ......                                          [ 76%]
+tests/unit/test_time.py ...........................................      [ 93%]
+tests/unit/test_world_object_revision.py .................               [100%]
+
+=============================== warnings summary ===============================
+tests/unit/test_evidence_set.py::test_e23_time_range_mutation
+  /usr/local/lib/python3.11/dist-packages/pydantic/main.py:475: UserWarning: Pydantic serializer warnings:
+    PydanticSerializationUnexpectedValue(Expected `TemporalExtent` - serialized value may not be as expected [field_name='time_range', input_value='now-14d', input_type=str])
+    return self.__pydantic_serializer__.to_python(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 253 passed, 1 warning in 1.75s ========================
+
+============================= test session starts ==============================
+platform linux -- Python 3.11.2, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/user/fantonghui/aios_core_r2_reference
+configfile: pyproject.toml
+collected 15 items
+
+aios_core_r2_reference/tests/test_contracts.py .....                     [ 33%]
+aios_core_r2_reference/tests/test_state_machines.py ....                 [ 60%]
+aios_core_r2_reference/tests/test_store.py ......                        [100%]
+
+============================== 15 passed in 0.22s ==============================

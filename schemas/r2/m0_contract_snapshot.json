@@ -1,0 +1,290 @@
+{
+  "enums": {
+    "aios_core.contracts.enums.ActionStatus": [
+      "proposed",
+      "submitted",
+      "acknowledged",
+      "completed",
+      "failed",
+      "outcome_unknown",
+      "cancelled"
+    ],
+    "aios_core.contracts.enums.ClaimType": [
+      "fact",
+      "opinion",
+      "belief",
+      "desire",
+      "intention",
+      "plan",
+      "prediction",
+      "promise",
+      "preference",
+      "inference",
+      "hypothesis"
+    ],
+    "aios_core.contracts.enums.DimensionLifecycle": [
+      "candidate",
+      "trial",
+      "active",
+      "low_activity",
+      "dormant",
+      "merged",
+      "split",
+      "revised",
+      "rejected",
+      "reactivated"
+    ],
+    "aios_core.contracts.enums.ErrorCode": [
+      "INVALID_ARGUMENT",
+      "NOT_FOUND",
+      "VERSION_CONFLICT",
+      "INCOMPLETE_DATA",
+      "STALE_INDEX",
+      "BUDGET_EXHAUSTED",
+      "PERMISSION_DENIED",
+      "DEPENDENCY_INVALID",
+      "OUTCOME_UNKNOWN",
+      "IDEMPOTENCY_CONFLICT",
+      "STORAGE_FAILURE"
+    ],
+    "aios_core.contracts.enums.EventStatus": [
+      "candidate",
+      "active",
+      "resolved",
+      "revised",
+      "rejected",
+      "merged",
+      "split"
+    ],
+    "aios_core.contracts.enums.EvidenceRole": [
+      "support",
+      "counter",
+      "context"
+    ],
+    "aios_core.contracts.enums.GoalSourceType": [
+      "user_explicit",
+      "user_inferred",
+      "ai_self",
+      "app",
+      "external"
+    ],
+    "aios_core.contracts.enums.GoalStatus": [
+      "proposed",
+      "active",
+      "paused",
+      "achieved",
+      "abandoned",
+      "unknown"
+    ],
+    "aios_core.contracts.enums.KnowledgeState": [
+      "observed",
+      "reported",
+      "inferred",
+      "hypothesis",
+      "unknown",
+      "conflict"
+    ],
+    "aios_core.contracts.enums.ObjectType": [
+      "observation",
+      "entity",
+      "relation",
+      "dimension_definition",
+      "dimension_membership",
+      "dimension_derivation",
+      "claim",
+      "evidence_set",
+      "event",
+      "summary",
+      "goal",
+      "dependency",
+      "task",
+      "wake",
+      "session",
+      "action",
+      "outcome",
+      "operation_experience",
+      "tool_proposal"
+    ],
+    "aios_core.contracts.enums.SummaryStatus": [
+      "current",
+      "stale",
+      "partial",
+      "missing"
+    ],
+    "aios_core.contracts.enums.TaskState": [
+      "draft",
+      "ready",
+      "running",
+      "waiting_time",
+      "waiting_evidence",
+      "waiting_user",
+      "waiting_result",
+      "blocked",
+      "completed",
+      "failed",
+      "expired",
+      "cancelled"
+    ],
+    "aios_core.contracts.enums.TaskType": [
+      "immediate",
+      "scheduled",
+      "deadline",
+      "todo",
+      "recurring",
+      "follow_up",
+      "observation",
+      "verification",
+      "maintenance",
+      "app"
+    ],
+    "aios_core.contracts.enums.WakeSource": [
+      "mechanical_change",
+      "keyword_entity",
+      "no_update",
+      "task_due",
+      "watch_match",
+      "user_interaction",
+      "safety",
+      "recovery"
+    ],
+    "aios_core.contracts.enums.WakeState": [
+      "new",
+      "queued",
+      "merged",
+      "running",
+      "completed",
+      "suppressed",
+      "cancelled"
+    ],
+    "aios_core.contracts.time.TimePrecision": [
+      "second",
+      "minute",
+      "hour",
+      "day",
+      "week",
+      "month",
+      "quarter",
+      "half_year",
+      "year",
+      "multi_year",
+      "unknown"
+    ]
+  },
+  "event_transitions": {
+    "active": [
+      "merged",
+      "rejected",
+      "resolved",
+      "revised",
+      "split"
+    ],
+    "candidate": [
+      "active",
+      "merged",
+      "rejected",
+      "revised",
+      "split"
+    ],
+    "merged": [],
+    "rejected": [
+      "revised"
+    ],
+    "resolved": [
+      "merged",
+      "revised",
+      "split"
+    ],
+    "revised": [
+      "active",
+      "merged",
+      "rejected",
+      "resolved",
+      "split"
+    ],
+    "split": []
+  },
+  "gate_version": "M0-R2",
+  "models": {
+    "aios_core.contracts.base.WorldObject": "8bc0d806e2d427415a9e1c853d7b815eee09c4e39465814f3bc3025085597c5a",
+    "aios_core.contracts.errors.ErrorResponse": "2ea9a6af49db3192361124253bd811c1352a001ec682808c7a4e4779767014a9",
+    "aios_core.contracts.models.Action": "6f8059dfb163e2955aab6c89571d849a0acbe5383439d158dce4e0718dea705b",
+    "aios_core.contracts.models.Claim": "7b3f008d22cbc3ad10ccc5ac1edf788735dfbaa14fdb14b379951f5b866a40c8",
+    "aios_core.contracts.models.Dependency": "2787b7a598f7396bba1888343b1be7eec01dde0437a3a9fe4127b0bf344fcf86",
+    "aios_core.contracts.models.DimensionDefinition": "1b91ca9528916148f623da4697713f9aef5bc5a5698a1ef74a14f47a6d07ae47",
+    "aios_core.contracts.models.DimensionDerivation": "50f1ddf56a5a1c4270f2884863f185cea3259e1ff3b4c7f0cdbbdf2d771b7a4e",
+    "aios_core.contracts.models.DimensionMembership": "a502abfa2fb972e903f53bc1cbda7db80540e6d75ebff410b41686b48b85f318",
+    "aios_core.contracts.models.Entity": "21d79329e215bd2a0f292a7652f57fbff36634161a0c646892727f85c655b2b2",
+    "aios_core.contracts.models.EventAnchor": "14009428ed717b5b105d444b8daf859e855b30023076313efe2bed20324db807",
+    "aios_core.contracts.models.EvidenceCoverage": "e3cd1b8e7e100536c713cdf47325363f2abb3b34e3450c2513c3d33af71256a2",
+    "aios_core.contracts.models.EvidenceSelector": "27cfb93f96fd725b209f1afbd4a066e4f0b8d5dd98ee3b13fd5173c4cfab5d97",
+    "aios_core.contracts.models.EvidenceSet": "30758dfa624fe67642cc2994c7b851fb1513a59cca34a1d961bb37db77f8d73c",
+    "aios_core.contracts.models.Goal": "d4cc974eee21690f1901b5b2126b6001e65d3bf1b026183ba837d675a233c0f2",
+    "aios_core.contracts.models.Observation": "b58727fbd4b7b7c3a9984d0ff1742b56b42fb22967809e961362559c2c7561fc",
+    "aios_core.contracts.models.OperationExperience": "64f1c968176fa6afce4e08d9ccd10a6ab79911daf6bc0c6ee371e5f72d0a092f",
+    "aios_core.contracts.models.Outcome": "6c4033e4e44031f07cc078bc99a6254722b67c5f4c7887214de30e21335b45b0",
+    "aios_core.contracts.models.Relation": "79683cad62623b65b6f47268540f7f156e629c915da19fd8f3b48dd9683be0e4",
+    "aios_core.contracts.models.Session": "1a4d1d58deca8dc84bb1243f39ca28a6dc0a5ae70a93babffd35506f91d3f5d8",
+    "aios_core.contracts.models.Summary": "5323db4cafe10d3bae0ec32a77104f14d56d0834d569463ffeaa90682a8a797c",
+    "aios_core.contracts.models.Task": "36dfc7f08e2f41ade8a53bd781bc28f0590777e19efe9079563eb1ef5ebafe49",
+    "aios_core.contracts.models.ToolProposal": "9ff91fa43ee8896cb1cc3bcb0a416b5c4730cae9edfdb17aa5a9e60e2b7862fa",
+    "aios_core.contracts.models.Wake": "326408444f99c29ed9fbe9fa3a081d78b7959be6250a3e6e975280c1198408d5",
+    "aios_core.contracts.operations.CommitResult": "19569e889a3cd18bdabec590b5f3dd9c5e89b741ee68bb9a8e6010bc3fcceac5",
+    "aios_core.contracts.operations.OperationAuditRecord": "d039a30a23261b37d6250b301356441b3a5573d2785206d2fe484d3a4fd681cc",
+    "aios_core.contracts.operations.OperationRequest": "506aee0d2ba50eadb5a72b387e3220f2ca362d84508e62191303e13493f7ec5b",
+    "aios_core.contracts.refs.ObjectRef": "15aacd9d84fb2646f5c07b79e8a5b62653d88a9c849b311c747029e198ff12e9",
+    "aios_core.contracts.refs.SourceRef": "10eb1e28c86e8d05d69a5f91c90de2064c301a8c7ea5d8c08e00afd08a9dd994",
+    "aios_core.contracts.time.KnowledgeWindow": "503f4e050bf0781c367da7f9d563b6e3d748306cd65fc1ef14c3aa9c56dbb6d6",
+    "aios_core.contracts.time.TemporalExtent": "f39671e5e54ff03f20a7085e1caea8e11d6291def18d66a292304a26962252bc"
+  },
+  "task_transitions": {
+    "blocked": [
+      "cancelled",
+      "failed",
+      "ready"
+    ],
+    "cancelled": [],
+    "completed": [],
+    "draft": [
+      "cancelled",
+      "ready"
+    ],
+    "expired": [],
+    "failed": [],
+    "ready": [
+      "cancelled",
+      "expired",
+      "running"
+    ],
+    "running": [
+      "blocked",
+      "cancelled",
+      "completed",
+      "failed",
+      "waiting_evidence",
+      "waiting_result",
+      "waiting_time",
+      "waiting_user"
+    ],
+    "waiting_evidence": [
+      "cancelled",
+      "expired",
+      "ready"
+    ],
+    "waiting_result": [
+      "cancelled",
+      "completed",
+      "failed",
+      "ready"
+    ],
+    "waiting_time": [
+      "cancelled",
+      "expired",
+      "ready"
+    ],
+    "waiting_user": [
+      "cancelled",
+      "expired",
+      "ready"
+    ]
+  }
+}

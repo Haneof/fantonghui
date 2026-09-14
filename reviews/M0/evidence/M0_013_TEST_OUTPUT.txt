@@ -1,0 +1,28 @@
+M0-013 exact semantic freeze CI evidence
+Date: 2026-09-14
+Commit: f30987395a034d4e9f826c9193dc82e00165a2e8
+GitHub Actions run: 34807182442
+Job: 103861241239
+Environment: Linux / CPython 3.12.14 / pytest 8.4.2
+
+Main suite:
+collected 297 items
+297 passed, 1 warning in 8.33s
+
+Warning:
+tests/unit/test_evidence_set.py::test_e23_time_range_mutation
+PydanticSerializationUnexpectedValue for the intentional post-validation mutation adversarial test.
+This is pre-existing expected behavior and not an M0-013 failure.
+
+Reference suite:
+collected 15 items
+15 passed in 0.21s
+
+Workflow conclusion: SUCCESS
+
+M0-013 production scope from c31da78bf8f4b4053ed0bfb310444676a153fcdc:
+- src/aios_core/contracts/enums.py: GoalStatus aligned to R2 exact values
+- src/aios_core/contracts/models.py: Goal default status changed to PROPOSED
+- no storage/service/scheduler/worker production changes
+
+Final verdict: M0-013 FINAL PASS @ f30987395a034d4e9f826c9193dc82e00165a2e8
