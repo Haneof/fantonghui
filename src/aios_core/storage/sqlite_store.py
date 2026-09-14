@@ -13,7 +13,7 @@ from aios_core.contracts.base import WorldObject
 from aios_core.contracts.enums import ErrorCode, ObjectType
 from aios_core.contracts.operations import CommitResult, OperationRequest
 from aios_core.contracts.refs import ObjectRef, SourceRef
-from aios_core.contracts.time import canonical_utc_iso, utc_now
+from aios_core.contracts.time import as_utc, canonical_utc_iso, utc_now
 from aios_core.errors import AIOSProtocolError
 
 T = TypeVar("T", bound=WorldObject)
@@ -172,23 +172,61 @@ class SQLiteWorldStore:
         self,
         conn: sqlite3.Connection,
         ref: ObjectRef | SourceRef,
-        pending: set[tuple[str, int]],
+        pending_pairs: set[tuple[str, int]],
+        pending_objects: dict[tuple[str, int], WorldObject],
+        *,
+        knowledge_cutoff: datetime,
     ) -> bool:
-        if ref.revision is not None and (ref.object_id, ref.revision) in pending:
-            return True
-        if ref.revision is None and any(oid == ref.object_id for oid, _ in pending):
-            return True
-        if ref.revision is None:
-            row = conn.execute(
-                "SELECT 1 FROM object_revisions WHERE object_id=? LIMIT 1",
-                (ref.object_id,),
-            ).fetchone()
+        """
+        Generic knowledge visibility: target learned_at <= referencing_object.learned_at
+        - For pinned ref (revision=N): check exact revision visible within cutoff
+        - For floating ref (revision=None): check at least one visible revision within cutoff
+        - Pending objects are considered with UTC instant comparison
+        """
+        cutoff_canonical = canonical_utc_iso(knowledge_cutoff, "knowledge_cutoff")
+
+        if ref.revision is not None:
+            # Explicit pinned ref
+            key = (ref.object_id, ref.revision)
+            if key in pending_pairs:
+                pending_target = pending_objects.get(key)
+                if pending_target is None:
+                    return False
+                # pending_target.learned_at <= referencing_obj.learned_at by UTC instant
+                try:
+                    if as_utc(pending_target.learned_at, "pending_learned_at") <= as_utc(
+                        knowledge_cutoff, "knowledge_cutoff"
+                    ):
+                        return True
+                    else:
+                        return False
+                except Exception:
+                    return False
+            else:
+                # Query DB: object_id=X revision=N learned_at <= cutoff
+                row = conn.execute(
+                    "SELECT 1 FROM object_revisions WHERE object_id=? AND revision=? AND learned_at<=? LIMIT 1",
+                    (ref.object_id, ref.revision, cutoff_canonical),
+                ).fetchone()
+                return row is not None
         else:
+            # Floating ref: follow latest visible revision, existence requires at least one visible revision
+            # Check pending first: any pending with same object_id and learned_at <= cutoff
+            for (oid, _rev), pending_obj in pending_objects.items():
+                if oid == ref.object_id:
+                    try:
+                        if as_utc(pending_obj.learned_at, "pending_learned_at") <= as_utc(
+                            knowledge_cutoff, "knowledge_cutoff"
+                        ):
+                            return True
+                    except Exception:
+                        continue
+            # Check DB: at least one revision visible within cutoff
             row = conn.execute(
-                "SELECT 1 FROM object_revisions WHERE object_id=? AND revision=? LIMIT 1",
-                (ref.object_id, ref.revision),
+                "SELECT 1 FROM object_revisions WHERE object_id=? AND learned_at<=? LIMIT 1",
+                (ref.object_id, cutoff_canonical),
             ).fetchone()
-        return row is not None
+            return row is not None
 
     @staticmethod
     def _collect_refs(value: object) -> list[ObjectRef | SourceRef]:
@@ -256,6 +294,7 @@ class SQLiteWorldStore:
                     )
 
                 pending_pairs = {(o.object_id, o.revision) for o in object_list}
+                pending_objects = {(o.object_id, o.revision): o for o in object_list}
                 if len(pending_pairs) != len(object_list):
                     raise StoreError(
                         ErrorCode.INVALID_ARGUMENT,
@@ -305,13 +344,20 @@ class SQLiteWorldStore:
                                         "revision": obj.revision,
                                     },
                                 )
-                            if not self._reference_exists(conn, ref, pending_pairs):
+                            if not self._reference_exists(
+                                conn,
+                                ref,
+                                pending_pairs,
+                                pending_objects,
+                                knowledge_cutoff=obj.learned_at,
+                            ):
                                 raise StoreError(
                                     ErrorCode.NOT_FOUND,
                                     f"reference does not exist: {ref.object_id}@{ref.revision or 'latest'}",
                                     context={
                                         "referenced_object_id": ref.object_id,
                                         "referenced_revision": ref.revision,
+                                        "reason": "reference_not_visible_or_missing",
                                     },
                                 )
 
