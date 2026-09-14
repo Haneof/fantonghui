@@ -21,11 +21,11 @@
 ## 二、当前项目状态
 
 - 当前里程碑：M0 — 进行中
-- M0 完成度：**12 / 22 FINAL PASS**
-- 已正式通过到：**M0-012**
-- M0-012 语义冻结：`5ab6ed1c21f2c3f2664104faff3494113bdd5bc1`
-- 下一任务：**M0-013 — Goal（目标）一等对象**
-- M0-013 状态：**已授权 / 总工程师负责 / 尚未开始**
+- M0 完成度：**13 / 22 FINAL PASS**
+- 已正式通过到：**M0-013**
+- M0-013 语义冻结：`f30987395a034d4e9f826c9193dc82e00165a2e8`
+- 下一任务：**M0-014 — Task / Wake / Session / Action / Outcome 基础契约**
+- M0-014 状态：**已授权 / 总工程师负责 / 尚未开始**
 - 当前生产分支：`arena/01a09bc6-fantonghui`
 - 当前开发模式：核心生产代码仍为单写入者
 
@@ -33,28 +33,38 @@
 
 | 中文职位 | 内部编号 | 当前状态 | 当前任务 | 最近结果 | 下一步 |
 |---|---|---|---|---|---|
-| **总工程师 / 总工** | `chief-01` | 当前负责人 | M0-013（尚未开始） | **M0-012 FINAL PASS**；284 正式测试 + Reference 15 全通过 | 亲自推进 M0-013 |
+| **总工程师 / 总工** | `chief-01` | 当前负责人 | M0-014（尚未开始） | **M0-013 FINAL PASS**；297 正式测试 + Reference 15 全通过 | 下一轮亲自推进 M0-014 |
 | **核心程序员 / 主程序员** | `core-01` | **待命** | 无 | M0-010 收尾已验收 | 等总工以后分配施工任务 |
 | **GPT-6 架构审计员** | `architect-01` | **待命** | 当前无任务 | 尚未触发架构升级 | M0 Gate 必须介入；当前无需启动 |
 | **并行程序员1** | `parallel-01` | **未授权** | 无 | 无 | 等总工宣布可并行 |
 | **并行程序员2** | `parallel-02` | **未授权** | 无 | 无 | 等总工宣布可并行 |
-| **自动测试** | `ci` | **通过** | 每次 core push 自动回归 | M0-012 semantic HEAD：Python 3.12.14，284 passed；Reference 15 passed | 后续 push 自动重跑 |
+| **自动测试** | `ci` | **通过** | 每次 core push 自动回归 | M0-013 semantic HEAD：Python 3.12.14，297 passed；Reference 15 passed | 后续 push 自动重跑 |
 
-## 四、M0-012 已冻结什么
+## 四、M0-013 已冻结什么
 
-- EventAnchor 是对多维世界的认知解释/锚点，不是底层 Observation 本身。
-- 生命周期支持 CANDIDATE / ACTIVE / RESOLVED / REVISED / REJECTED / MERGED / SPLIT。
-- 候选事件可低置信度创建，不要求 confidence=1。
-- Claim、EvidenceSet、修订/合并/拆分历史依据使用 pinned revision。
-- 保留既有 `evidence_set_refs`，并明确增加 support/counter EvidenceSet 引用。
-- REVISED、REJECTED、MERGED、SPLIT 保留 revision_reason；修订/合并/拆分保持明确历史指向。
-- “学校运动会 → 校内田径测试”案例证明旧判断和修正原因均可历史回放，不能通过改标题抹掉过去。
-- Event 不复制原始 Observation payload。
-- 构造后篡改 provenance 仍由 M0-009 durable persistence revalidation 拦截。
+- Goal 是一等长期对象，不是 Task 的一个字符串字段。
+- R2 GoalStatus 精确冻结为 PROPOSED / ACTIVE / PAUSED / ACHIEVED / ABANDONED / UNKNOWN。
+- USER_EXPLICIT 与 USER_INFERRED 严格区分；相同文本也不能把 AI 推断冒充成用户明确目标。
+- AI_SELF 与用户推断目标分开；App 目标保留 APP 来源。
+- Goal 保存 success criteria 与 dimensions/events/tasks/apps 的关联。
+- Task 使用 ObjectRef 关联 Goal；持久化 Goal 不会自动生成 Task。
+- 用户否认 AI 推断目标时写新 Goal revision，旧版本和相关 Task 引用仍可追溯，以供后续纠错/依赖系统复核。
+- 自动取消/重排 Task、Goal progress 服务和依赖传播不在本任务提前实现。
 
-正式审查文件：`reviews/M0/M0-012_final_PASS_2026-09-14.md`
+正式审查文件：`reviews/M0/M0-013_final_PASS_2026-09-14.md`
 
-## 五、沟通与权限
+## 五、M0-014 已授权边界
+
+任务书要求第一阶段只冻结五类对象字段和 fixture，M2 才实现调度：
+- Task：未来工作与状态/Goal/优先级/时间/依赖/完成取消条件/执行结果引用；
+- Wake：唤醒来源、命中、证据、优先级、去重；
+- Session：固定世界快照与执行上下文；
+- Action：稳定 execution_id 与执行状态；
+- Outcome：现实结果独立于 Action，允许 unknown 语义。
+
+明确禁止：用模型上下文代替持久 Task；把“消息已送达”当成“帮助成功/用户已经学会”。
+
+## 六、沟通与权限
 
 用户只需说“继续下一任务”或某个角色“做完了”。总工程师自行读取真实分支、报告、diff、源码、review 与 CI。
 
