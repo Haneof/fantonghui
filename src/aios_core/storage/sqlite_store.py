@@ -465,7 +465,11 @@ class SQLiteWorldStore:
                             "world object failed persistence validation",
                             context={
                                 "object_id": obj.object_id,
-                                "object_type": obj.object_type.value,
+                                "object_type": (
+                                    obj.object_type.value
+                                    if isinstance(obj.object_type, ObjectType)
+                                    else str(obj.object_type)
+                                ),
                                 "revision": obj.revision,
                                 "reason": "persistence_revalidation_failed",
                             },

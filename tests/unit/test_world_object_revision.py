@@ -637,9 +637,12 @@ def test_w14_no_update_replace_in_store_source():
     assert not matches, f"Found forbidden SQL patterns: {matches}"
 
 # DummyClaim for object_type continuity test
-class DummyClaim(WorldObject):
-    object_type: ObjectType = ObjectType.CLAIM
-    content: str = "test"
+def DummyClaim(**kwargs):
+    from aios_core.contracts import Claim
+    from aios_core.contracts.enums import ClaimType, KnowledgeState
+    return Claim(claimant_id="test", claim_type=ClaimType.FACT,
+                 asserted_at=kwargs["learned_at"], knowledge_state=KnowledgeState.REPORTED,
+                 confidence=1.0, **kwargs)
 
 
 # W15 object_type不能跨revision变化

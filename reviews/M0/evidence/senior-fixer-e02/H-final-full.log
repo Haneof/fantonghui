@@ -1,0 +1,113 @@
+........................................................................ [ 15%]
+........................................................................ [ 31%]
+........................................................................ [ 47%]
+........................................................................ [ 63%]
+........F............................................................... [ 78%]
+........................................................................ [ 94%]
+.........................                                                [100%]
+=================================== FAILURES ===================================
+______ test_b8_cross_process_unordered_collection_exact_replay_is_stable _______
+
+tmp_path = PosixPath('/tmp/pytest-of-user/pytest-23/test_b8_cross_process_unordere0')
+
+    def test_b8_cross_process_unordered_collection_exact_replay_is_stable(tmp_path):
+        first_seed, second_seed = _different_hash_seeds()
+        path = tmp_path / "world.db"
+    
+>       first = _run_cross_process_commit(path, first_seed)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/unit/test_m0_gate_fourth_followup.py:116: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/unit/test_m0_gate_fourth_followup.py:102: in _run_cross_process_commit
+    completed = subprocess.run(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+input = None, capture_output = True, timeout = None, check = True
+popenargs = (['/home/user/audit-venv/bin/python', '-c', '\nimport json\nfrom datetime import datetime, timezone\nfrom aios_core.co..._payload(obj.object_id),\n        "audit": store.operation_record(request.operation_id),\n    }, sort_keys=True))\n'],)
+kwargs = {'env': {'E2B_EVENTS_ADDRESS': 'http://192.0.2.1', 'E2B_SANDBOX': 'true', 'E2B_SANDBOX_ID': 'iplju6tkf6oyiyewpyoxg', 'E2B_TEMPLATE_ID': 'hzkxh29kws364cimswqd', ...}, 'stderr': -1, 'stdout': -1, 'text': True}
+process = <Popen: returncode: 1 args: ['/home/user/audit-venv/bin/python', '-c', '\nim...>
+stdout = ''
+stderr = 'Traceback (most recent call last):\n  File "<string>", line 4, in <module>\nModuleNotFoundError: No module named \'aios_core\'\n'
+retcode = 1
+
+    def run(*popenargs,
+            input=None, capture_output=False, timeout=None, check=False, **kwargs):
+        """Run command with arguments and return a CompletedProcess instance.
+    
+        The returned instance will have attributes args, returncode, stdout and
+        stderr. By default, stdout and stderr are not captured, and those attributes
+        will be None. Pass stdout=PIPE and/or stderr=PIPE in order to capture them,
+        or pass capture_output=True to capture both.
+    
+        If check is True and the exit code was non-zero, it raises a
+        CalledProcessError. The CalledProcessError object will have the return code
+        in the returncode attribute, and output & stderr attributes if those streams
+        were captured.
+    
+        If timeout is given, and the process takes too long, a TimeoutExpired
+        exception will be raised.
+    
+        There is an optional argument "input", allowing you to
+        pass bytes or a string to the subprocess's stdin.  If you use this argument
+        you may not also use the Popen constructor's "stdin" argument, as
+        it will be used internally.
+    
+        By default, all communication is in bytes, and therefore any "input" should
+        be bytes, and the stdout and stderr will be bytes. If in text mode, any
+        "input" should be a string, and stdout and stderr will be strings decoded
+        according to locale encoding, or by "encoding" if set. Text mode is
+        triggered by setting any of text, encoding, errors or universal_newlines.
+    
+        The other arguments are the same as for the Popen constructor.
+        """
+        if input is not None:
+            if kwargs.get('stdin') is not None:
+                raise ValueError('stdin and input arguments may not both be used.')
+            kwargs['stdin'] = PIPE
+    
+        if capture_output:
+            if kwargs.get('stdout') is not None or kwargs.get('stderr') is not None:
+                raise ValueError('stdout and stderr arguments may not be used '
+                                 'with capture_output.')
+            kwargs['stdout'] = PIPE
+            kwargs['stderr'] = PIPE
+    
+        with Popen(*popenargs, **kwargs) as process:
+            try:
+                stdout, stderr = process.communicate(input, timeout=timeout)
+            except TimeoutExpired as exc:
+                process.kill()
+                if _mswindows:
+                    # Windows accumulates the output in a single blocking
+                    # read() call run on child threads, with the timeout
+                    # being done in a join() on those threads.  communicate()
+                    # _after_ kill() is required to collect that and add it
+                    # to the exception.
+                    exc.stdout, exc.stderr = process.communicate()
+                else:
+                    # POSIX _communicate already populated the output so
+                    # far into the TimeoutExpired exception.
+                    process.wait()
+                raise
+            except:  # Including KeyboardInterrupt, communicate handled that.
+                process.kill()
+                # We don't call process.wait() as .__exit__ does that for us.
+                raise
+            retcode = process.poll()
+            if check and retcode:
+>               raise CalledProcessError(retcode, process.args,
+                                         output=stdout, stderr=stderr)
+E               subprocess.CalledProcessError: Command '['/home/user/audit-venv/bin/python', '-c', '\nimport json\nfrom datetime import datetime, timezone\nfrom aios_core.contracts import ObjectType, Observation, OperationRequest, TemporalExtent\nfrom aios_core.storage import SQLiteWorldStore, StoreError\n\ndb_path = \'/tmp/pytest-of-user/pytest-23/test_b8_cross_process_unordere0/world.db\'\nitems = [\'alpha\', \'beta\', \'gamma\', \'delta\', \'epsilon\', \'zeta\', \'eta\', \'theta\', \'iota\', \'kappa\']\nnow = datetime(2026, 9, 14, 10, 0, tzinfo=timezone.utc)\nobj = Observation(\n    object_id="observation_cross_process_set",\n    subject_id="gate-user",\n    revision=1,\n    occurred=TemporalExtent.point(now),\n    learned_at=now,\n    recorded_at=now,\n    created_by="m0-gate-fourth-followup",\n    source_kind="test",\n    modality="json",\n    value={"labels": set(items)},\n)\nrequest = OperationRequest(\n    operation_id="operation_cross_process_set",\n    session_id="session_cross_process_set",\n    operation_name="world.commit",\n    arguments={"labels": set(items)},\n    expected_world_revision=0,\n    reason="cross-process collection replay must be stable",\n    idempotency_key="idempotency_cross_process_set",\n)\nstore = SQLiteWorldStore(db_path)\ntry:\n    result = store.commit([obj], request)\nexcept StoreError as exc:\n    print(json.dumps({"ok": False, "code": exc.code.value, "context": exc.context}, sort_keys=True))\nelse:\n    print(json.dumps({\n        "ok": True,\n        "world_revision": result.world_revision,\n        "idempotent_replay": result.idempotent_replay,\n        "stored": store.get_payload(obj.object_id),\n        "audit": store.operation_record(request.operation_id),\n    }, sort_keys=True))\n']' returned non-zero exit status 1.
+
+/usr/lib/python3.11/subprocess.py:571: CalledProcessError
+=============================== warnings summary ===============================
+tests/unit/test_evidence_set.py::test_e23_time_range_mutation
+  /home/user/audit-venv/lib/python3.11/site-packages/pydantic/main.py:475: UserWarning: Pydantic serializer warnings:
+    PydanticSerializationUnexpectedValue(Expected `TemporalExtent` - serialized value may not be as expected [field_name='time_range', input_value='now-14d', input_type=str])
+    return self.__pydantic_serializer__.to_python(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/unit/test_m0_gate_fourth_followup.py::test_b8_cross_process_unordered_collection_exact_replay_is_stable
+1 failed, 456 passed, 1 warning in 3.46s

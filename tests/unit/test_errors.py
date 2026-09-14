@@ -184,10 +184,10 @@ def test_e12_world_revision_conflict_context(tmp_path):
     from aios_core.contracts.time import utc_now
     import uuid
 
-    class DummyObj(WorldObject):
-        object_type: ObjectType = ObjectType.ENTITY
-        subject_id: str = "test"
-        payload: str = "x"
+    def DummyObj(*, payload="x", **kwargs):
+        from aios_core.contracts import Observation
+        return Observation(subject_id="test", source_kind="test", modality="json",
+                           value=payload, **kwargs)
 
     db = tmp_path / "test.db"
     store = SQLiteWorldStore(db)
@@ -245,10 +245,10 @@ def test_e13_object_revision_conflict_context(tmp_path):
     from aios_core.contracts.time import utc_now
     import uuid
 
-    class DummyObj(WorldObject):
-        object_type: ObjectType = ObjectType.ENTITY
-        subject_id: str = "test"
-        payload: str = "x"
+    def DummyObj(*, payload="x", **kwargs):
+        from aios_core.contracts import Observation
+        return Observation(subject_id="test", source_kind="test", modality="json",
+                           value=payload, **kwargs)
 
     db = tmp_path / "test.db"
     store = SQLiteWorldStore(db)
@@ -320,10 +320,10 @@ def test_e15_reference_not_found_context(tmp_path):
     from aios_core.contracts.time import utc_now
     import uuid
 
-    class ObjWithRef(WorldObject):
-        object_type: ObjectType = ObjectType.CLAIM
-        subject_id: str = "test"
-        ref: ObjectRef
+    def ObjWithRef(*, ref, **kwargs):
+        from aios_core.contracts import EventAnchor
+        return EventAnchor(subject_id="test", title="reference", interpretation="test",
+                           confidence=1.0, participant_refs=[ref], **kwargs)
 
     db = tmp_path / "test.db"
     store = SQLiteWorldStore(db)
@@ -700,10 +700,10 @@ def test_s02_duplicate_revision_context(tmp_path):
     from aios_core.contracts.time import utc_now
     import uuid
 
-    class DummyObj(WorldObject):
-        object_type: ObjectType = ObjectType.ENTITY
-        subject_id: str = "test"
-        payload: str = "x"
+    def DummyObj(*, payload="x", **kwargs):
+        from aios_core.contracts import Observation
+        return Observation(subject_id="test", source_kind="test", modality="json",
+                           value=payload, **kwargs)
 
     db = tmp_path / "test.db"
     store = SQLiteWorldStore(db)
@@ -751,10 +751,10 @@ def test_s03_self_current_reference_context(tmp_path):
     from aios_core.contracts.time import utc_now
     import uuid
 
-    class ObjSelfRef(WorldObject):
-        object_type: ObjectType = ObjectType.CLAIM
-        subject_id: str = "test"
-        ref: ObjectRef
+    def ObjSelfRef(*, ref, **kwargs):
+        from aios_core.contracts import EventAnchor
+        return EventAnchor(subject_id="test", title="reference", interpretation="test",
+                           confidence=1.0, participant_refs=[ref], **kwargs)
 
     db = tmp_path / "test.db"
     store = SQLiteWorldStore(db)

@@ -11,11 +11,13 @@ from typing import Any, TypeVar, cast
 from pydantic import BaseModel, TypeAdapter
 
 from aios_core.contracts.base import WorldObject
+from aios_core.contracts.enums import ObjectType
 from aios_core.contracts.operations import OperationRequest
 from aios_core.contracts.registry import canonical_model_for_object_type
 
 TWorldObject = TypeVar("TWorldObject", bound=WorldObject)
-_JSON_ADAPTER = TypeAdapter(Any)
+_JSON_ADAPTER: TypeAdapter[Any] = TypeAdapter(Any)
+_OBJECT_TYPE_ADAPTER = TypeAdapter(ObjectType)
 
 
 class DurableJSONError(ValueError):
@@ -48,9 +50,9 @@ def canonical_json_value(value: Any) -> Any:
             normalized[key] = canonical_json_value(item)
         return normalized
     if isinstance(value, (set, frozenset)):
-        normalized = [canonical_json_value(item) for item in value]
-        normalized.sort(key=_canonical_json)
-        return normalized
+        normalized_items = [canonical_json_value(item) for item in value]
+        normalized_items.sort(key=_canonical_json)
+        return normalized_items
     if isinstance(value, (list, tuple)):
         return [canonical_json_value(item) for item in value]
     if isinstance(value, (datetime, date, time)):
@@ -99,7 +101,8 @@ def normalize_world_object_for_persistence(obj: TWorldObject) -> WorldObject:
     """
 
     snapshot = obj.model_dump(mode="python", round_trip=True)
-    canonical_model = canonical_model_for_object_type(obj.object_type)
+    object_type = _OBJECT_TYPE_ADAPTER.validate_python(obj.object_type)
+    canonical_model = canonical_model_for_object_type(object_type)
     return canonical_model.model_validate(snapshot)
 
 

@@ -17,29 +17,24 @@ from aios_core.contracts.time import as_utc, utc_now
 from aios_core.storage.sqlite_store import SQLiteWorldStore, StoreError
 
 
-class DummyEntity(WorldObject):
-    object_type: ObjectType = ObjectType.ENTITY
-    entity_kind: str = "person"
-    canonical_name: str | None = None
-    value: str | None = None
+# Factories return frozen canonical models; no custom object_type masquerade.
+def DummyEntity(**kwargs):
+    from aios_core.contracts import Observation
+    return Observation(source_kind="test", modality="json", **kwargs)
 
 
-class RefNode(WorldObject):
-    object_type: ObjectType = ObjectType.ENTITY
-    entity_kind: str = "refnode"
-    link_refs: list[ObjectRef] = []
+def RefNode(*, link_refs, **kwargs):
+    from aios_core.contracts import EventAnchor
+    return EventAnchor(title="reference node", interpretation="test", confidence=1.0,
+                       participant_refs=link_refs, **kwargs)
 
 
-class RefHolder(WorldObject):
-    object_type: ObjectType = ObjectType.ENTITY
-    entity_kind: str = "holder"
-    ref: ObjectRef | None = None
-    refs: list[ObjectRef] = []
+def RefHolder(*, ref=None, refs=(), **kwargs):
+    return RefNode(link_refs=([ref] if ref is not None else []) + list(refs), **kwargs)
 
 
-class SourceHolder(WorldObject):
-    object_type: ObjectType = ObjectType.ENTITY
-    entity_kind: str = "source_holder"
+def SourceHolder(**kwargs):
+    return DummyEntity(**kwargs)
 
 
 def make_op(expected_world_revision: int = 0) -> OperationRequest:
@@ -187,7 +182,7 @@ def test_r06_pinned_historical_ref_no_drift(tmp_path):
     )
     store.commit([target_rev2], make_op(2))
     holder_payload = store.get_payload(holder_id)
-    assert holder_payload["ref"]["revision"] == 1
+    assert holder_payload["participant_refs"][0]["revision"] == 1
     target_via_ref = store.get_payload(target_id, revision=holder_ref.revision)
     assert target_via_ref["value"] == "old"
     assert target_via_ref["value"] != "new"

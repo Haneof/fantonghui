@@ -1,0 +1,60 @@
+FFFF.                                                                    [100%]
+=================================== FAILURES ===================================
+________ test_b11_non_string_mapping_key_is_rejected_without_data_loss _________
+
+tmp_path = PosixPath('/tmp/pytest-of-user/pytest-11/test_b11_non_string_mapping_ke0')
+
+    def test_b11_non_string_mapping_key_is_rejected_without_data_loss(tmp_path):
+        store = SQLiteWorldStore(tmp_path / "world.db")
+        object_id = new_object_id(ObjectType.OBSERVATION)
+        value = {1: "numeric-key", "1": "string-key"}
+    
+>       with pytest.raises(StoreError) as exc:
+E       Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+
+tests/unit/test_m0_gate_fifth_followup.py:136: Failed
+______________ test_b11_nested_non_string_mapping_key_is_rejected ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-user/pytest-11/test_b11_nested_non_string_map0')
+
+    def test_b11_nested_non_string_mapping_key_is_rejected(tmp_path):
+        store = SQLiteWorldStore(tmp_path / "world.db")
+        object_id = new_object_id(ObjectType.OBSERVATION)
+>       with pytest.raises(StoreError) as exc:
+E       Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+
+tests/unit/test_m0_gate_fifth_followup.py:147: Failed
+_________ test_b11_invalid_retry_cannot_alias_existing_idempotency_key _________
+
+tmp_path = PosixPath('/tmp/pytest-of-user/pytest-11/test_b11_invalid_retry_cannot_0')
+
+    def test_b11_invalid_retry_cannot_alias_existing_idempotency_key(tmp_path):
+        path = tmp_path / "world.db"
+        store = SQLiteWorldStore(path)
+        object_id = new_object_id(ObjectType.OBSERVATION)
+        request = op(0, "b11-retry")
+        store.commit([obs(object_id, {"1": "string-key"})], request)
+    
+        altered = obs(object_id, {1: "numeric-key", "1": "string-key"})
+>       with pytest.raises(StoreError) as exc:
+E       Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+
+tests/unit/test_m0_gate_fifth_followup.py:162: Failed
+_________ test_b11_operation_arguments_nested_non_string_key_rejected __________
+
+tmp_path = PosixPath('/tmp/pytest-of-user/pytest-11/test_b11_operation_arguments_n0')
+
+    def test_b11_operation_arguments_nested_non_string_key_rejected(tmp_path):
+        store = SQLiteWorldStore(tmp_path / "world.db")
+        request = op(0, "b11-operation")
+        request.arguments["nested"] = {1: "x"}
+>       with pytest.raises(StoreError) as exc:
+E       Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+
+tests/unit/test_m0_gate_fifth_followup.py:173: Failed
+=========================== short test summary info ============================
+FAILED tests/unit/test_m0_gate_fifth_followup.py::test_b11_non_string_mapping_key_is_rejected_without_data_loss
+FAILED tests/unit/test_m0_gate_fifth_followup.py::test_b11_nested_non_string_mapping_key_is_rejected
+FAILED tests/unit/test_m0_gate_fifth_followup.py::test_b11_invalid_retry_cannot_alias_existing_idempotency_key
+FAILED tests/unit/test_m0_gate_fifth_followup.py::test_b11_operation_arguments_nested_non_string_key_rejected
+4 failed, 1 passed, 8 deselected in 0.24s

@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
+from types import MappingProxyType
+
 from .base import WorldObject
 from .enums import ObjectType
 from .models import (
@@ -24,7 +27,7 @@ from .models import (
     Wake,
 )
 
-CANONICAL_WORLD_OBJECT_MODELS: dict[ObjectType, type[WorldObject]] = {
+CANONICAL_WORLD_OBJECT_MODELS: Mapping[ObjectType, type[WorldObject]] = MappingProxyType({
     ObjectType.OBSERVATION: Observation,
     ObjectType.ENTITY: Entity,
     ObjectType.RELATION: Relation,
@@ -44,7 +47,7 @@ CANONICAL_WORLD_OBJECT_MODELS: dict[ObjectType, type[WorldObject]] = {
     ObjectType.OUTCOME: Outcome,
     ObjectType.OPERATION_EXPERIENCE: OperationExperience,
     ObjectType.TOOL_PROPOSAL: ToolProposal,
-}
+})
 
 if set(CANONICAL_WORLD_OBJECT_MODELS) != set(ObjectType):
     missing = set(ObjectType) - set(CANONICAL_WORLD_OBJECT_MODELS)

@@ -434,10 +434,10 @@ def test_t27_future_knowledge_leakage(tmp_path):
     from aios_core.contracts.time import utc_now
     import uuid
 
-    class DummyObj(WorldObject):
-        object_type: ObjectType = ObjectType.ENTITY
-        subject_id: str = "test_leak"
-        value: str = "x"
+    def DummyObj(**kwargs):
+        from aios_core.contracts import Observation
+        return Observation(subject_id="test_leak", source_kind="test", modality="json",
+                           **kwargs)
 
     db = tmp_path / "test.db"
     store = SQLiteWorldStore(db)
@@ -498,10 +498,10 @@ def test_t28_list_payloads_cross_timezone(tmp_path):
     import uuid
     from datetime import timezone, timedelta
 
-    class DummyObj(WorldObject):
-        object_type: ObjectType = ObjectType.ENTITY
-        subject_id: str = "test_list"
-        value: str = "x"
+    def DummyObj(**kwargs):
+        from aios_core.contracts import Observation
+        return Observation(subject_id="test_list", source_kind="test", modality="json",
+                           **kwargs)
 
     db = tmp_path / "test.db"
     store = SQLiteWorldStore(db)
@@ -621,10 +621,10 @@ def test_knowledge_cutoff_uses_learned_at_not_occurred(tmp_path):
     from aios_core.contracts.time import TemporalExtent
     import uuid
 
-    class DummyObj(WorldObject):
-        object_type: ObjectType = ObjectType.ENTITY
-        subject_id: str = "test_knowledge"
-        value: str = "x"
+    def DummyObj(**kwargs):
+        from aios_core.contracts import Observation
+        return Observation(subject_id="test_knowledge", source_kind="test", modality="json",
+                           **kwargs)
 
     db = tmp_path / "test.db"
     store = SQLiteWorldStore(db)
