@@ -1,5 +1,7 @@
 """M0 审计探针 / AUDIT-M0-R2 probes
 =====================================
+编号规则：`M0-0NN-B<k>` —— 每条缺陷挂在它的主责工单下（B=Bug），与母表 Issue 一一对应，
+可直接据此开修复单；跨单影响写在「规格出处」列里，不再另造审计专用编号。
 
 可重跑的缺陷证据。不修改被测代码，只读地检验 `aios_core` 当前实现是否满足
 《AIOS_Core_详细开发任务拆分_R2_总工程师版.md》中 M0 各单的 G（必须编写的测试）
@@ -88,8 +90,8 @@ def _op(expected_revision, key):
 
 # ── 各项检查：返回 (结果, 说明)。GAP 表示与规格不匹配 ──────────────────────────
 
-def gap_a1_evidence_window():
-    """A1 EvidenceSet 成员是否受自身 knowledge_window 约束。"""
+def check_m0_009_b1():
+    """M0-009-B1 EvidenceSet 成员是否受自身 knowledge_window 约束。"""
     store = _store()
     late = _obs(learned=NOW + timedelta(days=5), value='future')
     store.commit([late], _op(0, 'a1-late'))
@@ -111,8 +113,8 @@ def gap_a1_evidence_window():
     return 'GAP', 'cutoff 之后的 Observation 可以作为成员进入 EvidenceSet（未来信息进入证据）'
 
 
-def gap_a2_timezone_cutoff():
-    """A2 cutoff 比较是否按绝对时刻。"""
+def check_m0_004_b1():
+    """M0-004-B1 cutoff 比较是否按绝对时刻。"""
     store = _store()
     beijing = timezone(timedelta(hours=8))
     store.commit([_obs(store_id='obs_TZ', learned=datetime(2026, 9, 14, 20, 0, tzinfo=beijing))],
@@ -125,8 +127,8 @@ def gap_a2_timezone_cutoff():
     return 'PASS', '跨时区 cutoff 可见性正确'
 
 
-def gap_a3_failed_op_audit():
-    """A3 失败操作是否在 operations 表留痕。"""
+def check_m0_016_b1():
+    """M0-016-B1 失败操作是否在 operations 表留痕。"""
     path = os.path.join(tempfile.mkdtemp(), 'world.db')
     store = SQLiteWorldStore(path)
     store.commit([_obs()], _op(0, 'a3-ok'))
@@ -142,8 +144,8 @@ def gap_a3_failed_op_audit():
     return 'GAP', f'operations 表只有 {len(rows)} 行 {rows}；失败操作零留痕（审计不可查）'
 
 
-def gap_a4_idempotency_args():
-    """A4 同幂等键 + 不同载荷是否报冲突。"""
+def check_m0_016_b2():
+    """M0-016-B2 同幂等键 + 不同载荷是否报冲突。"""
     store = _store()
     first = _obs(value='A')
     store.commit([first], _op(0, 'a4-key'))
@@ -160,8 +162,8 @@ def gap_a4_idempotency_args():
             f'对象 B 是否落库={written}；IDEMPOTENCY_CONFLICT 未被使用')
 
 
-def gap_a5_self_reference():
-    """A5 latest 写法的自我引证是否被拦截。"""
+def check_m0_019_b1():
+    """M0-019-B1 latest 写法的自我引证是否被拦截。"""
     store = _store()
     oid = new_object_id(ObjectType.OBSERVATION)
     try:
@@ -171,8 +173,8 @@ def gap_a5_self_reference():
     return 'GAP', '引用自身但不指定 revision（latest）可绕过自我引证检查'
 
 
-def gap_b1_dependency_reverse_lookup():
-    """B1 依赖反查 API 是否存在。"""
+def check_m0_015_b1():
+    """M0-015-B1 依赖反查 API 是否存在。"""
     api = sorted(m for m in dir(SQLiteWorldStore) if not m.startswith('_'))
     needed = [m for m in api if 'depend' in m.lower() or 'referenc' in m.lower()]
     if needed:
@@ -180,8 +182,8 @@ def gap_b1_dependency_reverse_lookup():
     return 'GAP', f'SQLiteWorldStore 公共 API 仅 {api}，无按引用反查能力（M0-015 H 不可达）'
 
 
-def gap_b2_error_code_coverage():
-    """B2 已声明错误码是否都有抛出路径。"""
+def check_m0_002_b1():
+    """M0-002-B1 已声明错误码是否都有抛出路径。"""
     from aios_core.contracts.enums import ErrorCode
     root = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src')
     source = ''
@@ -196,8 +198,8 @@ def gap_b2_error_code_coverage():
     return 'GAP', f'{len(dead)}/{len(list(ErrorCode))} 个错误码从未被抛出：{dead}'
 
 
-def gap_b3_lifecycle_status():
-    """B3 生命周期状态是否受控枚举。"""
+def check_m0_005_b1():
+    """M0-005-B1 生命周期状态是否受控枚举。"""
     obj = _obs()
     obj.status = 'arbitrary-text'
     if obj.status == 'arbitrary-text':
@@ -205,8 +207,8 @@ def gap_b3_lifecycle_status():
     return 'PASS', '状态字段受枚举约束'
 
 
-def gap_c1_concurrency_and_atomicity():
-    """C1 并发双写与原子提交（M0-018 G 要求，仓库内无测试）。"""
+def check_m0_018_b1():
+    """M0-018-B1 并发双写与原子提交（M0-018 G 要求，仓库内无测试）。"""
     path = os.path.join(tempfile.mkdtemp(), 'world.db')
     store = SQLiteWorldStore(path)
     results = {}
@@ -231,8 +233,8 @@ def gap_c1_concurrency_and_atomicity():
 
 
 
-def gap_a6_untyped_refs():
-    """A6 自由字典里的引用绕过存在性校验；且读回不做契约校验。"""
+def check_m0_019_b2():
+    """M0-019-B2 自由字典里的引用绕过存在性校验；且读回不做契约校验。"""
     store = _store()
     smuggled = {'basis': {'object_id': 'obs_ghost', 'revision': 7}}
     try:
@@ -244,8 +246,8 @@ def gap_a6_untyped_refs():
             '不被 _collect_refs 识别 → 引用存在性与自证检查双双绕过；读回也不 model_validate')
 
 
-def gap_a7_dimension_lifecycle_machine():
-    """A7 宪法第二十一条：维度生命周期是否有受控转换。"""
+def check_m0_011_b1():
+    """M0-011-B1 宪法第二十一条：维度生命周期是否有受控转换。"""
     from aios_core.services import state_machines
     has = [n for n in dir(state_machines) if 'dimension' in n.lower()]
     if has:
@@ -262,8 +264,8 @@ def gap_a7_dimension_lifecycle_machine():
             '（母表 M0-021 也只冻结了 Task/Event）')
 
 
-def gap_a8_dangling_revision_pointers():
-    """A8 Summary.source_world_revision / Session.snapshot_world_revision 不校验是否存在。"""
+def check_m0_010_b1():
+    """M0-010-B1 Summary.source_world_revision / Session.snapshot_world_revision 不校验是否存在。"""
     store = _store()
     from aios_core.contracts import Session, Summary
     from aios_core.contracts.refs import ObjectRef as _OR
@@ -283,8 +285,8 @@ def gap_a8_dangling_revision_pointers():
             '（宪法第十八/十九条要求总结可展开、可重建）')
 
 
-def gap_a9_event_status_consistency():
-    """A9 EventAnchor 状态与 merged/split/supersedes 引用不一致。"""
+def check_m0_012_b1():
+    """M0-012-B1 EventAnchor 状态与 merged/split/supersedes 引用不一致。"""
     store = _store()
     event = EventAnchor(object_id=new_object_id(ObjectType.EVENT), subject_id='user_1',
                         learned_at=NOW, recorded_at=NOW, created_by='audit',
@@ -298,8 +300,8 @@ def gap_a9_event_status_consistency():
             '「后来为何修正」的链条在契约层可被写成断头')
 
 
-def gap_a10_task_deadline_semantics():
-    """A10 Task 时间语义与 EXPIRED 可达性。"""
+def check_m0_014_b1():
+    """M0-014-B1 Task 时间语义与 EXPIRED 可达性。"""
     from aios_core.contracts import Task
     from aios_core.contracts.enums import TaskState, TaskType
     from aios_core.services import validate_task_transition
@@ -321,8 +323,8 @@ def gap_a10_task_deadline_semantics():
     return ('GAP' if msgs else 'PASS', '；'.join(msgs) or '一致')
 
 
-def gap_a11_id_type_binding():
-    """A11 ID 前缀与 object_type 不绑定（宪法第十五条 唯一编号）。"""
+def check_m0_003_b1():
+    """M0-003-B1 ID 前缀与 object_type 不绑定（宪法第十五条 唯一编号）。"""
     store = _store()
     mismatched = Observation(object_id=new_object_id(ObjectType.ENTITY),  # ent_ 前缀
                              subject_id='user_1', revision=1,
@@ -336,8 +338,8 @@ def gap_a11_id_type_binding():
             '→ 任何按前缀路由/索引的假设都不成立')
 
 
-def gap_a12_write_layer_not_enforced():
-    """A12 「所有写入通过唯一 Core 写入层」是否有数据库侧保障。
+def check_m0_017_b1():
+    """M0-017-B1 「所有写入通过唯一 Core 写入层」是否有数据库侧保障。
 
     规格写的是架构约束，但 SQLite 的外键是**每连接 opt-in**：默认连接不启用时，
     任何绕过 Core 的写入都能造出指向不存在 world revision 的孤儿对象。
@@ -370,11 +372,8 @@ def gap_a12_write_layer_not_enforced():
     return 'GAP', detail
 
 
-def gap_a6_detail_fix():
-    return None
-
-def gap_a13_state_machine_not_wired():
-    """A13 生命周期校验是否接在写入路径上（宪法第二十一条 + 完成定义「代码写完不算完成」）。
+def check_m0_021_b1():
+    """M0-021-B1 生命周期校验是否接在写入路径上（宪法第二十一条 + 完成定义「代码写完不算完成」）。
 
     `validate_task_transition` / `validate_event_transition` 只被 services/__init__ 导出、
     被测试调用；`commit()` 内没有任何调用 → 状态机是"可选工具"，不是写入约束。
@@ -415,37 +414,38 @@ def gap_a13_state_machine_not_wired():
         return ('GAP', 'validate_task_transition(COMPLETED, RUNNING) 明确禁止该转换，'
                 '但同一转换经 commit() 直接落库成功 → store 从不调用状态机（调用次数 0），'
                 '宪法第二十一条/完成定义所要求的"受控迁移"在写入路径上未接线；'
-                'Dimension/Goal/Summary 更是连矩阵都没有（见 A7）')
+                'Dimension/Goal/Summary 更是连矩阵都没有（见 M0-011-B1）')
     return 'PASS', '非法转换被 store 拒绝'
 
 
 CHECKS = [
-    ('A1', 'M0-009 / R2-04', 'EvidenceSet 成员必须落在自身 knowledge_window 内', gap_a1_evidence_window),
-    ('A2', 'M0-004 / M0-020', '时间可见性必须按绝对时刻比较（禁止字符串序）', gap_a2_timezone_cutoff),
-    ('A3', 'M0-016', '失败操作也必须进审计表（code+message+context）', gap_a3_failed_op_audit),
-    ('A4', 'M0-016', '同幂等键不同载荷必须报 IDEMPOTENCY_CONFLICT，不得静默丢写', gap_a4_idempotency_args),
-    ('A5', 'M0-019', '对象不得引用自身作为自身证据（含 latest 写法）', gap_a5_self_reference),
-    ('B1', 'M0-015', '必须能按引用从底层对象反查受影响对象', gap_b1_dependency_reverse_lookup),
-    ('B2', 'M0-002', '已声明的协议错误码都要有抛出路径', gap_b2_error_code_coverage),
-    ('B3', 'M0-005', '生命周期状态必须受控', gap_b3_lifecycle_status),
-    ('A6', '宪法第八条 / M0-019', '任何引用都必须可验证、可向下追溯', gap_a6_untyped_refs),
-    ('A7', '宪法第二十一条 / M0-011', '维度生命周期必须有受控转换', gap_a7_dimension_lifecycle_machine),
-    ('A8', '宪法第十八/十九条 / M0-010·014', '快照与总结必须指向真实存在的 world revision', gap_a8_dangling_revision_pointers),
-    ('A9', '宪法第十三条 / M0-012', '事件状态必须与其 merged/split/supersedes 引用一致', gap_a9_event_status_consistency),
-    ('A10', '宪法第三十二/三条 / M0-021', '过期任务必须可进入 EXPIRED，时间字段需自洽', gap_a10_task_deadline_semantics),
-    ('A11', '宪法第十五条 / M0-003', '对象 ID 与类型必须绑定', gap_a11_id_type_binding),
-    ('A12', 'M0-017 I / 架构唯一写入层', '数据库侧必须无法绕过 Core 写入', gap_a12_write_layer_not_enforced),
-    ('A13', '宪法第二十一条 / M0-005·011·014', '生命周期校验必须接在写入路径上', gap_a13_state_machine_not_wired),
-    ('C1', 'M0-017 / M0-018', '并发双写恰好一个成功，且提交原子（仓库内无此测试）', gap_c1_concurrency_and_atomicity),
+    # (缺陷编号 = 主责工单-B*, 验收依据, 断言（不满足即 GAP）, 探针函数)
+    ('M0-002-B1', 'G/H · R2 冻结项', '已声明的协议错误码都必须有抛出路径，错误对象须可携带上下文', check_m0_002_b1),
+    ('M0-003-B1', 'G · 宪法第十五条', '对象 ID 前缀与 object_type 必须互相校验', check_m0_003_b1),
+    ('M0-004-B1', 'H · 宪法第二条', '知识可见性必须按绝对时刻比较，禁止字符串序', check_m0_004_b1),
+    ('M0-005-B1', 'H · 宪法第十三条', '生命周期状态必须是受控枚举，不得为裸 str', check_m0_005_b1),
+    ('M0-009-B1', 'H · R2-04 · 宪法第四十六条', 'EvidenceSet 成员必须落在自身 knowledge_window 内', check_m0_009_b1),
+    ('M0-010-B1', 'H · 宪法第十八/十九条', 'Summary/Session 的快照版本指针必须指向真实存在的 world revision', check_m0_010_b1),
+    ('M0-011-B1', 'G · 宪法第二十一条', '维度生命周期必须有受控转换矩阵', check_m0_011_b1),
+    ('M0-012-B1', 'H · 宪法第十三条', '事件状态必须与其 merged/split/supersedes 引用一致', check_m0_012_b1),
+    ('M0-014-B1', 'D/H · 宪法第三十二/三条', '过期任务必须可进入 EXPIRED，deadline 与 next_wake_at 需自洽', check_m0_014_b1),
+    ('M0-015-B1', 'H（§13 已承期待补）', '必须能按引用从底层对象反查受影响对象', check_m0_015_b1),
+    ('M0-016-B1', 'H · 宪法第四十五条', '失败操作也必须进审计表（code+message+context）', check_m0_016_b1),
+    ('M0-016-B2', 'G/H', '同幂等键不同载荷必须报 IDEMPOTENCY_CONFLICT，不得静默丢写', check_m0_016_b2),
+    ('M0-017-B1', 'I · 架构唯一写入层', '数据库侧必须无法绕过 Core 写入', check_m0_017_b1),
+    ('M0-018-B1', 'H · M0-017', '并发双写恰好一个成功且提交原子（行为已验证，仓库内缺此测试）', check_m0_018_b1),
+    ('M0-019-B1', 'H · 宪法第八条', '对象不得以 latest 写法引用自身作为自身证据', check_m0_019_b1),
+    ('M0-019-B2', 'H · 宪法第八条', '任何形态的引用都必须被验证；读回必须按模型校验', check_m0_019_b2),
+    ('M0-021-B1', 'G · 宪法第二十一条', '生命周期校验必须接在 Core 写入路径上', check_m0_021_b1),
 ]
 
 
 def main(argv):
     strict = '--strict' in argv
-    print('\nAUDIT-M0-R1 探针  ·  被测：aios_core_r2_reference (contracts+storage)')
+    print('\nAUDIT-M0-R2 探针  ·  被测：aios_core_r2_reference（M0-001…M0-019 参考实现）')
     print('─' * 108)
-    print(f"{'编号':<5}{'规格出处':<20}{'期望':<46}{'实测':<10}说明")
-    print('─' * 108)
+    print(f"{'缺陷编号':<12}{'规格出处':<22}{'期望':<44}{'实测':<10}说明")
+    print('─' * 118)
     gaps = 0
     for tag, spec, expectation, fn in CHECKS:
         try:
@@ -454,8 +454,8 @@ def main(argv):
             verdict, detail = 'ERROR', f'{type(exc).__name__}: {exc}'
         if verdict != 'PASS':
             gaps += 1
-        print(f'{tag:<6}{spec:<21}{expectation[:44]:<47}{verdict:<11}{detail}')
-    print('─' * 108)
+        print(f'{tag:<12}{spec:<23}{expectation[:42]:<45}{verdict:<11}{detail}')
+    print('─' * 118)
     print(f'已确认与规格不匹配：{gaps} / {len(CHECKS)}\n')
     return 1 if (strict and gaps) else gaps
 
