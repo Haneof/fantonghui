@@ -26,11 +26,11 @@ def _drop_semantic_fingerprint(path, key: str) -> None:
         conn.commit()
 
 
-def test_legacy_row_can_still_replay_exact_json_only_request(tmp_path):
+def test_legacy_row_can_still_replay_unambiguous_json_only_request(tmp_path):
     path = tmp_path / "legacy-exact.db"
     store = SQLiteWorldStore(path)
     request = op("legacy-exact")
-    obj = obs("reader", metadata={"opaque": {"object_id": "missing", "revision": 1}})
+    obj = obs("reader", metadata={"ordinary": {"label": "missing", "version": 1}})
     store.commit([obj], request)
     _drop_semantic_fingerprint(path, request.idempotency_key)
     before = counts(path)
@@ -38,6 +38,22 @@ def test_legacy_row_can_still_replay_exact_json_only_request(tmp_path):
     replay = SQLiteWorldStore(path).commit([obj], request)
 
     assert replay.idempotent_replay is True
+    assert counts(path) == before
+
+
+def test_legacy_ref_shaped_opaque_exact_replay_fails_closed(tmp_path):
+    path = tmp_path / "legacy-ambiguous-opaque.db"
+    store = SQLiteWorldStore(path)
+    request = op("legacy-ambiguous-opaque")
+    obj = obs("reader", metadata={"opaque": {"object_id": "missing", "revision": 1}})
+    store.commit([obj], request)
+    _drop_semantic_fingerprint(path, request.idempotency_key)
+    before = counts(path)
+
+    with pytest.raises(StoreError) as exc:
+        SQLiteWorldStore(path).commit([obj], request)
+
+    assert exc.value.code is ErrorCode.IDEMPOTENCY_CONFLICT
     assert counts(path) == before
 
 
