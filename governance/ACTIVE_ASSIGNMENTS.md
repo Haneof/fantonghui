@@ -7,21 +7,30 @@ This is the cloud roster. AI agents must not self-assign production work.
 - Agent ID: `chief-01`
 - 中文职位：总工程师 / 总工
 - Status: AUTHORIZED / OWNER / NOT STARTED
-- Task: M0-013 — Goal（目标）一等对象
+- Task: M0-014 — Task / Wake / Session / Action / Outcome 基础契约
 - Role prompt: `governance/roles/CHIEF_ENGINEER.md`
 - Production branch: `arena/01a09bc6-fantonghui`
-- Previous frozen semantic commit: `5ab6ed1c21f2c3f2664104faff3494113bdd5bc1` (M0-012 FINAL PASS)
+- Previous frozen semantic commit: `f30987395a034d4e9f826c9193dc82e00165a2e8` (M0-013 FINAL PASS)
 - Parallel safety: NOT PARALLEL_SAFE for another core writer
 
 ### Authority basis
 
-The authoritative taskbook marks M0-013 `负责人级别：总工程师亲自代码`.
+The authoritative taskbook marks M0-014 `负责人级别：总工程师亲自代码` and depends on M0-005 + M0-013.
 
-### M0-013 high-level outcome
+### M0-014 high-level outcome
 
-Freeze Goal as a first-class long-lived object distinct from Task. The contract must preserve owner/source/title/description/status/success criteria/related dimensions-events-tasks-apps/confidence, and must distinguish explicit user goals from AI-inferred goals and App goals. Goal creation must not automatically create Task; future work is taskified later through the Worker/service layer.
+Freeze the five foundational active-system contracts without implementing the M2 scheduler:
+- Task: type/state/Goal/priority/next wake/deadline/dependencies/completion/cancel/executions/outcomes;
+- Wake: source/hits/evidence/priority/dedupe;
+- Session: fixed world snapshot/execution context;
+- Action: stable `execution_id` and execution status;
+- Outcome: reality/result remains separate from Action and may represent unknown outcome semantics.
 
-`core-01` must NOT start M0-013 unless this assignment is explicitly changed.
+Required semantic proof: “reminder delivered” may complete a notification Task but does not prove “user learned”; an Action timeout must not be silently converted into success/failure if reality is unknown.
+
+Explicit prohibitions: model context cannot substitute for persistent Task; message delivery cannot equal help success.
+
+`core-01` must NOT start M0-014 unless this assignment is explicitly changed.
 
 ## Assignment B — `core-01` 核心程序员 / 主程序员
 
@@ -64,14 +73,14 @@ Current instruction: remain IDLE until the Chief Engineer assigns a new task.
 
 ## Last authoritative completion
 
-M0-012 FINAL PASS:
+M0-013 FINAL PASS:
 
-- semantic frozen commit: `5ab6ed1c21f2c3f2664104faff3494113bdd5bc1`
-- formal suite: 284 passed
+- semantic frozen commit: `f30987395a034d4e9f826c9193dc82e00165a2e8`
+- formal suite: 297 passed
 - Reference suite: 15 passed
 - Python: 3.12.14
-- EventAnchor cognitive lifecycle/provenance/history replay frozen
-- formal review: `reviews/M0/M0-012_final_PASS_2026-09-14.md`
+- exact R2 GoalStatus and Goal/Task/source-semantics boundary frozen
+- formal review: `reviews/M0/M0-013_final_PASS_2026-09-14.md`
 
 ## Operator handoff rule
 
