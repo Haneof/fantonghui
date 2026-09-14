@@ -1,0 +1,7 @@
+Python: 3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]
+Executable: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+Pydantic: 2.13.5
+pytest: 8.4.2
+Candidate directory: /workspace/scratch/82c41c0036ab/xreview
+Frozen SHA-256: 780cd8d978ec584faa7678dd98c0d3f4a9db2a18a05a82f019144c72f5885647
+Started: 2026-09-14T14:34:40.739582+00:00
