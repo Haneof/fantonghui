@@ -14,57 +14,56 @@
 | **总工程师 / 总工** | `chief-01` | 负责架构、关键任务亲自实现、审代码、签 FINAL PASS、发下一任务 |
 | **核心程序员 / 主程序员** | `core-01` | 日常按总工命令写代码、补测试、提交施工结果 |
 | **GPT-6 架构审计员 / GPT-6 首席架构师** | `architect-01` | 重大架构争议、冻结契约变更或里程碑 Gate 的独立红队 |
-| **并行程序员1** | `parallel-01` | 以后允许多 AI 并行开发时的第二条施工线 |
+| **并行程序员1** | `parallel-01` | M0 Gate 后允许多 AI 并行开发时的第二条施工线 |
 | **并行程序员2** | `parallel-02` | 以后需要第三条并行施工线时启用 |
 | **自动测试** | `ci` | GitHub Actions，负责机械测试事实，不负责架构判断 |
 
 ## 二、当前项目状态
 
-- 当前里程碑：M0 — 进行中
-- M0 完成度：**20 / 22 FINAL PASS**
-- 已正式通过到：**M0-020**
-- M0-020 语义冻结：`426ea4c8e1292f0dd5f57e01f8663014071f7004`
-- 下一任务：**M0-021 — Task / Event 状态机冻结**
-- M0-021 状态：**已授权 / 总工程师负责 / 尚未开始**
+- 当前里程碑：M0 — Gate 前最后一步
+- M0 完成度：**21 / 22 FINAL PASS**
+- 已正式通过到：**M0-021**
+- M0-021 语义冻结：`8818dba83d97f73e3e48df97df9a18e3c450ba9d`
+- 下一任务：**M0-022 — M0 契约总测试与冻结快照 / M0 Gate**
+- M0-022 状态：**已授权 / 总工程师 Gate / 尚未开始**
 - 当前生产分支：`arena/01a09bc6-fantonghui`
-- 当前开发模式：核心生产代码仍为单写入者
+- 当前开发模式：核心生产代码仍为单写入者；M0 Gate 通过前不启用并行核心开发
 
 ## 三、当前人员与任务
 
 | 中文职位 | 内部编号 | 当前状态 | 当前任务 | 最近结果 | 下一步 |
 |---|---|---|---|---|---|
-| **总工程师 / 总工** | `chief-01` | 当前负责人 | M0-021（尚未开始） | **M0-020 FINAL PASS**；377 正式测试 + Reference 15 全通过 | 亲自推进 M0-021 |
-| **核心程序员 / 主程序员** | `core-01` | **待命** | 无 | M0-010 收尾已验收 | 等总工以后分配施工任务 |
-| **GPT-6 架构审计员** | `architect-01` | **待命** | 当前无任务 | 尚未触发架构升级 | M0 Gate 必须介入；当前无需启动 |
-| **并行程序员1** | `parallel-01` | **未授权** | 无 | 无 | 等总工宣布可并行 |
-| **并行程序员2** | `parallel-02` | **未授权** | 无 | 无 | 等总工宣布可并行 |
-| **自动测试** | `ci` | **通过** | 每次 core push 自动回归 | M0-020 semantic HEAD：Python 3.12.14，377 passed；Reference 15 passed | 后续 push 自动重跑 |
+| **总工程师 / 总工** | `chief-01` | **Gate 负责人** | M0-022 | **M0-021 FINAL PASS**；385 正式测试 + Reference 15 全通过 | 做总测试、schema snapshot、fixtures、Gate 总审 |
+| **核心程序员 / 主程序员** | `core-01` | **待命** | 无 | M0-010 收尾已验收 | Gate 后再分配 M1 施工任务 |
+| **GPT-6 架构审计员** | `architect-01` | **已授权 / Gate 必须介入** | M0 独立架构红队 | 尚未开始 | 独立审查 M0 冻结契约，出具 PASS / ruling / blocker |
+| **并行程序员1** | `parallel-01` | **未授权** | 无 | 无 | M0 Gate 通过后评估启用 |
+| **并行程序员2** | `parallel-02` | **未授权** | 无 | 无 | 后续按冲突面决定 |
+| **自动测试** | `ci` | **通过** | 每次 production push 自动回归 | M0-021 semantic HEAD：Python 3.12.14，385 passed；Reference 15 passed | M0-022 继续作为机械证据 |
 
-## 四、M0-020 已冻结什么
+## 四、M0-021 已冻结什么
 
-- 支持精确 object revision 历史读取。
-- 支持 `as_of_world_revision` 重建当时世界状态。
-- 支持 `knowledge_cutoff` 按 `learned_at` 隐藏后来才知道的数据。
-- world revision 与 knowledge cutoff 可以组合，按交集选择最新可见 revision。
-- 数据库中已经存在的未来 revision 在过去时间镜头下不会泄露。
-- 历史 list 先选每个对象的最新可见 revision，再应用 `subject_id` 等可变字段筛选，避免旧 revision 被错误复活。
-- `HistoricalWorldQuery` 会固定实际使用的 world revision，并把实际 snapshot revision 与最小 coverage 返回给调用方。
-- 明确证明 `recorded_at` 不能替代 `learned_at` 做知识可见性。
+- Task 合法状态转换矩阵已经显式写入代码并完整枚举测试。
+- Event 合法状态转换矩阵已经显式写入代码并完整枚举测试。
+- `RUNNING -> WAITING_RESULT` 合法；`COMPLETED -> RUNNING` 非法。
+- `CANDIDATE -> REJECTED` 合法；`MERGED -> ACTIVE` 非法。
+- Task 的 `COMPLETED/FAILED/EXPIRED/CANCELLED` 都是终态。
+- Event 的 `MERGED/SPLIT` 是终态。
+- 对外 transition view 返回 immutable `frozenset`，调用者不能运行时篡改冻结矩阵。
+- 状态变化校验要求同一个 object_id 且正好 `revision + 1`，把状态变化表达成 append-only 新 revision。
 
-正式审查文件：`reviews/M0/M0-020_final_PASS_2026-09-14.md`
+正式审查文件：`reviews/M0/M0-021_final_PASS_2026-09-14.md`
 
-## 五、M0-021 已授权边界
+## 五、M0-022 Gate 已授权边界
 
-下一轮冻结 Task / Event 状态机：
+M0 最后一项不是普通小任务，而是正式里程碑 Gate：
 
-- Task 的合法状态转换矩阵进入代码；
-- Event 的合法状态转换矩阵进入代码；
-- `RUNNING -> WAITING_RESULT` 必须合法；
-- `COMPLETED -> RUNNING` 必须拒绝；
-- `CANDIDATE -> REJECTED` 必须合法；
-- `MERGED -> ACTIVE` 必须拒绝；
-- 状态变化通过新的对象 revision 表达，不允许 durable state 原地 UPDATE；
-- 服务层不能绕过状态机随意写状态。
+- 全量回归 M0-001~021 的 schema、枚举、时间、引用、revision、world revision、幂等、knowledge cutoff、Task/Event 状态机；
+- 导出 Pydantic JSON Schema 或稳定结构 hash 进入仓库，作为以后契约变化检测基准；
+- 至少覆盖运动会、未知人物、未来预测、Goal/Task 分离四个 Gate fixture；
+- 生成 M0 Gate report；
+- CI 全绿只是必要条件，不等于 M0 FINAL PASS；
+- **GPT-6 架构审计员必须独立红队审查**，通过后总工程师才能签 M0 Gate；
+- Gate 前不进入 M1，也不启用并行核心开发。
 
 ## 六、沟通与权限
 
@@ -72,5 +71,5 @@
 
 - 施工 AI 不能自己宣布 FINAL PASS。
 - 总工程师负责最终验收、冻结 commit、授权下一任务。
-- GPT-6 架构审计员在 M0 Gate 必须介入；当前无升级触发。
+- GPT-6 架构审计员本轮已经进入强制 Gate 流程。
 - 自动测试全绿是必要条件，不替代架构审查。
