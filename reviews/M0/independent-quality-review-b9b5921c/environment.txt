@@ -1,0 +1,7 @@
+Python 3.12.14
+pydantic 2.13.5
+pytest 8.4.2
+pytest_module 8.4.2
+candidate_sha=b9b5921c3e31a40528b0b96e689ae721c334bd7c
+candidate_branch=arena/integrator-x5-x7-repair-20260914
+review_branch=review/independent-quality-b9b5921c-r1
