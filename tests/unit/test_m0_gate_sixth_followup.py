@@ -13,6 +13,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
+import aios_core
 from pydantic import ValidationError
 from aios_core.contracts import (
     Observation,
@@ -430,7 +431,12 @@ def test_same_snapshot_concurrent_writers_and_same_key(tmp_path):
     )
 
 
-def test_nested_unordered_cross_process_and_ordered_separation(tmp_path):
+@pytest.mark.parametrize("inherit_pythonpath", [False, True])
+def test_nested_unordered_cross_process_and_ordered_separation(
+    tmp_path, monkeypatch, inherit_pythonpath
+):
+    if not inherit_pythonpath:
+        monkeypatch.delenv("PYTHONPATH", raising=False)
     script = """
 import json,sys
 from test_m0_gate_sixth_followup import *
@@ -443,7 +449,11 @@ print(json.dumps(r.model_dump()))
     for seed in ("1", "17", "31337"):
         env = dict(os.environ, PYTHONHASHSEED=seed)
         env["PYTHONPATH"] = os.pathsep.join(
-            [str(Path(__file__).parent), os.environ["PYTHONPATH"]]
+            [
+                str(Path(__file__).parent),
+                str(Path(aios_core.__file__).resolve().parent.parent),
+                *([os.environ["PYTHONPATH"]] if os.environ.get("PYTHONPATH") else []),
+            ]
         )
         results.append(
             json.loads(
