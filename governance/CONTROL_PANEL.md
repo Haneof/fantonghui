@@ -21,11 +21,11 @@
 ## 二、当前项目状态
 
 - 当前里程碑：M0 — 进行中
-- M0 完成度：**16 / 22 FINAL PASS**
-- 已正式通过到：**M0-016**
-- M0-016 语义冻结：`cdbd7ff1d42ba292a2e0ca9972f0c9eccd4666c3`
-- 下一任务：**M0-017 — SQLite 追加式世界存储 schema**
-- M0-017 状态：**已授权 / 总工程师负责 / 尚未开始**
+- M0 完成度：**17 / 22 FINAL PASS**
+- 已正式通过到：**M0-017**
+- M0-017 验收冻结：`c9bd2d85ff0047515f6f4cc5b9e7058c70cff6dc`
+- 下一任务：**M0-018 — 全局 World Revision 与原子提交**
+- M0-018 状态：**已授权 / 总工程师负责 / 尚未开始**
 - 当前生产分支：`arena/01a09bc6-fantonghui`
 - 当前开发模式：核心生产代码仍为单写入者
 
@@ -33,42 +33,40 @@
 
 | 中文职位 | 内部编号 | 当前状态 | 当前任务 | 最近结果 | 下一步 |
 |---|---|---|---|---|---|
-| **总工程师 / 总工** | `chief-01` | 当前负责人 | M0-017（尚未开始） | **M0-016 FINAL PASS**；341 正式测试 + Reference 15 全通过 | 亲自推进 M0-017 |
+| **总工程师 / 总工** | `chief-01` | 当前负责人 | M0-018（尚未开始） | **M0-017 FINAL PASS**；353 正式测试 + Reference 15 全通过 | 亲自推进 M0-018 |
 | **核心程序员 / 主程序员** | `core-01` | **待命** | 无 | M0-010 收尾已验收 | 等总工以后分配施工任务 |
 | **GPT-6 架构审计员** | `architect-01` | **待命** | 当前无任务 | 尚未触发架构升级 | M0 Gate 必须介入；当前无需启动 |
 | **并行程序员1** | `parallel-01` | **未授权** | 无 | 无 | 等总工宣布可并行 |
 | **并行程序员2** | `parallel-02` | **未授权** | 无 | 无 | 等总工宣布可并行 |
-| **自动测试** | `ci` | **通过** | 每次 core push 自动回归 | M0-016 semantic HEAD：Python 3.12.14，341 passed；Reference 15 passed | 后续 push 自动重跑 |
+| **自动测试** | `ci` | **通过** | 每次 core push 自动回归 | M0-017 acceptance HEAD：Python 3.12.14，353 passed；Reference 15 passed | 后续 push 自动重跑 |
 
-## 四、M0-016 已冻结什么
+## 四、M0-017 已冻结什么
 
-- 所有世界修改操作继续显式携带 `operation_id / session_id / operation_name / arguments / expected_world_revision / reason / idempotency_key`。
-- 关键 operation identity、reason 和 idempotency key 不允许空白。
-- 同一成功操作的幂等重试先于 expected world revision 冲突检查。
-- 因此重复重试返回第一次的结果，不会让 world revision 再加一次，也不会重复写对象。
-- 新 idempotency key 如果拿着旧 `expected_world_revision` 写入，必须返回 `VERSION_CONFLICT`。
-- 系统不能自动吞掉冲突后覆盖另一个 writer 的结果。
-- 已提交操作可以通过 durable operation audit 回查，SQLiteWorldStore 重启后仍然存在。
-- 新增 `OperationAuditRecord`，让审计记录拥有明确类型化契约。
+- 第一阶段 SQLite 世界存储正式冻结五张核心表：`world_meta / world_commits / object_revisions / operations / idempotency_records`。
+- Store connection 使用 WAL 和 foreign keys。
+- 对象 revision 追加保存，不覆盖旧历史。
+- 重启后 world revision、对象 payload 和历史 revision 都保留。
+- 一个多对象事务成功后，所有对象共享同一 world revision。
+- 非法事务失败后，world/object/operation/idempotency 都不会留下半写状态。
+- 两个 writer 拿同一个旧 world revision 写入时，后提交者必须收到 `VERSION_CONFLICT`，不能覆盖先提交者。
+- AI Worker 继续被架构测试禁止直接 import `sqlite3` 或 `aios_core.storage`。
+- 没有引入运行时随意 `ALTER TABLE`；未来 migration 必须走显式版本化方案。
 
-正式审查文件：`reviews/M0/M0-016_final_PASS_2026-09-14.md`
+正式审查文件：`reviews/M0/M0-017_final_PASS_2026-09-14.md`
 
-## 五、M0-017 已授权边界
+## 五、M0-018 已授权边界
 
-下一轮正式验收 SQLite 世界存储本身，而不是只依赖前面任务顺手使用它。
+下一轮专门冻结“全局 World Revision + 原子提交”语义：
 
-重点包括：
-- `world_meta / world_commits / object_revisions / operations / idempotency_records`；
-- WAL；
-- `BEGIN IMMEDIATE` 等事务边界；
-- object_id/type/subject/learned_at 索引；
-- 建库和重启后数据仍然正确；
-- 连续多次提交；
-- 同一对象多个 revision 永久保留；
-- 失败事务完整 rollback，不能留下半写状态；
-- expected world revision 的并发冲突行为；
-- AI Worker 不得拿到 raw sqlite connection；
-- migration 以后必须走显式版本脚本，禁止运行时随意 ALTER。
+- 事务开始时检查 `expected_world_revision`；
+- 一个成功事务只生成一个新的全局 world revision；
+- 同一事务里的所有对象共享这个 world revision；
+- 只有事务完整成功后 world meta 才推进；
+- stale writer 必须返回 `VERSION_CONFLICT`；
+- 任意验证/写入失败都必须 rollback，不能推进 world revision，也不能留下部分对象；
+- 继续保持 append-only 历史与既有幂等顺序；
+- 使用现有 `BEGIN IMMEDIATE` 事务边界；
+- 不提前实现后续调度/恢复运行时。
 
 ## 六、沟通与权限
 
