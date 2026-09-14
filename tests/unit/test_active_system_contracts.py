@@ -10,19 +10,19 @@ from pydantic import ValidationError
 
 from aios_core.contracts.enums import (
     ActionStatus,
+    ErrorCode,
     ObjectType,
     TaskState,
     TaskType,
     WakeSource,
     WakeState,
 )
-from aios_core.contracts.errors import ErrorCode, StoreError
 from aios_core.contracts.ids import new_object_id
 from aios_core.contracts.models import Action, Outcome, Session, Task, Wake
 from aios_core.contracts.operations import OperationRequest
 from aios_core.contracts.refs import ObjectRef
 from aios_core.contracts.time import TemporalExtent
-from aios_core.storage.sqlite_store import SQLiteWorldStore
+from aios_core.storage.sqlite_store import SQLiteWorldStore, StoreError
 
 
 BASE = datetime(2026, 9, 14, 12, 30, tzinfo=timezone.utc)
@@ -340,7 +340,7 @@ def test_a14_post_validation_mutation_of_task_provenance_is_rejected_atomically(
         store.commit([task], make_op(0))
     assert exc_info.value.code is ErrorCode.INVALID_ARGUMENT
     assert exc_info.value.context["reason"] == "persistence_revalidation_failed"
-    assert store.world_revision == 0
+    assert store.current_world_revision() == 0
     assert store.list_payloads(object_type=ObjectType.TASK) == []
 
 
@@ -353,7 +353,7 @@ def test_a15_post_validation_mutation_of_wake_evidence_is_rejected_atomically(tm
         store.commit([wake], make_op(0))
     assert exc_info.value.code is ErrorCode.INVALID_ARGUMENT
     assert exc_info.value.context["reason"] == "persistence_revalidation_failed"
-    assert store.world_revision == 0
+    assert store.current_world_revision() == 0
 
 
 def test_a16_action_completion_and_outcome_are_independent_states():
