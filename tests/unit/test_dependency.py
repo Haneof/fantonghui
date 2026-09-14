@@ -10,6 +10,7 @@ from pydantic import ValidationError
 
 from aios_core.contracts.enums import (
     ClaimType,
+    ErrorCode,
     KnowledgeState,
     ObjectType,
     TaskType,
@@ -34,7 +35,7 @@ from aios_core.dependency import (
     find_dependency_cycle,
     validate_dependency_graph_acyclic,
 )
-from aios_core.storage.sqlite_store import SQLiteWorldStore
+from aios_core.storage.sqlite_store import SQLiteWorldStore, StoreError
 
 
 BASE = datetime(2026, 9, 14, 13, 0, tzinfo=timezone.utc)
@@ -344,8 +345,11 @@ def test_d13_post_validation_mutation_cannot_persist_floating_dependency_ref(tmp
         ObjectRef(object_id=observation.object_id, revision=None),
     )
 
-    with pytest.raises(Exception):
+    with pytest.raises(StoreError) as exc_info:
         store.commit([dependency], make_op(1))
+    assert exc_info.value.code is ErrorCode.INVALID_ARGUMENT
+    assert exc_info.value.context["reason"] == "persistence_revalidation_failed"
+    assert store.current_world_revision() == 1
     assert store.list_payloads(object_type=ObjectType.DEPENDENCY) == []
 
 
