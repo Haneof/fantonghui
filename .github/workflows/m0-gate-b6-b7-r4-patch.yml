@@ -1,0 +1,28 @@
+name: M0 Gate B6 B7 B5 R4 repair
+
+on:
+  push:
+    branches:
+      - arena/01a09bc6-fantonghui
+    paths:
+      - .github/workflows/m0-gate-b6-b7-r4-patch.yml
+      - tools/apply_m0_gate_b6_b7_r4.py
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply M0 Gate repair
+        run: python tools/apply_m0_gate_b6_b7_r4.py
+      - name: Commit semantic repair
+        run: |
+          git config user.name "chief
