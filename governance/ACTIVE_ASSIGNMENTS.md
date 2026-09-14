@@ -6,32 +6,26 @@ This is the cloud roster. AI agents must not self-assign production work.
 
 - Agent ID: `chief-01`
 - 中文职位：总工程师 / 总工
-- Status: AUTHORIZED / OWNER / NOT STARTED
+- Status: ACTIVE / OWNER
 - Task: M0-016 — OperationRequest、审计与幂等契约
 - Role prompt: `governance/roles/CHIEF_ENGINEER.md`
 - Production branch: `arena/01a09bc6-fantonghui`
-- Previous frozen semantic commit: `3b4e8b603e52830d8be44d33141f722bbba244a0` (M0-015 FINAL PASS)
+- Frozen base: `3b4e8b603e52830d8be44d33141f722bbba244a0` (M0-015 FINAL PASS)
 - Parallel safety: NOT PARALLEL_SAFE for another core writer
 
-### Authority basis
+### Current work
 
-The authoritative taskbook marks M0-016 `负责人级别：总工程师亲自代码` and depends on M0-002 + M0-005.
+The Chief Engineer is implementing and reviewing M0-016 directly.
 
-### M0-016 high-level outcome
+Required contract:
+- OperationRequest keeps operation_id/session_id/operation_name/arguments/expected_world_revision/reason/idempotency_key explicit;
+- safe replay checks the idempotency record before optimistic world revision validation;
+- a successful replay returns the original result and does not advance the world revision;
+- a stale expected_world_revision on a new request returns VERSION_CONFLICT and must not overwrite concurrent work;
+- committed operations remain auditable;
+- do not prematurely implement M0-017 storage schema migration policy or M0-018 broader world-revision mechanics beyond what M0-016 needs.
 
-Freeze the world-modification operation envelope and safe retry semantics around the existing store contract:
-
-- `operation_id`;
-- `session_id`;
-- `operation_name` / arguments;
-- `expected_world_revision` optimistic concurrency;
-- `reason`;
-- `idempotency_key`;
-- retry with the same idempotency key must return the original result rather than duplicate the write;
-- stale expected world revision must fail clearly;
-- preserve auditability of committed operations.
-
-Do not prematurely implement external Action execution idempotency or distributed transaction machinery beyond the M0 task boundary.
+Work already started on the production branch: OperationRequest validation was hardened and an OperationAuditRecord contract was introduced. Tests, exact-head CI, formal review, and freeze are still pending.
 
 `core-01` must NOT start M0-016 unless this assignment is explicitly changed.
 
@@ -82,9 +76,7 @@ M0-015 FINAL PASS:
 - formal suite: 329 passed
 - Reference suite: 15 passed
 - Python: 3.12.14
-- exact-version Dependency edges frozen
-- explicit dependency cycles detectable/rejectable; Relation cycles remain allowed
-- exact-revision reverse impact scan frozen as contract helper; persistent propagation remains M3
+- exact-version Dependency, dependency-cycle guard, reverse impact helper frozen
 - formal review: `reviews/M0/M0-015_final_PASS_2026-09-14.md`
 
 ## Operator handoff rule
