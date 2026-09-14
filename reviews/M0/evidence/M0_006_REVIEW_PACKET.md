@@ -96,3 +96,66 @@ f04bd68 (M0-005 archive final pass and authorize M0-006)
 NONE
 - 关键模型ref字段检查通过，无M0_006_CRITICAL_REF_FIELD_DIVERGED
 - 无剩余时间排序问题 (R2已修复)
+
+---
+
+## R1 PATCH 2026-09-14 强化版本化引用冻结测试 (TEST ONLY)
+
+### 生产代码
+NO CHANGE / PASS/FROZEN
+- refs.py, sqlite_store.py 已通过审查，GitHub Actions SUCCESS Python 3.12 179 passed
+- 本轮禁止修改生产代码，git diff ac83582..HEAD -- src/ 无输出
+
+### 阻塞A: critical model ref field test仅检查字段名
+- 原 test_critical_model_ref_fields 仅检查 "field" in Model.model_fields
+- 若未来字段被改成 str / list[str] / dict / Any，测试仍通过，无法证明类型冻结
+- 修复: 使用 get_type_hints, get_origin, get_args
+  - assert_list_of_object_ref: annotation origin is list and args == (ObjectRef,)
+  - assert_object_ref: annotation == ObjectRef or ObjectRef in Union args
+  - 验证 Claim.support_evidence_set_refs, Claim.counter_evidence_set_refs, EventAnchor.primary_claim_refs, EventAnchor.evidence_set_refs, EvidenceSet.member_refs/support_refs/counter_refs/context_refs 全部 list[ObjectRef]
+  - 验证 Dependency.dependent_ref, Dependency.dependency_ref 必须 ObjectRef
+- 目标: 若字段改为 list[str] / str / dict / Any，测试必须失败，禁止修改models.py迎合测试
+
+### 阻塞B: R09 future leakage断言OR逃逸
+- 原: assert "future" not in ctx_str.lower() or "reference_not_visible" in ctx_str 可能在泄露future payload时仍false-green
+- 修复: 删除OR逻辑，使用明确canary FUTURE_SECRET_8848
+  - target value = FUTURE_SECRET_8848
+  - 发生NOT_FOUND后验证 code==NOT_FOUND, context referenced_object_id==target_id, referenced_revision==1, reason==reference_not_visible_or_missing
+  - serialized_error = str(err) + json.dumps(context)
+  - 必须: FUTURE_SECRET_8848 not in serialized_error, "11:00" not in, "learned_at" not in, "payload" not in
+  - 允许 referenced_revision 因为这是引用者自己请求的revision，不是未来泄露
+  - 不使用 A or B 形式让泄露绕过
+
+### 阻塞C: pending visibility DST fold integration test缺失
+- pending reference visibility新增了datetime排序路径，但无DST fold integration test
+- 新增 R16 pending DST false-accept防护:
+  - ny = ZoneInfo("America/New_York")
+  - referencing A learned 01:45 fold=0 = 05:45 UTC
+  - pending target B learned 01:30 fold=1 = 06:30 UTC
+  - 墙钟 01:30 <= 01:45 看起来B可见，但真实instant 06:30 > 05:45 B属于未来，必须 NOT_FOUND，同一commit [A,B] rollback，world仍0，A/B不存在，显式验证 as_utc(B) > as_utc(A)
+- 新增 R17 pending DST false-reject防护:
+  - target B 01:30 fold=0 = 05:30 UTC
+  - referencing A 01:15 fold=1 = 06:15 UTC
+  - 墙钟 01:30 > 01:15 错误直接比较会认为未来，但真实 05:30 < 06:15 B已可见，A引用B@1同一commit必须成功，验证 as_utc(B) < as_utc(A)，world_revision==1，A、B均可读
+
+### 对抗验证 R1
+- A 把critical field test中ObjectRef类型断言删掉，模拟字段改为list[str]的检查逻辑，强化后若字段改为list[str]测试失败，证明类型冻结有效
+- B 在错误context中临时加入 "payload": "FUTURE_SECRET_8848"，R09严格canary检查必须失败
+- C 把生产逻辑改成 pending_target.learned_at <= knowledge_cutoff (直接比较)，R16和R17至少失败，证明as_utc必要
+- 禁止提交攻击代码，生产代码本轮不得正式修改
+
+### 正式测试 R1
+- 基线 179 passed
+- 本轮修改已有critical/R09测试 + 新增R16/R17
+- 实际 181 passed (179+2)
+- Reference 15 passed
+- Python 3.11.2本地，GitHub Actions Python 3.12预期同样181 passed
+
+### 生产代码不变证明
+- 开始前 git diff ac83582..HEAD -- refs.py sqlite_store.py 无diff
+- 完成后 git diff ac83582..HEAD -- refs.py sqlite_store.py base.py models.py time.py ids.py enums.py operations.py 必须 NO CHANGE
+- 实际: NO CHANGE，符合TEST ONLY要求
+
+### CI状态
+- 起始HEAD ac83582 GitHub Actions SUCCESS Python 3.12 179 passed
+- R1新HEAD push后自动触发CI，施工方若看不到结果写 CI_PENDING_CHIEF_VERIFICATION，总工直接GitHub核验
