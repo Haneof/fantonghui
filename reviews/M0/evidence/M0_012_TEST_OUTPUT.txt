@@ -1,0 +1,29 @@
+M0-012 exact semantic freeze CI evidence
+Date: 2026-09-14
+Commit: 5ab6ed1c21f2c3f2664104faff3494113bdd5bc1
+GitHub Actions run: 34806790239
+Job: 103860118133
+Environment: Linux / CPython 3.12.14 / pytest 8.4.2
+
+Main suite:
+collected 284 items
+284 passed, 1 warning in 2.21s
+
+Warning:
+tests/unit/test_evidence_set.py::test_e23_time_range_mutation
+PydanticSerializationUnexpectedValue for intentional post-validation mutation adversarial test.
+This is pre-existing expected test behavior and not an M0-012 failure.
+
+Reference suite:
+collected 15 items
+15 passed in 0.22s
+
+Workflow conclusion: SUCCESS
+
+Earlier M0-012 regression detection:
+Commit: 98372478a39ad85d0653d30e03b8d7d24370ba70
+Result: 282 passed, 1 failed
+Failure: tests/unit/test_refs.py::test_critical_model_ref_fields_annotation because EventAnchor.evidence_set_refs had been removed.
+Repair: preserve generic evidence_set_refs plus explicit support/counter evidence refs; generic evidence refs are pinned provenance too.
+
+Final verdict: M0-012 FINAL PASS @ 5ab6ed1c21f2c3f2664104faff3494113bdd5bc1
