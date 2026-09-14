@@ -78,12 +78,12 @@ class DimensionLifecycle(StrEnum):
 
 
 class GoalStatus(StrEnum):
-    CANDIDATE = "candidate"
+    PROPOSED = "proposed"
     ACTIVE = "active"
     PAUSED = "paused"
     ACHIEVED = "achieved"
     ABANDONED = "abandoned"
-    REJECTED = "rejected"
+    UNKNOWN = "unknown"
 
 
 class GoalSourceType(StrEnum):
