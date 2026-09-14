@@ -1,0 +1,5 @@
+repository=Haneof/fantonghui
+branch=arena/integrator-x5-x7-repair-20260914
+sha=b9b5921c3e31a40528b0b96e689ae721c334bd7c
+review_branch=review/independent-quality-b9b5921c-r1
+suite_revision=R1
