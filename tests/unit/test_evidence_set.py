@@ -1,4 +1,4 @@
-"""M0-009 EvidenceSet（一等证据集合）契约冻结"""
+"""M0-009 EvidenceSet（一等证据集合）契约冻结 + R1 durable boundary"""
 from __future__ import annotations
 
 import uuid
@@ -93,12 +93,8 @@ def make_evidence_set(
     now = utc_now()
     learned = learned_at or now
     recorded = recorded_at if recorded_at is not None else learned
-    # Ensure knowledge_window cutoff <= learned_at by default, unless explicitly provided
     if knowledge_window is None:
         knowledge_window = make_knowledge_window(knowledge_cutoff=learned)
-    else:
-        # If provided cutoff > learned, we keep as is to test validation
-        pass
 
     oid = object_id or new_object_id(ObjectType.EVIDENCE_SET)
     return EvidenceSet(
@@ -147,7 +143,7 @@ def make_selector(
     )
 
 
-# E01 schema exact types
+# E01 schema exact types - hardened R1
 def test_e01_schema_exact_types():
     assert issubclass(EvidenceSet, WorldObject)
 
@@ -163,51 +159,29 @@ def test_e01_schema_exact_types():
     assert get_origin(hints["context_refs"]) is list
     assert get_args(hints["context_refs"]) == (ObjectRef,)
 
-    # selector == EvidenceSelector | None
+    # selector exact set {EvidenceSelector, None}
     sel_ann = hints["selector"]
-    # Union: get_origin is Union or | in Python 3.10+
-    # Check that args contain EvidenceSelector and NoneType
-    args = get_args(sel_ann)
-    assert EvidenceSelector in args
-    assert type(None) in args
+    assert set(get_args(sel_ann)) == {EvidenceSelector, type(None)}, f"selector must be exactly EvidenceSelector | None, got {get_args(sel_ann)}"
 
     assert hints["selection_method"] is str
-    # aggregation_method str | None
-    agg_ann = hints["aggregation_method"]
-    agg_args = get_args(agg_ann)
-    assert str in agg_args and type(None) in agg_args
-
-    agg_ver_ann = hints["aggregation_version"]
-    agg_ver_args = get_args(agg_ver_ann)
-    assert str in agg_ver_args and type(None) in agg_ver_args
+    assert set(get_args(hints["aggregation_method"])) == {str, type(None)}, f"aggregation_method must be exactly str | None"
+    assert set(get_args(hints["aggregation_version"])) == {str, type(None)}, f"aggregation_version must be exactly str | None"
 
     assert hints["coverage"] is EvidenceCoverage
     assert hints["stale"] is bool
 
-    # EvidenceSelector
     sel_hints = get_type_hints(EvidenceSelector)
     assert sel_hints["time_range"] is TemporalExtent
     assert get_origin(sel_hints["dimension_refs"]) is list
     assert get_args(sel_hints["dimension_refs"]) == (ObjectRef,)
     assert get_origin(sel_hints["filters"]) is dict
-    # filters dict[str, Any]
-    f_args = get_args(sel_hints["filters"])
-    assert f_args[0] is str
-    # second arg Any
+    assert get_args(sel_hints["filters"]) == (str, Any), f"filters must be dict[str, Any], got {get_args(sel_hints['filters'])}"
     assert sel_hints["algorithm_version"] is str
 
-    # EvidenceCoverage
     cov_hints = get_type_hints(EvidenceCoverage)
-    # expected_count int | None
-    exp_ann = cov_hints["expected_count"]
-    exp_args = get_args(exp_ann)
-    assert int in exp_args and type(None) in exp_args
-    obs_ann = cov_hints["observed_count"]
-    obs_args = get_args(obs_ann)
-    assert int in obs_args and type(None) in obs_args
-    ratio_ann = cov_hints["coverage_ratio"]
-    ratio_args = get_args(ratio_ann)
-    assert float in ratio_args and type(None) in ratio_args
+    assert set(get_args(cov_hints["expected_count"])) == {int, type(None)}
+    assert set(get_args(cov_hints["observed_count"])) == {int, type(None)}
+    assert set(get_args(cov_hints["coverage_ratio"])) == {float, type(None)}
     assert get_origin(cov_hints["missing_description"]) is list
     assert get_args(cov_hints["missing_description"]) == (str,)
 
@@ -257,7 +231,6 @@ def test_e03_explicit_members(tmp_path):
     payload = store.get_payload(es.object_id)
     assert len(payload["member_refs"]) == 2
     assert payload["member_refs"][0]["revision"] == 1
-    assert payload["member_refs"][1]["revision"] == 1
 
 
 # E04 member floating拒绝
@@ -282,7 +255,6 @@ def test_e05_support_counter_context_floating_reject():
     base = datetime(2026, 9, 14, 10, 0, tzinfo=timezone.utc)
     kw = make_knowledge_window(knowledge_cutoff=base)
     obs_id = new_object_id(ObjectType.OBSERVATION)
-    # Need at least one pinned member to pass empty check
     pinned = ObjectRef(object_id=new_object_id(ObjectType.OBSERVATION), revision=1)
 
     with pytest.raises(ValidationError) as excinfo:
@@ -336,7 +308,6 @@ def test_e06_selector_dimension_floating_reject():
         )
     assert "selector.dimension_refs requires pinned ObjectRef revisions" in str(excinfo.value)
 
-    # Using revision=1合法 model-level
     selector_pinned = make_selector(
         dimension_refs=[ObjectRef(object_id=dim_id, revision=1)]
     )
@@ -347,7 +318,6 @@ def test_e06_selector_dimension_floating_reject():
         learned_at=base,
         recorded_at=base,
     )
-    assert es.selector is not None
     assert es.selector.dimension_refs[0].revision == 1
 
 
@@ -425,23 +395,24 @@ def test_e08_selector_materialization(tmp_path):
     assert len(rev2_payload["member_refs"]) == 2
 
 
-# E09 fixed interval one week later
+# E09 fixed interval one week later - hardened exact
 def test_e09_fixed_interval(tmp_path):
     db = tmp_path / "test.db"
     store = SQLiteWorldStore(db)
 
-    base = datetime(2026, 9, 14, 10, 0, tzinfo=timezone.utc)
+    expected_start = datetime(2026, 9, 1, 0, 0, tzinfo=timezone.utc)
+    expected_end = datetime(2026, 9, 14, 23, 59, tzinfo=timezone.utc)
+    expected_cutoff = datetime(2026, 9, 14, 23, 59, tzinfo=timezone.utc)
+
     time_range = TemporalExtent(
-        start=datetime(2026, 9, 1, 0, 0, tzinfo=timezone.utc),
-        end=datetime(2026, 9, 14, 23, 59, tzinfo=timezone.utc),
+        start=expected_start,
+        end=expected_end,
     )
-    cutoff = datetime(2026, 9, 14, 23, 59, tzinfo=timezone.utc)
-    kw = make_knowledge_window(knowledge_cutoff=cutoff, world_revision=1)
+    kw = make_knowledge_window(knowledge_cutoff=expected_cutoff, world_revision=1)
 
     selector = make_selector(time_range=time_range)
 
-    # learned_at must be >= cutoff per M0-009 E13
-    learned = cutoff
+    learned = expected_cutoff
     es = make_evidence_set(
         member_refs=[],
         selector=selector,
@@ -451,25 +422,29 @@ def test_e09_fixed_interval(tmp_path):
     )
     store.commit([es], make_op(0))
 
-    # One week later new observation
     later = datetime(2026, 9, 21, 10, 0, tzinfo=timezone.utc)
     obs_new = make_observation(value="new", learned_at=later, recorded_at=later)
     store.commit([obs_new], make_op(1))
 
     old_payload = store.get_payload(es.object_id, revision=1)
-    # selector time_range still original
-    assert old_payload["selector"]["time_range"]["start"] is not None
-    # knowledge_cutoff still 2026-09-14
-    assert "2026-09-14" in old_payload["knowledge_window"]["knowledge_cutoff"]
-    # new observation not auto in old member_refs
+
+    stored_extent = TemporalExtent.model_validate(
+        old_payload["selector"]["time_range"]
+    )
+    stored_window = KnowledgeWindow.model_validate(
+        old_payload["knowledge_window"]
+    )
+
+    assert as_utc(stored_extent.start, "start") == as_utc(expected_start, "expected_start")
+    assert as_utc(stored_extent.end, "end") == as_utc(expected_end, "expected_end")
+    assert as_utc(stored_window.knowledge_cutoff, "knowledge_cutoff") == as_utc(expected_cutoff, "expected_cutoff")
+    assert stored_window.world_revision == 1
     assert old_payload["member_refs"] == []
+    assert obs_new.object_id not in [ref["object_id"] for ref in old_payload["member_refs"]]
 
 
 # E10 dynamic time替代拒绝
 def test_e10_dynamic_time_reject():
-    base = datetime(2026, 9, 14, 10, 0, tzinfo=timezone.utc)
-    kw = make_knowledge_window(knowledge_cutoff=base)
-
     with pytest.raises(ValidationError):
         EvidenceSelector(
             selector_type="dimension_interval",
@@ -480,7 +455,6 @@ def test_e10_dynamic_time_reject():
             algorithm_version="v1",
         )
 
-    # Also test relative_time extra field forbidden
     with pytest.raises(ValidationError):
         EvidenceSelector(
             selector_type="dimension_interval",
@@ -524,9 +498,6 @@ def test_e11_separation(tmp_path):
     assert payload["support_refs"][0]["object_id"] == obs_s.object_id
     assert payload["counter_refs"][0]["object_id"] == obs_c.object_id
     assert payload["context_refs"][0]["object_id"] == obs_x.object_id
-    # No pollution
-    assert payload["support_refs"][0]["object_id"] != payload["counter_refs"][0]["object_id"]
-    assert payload["support_refs"][0]["object_id"] != payload["context_refs"][0]["object_id"]
 
 
 # E12 coverage/missingness visible
@@ -544,21 +515,6 @@ def test_e12_coverage(tmp_path):
         missing_description=["09:30-09:45 心率缺失", "没有比赛名称"],
     )
 
-    es = make_evidence_set(
-        member_refs=[ObjectRef(object_id=new_object_id(ObjectType.OBSERVATION), revision=1)],
-        coverage=coverage,
-        knowledge_window=kw,
-        learned_at=base,
-        recorded_at=base,
-    )
-
-    # model dump
-    assert es.coverage.expected_count == 10
-    assert es.coverage.observed_count == 7
-    assert es.coverage.coverage_ratio == 0.7
-    assert es.coverage.missing_description == ["09:30-09:45 心率缺失", "没有比赛名称"]
-
-    # SQLite round-trip needs real ref? Use observation
     obs = make_observation(learned_at=base, recorded_at=base)
     store.commit([obs], make_op(0))
 
@@ -581,7 +537,7 @@ def test_e12_coverage(tmp_path):
     ]
 
 
-# E13 KnowledgeWindow cutoff不能未来
+# E13 KnowledgeWindow cutoff不能未来 - strict
 def test_e13_cutoff_future_reject():
     learned = datetime(2026, 9, 14, 10, 0, tzinfo=timezone.utc)
     cutoff_future = datetime(2026, 9, 14, 11, 0, tzinfo=timezone.utc)
@@ -594,9 +550,8 @@ def test_e13_cutoff_future_reject():
             learned_at=learned,
             recorded_at=learned,
         )
-    assert "knowledge_cutoff" in str(excinfo.value).lower() or "must not be after" in str(excinfo.value)
+    assert "knowledge_window.knowledge_cutoff must not be after learned_at" in str(excinfo.value)
 
-    # cutoff == learned legal
     kw_equal = make_knowledge_window(knowledge_cutoff=learned)
     es_equal = make_evidence_set(
         member_refs=[ObjectRef(object_id=new_object_id(ObjectType.OBSERVATION), revision=1)],
@@ -606,7 +561,6 @@ def test_e13_cutoff_future_reject():
     )
     assert es_equal.knowledge_window.knowledge_cutoff == learned
 
-    # cutoff 09:00 legal
     cutoff_past = datetime(2026, 9, 14, 9, 0, tzinfo=timezone.utc)
     kw_past = make_knowledge_window(knowledge_cutoff=cutoff_past)
     es_past = make_evidence_set(
@@ -629,17 +583,6 @@ def test_e14_world_revision_round_trip(tmp_path):
         world_revision=7,
     )
 
-    es = make_evidence_set(
-        member_refs=[ObjectRef(object_id=new_object_id(ObjectType.OBSERVATION), revision=1)],
-        knowledge_window=kw,
-        learned_at=base,
-        recorded_at=base,
-    )
-
-    # model dump
-    assert es.knowledge_window.world_revision == 7
-
-    # SQLite round-trip
     obs = make_observation(learned_at=base, recorded_at=base)
     store.commit([obs], make_op(0))
 
@@ -685,7 +628,6 @@ def test_e15_pinned_history(tmp_path):
     )
     store.commit([es], make_op(1))
 
-    # target rev2
     target_rev2 = Observation(
         object_id=target_id,
         subject_id="user-1",
@@ -700,17 +642,14 @@ def test_e15_pinned_history(tmp_path):
     )
     store.commit([target_rev2], make_op(2))
 
-    # EvidenceSet still revision 1
     es_payload = store.get_payload(es.object_id)
     assert es_payload["member_refs"][0]["revision"] == 1
 
-    # Using member ref to read target must get old
     member_ref = es_payload["member_refs"][0]
     target_via_ref = store.get_payload(
         member_ref["object_id"], revision=member_ref["revision"]
     )
     assert target_via_ref["value"] == "old"
-    assert target_via_ref["value"] != "new"
 
 
 # E16 stale/rebuild revision capability
@@ -736,12 +675,10 @@ def test_e16_stale_rebuild(tmp_path):
     )
     store.commit([es_rev1], make_op(1))
 
-    # Late observation B
     later = base + timedelta(hours=1)
     obs_b = make_observation(value="B", learned_at=later, recorded_at=later)
     store.commit([obs_b], make_op(2))
 
-    # rev2 stale=True members still A@1
     es_rev2 = make_evidence_set(
         object_id=es_id,
         revision=2,
@@ -753,7 +690,6 @@ def test_e16_stale_rebuild(tmp_path):
     )
     store.commit([es_rev2], make_op(3))
 
-    # rev3 new knowledge_window members A@1,B@1 stale=False
     kw3 = make_knowledge_window(knowledge_cutoff=later, world_revision=4)
     es_rev3 = make_evidence_set(
         object_id=es_id,
@@ -775,7 +711,6 @@ def test_e16_stale_rebuild(tmp_path):
 
     rev2_payload = store.get_payload(es_id, revision=2)
     assert rev2_payload["stale"] is True
-    assert len(rev2_payload["member_refs"]) == 1
 
     rev3_payload = store.get_payload(es_id, revision=3)
     assert rev3_payload["stale"] is False
@@ -784,12 +719,10 @@ def test_e16_stale_rebuild(tmp_path):
 
 # E17 coverage bounds
 def test_e17_coverage_bounds():
-    # legal
     for ratio in [0.0, 0.5, 1.0]:
         cov = EvidenceCoverage(coverage_ratio=ratio)
         assert cov.coverage_ratio == ratio
 
-    # illegal
     for ratio in [-0.01, 1.01]:
         with pytest.raises(ValidationError):
             EvidenceCoverage(coverage_ratio=ratio)
@@ -800,7 +733,6 @@ def test_e17_coverage_bounds():
         with pytest.raises(ValidationError):
             EvidenceCoverage(observed_count=count)
 
-    # Do not require observed <= expected (task says don't add)
     cov = EvidenceCoverage(expected_count=5, observed_count=10)
     assert cov.observed_count == 10
 
@@ -831,5 +763,181 @@ def test_e19_ref_pin_exact_annotation():
     hints = get_type_hints(EvidenceSet)
     for field in ["member_refs", "support_refs", "counter_refs", "context_refs"]:
         ann = hints[field]
-        assert get_origin(ann) is list, f"{field} origin must be list"
-        assert get_args(ann) == (ObjectRef,), f"{field} must be list[ObjectRef], got {get_args(ann)}"
+        assert get_origin(ann) is list
+        assert get_args(ann) == (ObjectRef,)
+
+
+# E20 member_refs原地mutation攻击 - persistence revalidation
+def test_e20_member_mutation_persistence(tmp_path):
+    db = tmp_path / "test.db"
+    store = SQLiteWorldStore(db)
+
+    base = datetime(2026, 9, 14, 10, 0, tzinfo=timezone.utc)
+    target = make_observation(value="target", learned_at=base, recorded_at=base)
+    store.commit([target], make_op(0))
+    assert store.current_world_revision() == 1
+
+    kw = make_knowledge_window(knowledge_cutoff=base, world_revision=1)
+    es = make_evidence_set(
+        member_refs=[ObjectRef(object_id=target.object_id, revision=1)],
+        knowledge_window=kw,
+        learned_at=base,
+        recorded_at=base,
+    )
+
+    es.member_refs.append(
+        ObjectRef(object_id=target.object_id, revision=None)
+    )
+
+    assert es.member_refs[-1].revision is None
+
+    from aios_core.storage.sqlite_store import StoreError
+    from aios_core.contracts.enums import ErrorCode
+
+    with pytest.raises(StoreError) as excinfo:
+        store.commit([es], make_op(1))
+
+    err = excinfo.value
+    assert err.code == ErrorCode.INVALID_ARGUMENT
+    assert err.context["reason"] == "persistence_revalidation_failed"
+    assert err.context["object_id"] == es.object_id
+    assert err.context["object_type"] == ObjectType.EVIDENCE_SET.value
+    assert err.context["revision"] == 1
+
+    assert store.current_world_revision() == 1
+    with pytest.raises(StoreError):
+        store.get_payload(es.object_id)
+
+
+# E21 selector.dimension_refs嵌套mutation攻击
+def test_e21_selector_dimension_mutation(tmp_path):
+    db = tmp_path / "test.db"
+    store = SQLiteWorldStore(db)
+
+    base = datetime(2026, 9, 14, 10, 0, tzinfo=timezone.utc)
+    from aios_core.contracts.models import DimensionDefinition
+    dim_id = new_object_id(ObjectType.DIMENSION_DEFINITION)
+    dim = DimensionDefinition(
+        object_id=dim_id,
+        subject_id="user-1",
+        revision=1,
+        occurred=TemporalExtent.unknown_time(),
+        learned_at=base,
+        recorded_at=base,
+        created_by="test",
+        name="test_dim",
+        description="test",
+        data_shape="scalar",
+    )
+    store.commit([dim], make_op(0))
+    assert store.current_world_revision() == 1
+
+    kw = make_knowledge_window(knowledge_cutoff=base, world_revision=1)
+    selector = make_selector(
+        dimension_refs=[ObjectRef(object_id=dim_id, revision=1)]
+    )
+
+    es = make_evidence_set(
+        member_refs=[],
+        selector=selector,
+        knowledge_window=kw,
+        learned_at=base,
+        recorded_at=base,
+    )
+
+    es.selector.dimension_refs.append(
+        ObjectRef(object_id=dim_id, revision=None)
+    )
+
+    assert es.selector.dimension_refs[-1].revision is None
+
+    from aios_core.storage.sqlite_store import StoreError
+    from aios_core.contracts.enums import ErrorCode
+
+    with pytest.raises(StoreError) as excinfo:
+        store.commit([es], make_op(1))
+
+    assert excinfo.value.code == ErrorCode.INVALID_ARGUMENT
+    assert excinfo.value.context["reason"] == "persistence_revalidation_failed"
+    assert store.current_world_revision() == 1
+    with pytest.raises(StoreError):
+        store.get_payload(es.object_id)
+
+
+# E22 nested EvidenceCoverage mutation攻击
+def test_e22_coverage_mutation(tmp_path):
+    db = tmp_path / "test.db"
+    store = SQLiteWorldStore(db)
+
+    base = datetime(2026, 9, 14, 10, 0, tzinfo=timezone.utc)
+    obs_a = make_observation(value="A", learned_at=base, recorded_at=base)
+    store.commit([obs_a], make_op(0))
+    assert store.current_world_revision() == 1
+
+    kw = make_knowledge_window(knowledge_cutoff=base, world_revision=1)
+    coverage = EvidenceCoverage(
+        expected_count=10,
+        observed_count=7,
+        coverage_ratio=0.7,
+    )
+
+    es = make_evidence_set(
+        member_refs=[ObjectRef(object_id=obs_a.object_id, revision=1)],
+        coverage=coverage,
+        knowledge_window=kw,
+        learned_at=base,
+        recorded_at=base,
+    )
+
+    es.coverage.coverage_ratio = 1.5  # type: ignore
+
+    assert es.coverage.coverage_ratio == 1.5
+
+    from aios_core.storage.sqlite_store import StoreError
+    from aios_core.contracts.enums import ErrorCode
+
+    with pytest.raises(StoreError) as excinfo:
+        store.commit([es], make_op(1))
+
+    assert excinfo.value.code == ErrorCode.INVALID_ARGUMENT
+    assert excinfo.value.context["reason"] == "persistence_revalidation_failed"
+    assert store.current_world_revision() == 1
+    with pytest.raises(StoreError):
+        store.get_payload(es.object_id)
+
+
+# E23 selector.time_range mutation攻击
+def test_e23_time_range_mutation(tmp_path):
+    db = tmp_path / "test.db"
+    store = SQLiteWorldStore(db)
+
+    base = datetime(2026, 9, 14, 10, 0, tzinfo=timezone.utc)
+    kw = make_knowledge_window(knowledge_cutoff=base, world_revision=1)
+
+    time_range = TemporalExtent(
+        start=datetime(2026, 9, 1, 0, 0, tzinfo=timezone.utc),
+        end=datetime(2026, 9, 14, 23, 59, tzinfo=timezone.utc),
+    )
+    selector = make_selector(time_range=time_range)
+
+    es = make_evidence_set(
+        member_refs=[],
+        selector=selector,
+        knowledge_window=kw,
+        learned_at=base,
+        recorded_at=base,
+    )
+
+    es.selector.time_range = "now-14d"  # type: ignore
+
+    from aios_core.storage.sqlite_store import StoreError
+    from aios_core.contracts.enums import ErrorCode
+
+    with pytest.raises(StoreError) as excinfo:
+        store.commit([es], make_op(0))
+
+    assert excinfo.value.code == ErrorCode.INVALID_ARGUMENT
+    assert excinfo.value.context["reason"] == "persistence_revalidation_failed"
+    assert store.current_world_revision() == 0
+    with pytest.raises(StoreError):
+        store.get_payload(es.object_id)

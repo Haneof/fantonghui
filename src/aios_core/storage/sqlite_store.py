@@ -7,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Iterable, Iterator, TypeVar
 
-from pydantic import BaseModel, JsonValue
+from pydantic import BaseModel, JsonValue, ValidationError
 
 from aios_core.contracts.base import WorldObject
 from aios_core.contracts.enums import ErrorCode, ObjectType
@@ -292,6 +292,30 @@ class SQLiteWorldStore:
                             "operation_id": operation.operation_id,
                         },
                     )
+
+                # Generic persistence revalidation: re-validate complete object graph at durable boundary
+                # Prevents post-validation mutation bypass (list.append floating refs, nested mutation)
+                validated_objects: list[WorldObject] = []
+                for obj in object_list:
+                    try:
+                        snapshot = obj.model_dump(
+                            mode="python",
+                            round_trip=True,
+                        )
+                        validated = type(obj).model_validate(snapshot)
+                    except ValidationError as exc:
+                        raise StoreError(
+                            ErrorCode.INVALID_ARGUMENT,
+                            "world object failed persistence validation",
+                            context={
+                                "object_id": obj.object_id,
+                                "object_type": obj.object_type.value,
+                                "revision": obj.revision,
+                                "reason": "persistence_revalidation_failed",
+                            },
+                        ) from exc
+                    validated_objects.append(validated)
+                object_list = validated_objects
 
                 pending_pairs = {(o.object_id, o.revision) for o in object_list}
                 pending_objects = {(o.object_id, o.revision): o for o in object_list}
