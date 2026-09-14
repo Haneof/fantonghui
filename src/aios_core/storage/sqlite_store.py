@@ -11,10 +11,13 @@ from pydantic import BaseModel, JsonValue, ValidationError
 
 from aios_core.contracts.base import WorldObject
 from aios_core.contracts.enums import ErrorCode, ObjectType
+from aios_core.contracts.models import Dependency
 from aios_core.contracts.operations import CommitResult, OperationRequest
 from aios_core.contracts.refs import ObjectRef, SourceRef
 from aios_core.contracts.time import as_utc, canonical_utc_iso, utc_now
+from aios_core.dependency import validate_dependency_graph_acyclic
 from aios_core.errors import AIOSProtocolError
+from aios_core.storage.idempotency import request_fingerprint, stored_request_fingerprint
 
 T = TypeVar("T", bound=WorldObject)
 
@@ -137,13 +140,41 @@ class SQLiteWorldStore:
             ).fetchone()
             return int(row["value"])
 
-    def _get_idempotent_result(self, conn: sqlite3.Connection, key: str) -> CommitResult | None:
+    def _get_idempotent_result(
+        self,
+        conn: sqlite3.Connection,
+        operation: OperationRequest,
+        objects: list[WorldObject],
+    ) -> CommitResult | None:
         row = conn.execute(
-            "SELECT result_json FROM idempotency_records WHERE idempotency_key=?",
-            (key,),
+            """
+            SELECT operation_id, world_revision, result_json
+            FROM idempotency_records
+            WHERE idempotency_key=?
+            """,
+            (operation.idempotency_key,),
         ).fetchone()
         if not row:
             return None
+
+        incoming_fingerprint = request_fingerprint(operation, objects)
+        original_fingerprint = stored_request_fingerprint(
+            conn,
+            operation_id=str(row["operation_id"]),
+            world_revision=int(row["world_revision"]),
+        )
+        if incoming_fingerprint != original_fingerprint:
+            raise StoreError(
+                ErrorCode.IDEMPOTENCY_CONFLICT,
+                "idempotency key was already used for a different request",
+                context={
+                    "idempotency_key": operation.idempotency_key,
+                    "original_operation_id": str(row["operation_id"]),
+                    "operation_id": operation.operation_id,
+                    "reason": "request_fingerprint_mismatch",
+                },
+            )
+
         data = json.loads(row["result_json"])
         data["idempotent_replay"] = True
         return CommitResult.model_validate(data)
@@ -243,6 +274,50 @@ class SQLiteWorldStore:
         walk(value)
         return refs
 
+    def _validate_dependency_graph(
+        self,
+        conn: sqlite3.Connection,
+        objects: list[WorldObject],
+    ) -> None:
+        pending = [obj for obj in objects if isinstance(obj, Dependency)]
+        if not pending:
+            return
+
+        rows = conn.execute(
+            """
+            SELECT o.payload_json
+            FROM object_revisions o
+            JOIN (
+                SELECT object_id, MAX(revision) AS max_revision
+                FROM object_revisions
+                WHERE object_type=?
+                GROUP BY object_id
+            ) latest
+            ON latest.object_id=o.object_id AND latest.max_revision=o.revision
+            WHERE o.object_type=?
+            """,
+            (ObjectType.DEPENDENCY.value, ObjectType.DEPENDENCY.value),
+        ).fetchall()
+
+        current_by_id: dict[str, Dependency] = {}
+        for row in rows:
+            dependency = Dependency.model_validate(json.loads(row["payload_json"]))
+            current_by_id[dependency.object_id] = dependency
+        for dependency in pending:
+            current_by_id[dependency.object_id] = dependency
+
+        try:
+            validate_dependency_graph_acyclic(current_by_id.values())
+        except ValueError as exc:
+            raise StoreError(
+                ErrorCode.DEPENDENCY_INVALID,
+                str(exc),
+                context={
+                    "reason": "dependency_cycle",
+                    "pending_dependency_ids": [dep.object_id for dep in pending],
+                },
+            ) from exc
+
     def commit(
         self,
         objects: Iterable[WorldObject],
@@ -262,7 +337,7 @@ class SQLiteWorldStore:
         with self._connection() as conn:
             conn.execute("BEGIN IMMEDIATE")
             try:
-                replay = self._get_idempotent_result(conn, operation.idempotency_key)
+                replay = self._get_idempotent_result(conn, operation, object_list)
                 if replay is not None:
                     conn.rollback()
                     return replay
@@ -370,6 +445,8 @@ class SQLiteWorldStore:
                                     "reason": "reference_not_visible_or_missing",
                                 },
                             )
+
+                self._validate_dependency_graph(conn, object_list)
 
                 next_world_revision = current_world_revision + 1
                 now_dt = utc_now()
