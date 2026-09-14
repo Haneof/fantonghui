@@ -42,6 +42,15 @@ class Entity(WorldObject):
     aliases: list[str] = Field(default_factory=list)
     identity_claim_refs: list[ObjectRef] = Field(default_factory=list)
 
+    @model_validator(mode="after")
+    def validate_entity_identity_refs(self) -> "Entity":
+        for ref in self.identity_claim_refs:
+            if ref.revision is None:
+                raise ValueError(
+                    "identity_claim_refs requires pinned ObjectRef revisions"
+                )
+        return self
+
 
 class Relation(WorldObject):
     object_type: Literal[ObjectType.RELATION] = ObjectType.RELATION
@@ -51,6 +60,15 @@ class Relation(WorldObject):
     valid_time: TemporalExtent = Field(default_factory=TemporalExtent.unknown_time)
     evidence_set_refs: list[ObjectRef] = Field(default_factory=list)
     confidence: float = Field(ge=0.0, le=1.0)
+
+    @model_validator(mode="after")
+    def validate_relation_evidence_refs(self) -> "Relation":
+        for ref in self.evidence_set_refs:
+            if ref.revision is None:
+                raise ValueError(
+                    "evidence_set_refs requires pinned ObjectRef revisions"
+                )
+        return self
 
 
 class DimensionDefinition(WorldObject):
