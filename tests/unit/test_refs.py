@@ -1,8 +1,10 @@
-"""M0-006 ObjectRef / SourceRef 版本化引用、历史钉住与引用知识可见性冻结"""
+"""M0-006 ObjectRef / SourceRef 版本化引用、历史钉住与引用知识可见性冻结 + R1强化"""
 from __future__ import annotations
 
 import json
 from datetime import datetime, timedelta, timezone
+from typing import get_args, get_origin, get_type_hints
+from zoneinfo import ZoneInfo
 
 import pytest
 
@@ -11,7 +13,7 @@ from aios_core.contracts.enums import ErrorCode, ObjectType
 from aios_core.contracts.ids import new_object_id
 from aios_core.contracts.operations import OperationRequest
 from aios_core.contracts.refs import ObjectRef, SourceRef
-from aios_core.contracts.time import utc_now
+from aios_core.contracts.time import as_utc, utc_now
 from aios_core.storage.sqlite_store import SQLiteWorldStore, StoreError
 
 
@@ -38,7 +40,6 @@ class RefHolder(WorldObject):
 class SourceHolder(WorldObject):
     object_type: ObjectType = ObjectType.ENTITY
     entity_kind: str = "source_holder"
-    # source_refs is already in WorldObject, use it
 
 
 def make_op(expected_world_revision: int = 0) -> OperationRequest:
@@ -56,27 +57,16 @@ def make_op(expected_world_revision: int = 0) -> OperationRequest:
 
 # R01 ObjectRef结构
 def test_r01_objectref_structure():
-    # object_id=""拒绝
     with pytest.raises(Exception):
         ObjectRef(object_id="", revision=1)
-
-    # revision=0拒绝
     with pytest.raises(Exception):
         ObjectRef(object_id="x", revision=0)
-
-    # revision=-1拒绝
     with pytest.raises(Exception):
         ObjectRef(object_id="x", revision=-1)
-
-    # revision=None合法
     ref_none = ObjectRef(object_id="x", revision=None)
     assert ref_none.revision is None
-
-    # revision=1合法
     ref1 = ObjectRef(object_id="x", revision=1)
     assert ref1.revision == 1
-
-    # extra field拒绝
     with pytest.raises(Exception):
         ObjectRef(object_id="x", revision=1, extra_field="bad")  # type: ignore
 
@@ -86,32 +76,22 @@ def test_r02_objectref_frozen():
     ref = ObjectRef(object_id="x", revision=1)
     with pytest.raises(Exception):
         ref.revision = 2  # type: ignore
-
     with pytest.raises(Exception):
         ref.object_id = "y"  # type: ignore
 
 
 # R03 SourceRef结构与frozen
 def test_r03_sourceref_structure_and_frozen():
-    # object_id, revision, source_locator
     ref = SourceRef(object_id="x", revision=1, source_locator="loc")
     assert ref.source_locator == "loc"
-
-    # revision None /1 合法
     ref_none = SourceRef(object_id="x", revision=None)
     assert ref_none.revision is None
     ref1 = SourceRef(object_id="x", revision=1)
     assert ref1.revision == 1
-
-    # revision=0拒绝
     with pytest.raises(Exception):
         SourceRef(object_id="x", revision=0)
-
-    # extra字段拒绝
     with pytest.raises(Exception):
         SourceRef(object_id="x", revision=1, bad="field")  # type: ignore
-
-    # 赋值修改拒绝
     ref_frozen = SourceRef(object_id="x", revision=1)
     with pytest.raises(Exception):
         ref_frozen.revision = 2  # type: ignore
@@ -121,10 +101,8 @@ def test_r03_sourceref_structure_and_frozen():
 def test_r04_nonexistent_object(tmp_path):
     db = tmp_path / "test.db"
     store = SQLiteWorldStore(db)
-
     now = utc_now()
     target_ref = ObjectRef(object_id="missing_obj", revision=None)
-
     holder = RefHolder(
         object_id=new_object_id(ObjectType.ENTITY),
         subject_id="test",
@@ -134,10 +112,8 @@ def test_r04_nonexistent_object(tmp_path):
         created_by="test",
         ref=target_ref,
     )
-
     with pytest.raises(StoreError) as excinfo:
         store.commit([holder], make_op(0))
-
     assert excinfo.value.code == ErrorCode.NOT_FOUND
     assert store.current_world_revision() == 0
 
@@ -146,7 +122,6 @@ def test_r04_nonexistent_object(tmp_path):
 def test_r05_nonexistent_exact_revision(tmp_path):
     db = tmp_path / "test.db"
     store = SQLiteWorldStore(db)
-
     now = utc_now()
     target_id = new_object_id(ObjectType.ENTITY)
     target = DummyEntity(
@@ -159,8 +134,6 @@ def test_r05_nonexistent_exact_revision(tmp_path):
         value="rev1",
     )
     store.commit([target], make_op(0))
-
-    # Reference rev2 which does not exist
     holder = RefHolder(
         object_id=new_object_id(ObjectType.ENTITY),
         subject_id="test",
@@ -170,22 +143,17 @@ def test_r05_nonexistent_exact_revision(tmp_path):
         created_by="test",
         ref=ObjectRef(object_id=target_id, revision=2),
     )
-
     with pytest.raises(StoreError) as excinfo:
         store.commit([holder], make_op(1))
-
     assert excinfo.value.code == ErrorCode.NOT_FOUND
-    # Should not fallback to rev1
 
 
 # R06 pinned historical ref不漂移
 def test_r06_pinned_historical_ref_no_drift(tmp_path):
     db = tmp_path / "test.db"
     store = SQLiteWorldStore(db)
-
     now = utc_now()
     target_id = new_object_id(ObjectType.ENTITY)
-
     target_rev1 = DummyEntity(
         object_id=target_id,
         subject_id="test",
@@ -196,7 +164,6 @@ def test_r06_pinned_historical_ref_no_drift(tmp_path):
         value="old",
     )
     store.commit([target_rev1], make_op(0))
-
     holder_id = new_object_id(ObjectType.ENTITY)
     holder_ref = ObjectRef(object_id=target_id, revision=1)
     holder = RefHolder(
@@ -209,8 +176,6 @@ def test_r06_pinned_historical_ref_no_drift(tmp_path):
         ref=holder_ref,
     )
     store.commit([holder], make_op(1))
-
-    # Target updates to rev2
     target_rev2 = DummyEntity(
         object_id=target_id,
         subject_id="test",
@@ -221,14 +186,8 @@ def test_r06_pinned_historical_ref_no_drift(tmp_path):
         value="new",
     )
     store.commit([target_rev2], make_op(2))
-
-    # Re-read holder
     holder_payload = store.get_payload(holder_id)
-    # holder's ref revision still ==1 (stored in payload)
-    # Depending on how payload stores ref, check
     assert holder_payload["ref"]["revision"] == 1
-
-    # Read target@holder_ref.revision must be "old"
     target_via_ref = store.get_payload(target_id, revision=holder_ref.revision)
     assert target_via_ref["value"] == "old"
     assert target_via_ref["value"] != "new"
@@ -238,10 +197,8 @@ def test_r06_pinned_historical_ref_no_drift(tmp_path):
 def test_r07_floating_navigation(tmp_path):
     db = tmp_path / "test.db"
     store = SQLiteWorldStore(db)
-
     now = utc_now()
     target_id = new_object_id(ObjectType.ENTITY)
-
     target_rev1 = DummyEntity(
         object_id=target_id,
         subject_id="test",
@@ -252,14 +209,9 @@ def test_r07_floating_navigation(tmp_path):
         value="rev1",
     )
     store.commit([target_rev1], make_op(0))
-
     floating = ObjectRef(object_id=target_id, revision=None)
-
-    # Navigation latest should get rev1
     latest = store.get_payload(target_id)
     assert latest["value"] == "rev1"
-
-    # Add rev2
     target_rev2 = DummyEntity(
         object_id=target_id,
         subject_id="test",
@@ -270,8 +222,6 @@ def test_r07_floating_navigation(tmp_path):
         value="rev2",
     )
     store.commit([target_rev2], make_op(1))
-
-    # Same floating ref still revision=None, but latest reading gets rev2
     assert floating.revision is None
     latest2 = store.get_payload(target_id)
     assert latest2["value"] == "rev2"
@@ -281,12 +231,9 @@ def test_r07_floating_navigation(tmp_path):
 def test_r08_same_transaction_mutual_refs(tmp_path):
     db = tmp_path / "test.db"
     store = SQLiteWorldStore(db)
-
     now = utc_now()
     obj_id_a = new_object_id(ObjectType.ENTITY)
     obj_id_b = new_object_id(ObjectType.ENTITY)
-
-    # A refs B@1, B refs A@1, same learned_at
     obj_a = RefNode(
         object_id=obj_id_a,
         subject_id="test",
@@ -305,24 +252,21 @@ def test_r08_same_transaction_mutual_refs(tmp_path):
         created_by="test",
         link_refs=[ObjectRef(object_id=obj_id_a, revision=1)],
     )
-
     result = store.commit([obj_a, obj_b], make_op(0))
     assert result.world_revision == 1
     assert store.current_world_revision() == 1
-
-    # Both readable
     payload_a = store.get_payload(obj_id_a)
     payload_b = store.get_payload(obj_id_b)
     assert payload_a["object_id"] == obj_id_a
     assert payload_b["object_id"] == obj_id_b
 
 
-# R09 future explicit ref拒绝
+# R09 future explicit ref拒绝 - 强化canary
 def test_r09_future_explicit_ref_rejected(tmp_path):
     db = tmp_path / "test.db"
     store = SQLiteWorldStore(db)
 
-    # target learned at 11:00
+    canary = "FUTURE_SECRET_8848"
     target_learned = datetime(2026, 9, 14, 11, 0, tzinfo=timezone.utc)
     target_id = new_object_id(ObjectType.ENTITY)
     target = DummyEntity(
@@ -332,11 +276,10 @@ def test_r09_future_explicit_ref_rejected(tmp_path):
         learned_at=target_learned,
         recorded_at=target_learned,
         created_by="test",
-        value="future",
+        value=canary,
     )
     store.commit([target], make_op(0))
 
-    # holder learned at 10:00, refs target@1
     holder_learned = datetime(2026, 9, 14, 10, 0, tzinfo=timezone.utc)
     holder = RefHolder(
         object_id=new_object_id(ObjectType.ENTITY),
@@ -351,19 +294,27 @@ def test_r09_future_explicit_ref_rejected(tmp_path):
     with pytest.raises(StoreError) as excinfo:
         store.commit([holder], make_op(1))
 
-    assert excinfo.value.code == ErrorCode.NOT_FOUND
+    err = excinfo.value
+    assert err.code == ErrorCode.NOT_FOUND
     assert store.current_world_revision() == 1
-    # Error must not leak target learned_at
-    ctx_str = json.dumps(excinfo.value.context, ensure_ascii=False)
-    assert "11:00" not in ctx_str
-    assert "future" not in ctx_str.lower() or "reference_not_visible" in ctx_str
+
+    # 必须验证context不泄露未来
+    assert err.context["referenced_object_id"] == target_id
+    assert err.context["referenced_revision"] == 1
+    assert err.context["reason"] == "reference_not_visible_or_missing"
+
+    serialized_error = str(err) + json.dumps(err.context, ensure_ascii=False)
+    # 严格不可逃逸检查
+    assert canary not in serialized_error, f"Leaked canary {canary} in error: {serialized_error}"
+    assert "11:00" not in serialized_error
+    assert "learned_at" not in serialized_error
+    assert "payload" not in serialized_error
 
 
 # R10 visible historical explicit ref成功
 def test_r10_visible_historical_explicit_ref_success(tmp_path):
     db = tmp_path / "test.db"
     store = SQLiteWorldStore(db)
-
     target_learned = datetime(2026, 9, 14, 9, 0, tzinfo=timezone.utc)
     target_id = new_object_id(ObjectType.ENTITY)
     target = DummyEntity(
@@ -376,7 +327,6 @@ def test_r10_visible_historical_explicit_ref_success(tmp_path):
         value="old",
     )
     store.commit([target], make_op(0))
-
     holder_learned = datetime(2026, 9, 14, 10, 0, tzinfo=timezone.utc)
     holder = RefHolder(
         object_id=new_object_id(ObjectType.ENTITY),
@@ -387,7 +337,6 @@ def test_r10_visible_historical_explicit_ref_success(tmp_path):
         created_by="test",
         ref=ObjectRef(object_id=target_id, revision=1),
     )
-
     result = store.commit([holder], make_op(1))
     assert result.world_revision == 2
 
@@ -396,9 +345,7 @@ def test_r10_visible_historical_explicit_ref_success(tmp_path):
 def test_r11_floating_ref_old_visible(tmp_path):
     db = tmp_path / "test.db"
     store = SQLiteWorldStore(db)
-
     target_id = new_object_id(ObjectType.ENTITY)
-
     rev1_learned = datetime(2026, 9, 14, 9, 0, tzinfo=timezone.utc)
     rev1 = DummyEntity(
         object_id=target_id,
@@ -410,7 +357,6 @@ def test_r11_floating_ref_old_visible(tmp_path):
         value="rev1",
     )
     store.commit([rev1], make_op(0))
-
     rev2_learned = datetime(2026, 9, 14, 11, 0, tzinfo=timezone.utc)
     rev2 = DummyEntity(
         object_id=target_id,
@@ -422,7 +368,6 @@ def test_r11_floating_ref_old_visible(tmp_path):
         value="rev2",
     )
     store.commit([rev2], make_op(1))
-
     holder_learned = datetime(2026, 9, 14, 10, 0, tzinfo=timezone.utc)
     holder = RefHolder(
         object_id=new_object_id(ObjectType.ENTITY),
@@ -433,8 +378,6 @@ def test_r11_floating_ref_old_visible(tmp_path):
         created_by="test",
         ref=ObjectRef(object_id=target_id, revision=None),
     )
-
-    # Should allow because rev1 visible at 10:00, even though rev2 is 11:00 and DB latest is future
     result = store.commit([holder], make_op(2))
     assert result.world_revision == 3
 
@@ -443,7 +386,6 @@ def test_r11_floating_ref_old_visible(tmp_path):
 def test_r12_floating_ref_only_future(tmp_path):
     db = tmp_path / "test.db"
     store = SQLiteWorldStore(db)
-
     target_id = new_object_id(ObjectType.ENTITY)
     rev1_learned = datetime(2026, 9, 14, 11, 0, tzinfo=timezone.utc)
     rev1 = DummyEntity(
@@ -456,7 +398,6 @@ def test_r12_floating_ref_only_future(tmp_path):
         value="future",
     )
     store.commit([rev1], make_op(0))
-
     holder_learned = datetime(2026, 9, 14, 10, 0, tzinfo=timezone.utc)
     holder = RefHolder(
         object_id=new_object_id(ObjectType.ENTITY),
@@ -467,10 +408,8 @@ def test_r12_floating_ref_only_future(tmp_path):
         created_by="test",
         ref=ObjectRef(object_id=target_id, revision=None),
     )
-
     with pytest.raises(StoreError) as excinfo:
         store.commit([holder], make_op(1))
-
     assert excinfo.value.code == ErrorCode.NOT_FOUND
 
 
@@ -478,13 +417,10 @@ def test_r12_floating_ref_only_future(tmp_path):
 def test_r13_pending_future_ref_rejected(tmp_path):
     db = tmp_path / "test.db"
     store = SQLiteWorldStore(db)
-
     obj_id_a = new_object_id(ObjectType.ENTITY)
     obj_id_b = new_object_id(ObjectType.ENTITY)
-
     learned_a = datetime(2026, 9, 14, 10, 0, tzinfo=timezone.utc)
     learned_b = datetime(2026, 9, 14, 11, 0, tzinfo=timezone.utc)
-
     obj_a = RefNode(
         object_id=obj_id_a,
         subject_id="test",
@@ -503,14 +439,10 @@ def test_r13_pending_future_ref_rejected(tmp_path):
         created_by="test",
         link_refs=[],
     )
-
     with pytest.raises(StoreError) as excinfo:
         store.commit([obj_a, obj_b], make_op(0))
-
     assert excinfo.value.code == ErrorCode.NOT_FOUND
     assert store.current_world_revision() == 0
-
-    # Neither should be written
     with pytest.raises(StoreError):
         store.get_payload(obj_id_a)
     with pytest.raises(StoreError):
@@ -521,7 +453,6 @@ def test_r13_pending_future_ref_rejected(tmp_path):
 def test_r14_sourceref_version_validation(tmp_path):
     db = tmp_path / "test.db"
     store = SQLiteWorldStore(db)
-
     target_id = new_object_id(ObjectType.ENTITY)
     now = utc_now()
     target = DummyEntity(
@@ -534,8 +465,6 @@ def test_r14_sourceref_version_validation(tmp_path):
         value="rev1",
     )
     store.commit([target], make_op(0))
-
-    # SourceRef target rev1 exists and visible => success
     holder_ok = SourceHolder(
         object_id=new_object_id(ObjectType.ENTITY),
         subject_id="test",
@@ -547,8 +476,6 @@ def test_r14_sourceref_version_validation(tmp_path):
     )
     result = store.commit([holder_ok], make_op(1))
     assert result.world_revision == 2
-
-    # SourceRef target rev2 does not exist => NOT_FOUND
     holder_fail = SourceHolder(
         object_id=new_object_id(ObjectType.ENTITY),
         subject_id="test",
@@ -567,7 +494,6 @@ def test_r14_sourceref_version_validation(tmp_path):
 def test_r15_sourceref_future_visibility(tmp_path):
     db = tmp_path / "test.db"
     store = SQLiteWorldStore(db)
-
     target_learned = datetime(2026, 9, 14, 11, 0, tzinfo=timezone.utc)
     target_id = new_object_id(ObjectType.ENTITY)
     target = DummyEntity(
@@ -580,7 +506,6 @@ def test_r15_sourceref_future_visibility(tmp_path):
         value="future",
     )
     store.commit([target], make_op(0))
-
     holder_learned = datetime(2026, 9, 14, 10, 0, tzinfo=timezone.utc)
     holder = SourceHolder(
         object_id=new_object_id(ObjectType.ENTITY),
@@ -591,38 +516,154 @@ def test_r15_sourceref_future_visibility(tmp_path):
         created_by="test",
         source_refs=[SourceRef(object_id=target_id, revision=1)],
     )
-
     with pytest.raises(StoreError) as excinfo:
         store.commit([holder], make_op(1))
-
     assert excinfo.value.code == ErrorCode.NOT_FOUND
 
 
-# Critical model ref field check
-def test_critical_model_ref_fields():
-    from aios_core.contracts.models import (
-        Claim,
-        EventAnchor,
-        EvidenceSet,
-        Dependency,
+# R16 pending DST false-accept防护
+def test_r16_pending_dst_false_accept_rejected(tmp_path):
+    db = tmp_path / "test.db"
+    store = SQLiteWorldStore(db)
+
+    ny = ZoneInfo("America/New_York")
+
+    # referencing A learned 01:45 fold=0 = 05:45 UTC
+    learned_a = datetime(2026, 11, 1, 1, 45, tzinfo=ny, fold=0)
+    # pending target B learned 01:30 fold=1 = 06:30 UTC (future vs A)
+    learned_b = datetime(2026, 11, 1, 1, 30, tzinfo=ny, fold=1)
+
+    # Explicit UTC instant check
+    assert as_utc(learned_b, "B") > as_utc(learned_a, "A"), f"{as_utc(learned_b,'B')} should > {as_utc(learned_a,'A')}"
+
+    # Wall clock looks B <= A (01:30 <= 01:45) but real instant B > A, should be rejected
+    obj_id_a = new_object_id(ObjectType.ENTITY)
+    obj_id_b = new_object_id(ObjectType.ENTITY)
+
+    obj_b = DummyEntity(
+        object_id=obj_id_b,
+        subject_id="test",
+        revision=1,
+        learned_at=learned_b,
+        recorded_at=learned_b,
+        created_by="test",
+        value="B_future",
+    )
+    obj_a = RefNode(
+        object_id=obj_id_a,
+        subject_id="test",
+        revision=1,
+        learned_at=learned_a,
+        recorded_at=learned_a,
+        created_by="test",
+        link_refs=[ObjectRef(object_id=obj_id_b, revision=1)],
     )
 
+    with pytest.raises(StoreError) as excinfo:
+        store.commit([obj_a, obj_b], make_op(0))
+
+    assert excinfo.value.code == ErrorCode.NOT_FOUND
+    assert store.current_world_revision() == 0
+    with pytest.raises(StoreError):
+        store.get_payload(obj_id_a)
+    with pytest.raises(StoreError):
+        store.get_payload(obj_id_b)
+
+
+# R17 pending DST false-reject防护
+def test_r17_pending_dst_false_reject_allowed(tmp_path):
+    db = tmp_path / "test.db"
+    store = SQLiteWorldStore(db)
+
+    ny = ZoneInfo("America/New_York")
+
+    # target B 01:30 fold=0 = 05:30 UTC
+    learned_b = datetime(2026, 11, 1, 1, 30, tzinfo=ny, fold=0)
+    # referencing A 01:15 fold=1 = 06:15 UTC
+    learned_a = datetime(2026, 11, 1, 1, 15, tzinfo=ny, fold=1)
+
+    assert as_utc(learned_b, "B") < as_utc(learned_a, "A")
+
+    # Wall clock 01:30 > 01:15 would be considered future if direct comparison, but real instant B < A, should allow
+    obj_id_a = new_object_id(ObjectType.ENTITY)
+    obj_id_b = new_object_id(ObjectType.ENTITY)
+
+    obj_b = DummyEntity(
+        object_id=obj_id_b,
+        subject_id="test",
+        revision=1,
+        learned_at=learned_b,
+        recorded_at=learned_b,
+        created_by="test",
+        value="B_old",
+    )
+    obj_a = RefNode(
+        object_id=obj_id_a,
+        subject_id="test",
+        revision=1,
+        learned_at=learned_a,
+        recorded_at=learned_a,
+        created_by="test",
+        link_refs=[ObjectRef(object_id=obj_id_b, revision=1)],
+    )
+
+    result = store.commit([obj_a, obj_b], make_op(0))
+    assert result.world_revision == 1
+    assert store.current_world_revision() == 1
+
+    payload_a = store.get_payload(obj_id_a)
+    payload_b = store.get_payload(obj_id_b)
+    assert payload_a["object_id"] == obj_id_a
+    assert payload_b["object_id"] == obj_id_b
+
+
+# Critical model ref field check - 强化 annotation
+def test_critical_model_ref_fields_annotation():
+    from aios_core.contracts.models import Claim, EventAnchor, EvidenceSet, Dependency
+
+    def assert_list_of_object_ref(model, field_name):
+        hints = get_type_hints(model)
+        assert field_name in hints, f"{model.__name__}.{field_name} missing in type_hints"
+        annotation = hints[field_name]
+        origin = get_origin(annotation)
+        args = get_args(annotation)
+        # Should be list[ObjectRef]
+        assert origin is list, f"{model.__name__}.{field_name} should be list, got {origin} annotation {annotation}"
+        assert args == (ObjectRef,), f"{model.__name__}.{field_name} should be list[ObjectRef], got {args}"
+
+    def assert_object_ref(model, field_name):
+        hints = get_type_hints(model)
+        assert field_name in hints, f"{model.__name__}.{field_name} missing"
+        annotation = hints[field_name]
+        # Could be ObjectRef | None or ObjectRef
+        # For Dependency.dependent_ref etc, check if ObjectRef in args or direct
+        if annotation == ObjectRef:
+            return
+        origin = get_origin(annotation)
+        args = get_args(annotation)
+        # For Optional ObjectRef, origin is Union
+        # Check that ObjectRef is in args
+        if origin is not None:
+            # Could be Union
+            assert ObjectRef in args or any(a == ObjectRef for a in args), f"{model.__name__}.{field_name} should be ObjectRef, got {annotation}"
+        else:
+            # Direct
+            assert annotation == ObjectRef, f"{model.__name__}.{field_name} should be ObjectRef, got {annotation}"
+
     # Claim
-    assert "support_evidence_set_refs" in Claim.model_fields
-    assert "counter_evidence_set_refs" in Claim.model_fields
-    # Check type annotation is ObjectRef (we check via model_fields)
-    # We won't enforce strict type equality, just ensure field exists and is not modified to string
+    assert_list_of_object_ref(Claim, "support_evidence_set_refs")
+    assert_list_of_object_ref(Claim, "counter_evidence_set_refs")
 
     # EventAnchor
-    assert "primary_claim_refs" in EventAnchor.model_fields
-    assert "evidence_set_refs" in EventAnchor.model_fields
+    assert_list_of_object_ref(EventAnchor, "primary_claim_refs")
+    assert_list_of_object_ref(EventAnchor, "evidence_set_refs")
 
     # EvidenceSet
-    assert "member_refs" in EvidenceSet.model_fields
-    assert "support_refs" in EvidenceSet.model_fields
-    assert "counter_refs" in EvidenceSet.model_fields
-    assert "context_refs" in EvidenceSet.model_fields
+    assert_list_of_object_ref(EvidenceSet, "member_refs")
+    assert_list_of_object_ref(EvidenceSet, "support_refs")
+    assert_list_of_object_ref(EvidenceSet, "counter_refs")
+    assert_list_of_object_ref(EvidenceSet, "context_refs")
 
     # Dependency
-    assert "dependent_ref" in Dependency.model_fields
-    assert "dependency_ref" in Dependency.model_fields
+    assert_object_ref(Dependency, "dependent_ref")
+    assert_object_ref(Dependency, "dependency_ref")
