@@ -25,10 +25,20 @@ This file is the short cloud checkpoint used to recover project state after long
 ## Active task
 
 - M0-010 — Entity + Relation contract
-- Status: AUTHORIZED / IN PROGRESS
+- Status: PATCH REQUIRED / TEST ONLY
 - Production branch: `arena/01a09bc6-fantonghui`
-- Frozen base: `cda888f371fed812cda1b5e08d8a27db5e0c240a`
+- Reviewed implementation HEAD: `225eb7636f9e88f8373de32aa332eeb83c37fd16`
+- Production Entity/Relation validators: PASS / FROZEN pending final test hardening
 - M0-011: HOLD
+
+## Current blockers
+
+Chief review of M0-010 found two test-contract defects:
+
+1. `ER01` contains a false-green `assert "object_type" in e_hints or True` and does not actually freeze Entity/Relation `object_type` annotations as exact `Literal[...]` types.
+2. `ER18` uses nonexistent Relation endpoint entity IDs. If durable persistence revalidation is removed, reference validation can fail on missing endpoints before the intended floating `evidence_set_refs` bypass is exercised, so the adversarial test does not prove the claimed failure mode. ER18 must use real committed Entity endpoints.
+
+The patch must be test-only; no `src/aios_core/**` production change is authorized.
 
 ## Recent architectural freeze
 
