@@ -1,0 +1,583 @@
+FFFFFFFFFFF.................                                             [100%]
+=================================== FAILURES ===================================
+__________ test_typed_refs_are_not_erased_before_validation[missing] ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-user/pytest-6/test_typed_refs_are_not_erased0')
+kind = 'missing'
+
+    @pytest.mark.parametrize('kind', ['missing', 'source-missing', 'floating-self', 'pinned-self'])
+    def test_typed_refs_are_not_erased_before_validation(tmp_path, kind):
+        s = SQLiteWorldStore(tmp_path/'world.db')
+        ref = (SourceRef(object_id='missing', revision=1) if kind=='source-missing' else
+               ObjectRef(object_id='missing' if kind=='missing' else 'o',
+                         revision=None if kind=='floating-self' else 1))
+        obj = obs(metadata={'nested': [{'typed': ref}]})
+        assert s._collect_refs(obj) == [ref]  # Actual typed ref, NOT an input pseudo-ref dict.
+>       with pytest.raises(StoreError) as exc:
+E       Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+
+test_auditor_e_02.py:58: Failed
+_______ test_typed_refs_are_not_erased_before_validation[source-missing] _______
+
+tmp_path = PosixPath('/tmp/pytest-of-user/pytest-6/test_typed_refs_are_not_erased1')
+kind = 'source-missing'
+
+    @pytest.mark.parametrize('kind', ['missing', 'source-missing', 'floating-self', 'pinned-self'])
+    def test_typed_refs_are_not_erased_before_validation(tmp_path, kind):
+        s = SQLiteWorldStore(tmp_path/'world.db')
+        ref = (SourceRef(object_id='missing', revision=1) if kind=='source-missing' else
+               ObjectRef(object_id='missing' if kind=='missing' else 'o',
+                         revision=None if kind=='floating-self' else 1))
+        obj = obs(metadata={'nested': [{'typed': ref}]})
+        assert s._collect_refs(obj) == [ref]  # Actual typed ref, NOT an input pseudo-ref dict.
+>       with pytest.raises(StoreError) as exc:
+E       Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+
+test_auditor_e_02.py:58: Failed
+_______ test_typed_refs_are_not_erased_before_validation[floating-self] ________
+
+tmp_path = PosixPath('/tmp/pytest-of-user/pytest-6/test_typed_refs_are_not_erased2')
+kind = 'floating-self'
+
+    @pytest.mark.parametrize('kind', ['missing', 'source-missing', 'floating-self', 'pinned-self'])
+    def test_typed_refs_are_not_erased_before_validation(tmp_path, kind):
+        s = SQLiteWorldStore(tmp_path/'world.db')
+        ref = (SourceRef(object_id='missing', revision=1) if kind=='source-missing' else
+               ObjectRef(object_id='missing' if kind=='missing' else 'o',
+                         revision=None if kind=='floating-self' else 1))
+        obj = obs(metadata={'nested': [{'typed': ref}]})
+        assert s._collect_refs(obj) == [ref]  # Actual typed ref, NOT an input pseudo-ref dict.
+>       with pytest.raises(StoreError) as exc:
+E       Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+
+test_auditor_e_02.py:58: Failed
+________ test_typed_refs_are_not_erased_before_validation[pinned-self] _________
+
+tmp_path = PosixPath('/tmp/pytest-of-user/pytest-6/test_typed_refs_are_not_erased3')
+kind = 'pinned-self'
+
+    @pytest.mark.parametrize('kind', ['missing', 'source-missing', 'floating-self', 'pinned-self'])
+    def test_typed_refs_are_not_erased_before_validation(tmp_path, kind):
+        s = SQLiteWorldStore(tmp_path/'world.db')
+        ref = (SourceRef(object_id='missing', revision=1) if kind=='source-missing' else
+               ObjectRef(object_id='missing' if kind=='missing' else 'o',
+                         revision=None if kind=='floating-self' else 1))
+        obj = obs(metadata={'nested': [{'typed': ref}]})
+        assert s._collect_refs(obj) == [ref]  # Actual typed ref, NOT an input pseudo-ref dict.
+>       with pytest.raises(StoreError) as exc:
+E       Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+
+test_auditor_e_02.py:58: Failed
+_____ test_typed_ref_cutoff_cannot_be_laundered_by_normalization[metadata] _____
+
+tmp_path = PosixPath('/tmp/pytest-of-user/pytest-6/test_typed_ref_cutoff_cannot_b0')
+placement = 'metadata'
+
+    @pytest.mark.parametrize('placement', ['metadata','selector.filters','observation.value'])
+    def test_typed_ref_cutoff_cannot_be_laundered_by_normalization(tmp_path, placement):
+        s = SQLiteWorldStore(tmp_path/'world.db')
+        late = obs('late', learned_at=T+timedelta(hours=1), recorded_at=T+timedelta(hours=1))
+        s.commit([obs('early'), late], op())
+        ref = ObjectRef(object_id='late', revision=1)
+        if placement == 'observation.value':
+            obj = obs('reader', value={'typed': ref})  # learned at 09:00, target learned at 10:00
+        else:
+            obj = EvidenceSet(**base('ev', learned_at=T+timedelta(hours=1), recorded_at=T+timedelta(hours=1)),
+                purpose='frozen evidence', knowledge_window=KnowledgeWindow(knowledge_cutoff=T, world_revision=1),
+                member_refs=[ObjectRef(object_id='early',revision=1)], selection_method='explicit')
+            if placement == 'metadata':
+                obj.metadata['typed'] = ref
+            else:
+                obj.selector = EvidenceSelector(selector_type='test', subject_id='audit-subject',
+                    time_range=TemporalExtent.unknown_time(), algorithm_version='v1', filters={'typed':ref})
+        assert ref in s._collect_refs(obj)
+        before = counts(s.db_path)
+>       with pytest.raises(StoreError) as exc:
+E       Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+
+test_auditor_e_02.py:82: Failed
+_ test_typed_ref_cutoff_cannot_be_laundered_by_normalization[selector.filters] _
+
+tmp_path = PosixPath('/tmp/pytest-of-user/pytest-6/test_typed_ref_cutoff_cannot_b1')
+placement = 'selector.filters'
+
+    @pytest.mark.parametrize('placement', ['metadata','selector.filters','observation.value'])
+    def test_typed_ref_cutoff_cannot_be_laundered_by_normalization(tmp_path, placement):
+        s = SQLiteWorldStore(tmp_path/'world.db')
+        late = obs('late', learned_at=T+timedelta(hours=1), recorded_at=T+timedelta(hours=1))
+        s.commit([obs('early'), late], op())
+        ref = ObjectRef(object_id='late', revision=1)
+        if placement == 'observation.value':
+            obj = obs('reader', value={'typed': ref})  # learned at 09:00, target learned at 10:00
+        else:
+            obj = EvidenceSet(**base('ev', learned_at=T+timedelta(hours=1), recorded_at=T+timedelta(hours=1)),
+                purpose='frozen evidence', knowledge_window=KnowledgeWindow(knowledge_cutoff=T, world_revision=1),
+                member_refs=[ObjectRef(object_id='early',revision=1)], selection_method='explicit')
+            if placement == 'metadata':
+                obj.metadata['typed'] = ref
+            else:
+                obj.selector = EvidenceSelector(selector_type='test', subject_id='audit-subject',
+                    time_range=TemporalExtent.unknown_time(), algorithm_version='v1', filters={'typed':ref})
+        assert ref in s._collect_refs(obj)
+        before = counts(s.db_path)
+>       with pytest.raises(StoreError) as exc:
+E       Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+
+test_auditor_e_02.py:82: Failed
+_ test_typed_ref_cutoff_cannot_be_laundered_by_normalization[observation.value] _
+
+tmp_path = PosixPath('/tmp/pytest-of-user/pytest-6/test_typed_ref_cutoff_cannot_b2')
+placement = 'observation.value'
+
+    @pytest.mark.parametrize('placement', ['metadata','selector.filters','observation.value'])
+    def test_typed_ref_cutoff_cannot_be_laundered_by_normalization(tmp_path, placement):
+        s = SQLiteWorldStore(tmp_path/'world.db')
+        late = obs('late', learned_at=T+timedelta(hours=1), recorded_at=T+timedelta(hours=1))
+        s.commit([obs('early'), late], op())
+        ref = ObjectRef(object_id='late', revision=1)
+        if placement == 'observation.value':
+            obj = obs('reader', value={'typed': ref})  # learned at 09:00, target learned at 10:00
+        else:
+            obj = EvidenceSet(**base('ev', learned_at=T+timedelta(hours=1), recorded_at=T+timedelta(hours=1)),
+                purpose='frozen evidence', knowledge_window=KnowledgeWindow(knowledge_cutoff=T, world_revision=1),
+                member_refs=[ObjectRef(object_id='early',revision=1)], selection_method='explicit')
+            if placement == 'metadata':
+                obj.metadata['typed'] = ref
+            else:
+                obj.selector = EvidenceSelector(selector_type='test', subject_id='audit-subject',
+                    time_range=TemporalExtent.unknown_time(), algorithm_version='v1', filters={'typed':ref})
+        assert ref in s._collect_refs(obj)
+        before = counts(s.db_path)
+>       with pytest.raises(StoreError) as exc:
+E       Failed: DID NOT RAISE <class 'aios_core.storage.sqlite_store.StoreError'>
+
+test_auditor_e_02.py:82: Failed
+_____ test_non_utf8_bytes_get_protocol_error_and_zero_writes[False-object] _____
+
+tmp_path = PosixPath('/tmp/pytest-of-user/pytest-6/test_non_utf8_bytes_get_protoc0')
+slot = 'object', retry = False
+
+    @pytest.mark.parametrize('slot', ['object','arguments'])
+    @pytest.mark.parametrize('retry', [False,True])
+    def test_non_utf8_bytes_get_protocol_error_and_zero_writes(tmp_path,slot,retry):
+        s = SQLiteWorldStore(tmp_path/'world.db')
+        obj, request = obs(value='ok'), op(arguments={'value':'ok'})
+        if retry:
+            s.commit([obj],request)
+        before = counts(s.db_path)
+        if slot=='object':
+            obj.value = b'\xff'
+        else:
+            request.arguments['value'] = b'\xff'
+        # Both live model construction and frozen-model revalidation accept this value.
+        if slot=='object':
+            assert normalize_world_object_for_persistence(obj).value == b'\xff'
+        try:
+            with pytest.raises(StoreError) as exc:
+>               s.commit([obj],request)
+
+test_auditor_e_02.py:104: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/aios_core/storage/sqlite_store.py:558: in commit
+    payload = canonical_json_dumps(
+src/aios_core/storage/idempotency.py:66: in canonical_json_dumps
+    return _canonical_json(value)
+           ^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/idempotency.py:56: in _canonical_json
+    canonical_json_value(value),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/idempotency.py:36: in canonical_json_value
+    return {str(key): canonical_json_value(item) for key, item in value.items()}
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/idempotency.py:36: in <dictcomp>
+    return {str(key): canonical_json_value(item) for key, item in value.items()}
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/idempotency.py:48: in canonical_json_value
+    converted = _JSON_ADAPTER.dump_python(value, mode="json")
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = TypeAdapter(Any), instance = b'\xff'
+
+    def dump_python(
+        self,
+        instance: T,
+        /,
+        *,
+        mode: Literal['json', 'python'] = 'python',
+        include: IncEx | None = None,
+        exclude: IncEx | None = None,
+        by_alias: bool = False,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        round_trip: bool = False,
+        warnings: bool | Literal['none', 'warn', 'error'] = True,
+        serialize_as_any: bool = False,
+        context: dict[str, Any] | None = None,
+    ) -> Any:
+        """Dump an instance of the adapted type to a Python object.
+    
+        Args:
+            instance: The Python object to serialize.
+            mode: The output format.
+            include: Fields to include in the output.
+            exclude: Fields to exclude from the output.
+            by_alias: Whether to use alias names for field names.
+            exclude_unset: Whether to exclude unset fields.
+            exclude_defaults: Whether to exclude fields with default values.
+            exclude_none: Whether to exclude fields with None values.
+            round_trip: Whether to output the serialized data in a way that is compatible with deserialization.
+            warnings: How to handle serialization errors. False/"none" ignores them, True/"warn" logs errors,
+                "error" raises a [`PydanticSerializationError`][pydantic_core.PydanticSerializationError].
+            serialize_as_any: Whether to serialize fields with duck-typing serialization behavior.
+            context: Additional context to pass to the serializer.
+    
+        Returns:
+            The serialized object.
+        """
+>       return self.serializer.to_python(
+            instance,
+            mode=mode,
+            by_alias=by_alias,
+            include=include,
+            exclude=exclude,
+            exclude_unset=exclude_unset,
+            exclude_defaults=exclude_defaults,
+            exclude_none=exclude_none,
+            round_trip=round_trip,
+            warnings=warnings,
+            serialize_as_any=serialize_as_any,
+            context=context,
+        )
+E       UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0: invalid utf-8
+
+../audit-compat-venv/lib/python3.11/site-packages/pydantic/type_adapter.py:527: UnicodeDecodeError
+___ test_non_utf8_bytes_get_protocol_error_and_zero_writes[False-arguments] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-user/pytest-6/test_non_utf8_bytes_get_protoc1')
+slot = 'arguments', retry = False
+
+    @pytest.mark.parametrize('slot', ['object','arguments'])
+    @pytest.mark.parametrize('retry', [False,True])
+    def test_non_utf8_bytes_get_protocol_error_and_zero_writes(tmp_path,slot,retry):
+        s = SQLiteWorldStore(tmp_path/'world.db')
+        obj, request = obs(value='ok'), op(arguments={'value':'ok'})
+        if retry:
+            s.commit([obj],request)
+        before = counts(s.db_path)
+        if slot=='object':
+            obj.value = b'\xff'
+        else:
+            request.arguments['value'] = b'\xff'
+        # Both live model construction and frozen-model revalidation accept this value.
+        if slot=='object':
+            assert normalize_world_object_for_persistence(obj).value == b'\xff'
+        try:
+            with pytest.raises(StoreError) as exc:
+>               s.commit([obj],request)
+
+test_auditor_e_02.py:104: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/aios_core/storage/sqlite_store.py:600: in commit
+    canonical_json_dumps(operation.arguments),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/idempotency.py:66: in canonical_json_dumps
+    return _canonical_json(value)
+           ^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/idempotency.py:56: in _canonical_json
+    canonical_json_value(value),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/idempotency.py:36: in canonical_json_value
+    return {str(key): canonical_json_value(item) for key, item in value.items()}
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/idempotency.py:36: in <dictcomp>
+    return {str(key): canonical_json_value(item) for key, item in value.items()}
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/idempotency.py:48: in canonical_json_value
+    converted = _JSON_ADAPTER.dump_python(value, mode="json")
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = TypeAdapter(Any), instance = b'\xff'
+
+    def dump_python(
+        self,
+        instance: T,
+        /,
+        *,
+        mode: Literal['json', 'python'] = 'python',
+        include: IncEx | None = None,
+        exclude: IncEx | None = None,
+        by_alias: bool = False,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        round_trip: bool = False,
+        warnings: bool | Literal['none', 'warn', 'error'] = True,
+        serialize_as_any: bool = False,
+        context: dict[str, Any] | None = None,
+    ) -> Any:
+        """Dump an instance of the adapted type to a Python object.
+    
+        Args:
+            instance: The Python object to serialize.
+            mode: The output format.
+            include: Fields to include in the output.
+            exclude: Fields to exclude from the output.
+            by_alias: Whether to use alias names for field names.
+            exclude_unset: Whether to exclude unset fields.
+            exclude_defaults: Whether to exclude fields with default values.
+            exclude_none: Whether to exclude fields with None values.
+            round_trip: Whether to output the serialized data in a way that is compatible with deserialization.
+            warnings: How to handle serialization errors. False/"none" ignores them, True/"warn" logs errors,
+                "error" raises a [`PydanticSerializationError`][pydantic_core.PydanticSerializationError].
+            serialize_as_any: Whether to serialize fields with duck-typing serialization behavior.
+            context: Additional context to pass to the serializer.
+    
+        Returns:
+            The serialized object.
+        """
+>       return self.serializer.to_python(
+            instance,
+            mode=mode,
+            by_alias=by_alias,
+            include=include,
+            exclude=exclude,
+            exclude_unset=exclude_unset,
+            exclude_defaults=exclude_defaults,
+            exclude_none=exclude_none,
+            round_trip=round_trip,
+            warnings=warnings,
+            serialize_as_any=serialize_as_any,
+            context=context,
+        )
+E       UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0: invalid utf-8
+
+../audit-compat-venv/lib/python3.11/site-packages/pydantic/type_adapter.py:527: UnicodeDecodeError
+_____ test_non_utf8_bytes_get_protocol_error_and_zero_writes[True-object] ______
+
+tmp_path = PosixPath('/tmp/pytest-of-user/pytest-6/test_non_utf8_bytes_get_protoc2')
+slot = 'object', retry = True
+
+    @pytest.mark.parametrize('slot', ['object','arguments'])
+    @pytest.mark.parametrize('retry', [False,True])
+    def test_non_utf8_bytes_get_protocol_error_and_zero_writes(tmp_path,slot,retry):
+        s = SQLiteWorldStore(tmp_path/'world.db')
+        obj, request = obs(value='ok'), op(arguments={'value':'ok'})
+        if retry:
+            s.commit([obj],request)
+        before = counts(s.db_path)
+        if slot=='object':
+            obj.value = b'\xff'
+        else:
+            request.arguments['value'] = b'\xff'
+        # Both live model construction and frozen-model revalidation accept this value.
+        if slot=='object':
+            assert normalize_world_object_for_persistence(obj).value == b'\xff'
+        try:
+            with pytest.raises(StoreError) as exc:
+>               s.commit([obj],request)
+
+test_auditor_e_02.py:104: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/aios_core/storage/sqlite_store.py:398: in commit
+    replay = self._get_idempotent_result(conn, operation, object_list)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/sqlite_store.py:208: in _get_idempotent_result
+    incoming_fingerprint = request_fingerprint(operation, objects)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/idempotency.py:133: in request_fingerprint
+    "objects": _object_entries(objects),
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/idempotency.py:100: in _object_entries
+    payload = canonical_world_object_payload(obj)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/idempotency.py:91: in canonical_world_object_payload
+    value = canonical_json_value(normalized)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/idempotency.py:34: in canonical_json_value
+    return canonical_json_value(value.model_dump(mode="python", round_trip=True))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/idempotency.py:36: in canonical_json_value
+    return {str(key): canonical_json_value(item) for key, item in value.items()}
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/idempotency.py:36: in <dictcomp>
+    return {str(key): canonical_json_value(item) for key, item in value.items()}
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/idempotency.py:48: in canonical_json_value
+    converted = _JSON_ADAPTER.dump_python(value, mode="json")
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = TypeAdapter(Any), instance = b'\xff'
+
+    def dump_python(
+        self,
+        instance: T,
+        /,
+        *,
+        mode: Literal['json', 'python'] = 'python',
+        include: IncEx | None = None,
+        exclude: IncEx | None = None,
+        by_alias: bool = False,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        round_trip: bool = False,
+        warnings: bool | Literal['none', 'warn', 'error'] = True,
+        serialize_as_any: bool = False,
+        context: dict[str, Any] | None = None,
+    ) -> Any:
+        """Dump an instance of the adapted type to a Python object.
+    
+        Args:
+            instance: The Python object to serialize.
+            mode: The output format.
+            include: Fields to include in the output.
+            exclude: Fields to exclude from the output.
+            by_alias: Whether to use alias names for field names.
+            exclude_unset: Whether to exclude unset fields.
+            exclude_defaults: Whether to exclude fields with default values.
+            exclude_none: Whether to exclude fields with None values.
+            round_trip: Whether to output the serialized data in a way that is compatible with deserialization.
+            warnings: How to handle serialization errors. False/"none" ignores them, True/"warn" logs errors,
+                "error" raises a [`PydanticSerializationError`][pydantic_core.PydanticSerializationError].
+            serialize_as_any: Whether to serialize fields with duck-typing serialization behavior.
+            context: Additional context to pass to the serializer.
+    
+        Returns:
+            The serialized object.
+        """
+>       return self.serializer.to_python(
+            instance,
+            mode=mode,
+            by_alias=by_alias,
+            include=include,
+            exclude=exclude,
+            exclude_unset=exclude_unset,
+            exclude_defaults=exclude_defaults,
+            exclude_none=exclude_none,
+            round_trip=round_trip,
+            warnings=warnings,
+            serialize_as_any=serialize_as_any,
+            context=context,
+        )
+E       UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0: invalid utf-8
+
+../audit-compat-venv/lib/python3.11/site-packages/pydantic/type_adapter.py:527: UnicodeDecodeError
+____ test_non_utf8_bytes_get_protocol_error_and_zero_writes[True-arguments] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-user/pytest-6/test_non_utf8_bytes_get_protoc3')
+slot = 'arguments', retry = True
+
+    @pytest.mark.parametrize('slot', ['object','arguments'])
+    @pytest.mark.parametrize('retry', [False,True])
+    def test_non_utf8_bytes_get_protocol_error_and_zero_writes(tmp_path,slot,retry):
+        s = SQLiteWorldStore(tmp_path/'world.db')
+        obj, request = obs(value='ok'), op(arguments={'value':'ok'})
+        if retry:
+            s.commit([obj],request)
+        before = counts(s.db_path)
+        if slot=='object':
+            obj.value = b'\xff'
+        else:
+            request.arguments['value'] = b'\xff'
+        # Both live model construction and frozen-model revalidation accept this value.
+        if slot=='object':
+            assert normalize_world_object_for_persistence(obj).value == b'\xff'
+        try:
+            with pytest.raises(StoreError) as exc:
+>               s.commit([obj],request)
+
+test_auditor_e_02.py:104: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/aios_core/storage/sqlite_store.py:398: in commit
+    replay = self._get_idempotent_result(conn, operation, object_list)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/sqlite_store.py:208: in _get_idempotent_result
+    incoming_fingerprint = request_fingerprint(operation, objects)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/idempotency.py:129: in request_fingerprint
+    "arguments": canonical_json_value(normalized_operation.arguments),
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/idempotency.py:36: in canonical_json_value
+    return {str(key): canonical_json_value(item) for key, item in value.items()}
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/idempotency.py:36: in <dictcomp>
+    return {str(key): canonical_json_value(item) for key, item in value.items()}
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/aios_core/storage/idempotency.py:48: in canonical_json_value
+    converted = _JSON_ADAPTER.dump_python(value, mode="json")
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = TypeAdapter(Any), instance = b'\xff'
+
+    def dump_python(
+        self,
+        instance: T,
+        /,
+        *,
+        mode: Literal['json', 'python'] = 'python',
+        include: IncEx | None = None,
+        exclude: IncEx | None = None,
+        by_alias: bool = False,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        round_trip: bool = False,
+        warnings: bool | Literal['none', 'warn', 'error'] = True,
+        serialize_as_any: bool = False,
+        context: dict[str, Any] | None = None,
+    ) -> Any:
+        """Dump an instance of the adapted type to a Python object.
+    
+        Args:
+            instance: The Python object to serialize.
+            mode: The output format.
+            include: Fields to include in the output.
+            exclude: Fields to exclude from the output.
+            by_alias: Whether to use alias names for field names.
+            exclude_unset: Whether to exclude unset fields.
+            exclude_defaults: Whether to exclude fields with default values.
+            exclude_none: Whether to exclude fields with None values.
+            round_trip: Whether to output the serialized data in a way that is compatible with deserialization.
+            warnings: How to handle serialization errors. False/"none" ignores them, True/"warn" logs errors,
+                "error" raises a [`PydanticSerializationError`][pydantic_core.PydanticSerializationError].
+            serialize_as_any: Whether to serialize fields with duck-typing serialization behavior.
+            context: Additional context to pass to the serializer.
+    
+        Returns:
+            The serialized object.
+        """
+>       return self.serializer.to_python(
+            instance,
+            mode=mode,
+            by_alias=by_alias,
+            include=include,
+            exclude=exclude,
+            exclude_unset=exclude_unset,
+            exclude_defaults=exclude_defaults,
+            exclude_none=exclude_none,
+            round_trip=round_trip,
+            warnings=warnings,
+            serialize_as_any=serialize_as_any,
+            context=context,
+        )
+E       UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0: invalid utf-8
+
+../audit-compat-venv/lib/python3.11/site-packages/pydantic/type_adapter.py:527: UnicodeDecodeError
+=========================== short test summary info ============================
+FAILED test_auditor_e_02.py::test_typed_refs_are_not_erased_before_validation[missing]
+FAILED test_auditor_e_02.py::test_typed_refs_are_not_erased_before_validation[source-missing]
+FAILED test_auditor_e_02.py::test_typed_refs_are_not_erased_before_validation[floating-self]
+FAILED test_auditor_e_02.py::test_typed_refs_are_not_erased_before_validation[pinned-self]
+FAILED test_auditor_e_02.py::test_typed_ref_cutoff_cannot_be_laundered_by_normalization[metadata]
+FAILED test_auditor_e_02.py::test_typed_ref_cutoff_cannot_be_laundered_by_normalization[selector.filters]
+FAILED test_auditor_e_02.py::test_typed_ref_cutoff_cannot_be_laundered_by_normalization[observation.value]
+FAILED test_auditor_e_02.py::test_non_utf8_bytes_get_protocol_error_and_zero_writes[False-object]
+FAILED test_auditor_e_02.py::test_non_utf8_bytes_get_protocol_error_and_zero_writes[False-arguments]
+FAILED test_auditor_e_02.py::test_non_utf8_bytes_get_protocol_error_and_zero_writes[True-object]
+FAILED test_auditor_e_02.py::test_non_utf8_bytes_get_protocol_error_and_zero_writes[True-arguments]
+11 failed, 17 passed in 1.69s

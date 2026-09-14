@@ -1,0 +1,14 @@
+........................................................................ [ 17%]
+........................................................................ [ 34%]
+........................................................................ [ 51%]
+........................................................................ [ 68%]
+........................................................................ [ 85%]
+............................................................             [100%]
+=============================== warnings summary ===============================
+tests/unit/test_evidence_set.py::test_e23_time_range_mutation
+  /home/user/audit-venv/lib/python3.11/site-packages/pydantic/main.py:475: UserWarning: Pydantic serializer warnings:
+    PydanticSerializationUnexpectedValue(Expected `TemporalExtent` - serialized value may not be as expected [field_name='time_range', input_value='now-14d', input_type=str])
+    return self.__pydantic_serializer__.to_python(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+420 passed, 1 warning in 3.59s

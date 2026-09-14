@@ -1,0 +1,9 @@
+ .../M0/M0_gate_B10_B11_resolution_2026-09-14.md    |  84 ++++++++++
+ reviews/M0/M0_gate_B8_B9_followup_2026-09-14.md    |  99 +++++++++++
+ ...rallel_audit_adjudication_B10_B11_2026-09-14.md |  57 +++++++
+ src/aios_core/contracts/registry.py                |  60 +++++++
+ src/aios_core/storage/idempotency.py               |  27 ++-
+ src/aios_core/storage/sqlite_store.py              |  41 ++++-
+ tests/unit/test_m0_gate_fifth_followup.py          | 186 +++++++++++++++++++++
+ tests/unit/test_reference_validation_m019.py       | 160 ++++++++----------
+ 8 files changed, 617 insertions(+), 97 deletions(-)
