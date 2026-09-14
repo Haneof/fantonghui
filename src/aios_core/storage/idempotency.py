@@ -12,9 +12,14 @@ from pydantic import BaseModel, TypeAdapter
 
 from aios_core.contracts.base import WorldObject
 from aios_core.contracts.operations import OperationRequest
+from aios_core.contracts.registry import canonical_model_for_object_type
 
 TWorldObject = TypeVar("TWorldObject", bound=WorldObject)
 _JSON_ADAPTER = TypeAdapter(Any)
+
+
+class DurableJSONError(ValueError):
+    """Accepted Python data cannot be represented injectively as durable JSON."""
 
 
 def canonical_json_value(value: Any) -> Any:
@@ -33,7 +38,15 @@ def canonical_json_value(value: Any) -> Any:
     if isinstance(value, BaseModel):
         return canonical_json_value(value.model_dump(mode="python", round_trip=True))
     if isinstance(value, Mapping):
-        return {str(key): canonical_json_value(item) for key, item in value.items()}
+        normalized: dict[str, Any] = {}
+        for key, item in value.items():
+            if not isinstance(key, str):
+                raise DurableJSONError(
+                    "durable JSON object keys must be strings; "
+                    f"got {type(key).__name__}: {key!r}"
+                )
+            normalized[key] = canonical_json_value(item)
+        return normalized
     if isinstance(value, (set, frozenset)):
         normalized = [canonical_json_value(item) for item in value]
         normalized.sort(key=_canonical_json)
@@ -77,11 +90,17 @@ def normalize_operation_for_persistence(operation: OperationRequest) -> Operatio
     return OperationRequest.model_validate(snapshot)
 
 
-def normalize_world_object_for_persistence(obj: TWorldObject) -> TWorldObject:
-    """Return the same validated model semantics used for durable storage."""
+def normalize_world_object_for_persistence(obj: TWorldObject) -> WorldObject:
+    """Validate through the canonical frozen model selected by durable object_type.
+
+    The caller's runtime Python class is not an authority. A base/custom WorldObject
+    cannot claim a reserved canonical ObjectType while bypassing that subtype's
+    required fields and validators.
+    """
 
     snapshot = obj.model_dump(mode="python", round_trip=True)
-    return cast(TWorldObject, type(obj).model_validate(snapshot))
+    canonical_model = canonical_model_for_object_type(obj.object_type)
+    return canonical_model.model_validate(snapshot)
 
 
 def canonical_world_object_payload(obj: WorldObject) -> dict[str, Any]:

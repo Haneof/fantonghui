@@ -18,6 +18,7 @@ from aios_core.contracts.time import as_utc, canonical_utc_iso, utc_now
 from aios_core.dependency import validate_dependency_graph_acyclic
 from aios_core.errors import AIOSProtocolError
 from aios_core.storage.idempotency import (
+    DurableJSONError,
     canonical_json_dumps,
     normalize_operation_for_persistence,
     normalize_world_object_for_persistence,
@@ -206,7 +207,7 @@ class SQLiteWorldStore:
 
         try:
             incoming_fingerprint = request_fingerprint(operation, objects)
-        except ValidationError as exc:
+        except (ValidationError, DurableJSONError, TypeError) as exc:
             raise StoreError(
                 ErrorCode.IDEMPOTENCY_CONFLICT,
                 "idempotency key retry is not a valid equivalent request",
@@ -343,7 +344,7 @@ class SQLiteWorldStore:
 
         rows = conn.execute(
             """
-            SELECT o.payload_json
+            SELECT o.object_id, o.payload_json
             FROM object_revisions o
             JOIN (
                 SELECT object_id, MAX(revision) AS max_revision
@@ -359,7 +360,17 @@ class SQLiteWorldStore:
 
         current_by_id: dict[str, Dependency] = {}
         for row in rows:
-            dependency = Dependency.model_validate(json.loads(row["payload_json"]))
+            try:
+                dependency = Dependency.model_validate(json.loads(row["payload_json"]))
+            except (ValidationError, json.JSONDecodeError, TypeError, ValueError) as exc:
+                raise StoreError(
+                    ErrorCode.STORAGE_FAILURE,
+                    "durable dependency payload is inconsistent with its object_type",
+                    context={
+                        "object_id": str(row["object_id"]),
+                        "reason": "corrupt_dependency_payload",
+                    },
+                ) from exc
             current_by_id[dependency.object_id] = dependency
         for dependency in pending:
             current_by_id[dependency.object_id] = dependency
@@ -462,6 +473,24 @@ class SQLiteWorldStore:
                     validated_objects.append(validated)
                 object_list = validated_objects
 
+                try:
+                    operation_arguments_json = canonical_json_dumps(operation.arguments)
+                    object_payload_json = {
+                        (obj.object_id, obj.revision): canonical_json_dumps(
+                            obj.model_dump(mode="python", round_trip=True)
+                        )
+                        for obj in object_list
+                    }
+                except (DurableJSONError, TypeError) as exc:
+                    raise StoreError(
+                        ErrorCode.INVALID_ARGUMENT,
+                        "request contains data that cannot be represented safely as durable JSON",
+                        context={
+                            "operation_id": operation.operation_id,
+                            "reason": "durable_json_validation_failed",
+                        },
+                    ) from exc
+
                 pending_pairs = {(o.object_id, o.revision) for o in object_list}
                 pending_objects = {(o.object_id, o.revision): o for o in object_list}
                 if len(pending_pairs) != len(object_list):
@@ -555,9 +584,7 @@ class SQLiteWorldStore:
 
                 refs: list[tuple[str, int]] = []
                 for obj in object_list:
-                    payload = canonical_json_dumps(
-                        obj.model_dump(mode="python", round_trip=True)
-                    )
+                    payload = object_payload_json[(obj.object_id, obj.revision)]
                     conn.execute(
                         """
                         INSERT INTO object_revisions(
@@ -597,7 +624,7 @@ class SQLiteWorldStore:
                         operation.operation_id,
                         operation.session_id,
                         operation.operation_name,
-                        canonical_json_dumps(operation.arguments),
+                        operation_arguments_json,
                         operation.expected_world_revision,
                         operation.reason,
                         operation.idempotency_key,
