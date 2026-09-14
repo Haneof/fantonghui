@@ -8,7 +8,7 @@ This file is the short cloud checkpoint used to recover project state after long
 
 - Milestone: M0 — freeze world contracts and core storage
 - Status: IN PROGRESS
-- Progress: 14/22 tasks FINAL PASS
+- Progress: 15/22 tasks FINAL PASS
 - Core development mode: SINGLE-WRITER for production contracts until M0 Gate
 
 ## Frozen tasks
@@ -26,42 +26,42 @@ This file is the short cloud checkpoint used to recover project state after long
 - M0-011 FINAL PASS — `295d2a162f8814c9479d7281bd5988ccd2d8b6f5`
 - M0-012 FINAL PASS — `5ab6ed1c21f2c3f2664104faff3494113bdd5bc1`
 - M0-013 FINAL PASS — `f30987395a034d4e9f826c9193dc82e00165a2e8`
-- M0-014 FINAL PASS — semantic frozen commit `af49c27c95527ca1d2b28cddd88115b0264b48c4`
+- M0-014 FINAL PASS — `af49c27c95527ca1d2b28cddd88115b0264b48c4`
+- M0-015 FINAL PASS — semantic frozen commit `3b4e8b603e52830d8be44d33141f722bbba244a0`
 
-## M0-014 accepted contract
+## M0-015 accepted contract
 
-The active system now has five durable first-class objects: Task, Wake, Session, Action, Outcome.
+Dependency is the explicit version-aware edge used to record why one cognition/summary/task depends on another exact object revision.
 
 Accepted invariants:
-- future work must survive as durable Task state; model context is not a Task store;
-- Task remains distinct from Goal and keeps type/state/priority/time/dependencies/completion/cancel/execution/outcome fields;
-- Task reason/execution/outcome history refs are pinned provenance, while Goal/dependency/entity links retain generic navigation semantics;
-- Wake is a separate WorldObject with source/hit times/hit count/evidence/priority/dedupe; wake evidence is pinned;
-- Wake time ordering compares UTC instants, not wall-clock fields;
-- Session pins its originating Wake and freezes a world revision plus operation IDs/checkpoint for later recovery;
-- Action carries a stable execution_id and pins the exact Task revision when linked;
-- Outcome is separate from Action; action/evidence refs are pinned and outcome may remain `unknown`;
-- Action completion or message delivery never implies user acceptance, Goal improvement, or learning success;
-- M0-009 persistence-boundary revalidation blocks post-validation mutation of active-system provenance;
-- M0-014 does not implement the scheduler/runtime; those mechanics remain later work.
+- `dependent_ref` and `dependency_ref` are pinned ObjectRefs;
+- `dependency_type` remains an open nonblank string rather than a prematurely closed ontology;
+- direct self-dependency is rejected;
+- multi-edge explicit Dependency cycles are detectable/rejectable by the dependency graph guard;
+- ordinary semantic Relation graphs are not Dependency graphs and may contain cycles;
+- exact-revision reverse scanning can identify direct/transitive impacted dependents;
+- reverse scanning does not silently treat revision N+1 as equivalent to revision N;
+- persisted Dependency payloads can be rebuilt and reverse-scanned;
+- M0-009 durable revalidation prevents post-validation mutation from persisting floating Dependency refs;
+- persistent reverse indexes and automatic correction propagation remain M3 work.
 
 Exact semantic-head CI:
-- GitHub Actions run `34807928978`
-- job `103863350345`
+- GitHub Actions run `34809518146`
+- job `103867871731`
 - CPython 3.12.14 / pytest 8.4.2
-- formal: 315 passed, 1 previously accepted adversarial warning
+- formal: 329 passed, 1 previously accepted adversarial warning
 - Reference: 15 passed
 
-Formal review: `reviews/M0/M0-014_final_PASS_2026-09-14.md`
+Formal review: `reviews/M0/M0-015_final_PASS_2026-09-14.md`
 
 ## Active / next task
 
-- M0-015 — Dependency（依赖）契约
+- M0-016 — OperationRequest、审计与幂等契约
 - Status: AUTHORIZED / CHIEF ENGINEER OWNED / NOT STARTED
 - Owner: `chief-01`
 - Production branch: `arena/01a09bc6-fantonghui`
-- M0-014 semantic base for next work: `af49c27c95527ca1d2b28cddd88115b0264b48c4`
-- Goal: record exact dependency versions for later correction/review and reverse lookup; ordinary semantic links must not be confused with evidence dependency
+- M0-015 semantic base: `3b4e8b603e52830d8be44d33141f722bbba244a0`
+- Goal: freeze operation_id/session_id/expected_world_revision/reason/idempotency_key and safe retry semantics
 - `core-01`: IDLE / no production assignment
 - `architect-01`: STANDBY; mandatory at M0 Gate, no current escalation trigger
 - `parallel-01/02`: NOT AUTHORIZED
