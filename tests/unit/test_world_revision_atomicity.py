@@ -98,7 +98,9 @@ def test_w02_failed_mid_insert_rolls_back_the_entire_world_transaction(tmp_path)
 
     # Force a genuine SQLite failure after the transaction has started writing.
     # The first object sorts before the failing object in the supplied list, so
-    # this exercises rollback after at least one INSERT has executed.
+    # this exercises rollback after at least one INSERT has executed. The storage
+    # capability boundary must translate raw SQLite failure into StoreError while
+    # preserving the original all-or-nothing rollback invariant.
     failing_id = ids[1]
     with sqlite3.connect(path) as conn:
         escaped = failing_id.replace("'", "''")
@@ -114,11 +116,13 @@ def test_w02_failed_mid_insert_rolls_back_the_entire_world_transaction(tmp_path)
         )
         conn.commit()
 
-    with pytest.raises(sqlite3.IntegrityError, match="forced M0-018"):
+    with pytest.raises(StoreError) as exc:
         store.commit(
             [make_obs(ids[0], "first"), make_obs(ids[1], "boom"), make_obs(ids[2], "third")],
             op(0, "mid-insert-failure", "op-mid-insert-failure"),
         )
+    assert exc.value.code is ErrorCode.INVALID_ARGUMENT
+    assert exc.value.context["reason"] == "sqlite_integrity_error"
 
     assert store.current_world_revision() == 0
     with sqlite3.connect(path) as conn:
