@@ -118,3 +118,60 @@ NONE
 - 经过 38058fa M0-004 archive final pass
 - 本轮生产逻辑 NO CHANGE (base.py, models.py, time.py, sqlite_store.py 已符合M0-005冻结算法)
 - 新增测试 tests/unit/test_world_object_revision.py 14 tests
+
+---
+
+## R1 PATCH 2026-09-14 object_type continuity
+
+### 背景
+- 总工程师直接GitHub审查，当前真实基线 9c25b4a6b13b169e5a77789cc9b171d7b8b53e67
+- W01-W14已验证存在，Python3.12 CI 160 PASS
+- 旧记录 PYTHON_312_CI_RESULT_UNAVAILABLE 对于当前HEAD已失效，正式状态应改为 PYTHON_312_CI_PASS
+- 发现唯一生产代码缺口：同一object_id跨revision时 object_type未验证，理论上可出现 ent_xxx rev1 ENTITY rev2 CLAIM
+
+### 正式冻结 object_type identity
+- 同一object_id第一次成功持久化的object_type成为永久类型身份
+- 合法: ent_xxx rev1 ENTITY rev2 ENTITY rev3 ENTITY
+- 非法: ent_xxx rev1 ENTITY rev2 CLAIM, clm_xxx rev1 CLAIM rev2 EVENT
+- 原因: object_id长期身份，object_type核心协议，M0-003已冻结按ObjectType生成前缀的稳定不透明ID，稳定对象不能变另一类
+- subject_id本轮明确不冻结：未来可能主体误归属认知修正，M0-005不提前限制
+
+### Store最小修改
+- 文件: src/aios_core/storage/sqlite_store.py
+- 新增 helper _latest_object_type(conn, object_id) -> str | None: SELECT object_type FROM object_revisions WHERE object_id=? ORDER BY revision DESC LIMIT 1
+- 在 Validate revision monotonicity before any write 阶段，revision检查通过后，若 latest is not None，获取历史object_type，若 existing != obj.object_type.value => raise StoreError VERSION_CONFLICT "object type cannot change across revisions" context object_id, expected_object_type, actual_object_type
+- 使用 VERSION_CONFLICT，不新增ErrorCode，属于同一object_id revision lineage版本身份冲突
+- 验证必须在任何write之前 (INSERT world_commits, INSERT object_revisions, world_meta, operation, idempotency) 之前，失败整个事务不产生新世界状态
+
+### 新增测试
+- DummyClaim class: object_type CLAIM content test
+- W15: 空store, obj_id ENTITY, rev1 ENTITY成功, rev2 CLAIM same obj_id => VERSION_CONFLICT expected ENTITY actual CLAIM
+- W16: world rev1 ENTITY rev1, 准备commit同时包含非法CLAIM rev2 + 全新合法ENTITY rev1 => 整个commit失败, current_world_revision==1, 原对象latest仍rev1 ENTITY, 非法CLAIM不存在, 新ENTITY也不存在, world_commits无新增, 证明整个世界事务原子失败
+- W17: W16失败后提交同一原object_id rev2 ENTITY => 成功 world 1->2 latest rev2 ENTITY, 证明失败未消耗revision未污染identity
+- W17后直接检查DB: SELECT revision, object_type WHERE object_id=? ORDER BY revision => rev1 ENTITY rev2 ENTITY 无CLAIM
+- 不做ID前缀硬校验，禁止新增 object_id.startswith(prefix)等，M0-003冻结生成器输出，M0-005冻结已存在object_id lineage连续性
+
+### 不修改
+- base.py, models.py, time.py, ids.py 原则上不得修改，本轮仅修改 sqlite_store.py
+- SQLite schema, world revision算法, knowledge cutoff, time canonicalization, Wake DST, reference validation, idempotency, ErrorCode集合 禁止修改
+
+### 对抗验证 R1
+- A 删除object_type continuity check => W15失败 (ENTITY->CLAIM被允许)
+- B 错误码改成 INVALID_ARGUMENT => W15失败 (code不匹配)
+- C 类型冲突后仍增加world revision => W16失败 (world应1得2)
+- D 类型冲突时允许同commit另一合法对象写入 => W16失败 (新ENTITY应不存在但存在)
+- E 类型冲突失败后让合法ENTITY rev2无法提交 => W17失败
+- 全部恢复后正式测试
+
+### 正式测试 R1
+- 本地 Python 3.11.2, 163 passed (160 + W15-W17)
+- Reference 15 passed
+- GitHub Actions Python 3.12.14 预期 163 passed (总工直接GitHub核验新HEAD CI，不能拿旧HEAD替代)
+
+### CI状态
+- 当前HEAD 9c25b4a CI: Python 3.12.14 160 PASS (总工直接确认)
+- R1新HEAD CI: 需push后总工直接GitHub核验，本地记录 CI_PENDING_CHIEF_VERIFICATION 或实际看到的PASS
+
+### SHA
+- time.py: 0a243b697f077e5cfd2dd7d364f5257b1ad6def3d91524b87e92f3713cbf531b 保持不变
+- sqlite_store.py: 新增 _latest_object_type + object_type check，最小修改
