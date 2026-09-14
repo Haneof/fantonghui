@@ -225,11 +225,55 @@ class EventAnchor(WorldObject):
     event_time: TemporalExtent = Field(default_factory=TemporalExtent.unknown_time)
     participant_refs: list[ObjectRef] = Field(default_factory=list)
     primary_claim_refs: list[ObjectRef] = Field(default_factory=list)
-    evidence_set_refs: list[ObjectRef] = Field(default_factory=list)
+    support_evidence_set_refs: list[ObjectRef] = Field(default_factory=list)
+    counter_evidence_set_refs: list[ObjectRef] = Field(default_factory=list)
     confidence: float = Field(ge=0.0, le=1.0)
     supersedes_refs: list[ObjectRef] = Field(default_factory=list)
     merged_into_ref: ObjectRef | None = None
+    split_from_ref: ObjectRef | None = None
     split_child_refs: list[ObjectRef] = Field(default_factory=list)
+    revision_reason: str | None = None
+
+    @model_validator(mode="after")
+    def validate_event_contract(self) -> "EventAnchor":
+        # Event evidence and history links are provenance: they must never follow "latest".
+        for field_name in [
+            "primary_claim_refs",
+            "support_evidence_set_refs",
+            "counter_evidence_set_refs",
+            "supersedes_refs",
+            "split_child_refs",
+        ]:
+            for ref in getattr(self, field_name):
+                if ref.revision is None:
+                    raise ValueError(
+                        f"{field_name} requires pinned ObjectRef revisions"
+                    )
+
+        for field_name in ["merged_into_ref", "split_from_ref"]:
+            ref = getattr(self, field_name)
+            if ref is not None and ref.revision is None:
+                raise ValueError(f"{field_name} requires pinned ObjectRef revision")
+
+        if self.event_status is EventStatus.REVISED and not self.supersedes_refs:
+            raise ValueError("REVISED EventAnchor requires supersedes_refs")
+        if self.event_status is EventStatus.MERGED and self.merged_into_ref is None:
+            raise ValueError("MERGED EventAnchor requires merged_into_ref")
+        if self.event_status is EventStatus.SPLIT and not self.split_child_refs:
+            raise ValueError("SPLIT EventAnchor requires split_child_refs")
+
+        if self.event_status in {
+            EventStatus.REVISED,
+            EventStatus.REJECTED,
+            EventStatus.MERGED,
+            EventStatus.SPLIT,
+        }:
+            if self.revision_reason is None or not self.revision_reason.strip():
+                raise ValueError(
+                    f"{self.event_status.value.upper()} EventAnchor requires revision_reason"
+                )
+
+        return self
 
 
 class Summary(WorldObject):
