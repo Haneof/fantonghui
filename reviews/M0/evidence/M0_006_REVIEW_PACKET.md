@@ -159,3 +159,52 @@ NO CHANGE / PASS/FROZEN
 ### CI状态
 - 起始HEAD ac83582 GitHub Actions SUCCESS Python 3.12 179 passed
 - R1新HEAD push后自动触发CI，施工方若看不到结果写 CI_PENDING_CHIEF_VERIFICATION，总工直接GitHub核验
+
+---
+
+## R2 PATCH 2026-09-14 严格冻结 Dependency ObjectRef 非Optional契约 (TEST ONLY)
+
+### 生产代码
+NO CHANGE / PASS/FROZEN
+- 7c0355f HEAD生产代码已通过审查，GitHub Actions SUCCESS Python 3.12 181 passed
+- R09 PASS, R16/R17 DST PASS
+- 唯一剩余漏洞是Dependency exact annotation测试允许Optional，本轮TEST ONLY
+
+### 修复 Dependency exact type test
+- 原 assert_object_ref helper允许 Optional[ObjectRef] (检查 ObjectRef in Union args)
+- 删除宽松逻辑，改为严格:
+```
+def assert_exact_object_ref(model, field_name):
+    hints = get_type_hints(model)
+    assert field_name in hints
+    annotation = hints[field_name]
+    assert annotation is ObjectRef, f"{model.__name__}.{field_name} must be exactly ObjectRef, got {annotation}"
+```
+- 验证 Dependency.dependent_ref: ObjectRef, Dependency.dependency_ref: ObjectRef
+- 不能是 ObjectRef|None, Optional, list[ObjectRef], str, Any
+- 正式冻结: Dependency.dependent_ref: ObjectRef, dependency_ref: ObjectRef
+
+### list[ObjectRef]测试保持原样
+- Claim.support_evidence_set_refs, counter_evidence_set_refs
+- EventAnchor.primary_claim_refs, evidence_set_refs
+- EvidenceSet.member_refs/support_refs/counter_refs/context_refs
+- 它们继续必须 list[ObjectRef]，不得放宽
+
+### 对抗验证 R2
+- 临时将生产 models.py Dependency.dependent_ref: ObjectRef 改成 ObjectRef|None，仅本地攻击，运行critical ref test必须FAIL，然后完全恢复
+- 再临时将 dependency_ref改成Optional，测试也必须FAIL，恢复
+- 实际验证: 当前 dependent_ref annotation is ObjectRef True, 模拟Optional is ObjectRef False -> FAIL，攻击有效
+- 不得提交攻击代码
+
+### 正式测试 R2
+- 181 passed (数量保持，因只是修正已有测试逻辑)
+- Reference 15 passed
+- Python 3.11.2本地，GitHub Actions Python 3.12预期181
+
+### Production NO CHANGE证明
+- git diff 7c0355f1148e715e86b3be7a1d37558d26b1f218..HEAD -- src/aios_core => NO CHANGE
+- 实际执行无输出，符合TEST ONLY要求
+
+### CI状态
+- 起始HEAD 7c0355f GitHub Actions SUCCESS Python 3.12.14 181 passed
+- R2新HEAD push后自动触发CI，施工方若看不到写 CI_PENDING_CHIEF_VERIFICATION
