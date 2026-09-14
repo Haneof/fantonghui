@@ -150,3 +150,108 @@ Python 3.11.2本地，GitHub Actions Python 3.12预期同样通过
 ## 未解决问题
 
 NONE，等待M0-009 CODE REVIEW，禁止M0-010
+
+---
+
+## R1 PATCH 2026-09-14 补齐durable write boundary Pydantic revalidation (PRODUCTION + TEST)
+
+### 缺陷
+
+- EvidenceSet validator只在模型验证时生效，WorldObject包含可变list和嵌套对象
+- 合法创建后 member_refs.append(floating), selector.dimension_refs.append(floating), coverage变异, selector.time_range变异可形成未经重新验证状态
+- SQLiteWorldStore.commit此前不重新model_validate完整对象图
+- EvidenceSet pinned/frozen等contract存在持久化绕过
+
+### 修复
+
+- models.py NO CHANGE (已有pinned和cutoff逻辑PASS)
+- 唯一允许生产修改：src/aios_core/storage/sqlite_store.py
+- 增加generic persistence revalidation：
+  from pydantic import ValidationError
+  在commit中：BEGIN IMMEDIATE, idempotency replay, expected_world_revision check, 然后：
+```
+validated_objects = []
+for obj in object_list:
+    try:
+        snapshot = obj.model_dump(mode="python", round_trip=True)
+        validated = type(obj).model_validate(snapshot)
+    except ValidationError as exc:
+        raise StoreError(INVALID_ARGUMENT, "world object failed persistence validation",
+            context={object_id, object_type, revision, reason="persistence_revalidation_failed"}) from exc
+    validated_objects.append(validated)
+object_list = validated_objects
+```
+  然后pending_pairs, revision validation, ref validation, INSERT
+- generic：不认识EvidenceSet，不hardcode，不实现selector查询/materialize/stale传播
+- 错误泄露：code INVALID_ARGUMENT, context object_id, object_type, revision, reason persistence_revalidation_failed, 禁止完整payload, raise from exc保留链
+- 原子性：revalidation在任何world_commits/object_revisions/operations/idempotency success之前，失败rollback world revision不增加，无成功idempotency record
+- idempotency顺序：已有成功replay优先返回，不被revalidation破坏，VERSION_CONFLICT继续优先
+
+### E20 member mutation
+
+- 初始：Observation target rev1 commit world 1, 合法EvidenceSet member [target@1]
+- mutation：es.member_refs.append(ObjectRef(target, revision=None)) 确认revision None
+- commit：StoreError INVALID_ARGUMENT reason persistence_revalidation_failed
+- world revision：仍1
+- 结果：EvidenceSet不存在 get_payload NOT_FOUND, 移除revalidation时旧Store会接受floating并提交，E20 FAIL
+
+### E21 selector mutation
+
+- 初始：DimensionDefinition rev1 commit world 1, selector dimension_refs [dim@1] + EvidenceSet selector member []
+- mutation：es.selector.dimension_refs.append(floating None) 确认存在
+- commit：INVALID_ARGUMENT
+- 结果：world revision不增加，EvidenceSet不存在，移除revalidation则FAIL
+
+### E22 coverage mutation
+
+- 初始：Observation A commit, coverage expected 10 observed 7 ratio 0.7 + EvidenceSet member [A@1]
+- mutation：es.coverage.coverage_ratio = 1.5 确认内存1.5
+- commit：INVALID_ARGUMENT
+- 结果：world revision不增加，EvidenceSet不存在，证明revalidation完整对象图非仅ObjectRef
+
+### E23 time_range mutation
+
+- 初始：合法selector time_range固定 start 2026-09-01 end 2026-09-14
+- mutation：es.selector.time_range = "now-14d" 确认内存错误类型
+- commit：INVALID_ARGUMENT不得持久化动态字符串
+- 结果：world revision不增加，证明固定时间窗不能通过nested mutation绕过
+
+### E01 exact
+
+- selector union：set(args) == {EvidenceSelector, None} exact, 不是只包含
+- filters：origin dict args (str, Any) exact
+- aggregation：set {str, None} exact
+- coverage：expected set {int, None}, observed set {int, None}, ratio set {float, None} exact
+
+### E09 fixed interval
+
+- start：as_utc(stored.start) == as_utc(expected_start 2026-09-01)
+- end：as_utc(stored.end) == as_utc(expected_end 2026-09-14 23:59)
+- cutoff：as_utc(stored cutoff) == as_utc(expected_cutoff 2026-09-14 23:59)
+- world_revision：1
+- new observation：2026-09-21新Observation不在旧member_refs, member_refs []
+
+### E13
+
+- 结果：明确检查"knowledge_window.knowledge_cutoff must not be after learned_at"在错误信息中，避免其他无关错误碰巧变绿
+
+### 正式测试
+
+- 234 passed (230+4 E20-E23), 0 failed, 1 warning (Pydantic serializer warning for time_range string expected but we test mutation)
+- Reference 15 passed
+- Production diff：models.py NO CHANGE, sqlite_store.py CHANGED generic revalidation, 其他src NO CHANGE
+
+### 对抗
+
+- A 移除revalidation E20 FAIL floating member被提交
+- B 移除revalidation E21 FAIL nested floating dimension
+- C 移除revalidation E22 FAIL coverage 1.5被提交
+- D 移除revalidation E23 FAIL 动态字符串被提交
+- E filters只检查第一个参数 dict[str,str] 严格test失败
+- F 旧EvidenceSet返回漂移后start/end/cutoff 加强后E09失败
+- 恢复正式代码
+
+### CI
+
+- 起始1deef8c SUCCESS Python 3.12.14 230 passed
+- R1 push后CI_PENDING_CHIEF_VERIFICATION
