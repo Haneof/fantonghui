@@ -8,7 +8,7 @@ This file is the short cloud checkpoint used to recover project state after long
 
 - Milestone: M0 — freeze world contracts and core storage
 - Status: IN PROGRESS
-- Progress: 17/22 tasks FINAL PASS
+- Progress: 18/22 tasks FINAL PASS
 - Core development mode: SINGLE-WRITER for production contracts until M0 Gate
 
 ## Frozen tasks
@@ -29,30 +29,31 @@ This file is the short cloud checkpoint used to recover project state after long
 - M0-014 FINAL PASS — `af49c27c95527ca1d2b28cddd88115b0264b48c4`
 - M0-015 FINAL PASS — `3b4e8b603e52830d8be44d33141f722bbba244a0`
 - M0-016 FINAL PASS — `cdbd7ff1d42ba292a2e0ca9972f0c9eccd4666c3`
-- M0-017 FINAL PASS — acceptance commit `c9bd2d85ff0047515f6f4cc5b9e7058c70cff6dc`
+- M0-017 FINAL PASS — `c9bd2d85ff0047515f6f4cc5b9e7058c70cff6dc`
+- M0-018 FINAL PASS — semantic frozen commit `f00735193e09b6a337ade39dc040510c003d8f54`
 
-## M0-017 accepted contract
+## M0-018 accepted contract
 
-The first-stage append-only SQLite world schema is now formally frozen. Required tables are world_meta/world_commits/object_revisions/operations/idempotency_records. Store connections use WAL and foreign keys. Object history is append-only, restart-safe, multi-object commits share one world revision, invalid transactions roll back without partial world/object/operation/idempotency state, stale expected-world-revision writers fail with VERSION_CONFLICT, and AI Worker remains unable to import sqlite3 or storage internals.
+One logical `commit(objects, operation)` produces one global world revision shared by every object in the transaction. `BEGIN IMMEDIATE` plus `expected_world_revision` makes concurrent writers explicit; a real mid-insert SQLite failure rolls back world/object/operation/idempotency state; failed transactions consume no world revision; concurrent writers from the same snapshot result in exactly one success and one VERSION_CONFLICT; Session can keep a fixed historical snapshot revision while the live world advances.
 
-Exact acceptance-head CI:
-- GitHub Actions run `34810803641`
-- job `103871580347`
+Exact semantic-head CI:
+- GitHub Actions run `34811297016`
+- job `103873014736`
 - CPython 3.12.14 / pytest 8.4.2
-- formal: 353 passed, 1 previously accepted adversarial warning
+- formal: 358 passed, 1 previously accepted adversarial warning
 - Reference: 15 passed
 - conclusion: SUCCESS
 
-Formal review: `reviews/M0/M0-017_final_PASS_2026-09-14.md`
+Formal review: `reviews/M0/M0-018_final_PASS_2026-09-14.md`
 
 ## Active / next task
 
-- M0-018 — 全局 World Revision 与原子提交
+- M0-019 — 引用存在性与同事务引用验证
 - Status: AUTHORIZED / CHIEF ENGINEER OWNED / NOT STARTED
 - Owner: `chief-01`
 - Production branch: `arena/01a09bc6-fantonghui`
-- Frozen acceptance base: `c9bd2d85ff0047515f6f4cc5b9e7058c70cff6dc`
-- Goal: formally freeze global world-revision semantics so one successful transaction produces exactly one next world revision shared by all objects, while failed/stale transactions never advance the global revision
+- Frozen semantic base: `f00735193e09b6a337ade39dc040510c003d8f54`
+- Goal: formally freeze pinned/floating reference existence and knowledge-cutoff visibility, including legal same-transaction references and rejection of missing/not-yet-visible targets without introducing arbitrary graph-cycle rejection
 - `core-01`: IDLE / no production assignment
 - `architect-01`: STANDBY; mandatory at M0 Gate, no current escalation trigger
 - `parallel-01/02`: NOT AUTHORIZED
