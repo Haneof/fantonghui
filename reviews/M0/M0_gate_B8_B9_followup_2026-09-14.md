@@ -2,11 +2,11 @@
 
 日期：2026-09-14  
 角色：`chief-01`  
-状态：**PATCH APPLIED / WAITING EXACT CI — NOT FINAL PASS**
+状态：**PATCH GREEN / WAITING INDEPENDENT ARCHITECT CONTINUATION — NOT FINAL PASS**
 
 ## 1. 来源
 
-第三轮 `architect-01` 复审因 Work 额度耗尽未完成云端 `LATEST.md` 更新。截图中已明确留下两项待提交问题：
+第三轮 `architect-01` 复审因 Work 额度耗尽未完成云端 `LATEST.md` 更新。截图中明确留下两项待提交问题：
 
 - B8：跨进程集合序列化可导致同一请求无法重放；
 - B9：包含单词 `busy` 的非锁型内部 SQLite 错误会被误判为可重试锁冲突。
@@ -21,6 +21,7 @@ Chief 新增 `tests/unit/test_m0_gate_fourth_followup.py`，使用两个不同 `
 
 - commit: `83a23302ff3c88a409db988059c03e5ec27a7ace`
 - run: `34831346707`
+- job: `103935164027`
 - formal: **418 passed / 2 failed / 1 warning**
 - B8 失败为第二进程同 key 同 logical request 得到 `IDEMPOTENCY_CONFLICT / request_fingerprint_mismatch`。
 
@@ -28,7 +29,7 @@ Chief 新增 `tests/unit/test_m0_gate_fourth_followup.py`，使用两个不同 `
 
 ## 3. B9 独立复现
 
-同一预修复 CI 中，执行：
+同一预修复 CI 中执行：
 
 `SELECT * FROM busy_missing_internal_table`
 
@@ -64,14 +65,35 @@ B9：
 
 `659157b849a0dbaad241c3e316dcd98eb7c72df7`
 
-## 5. Gate 状态
+## 5. 修复后验证
 
-本记录不构成 M0 FINAL PASS。
+修复后的生产 source + 本记录归档 HEAD：
 
-必须：
+`d180091c73be63bcce680748048ef731316f848b`
 
-1. 跑当前 source 的全量 formal + Reference；
-2. B8/B9 新复现测试必须从红转绿；
-3. 再更新治理请求，明确第三轮 architect 被额度中断，后续有额度时必须从 B8/B9 修复后的候选继续独立复审，而不是沿用旧 LATEST verdict。
+Exact CI：
 
-M1 与并行核心开发继续暂停。
+- run `34831608087`
+- job `103935994524`
+- Ubuntu 24.04.5
+- CPython 3.12.14
+- pytest 8.4.2
+- formal：**420 passed, 1 known warning**
+- Reference：**15 passed**
+- conclusion：**SUCCESS**
+
+关键事实：原先两个失败的 `test_m0_gate_fourth_followup.py` 现均通过；全量 M0 回归及四个 Gate fixture、schema snapshot、Reference suite 同时保持绿色。
+
+## 6. Gate 状态
+
+**NOT FINAL PASS。**
+
+第三轮 architect 的云端正式报告没有完成，不能由 chief-01 冒充 GPT-6 补签。
+
+后续有 architect-01 额度时，必须从 B8/B9 修复后的 semantic candidate `659157b...`（或仅文档领先的等价 archive HEAD）继续独立复审，并重新审查 B6/B7/B5/R4 + B8/B9 + 全局 M0 regression。
+
+在独立架构复审给出可接受 verdict 且 chief-01 最终签 Gate 前：
+
+- M0 不恢复 22/22 FINAL PASS；
+- M1 不开始；
+- 并行核心开发不启用。
