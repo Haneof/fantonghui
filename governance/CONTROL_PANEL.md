@@ -21,11 +21,11 @@
 ## 二、当前项目状态
 
 - 当前里程碑：M0 — 进行中
-- M0 完成度：**13 / 22 FINAL PASS**
-- 已正式通过到：**M0-013**
-- M0-013 语义冻结：`f30987395a034d4e9f826c9193dc82e00165a2e8`
-- 下一任务：**M0-014 — Task / Wake / Session / Action / Outcome 基础契约**
-- M0-014 状态：**已授权 / 总工程师负责 / 尚未开始**
+- M0 完成度：**14 / 22 FINAL PASS**
+- 已正式通过到：**M0-014**
+- M0-014 语义冻结：`af49c27c95527ca1d2b28cddd88115b0264b48c4`
+- 下一任务：**M0-015 — Dependency（依赖）契约**
+- M0-015 状态：**已授权 / 总工程师负责 / 尚未开始**
 - 当前生产分支：`arena/01a09bc6-fantonghui`
 - 当前开发模式：核心生产代码仍为单写入者
 
@@ -33,36 +33,39 @@
 
 | 中文职位 | 内部编号 | 当前状态 | 当前任务 | 最近结果 | 下一步 |
 |---|---|---|---|---|---|
-| **总工程师 / 总工** | `chief-01` | 当前负责人 | M0-014（尚未开始） | **M0-013 FINAL PASS**；297 正式测试 + Reference 15 全通过 | 下一轮亲自推进 M0-014 |
+| **总工程师 / 总工** | `chief-01` | 当前负责人 | M0-015（尚未开始） | **M0-014 FINAL PASS**；315 正式测试 + Reference 15 全通过 | 亲自推进 M0-015 |
 | **核心程序员 / 主程序员** | `core-01` | **待命** | 无 | M0-010 收尾已验收 | 等总工以后分配施工任务 |
 | **GPT-6 架构审计员** | `architect-01` | **待命** | 当前无任务 | 尚未触发架构升级 | M0 Gate 必须介入；当前无需启动 |
 | **并行程序员1** | `parallel-01` | **未授权** | 无 | 无 | 等总工宣布可并行 |
 | **并行程序员2** | `parallel-02` | **未授权** | 无 | 无 | 等总工宣布可并行 |
-| **自动测试** | `ci` | **通过** | 每次 core push 自动回归 | M0-013 semantic HEAD：Python 3.12.14，297 passed；Reference 15 passed | 后续 push 自动重跑 |
+| **自动测试** | `ci` | **通过** | 每次 core push 自动回归 | M0-014 semantic HEAD：Python 3.12.14，315 passed；Reference 15 passed | 后续 push 自动重跑 |
 
-## 四、M0-013 已冻结什么
+## 四、M0-014 已冻结什么
 
-- Goal 是一等长期对象，不是 Task 的一个字符串字段。
-- R2 GoalStatus 精确冻结为 PROPOSED / ACTIVE / PAUSED / ACHIEVED / ABANDONED / UNKNOWN。
-- USER_EXPLICIT 与 USER_INFERRED 严格区分；相同文本也不能把 AI 推断冒充成用户明确目标。
-- AI_SELF 与用户推断目标分开；App 目标保留 APP 来源。
-- Goal 保存 success criteria 与 dimensions/events/tasks/apps 的关联。
-- Task 使用 ObjectRef 关联 Goal；持久化 Goal 不会自动生成 Task。
-- 用户否认 AI 推断目标时写新 Goal revision，旧版本和相关 Task 引用仍可追溯，以供后续纠错/依赖系统复核。
-- 自动取消/重排 Task、Goal progress 服务和依赖传播不在本任务提前实现。
+- Task / Wake / Session / Action / Outcome 已成为五类持久的一等对象。
+- 未来工作必须进入 Task；不能靠模型上下文“记住以后再做”。
+- Task 的 reason/execution/outcome 历史引用使用 pinned revision；Goal/dependency/entity 导航链接不被本任务强制成历史 provenance。
+- Wake 独立保存来源、命中次数、证据、优先级和去重信息；Wake evidence 使用 pinned revision。
+- Session 保存 originating Wake、世界快照、operation IDs 与 checkpoint，为中断恢复提供持久基础。
+- Action 使用稳定 execution_id；Action 与 Outcome 明确分离。
+- Outcome 可以继续是 unknown；Action 已完成并不自动代表现实结果成功。
+- “提醒已送达”只能证明通知动作/通知 Task 的结果，不能证明用户已经学习、接受帮助或目标改善。
+- M0-009 持久化边界重验证继续保护这些 provenance 字段，构造后篡改也不能写入。
+- 本轮没有提前实现 M2 调度器。
 
-正式审查文件：`reviews/M0/M0-013_final_PASS_2026-09-14.md`
+正式审查文件：`reviews/M0/M0-014_final_PASS_2026-09-14.md`
 
-## 五、M0-014 已授权边界
+## 五、M0-015 已授权边界
 
-任务书要求第一阶段只冻结五类对象字段和 fixture，M2 才实现调度：
-- Task：未来工作与状态/Goal/优先级/时间/依赖/完成取消条件/执行结果引用；
-- Wake：唤醒来源、命中、证据、优先级、去重；
-- Session：固定世界快照与执行上下文；
-- Action：稳定 execution_id 与执行状态；
-- Outcome：现实结果独立于 Action，允许 unknown 语义。
+Dependency 的目标是明确记录“谁依赖谁的哪个版本”，为未来纠错传播和反向查询建立可审计基础。
 
-明确禁止：用模型上下文代替持久 Task；把“消息已送达”当成“帮助成功/用户已经学会”。
+本轮重点：
+- `dependent_ref / dependency_ref / dependency_type`；
+- 依赖必须能保留精确版本；
+- 普通关系/语义链接不能全部偷换成 Dependency；
+- Claim→EvidenceSet→Observation、Summary→Claim、Task→Event 等链可追溯；
+- 证明链不能通过自我循环给自己增加可信度；
+- M3 才建设完整反向索引与纠错传播运行时。
 
 ## 六、沟通与权限
 
