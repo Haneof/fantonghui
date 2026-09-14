@@ -183,3 +183,68 @@ git diff 9bee623850ce39701ec624a7b45fa1dba349cbca..HEAD -- src/aios_core => NO C
 ## 未解决问题
 
 NONE，等待M0-008 CODE REVIEW，禁止M0-009
+
+---
+
+## R1 PATCH 2026-09-14 严格冻结Claim语义类型契约并消除false-green (TEST ONLY)
+
+### 生产代码
+PASS/FROZEN NO CHANGE, bd25056 GitHub SUCCESS 210 passed Python 3.12.14
+
+### Blocker 1 C16 strict claimant != subject
+- 原最后一个测试`assert claimant_id != subject_id or True`永真false-green
+- 将测试正式命名C16 `test_c16_claimant_vs_subject_independent`
+- 保留fixture claimant user-1 subject mother-subject
+- 严格验证：
+```
+assert claimant_id == "user-1"
+assert subject_id == "mother-subject"
+assert claimant_id != subject_id
+```
+- 禁止or True或永真，冻结claimant和subject独立概念，系统不得静默把subject改成claimant
+
+### Blocker 2 C17 exact schema annotations
+- 新增C17使用get_type_hints精确冻结核心语义schema
+- claimant_id is str
+- claim_type is ClaimType exact, 不得退化str/Any/object
+- content is str
+- valid_time is TemporalExtent
+- asserted_at is datetime
+- knowledge_state is KnowledgeState exact, 不得退化str
+- confidence is float
+- unknown_items origin list args (str,)
+- support refs origin list args (ObjectRef,)
+- counter refs origin list args (ObjectRef,)
+- 为什么是Gate：ClaimType和KnowledgeState都StrEnum，仅靠行为断言不足以永久证明annotation仍是ClaimType，必须同时冻结行为+类型语义，这是长期可解释性基础
+
+### Cleanup C05 as_utc
+- 原直接`valid_time.start > asserted_at`
+- 改为as_utc比较 per M0-004冻结规则
+```
+assert as_utc(valid_time.start, "valid_time.start") > as_utc(asserted_at, "asserted_at")
+```
+- 不新增DST业务测试
+
+### 其余C01-C15不得削弱
+- C01 schema, C02 required subset, C03 bounds FACT!=1, C04 aware, C05 birthday, C06 certain admission, C07 mother angry, C08 independent, C09 independent revision, C10 cognitive correction, C11 unknown_items, C12 evidence refs, C13 content+confidence forbidden, C14 object_type fixed, C15 no side effects全部继续有效
+
+### 对抗验证
+- A: 临时模拟subject_id被规范化成claimant_id或替换为user-1，C16必须失败，恢复，有效
+- B: 临时把claim_type: ClaimType改成str，运行C17必须失败，恢复，有效
+- C: 临时把knowledge_state: KnowledgeState改成str，C17必须失败，恢复，有效
+- D: 临时把unknown_items: list[str]改成list[Any]，C17必须失败，恢复，有效
+- 只本地验证，禁止提交生产攻击代码
+
+### 禁止永真断言
+- grep -n "or True" tests/unit/test_claim.py无匹配
+- grep -n "and False"无匹配
+- 无明显永真/永假逃逸
+
+### 测试
+- 211 passed (210+1 C17), 0 failed
+- Reference 15 passed
+- Production NO CHANGE proof: git diff bd25056..HEAD -- src/aios_core => NO CHANGE
+
+### CI
+- 起始bd25056 SUCCESS Python 3.12.14 210 passed
+- R1 push后CI_PENDING_CHIEF_VERIFICATION，总工直接检查真实HEAD/diff/CI/tests

@@ -1,0 +1,33 @@
+============================= test session starts ==============================
+platform linux -- Python 3.11.2, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/user/fantonghui
+configfile: pyproject.toml
+testpaths: tests
+collected 211 items
+
+tests/architecture/test_boundaries.py ......                             [  2%]
+tests/architecture/test_scanner_regression.py ............               [  8%]
+tests/unit/test_claim.py .................                               [ 16%]
+tests/unit/test_contracts.py .....                                       [ 18%]
+tests/unit/test_errors.py .......................................        [ 37%]
+tests/unit/test_ids.py ...............................                   [ 52%]
+tests/unit/test_observation.py .............                             [ 58%]
+tests/unit/test_refs.py ..................                               [ 66%]
+tests/unit/test_state_machines.py ....                                   [ 68%]
+tests/unit/test_store.py ......                                          [ 71%]
+tests/unit/test_time.py ...........................................      [ 91%]
+tests/unit/test_world_object_revision.py .................               [100%]
+
+============================= 211 passed in 1.29s ==============================
+
+============================= test session starts ==============================
+platform linux -- Python 3.11.2, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/user/fantonghui/aios_core_r2_reference
+configfile: pyproject.toml
+collected 15 items
+
+aios_core_r2_reference/tests/test_contracts.py .....                     [ 33%]
+aios_core_r2_reference/tests/test_state_machines.py ....                 [ 60%]
+aios_core_r2_reference/tests/test_store.py ......                        [100%]
+
+============================== 15 passed in 0.19s ==============================
