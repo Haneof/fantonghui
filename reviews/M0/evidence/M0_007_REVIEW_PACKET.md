@@ -101,3 +101,66 @@ production NO CHANGE proof：
 
 未解决问题：
 - NONE, 等待总工程师 M0-007 CODE REVIEW, 禁止M0-008
+
+---
+
+## R1 PATCH 2026-09-14 消除false-green与helper时间语义回退 (TEST ONLY)
+
+### 生产代码
+PASS/FROZEN NO CHANGE, 670c009 GitHub Actions SUCCESS 193 passed Python 3.12.14
+
+### helper直接datetime比较问题
+- 原make_observation:
+```
+recorded = recorded_at or learned
+if recorded < learned:
+    recorded = learned
+```
+- 直接datetime比较，M0-004已冻结instant语义应使用as_utc，helper不应引入直接比较
+- 删除if块
+
+### helper静默修复非法fixture问题
+- 原helper静默修正非法时间，测试无法暴露非法输入
+- 改为：
+```
+recorded = (recorded_at if recorded_at is not None else learned)
+```
+- 直接交给Observation WorldObject validator，非法应ValidationError
+- 新增O13验证：learned 10:00 UTC, recorded 09:59 UTC => must raise ValidationError
+- 目的不是重开发M0-004，而是证明M0-007 fixture没有绕过已冻结时间不变量
+- 不在helper中修复时间
+
+### O05永真断言false-green
+- 原：
+```
+assert "confidence" not in payload or isinstance(...) is False or True
+```
+- 永真，无法检测confidence泄漏
+- 改为严格：
+```
+assert "confidence" not in payload
+```
+- 加上ability, learning_problem严格无
+- 若未来Observation声明confidence，O05必须失败
+
+### O13新增
+- learned_at 2026-09-14 10:00 UTC, recorded_at 09:59 UTC
+- make_observation必须raise ValidationError
+- 证明helper不掩盖非法公共时间
+
+### 其余O01-O12保持
+- schema, heart-rate, GPS, conversation, app answer, event_type forbidden, semantic extras, object_type literal, unified timeline 4 obs, !=Wake 0, raw_locator, no derived均保持不削弱
+
+### 对抗验证
+- A: 临时恢复O05 or True永真，证明无法检测confidence，恢复严格断言，有效
+- B: 临时恢复if recorded < learned修复，O13必须失败（非法被修正），恢复正式，有效
+- 不提交攻击版本
+
+### 测试
+- 194 passed (193+1 O13), 0 failed
+- Reference 15 passed
+- Production NO CHANGE proof: git diff 670c009..HEAD -- src/aios_core => NO CHANGE
+
+### CI
+- 起始670c009 SUCCESS Python 3.12.14 193 passed
+- R1 push后CI_PENDING_CHIEF_VERIFICATION

@@ -1,84 +1,54 @@
 # M0-007 实现记录
 
-状态：WAITING CHIEF ENGINEER REVIEW
+状态：R1 PATCH COMPLETE / WAITING CHIEF ENGINEER FINAL REVIEW
 
 日期：2026-09-14
 
-任务：Observation（基础观测）契约正式冻结
+任务：Observation（基础观测）契约正式冻结 + R1消除false-green
 
-起始commit：eacd160a08e0c3aefa9e3d04354a8ece86599ccb (M0-006 FINAL PASS)
+起始commit：670c0094d03121e3621f9a34a9df5c12c594f254 (M0-007 CODE COMPLETE 193 passed GitHub SUCCESS)
 
-## 生产Observation已正确，无需修改
+## 生产Observation PASS/FROZEN NO CHANGE
 
-当前 src/aios_core/contracts/models.py:
+当前 src/aios_core/contracts/models.py 符合任务书，无需修改，已通过总工审查
 
-```
-class Observation(WorldObject):
-    object_type: Literal[ObjectType.OBSERVATION] = ObjectType.OBSERVATION
-    source_kind: str
-    modality: str
-    value: Any = None
-    unit: str | None = None
-    data_quality: dict[str, Any] = Field(default_factory=dict)
-    raw_locator: str | None = None
-```
+## R1漏洞
 
-符合任务书：
-- WorldObject subclass, 11公共字段 + 6观测字段
-- object_type默认 OBSERVATION, Literal冻结
-- source_kind/modality保持str，不新增enum
-- 不新增event_type/emotion/claim_type/knowledge_state/relationship_state/goal_type等高层语义字段
-- value允许标量/字符串/结构化JSON，不解释焦虑/分手等
-- raw_locator指向原始大文件，不实现blob store
-- data_quality dict[str, Any]保存质量信息，不放语义推理
-- Observation != Wake, 单独写入不自动创建Wake
+- helper直接datetime比较：`if recorded < learned: recorded = learned` 引入直接aware比较，M0-004已冻结应as_utc，且silent repair
+- helper静默修复非法fixture：非法时间被修正，测试无法暴露
+- O05 `or True`永真断言：`assert "confidence" not in payload or ... or True` false-green，无法检测confidence
 
-## 测试文件
+## R1修复 TEST ONLY
 
-新建 tests/unit/test_observation.py 独立正式契约测试，12 tests:
-
-- O01 Schema contract: WorldObject subclass, 11+6字段, object_type default
-- O02 Heart-rate: device_sensor heart_rate 82 bpm signal_quality good
-- O03 GPS: device_sensor gps {lat,lon,accuracy_m} round-trip, 不产生事件
-- O04 Conversation: chat text "我今天有点累" raw_locator conversation://..., 不产生emotion/event_type
-- O05 App answer: app quiz_answer {question_id,answer,correct}, 不推断ability
-- O06 禁止event_type: event_type="breakup" => ValidationError extra forbid
-- O07 Semantic extra: emotion/claim_type/relationship_state => ValidationError
-- O08 Object type不可伪装: object_type=EVENT => ValidationError
-- O09 多来源同一时间轴: 4 obs same store, list_payloads OBSERVATION 4条, 证明统一时间轴
-- O10 Observation默认不Wake: list_payloads WAKE [] 0条
-- O11 raw_locator round-trip: audio_metadata file:///raw/audio/... 保持
-- O12 底层观测不产生衍生对象: object_refs仅1条, CLAIM/EVENT/GOAL/WAKE均空
-
-## 保护
-
-- M0-006: ObjectRef/SourceRef pinned/floating, knowledge visibility, pending refs, Dependency exact ObjectRef不变
-- M0-005: revision +1, append-only, object_type immutable, transaction atomicity不变
-- M0-004: occurred/learned_at/recorded_at timezone-aware canonical UTC DST instant ordering不变
-- 不提前做M0-008: 无Claim拆分, 无LLM, 无情绪模型, 无事件识别
+- 禁止修改src/aios_core/**，包括models.py, base.py, time.py, sqlite_store.py
+- 修复make_observation helper：
+  删除`if recorded < learned: recorded = learned`
+  改为`recorded = (recorded_at if recorded_at is not None else learned)`
+  直接交给Observation WorldObject validator
+- 修复O05：删除永真，改为严格`assert "confidence" not in payload`
+- 新增O13：learned 10:00 UTC recorded 09:59 UTC must ValidationError，证明helper不掩盖非法时间
+- 其余O01-O12保持不削弱
 
 ## 对抗验证
 
-- A: WorldObject extra forbid临时allow => O06/O07失败, 恢复, 有效
-- B: Observation.object_type Literal放宽为ObjectType => O08失败, 恢复, 有效
-- C: 模拟Store Observation后自动创建Wake => O10/O12失败, 当前无副作用, 有效
-- D: 不同source_kind必须不同class => O02-O05/O09证明无此要求, 统一Observation, 有效
+- A: 临时恢复or True永真，证明无法检测confidence，恢复严格，有效
+- B: 临时恢复silent repair，O13失败，恢复正式，有效
 - 未提交攻击代码
 
 ## 测试
 
-- 本地 193 passed (181+12), 0 failed
+- 194 passed (193+1 O13), 0 failed
 - Reference 15 passed
-- Production NO CHANGE: git diff eacd160..HEAD -- src/aios_core => NO CHANGE
+- Production NO CHANGE: git diff 670c009..HEAD -- src/aios_core => NO CHANGE
 
 ## 证据
 
-- tests/unit/test_observation.py
-- reviews/M0/M0-006_final_PASS_2026-09-14.md (M0-006 FINAL PASS归档)
-- reviews/M0/evidence/M0_007_REVIEW_PACKET.md
-- reviews/M0/evidence/M0_007_TEST_OUTPUT.txt 193+15
+- tests/unit/test_observation.py R1 hardened
+- reviews/M0/M0-007_review_PATCH_REQUIRED_2026-09-14.md
+- reviews/M0/evidence/M0_007_REVIEW_PACKET.md with R1
+- reviews/M0/evidence/M0_007_R1_TEST_OUTPUT.txt 194+15
 - TASK_PROGRESS_R2.md
 
 ## 下一步
 
-等待总工程师 M0-007 CODE REVIEW，禁止开始M0-008。
+等待总工程师 M0-007 FINAL REVIEW，禁止M0-008
