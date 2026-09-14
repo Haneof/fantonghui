@@ -8,7 +8,7 @@ This file is the short cloud checkpoint used to recover project state after long
 
 - Milestone: M0 — freeze world contracts and core storage
 - Status: IN PROGRESS
-- Progress: 18/22 tasks FINAL PASS
+- Progress: 19/22 tasks FINAL PASS
 - Core development mode: SINGLE-WRITER for production contracts until M0 Gate
 
 ## Frozen tasks
@@ -30,30 +30,31 @@ This file is the short cloud checkpoint used to recover project state after long
 - M0-015 FINAL PASS — `3b4e8b603e52830d8be44d33141f722bbba244a0`
 - M0-016 FINAL PASS — `cdbd7ff1d42ba292a2e0ca9972f0c9eccd4666c3`
 - M0-017 FINAL PASS — `c9bd2d85ff0047515f6f4cc5b9e7058c70cff6dc`
-- M0-018 FINAL PASS — semantic frozen commit `f00735193e09b6a337ade39dc040510c003d8f54`
+- M0-018 FINAL PASS — `f00735193e09b6a337ade39dc040510c003d8f54`
+- M0-019 FINAL PASS — semantic frozen commit `f1dc7cc8ca07131f75d7afe5c505f534c2f3dbe8`
 
-## M0-018 accepted contract
+## M0-019 accepted contract
 
-One logical `commit(objects, operation)` produces one global world revision shared by every object in the transaction. `BEGIN IMMEDIATE` plus `expected_world_revision` makes concurrent writers explicit; a real mid-insert SQLite failure rolls back world/object/operation/idempotency state; failed transactions consume no world revision; concurrent writers from the same snapshot result in exactly one success and one VERSION_CONFLICT; Session can keep a fixed historical snapshot revision while the live world advances.
+Reference validation is now mandatory at the durable `SQLiteWorldStore.commit()` boundary. Recursive ObjectRef/SourceRef collection validates persisted and same-transaction targets against the referencing object's learned_at knowledge cutoff. Missing/not-yet-visible references fail before writes; legal same-transaction mutual semantic links remain allowed; current-revision self-citation is rejected; historical self-links to an earlier revision remain legal. The former public `validate_references=False` bypass has been removed.
 
 Exact semantic-head CI:
-- GitHub Actions run `34811297016`
-- job `103873014736`
+- GitHub Actions run `34811844771`
+- job `103874600156`
 - CPython 3.12.14 / pytest 8.4.2
-- formal: 358 passed, 1 previously accepted adversarial warning
+- formal: 366 passed, 1 previously accepted adversarial warning
 - Reference: 15 passed
 - conclusion: SUCCESS
 
-Formal review: `reviews/M0/M0-018_final_PASS_2026-09-14.md`
+Formal review: `reviews/M0/M0-019_final_PASS_2026-09-14.md`
 
 ## Active / next task
 
-- M0-019 — 引用存在性与同事务引用验证
+- M0-020 — 历史世界读取与 Knowledge Cutoff
 - Status: AUTHORIZED / CHIEF ENGINEER OWNED / NOT STARTED
 - Owner: `chief-01`
 - Production branch: `arena/01a09bc6-fantonghui`
-- Frozen semantic base: `f00735193e09b6a337ade39dc040510c003d8f54`
-- Goal: formally freeze pinned/floating reference existence and knowledge-cutoff visibility, including legal same-transaction references and rejection of missing/not-yet-visible targets without introducing arbitrary graph-cycle rejection
+- Frozen semantic base: `f1dc7cc8ca07131f75d7afe5c505f534c2f3dbe8`
+- Goal: support exact object revision, as-of world revision, and knowledge-cutoff reads so historical AI-visible world state can be reconstructed with zero future-data leakage
 - `core-01`: IDLE / no production assignment
 - `architect-01`: STANDBY; mandatory at M0 Gate, no current escalation trigger
 - `parallel-01/02`: NOT AUTHORIZED
