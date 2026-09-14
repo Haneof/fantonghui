@@ -20,6 +20,7 @@ from aios_core.errors import AIOSProtocolError
 from aios_core.storage.idempotency import (
     DurableJSONError,
     canonical_json_dumps,
+    legacy_request_fingerprint,
     normalize_operation_for_persistence,
     normalize_world_object_for_persistence,
     request_fingerprint,
@@ -27,6 +28,7 @@ from aios_core.storage.idempotency import (
 )
 
 T = TypeVar("T", bound=WorldObject)
+_REQUEST_FINGERPRINT_KEY = "_request_fingerprint"
 
 
 class StoreError(AIOSProtocolError):
@@ -217,11 +219,41 @@ class SQLiteWorldStore:
                     "reason": "request_revalidation_failed",
                 },
             ) from exc
-        original_fingerprint = stored_request_fingerprint(
-            conn,
-            operation_id=str(row["operation_id"]),
-            world_revision=int(row["world_revision"]),
-        )
+
+        data = json.loads(row["result_json"])
+        original_fingerprint = data.pop(_REQUEST_FINGERPRINT_KEY, None)
+        if original_fingerprint is None:
+            # Rows written before semantic fingerprints were persisted can only be
+            # compared using their legacy durable JSON identity. This compatibility
+            # path cannot recover typed-ref information that older rows never stored.
+            try:
+                incoming_fingerprint = legacy_request_fingerprint(operation, objects)
+            except (ValidationError, DurableJSONError, TypeError) as exc:
+                raise StoreError(
+                    ErrorCode.IDEMPOTENCY_CONFLICT,
+                    "idempotency key retry is not a valid equivalent request",
+                    context={
+                        "idempotency_key": operation.idempotency_key,
+                        "operation_id": operation.operation_id,
+                        "reason": "request_revalidation_failed",
+                    },
+                ) from exc
+            original_fingerprint = stored_request_fingerprint(
+                conn,
+                operation_id=str(row["operation_id"]),
+                world_revision=int(row["world_revision"]),
+            )
+        elif not isinstance(original_fingerprint, str):
+            raise StoreError(
+                ErrorCode.STORAGE_FAILURE,
+                "idempotency record contains an invalid request fingerprint",
+                context={
+                    "idempotency_key": operation.idempotency_key,
+                    "operation_id": str(row["operation_id"]),
+                    "reason": "corrupt_idempotency_fingerprint",
+                },
+            )
+
         if incoming_fingerprint != original_fingerprint:
             raise StoreError(
                 ErrorCode.IDEMPOTENCY_CONFLICT,
@@ -234,7 +266,6 @@ class SQLiteWorldStore:
                 },
             )
 
-        data = json.loads(row["result_json"])
         data["idempotent_replay"] = True
         return CommitResult.model_validate(data)
 
@@ -485,7 +516,8 @@ class SQLiteWorldStore:
                         )
                         for obj in object_list
                     }
-                except (DurableJSONError, TypeError) as exc:
+                    request_identity = request_fingerprint(operation, object_list)
+                except (ValidationError, DurableJSONError, TypeError) as exc:
                     raise StoreError(
                         ErrorCode.INVALID_ARGUMENT,
                         "request contains data that cannot be represented safely as durable JSON",
@@ -614,7 +646,9 @@ class SQLiteWorldStore:
                     world_revision=next_world_revision,
                     object_refs=refs,
                 )
-                result_json = result.model_dump_json()
+                result_payload = result.model_dump(mode="python")
+                result_payload[_REQUEST_FINGERPRINT_KEY] = request_identity
+                result_json = canonical_json_dumps(result_payload)
 
                 conn.execute(
                     """
