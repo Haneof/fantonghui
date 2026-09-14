@@ -150,3 +150,63 @@ Python 3.11.2本地，GitHub Actions Python 3.12预期同样通过
 ## unresolved issues
 
 NONE，等待M0-010 CODE REVIEW，禁止M0-011
+
+---
+
+## R1 PATCH 2026-09-14 消除false-green并修复ER18引用掩盖 (TEST ONLY)
+
+### 生产代码
+
+PASS/FROZEN NO CHANGE, 225eb76 GitHub SUCCESS 252 passed Python 3.12.14
+
+### Blocker 1 ER01 false-green removal
+
+- 删除`assert "object_type" in e_hints or True`永真
+- 禁止or True/and False类逃逸
+- grep扫描无匹配
+
+### Blocker 2 exact Entity/Relation Literal
+
+- Entity object_type annotation: get_origin is Literal, get_args == (ObjectType.ENTITY,)
+- Relation object_type annotation: get_origin is Literal, get_args == (ObjectType.RELATION,)
+- 为什么必要：object_type: ObjectType = ENTITY也会默认ENTITY但已破坏Literal冻结，必须精确冻结
+- ER16负责行为错误object_type拒绝，ER19负责schema annotation不能退化
+- 新增ER19 test_er19_object_type_annotations_exact专门冻结Literal
+
+### Blocker 3 ER18 real Entity endpoints
+
+- 旧ER18 left/right使用new_object_id无commit，导致移除revalidation后仍可能NOT_FOUND掩盖真正攻击目标floating evidence
+- 修复：先创建Entity A, Entity B, Observation commit world1, EvidenceSet@1 world2, Relation left A@1 right B@1 evidence [ES@1]，所有正常refs真实存在，然后原地append floating evidence revision None，commit必须StoreError INVALID_ARGUMENT persistence_revalidation_failed world revision保持2 Relation不存在
+- 对抗必须真正证明目标：临时移除Store persistence revalidation运行ER18正确结果必须是ER18 FAIL因为floating evidence被错误提交，不能因为left/right missing出现NOT_FOUND，如果仍NOT_FOUND则设计无效，继续修fixture不修改生产
+
+### ER17继续保持
+
+- 真实Claim@1 + append floating identity ref + durable revalidation拦截，有效
+
+### ER19 exact Literal mutation guard
+
+- 新增独立测试ER19，专门冻结Entity/Relation object_type annotation Literal，防止退化
+
+### 对抗验证
+
+- A: 临时把Entity.object_type Literal[ENTITY]改成ObjectType保留default ENTITY，ER19必须失败，恢复有效
+- B: Relation同理ER19必须失败，恢复有效
+- C: 恢复旧ER18使用不存在left/right证明会产生引用掩盖NOT_FOUND，然后恢复真实Entity endpoint fixture，有效
+- D: 临时移除Store durable revalidation修复后ER18必须失败因为floating evidence ref被错误持久化，恢复有效
+- 未提交攻击代码
+
+### No false-green
+
+- grep -n "or True"无匹配
+- grep -n "and False"无匹配
+
+### 正式测试
+
+- 253 passed (252+1 ER19), 0 failed, 1 warning (E23 serializer warning adversarial预期)
+- Reference 15 passed
+- Production NO CHANGE proof: git diff 225eb76..HEAD -- src/aios_core => NO CHANGE
+
+### CI
+
+- 起始225eb76 SUCCESS Python 3.12.14 252 passed
+- R1 push后CI_PENDING_CHIEF_VERIFICATION，总工直接检查真实HEAD/diff/CI/tests

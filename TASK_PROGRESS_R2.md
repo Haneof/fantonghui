@@ -4,13 +4,13 @@
 > 宪法基线：`AIOS宪法2.0.txt` + R1/R2
 > 当前主线：`aios-2.0`
 > 工作分支：`arena/01a09bc6-fantonghui`
-> 最后更新：2026-09-14 23:59 UTC (M0-010 CODE COMPLETE)
+> 最后更新：2026-09-14 23:59 UTC (M0-010 R1 PATCH COMPLETE)
 
 ## 里程碑总览
 
 | 里程碑 | 目标 | 状态 | 完成度 |
 |---|---|---|---|
-| M0 | 冻结世界契约与核心存储 | 进行中 IN PROGRESS | 9/22 FINAL PASS + M0-010 CODE COMPLETE |
+| M0 | 冻结世界契约与核心存储 | 进行中 IN PROGRESS | 9/22 FINAL PASS + M0-010 R1 PATCH COMPLETE |
 | M1 | 可写、可查、可下钻的共同世界 | 未开始 | 0/16 |
 | M2 | 主动运行闭环 | 未开始 | 0/15 |
 | M3 | 长期纠错与多尺度认知 | 未开始 | 0/11 |
@@ -33,4 +33,4 @@
 | M0-007 | Observation（基础观测）契约冻结 | FINAL PASS | 194+15 | 9bee623 | Observation基础观测, 无高层语义, 统一时间轴, !=Wake, 无衍生, helper纪律, CI SUCCESS Python 3.12.14 |
 | M0-008 | Claim（主张）语义模型冻结 | FINAL PASS | 211+15 | 65f1dd2 | Claim语义, claim_type vs knowledge_state, FACT!=truth, claimant!=subject, 独立revision, exact types, CI SUCCESS Python 3.12.14 |
 | M0-009 | EvidenceSet（一等证据集合）契约冻结 | FINAL PASS | 234+15 | cda888f | EvidenceSet可复核可冻结可重建, pinned refs, fixed time_range, frozen cutoff, support/counter/context分离, coverage/missingness, pinned history, stale/rebuild, persistence revalidation generic, CI SUCCESS Python 3.12.14 |
-| M0-010 | Entity + Relation（实体与关系）契约冻结 | CODE COMPLETE / WAITING CHIEF REVIEW | 252+15 | 待 | Entity稳定ID, canonical_name非key, unknown P001->妈妈, identity Claim provenance pinned, 同名小王不合并, Relation独立对象 left/right按ID, evidence pinned, colleague->former_colleague, world revision replay, valid_time exact, durable mutation ER17/18 |
+| M0-010 | Entity + Relation（实体与关系）契约冻结 | R1 PATCH COMPLETE / WAITING CHIEF REVIEW | 253+15 | 待 | Entity稳定ID, canonical_name非key, unknown P001->妈妈, identity pinned, 同名小王不合并, Relation独立 left/right按ID evidence pinned colleague->former_colleague world replay valid_time exact durable mutation ER17/18 exact Literal |
