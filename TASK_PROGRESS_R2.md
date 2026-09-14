@@ -4,14 +4,14 @@
 > 宪法基线：`AIOS宪法2.0.txt` + R1/R2
 > 当前主线：`aios-2.0`
 > 工作分支：`arena/01a09bc6-fantonghui`
-> 最后更新：2026-09-14 (M0-021 FINAL PASS)
+> 最后更新：2026-09-14 (M0-022 CHIEF GATE READY / WAITING ARCHITECT)
 
 ## 里程碑总览
 
 | 里程碑 | 目标 | 状态 | 完成度 |
 |---|---|---|---|
-| M0 | 冻结世界契约与核心存储 | 进行中 IN PROGRESS | 21/22 FINAL PASS |
-| M1 | 可写、可查、可下钻的共同世界 | 未开始 | 0/16 |
+| M0 | 冻结世界契约与核心存储 | 进行中 IN PROGRESS — 等待 GPT-6 架构 Gate | 21/22 FINAL PASS |
+| M1 | 可写、可查、可下钻的共同世界 | 未开始 / M0 Gate 前禁止启动 | 0/16 |
 | M2 | 主动运行闭环 | 未开始 | 0/15 |
 | M3 | 长期纠错与多尺度认知 | 未开始 | 0/11 |
 | M4 | 连续一个月虚拟人生 | 未开始 | 0/4 |
@@ -45,4 +45,4 @@
 | M0-019 | 引用存在性与同事务引用验证 | FINAL PASS | 366+15 | f1dc7cc | mandatory persistence-boundary ref validation, no bypass flag, pinned/floating knowledge visibility, legal same-tx refs, current-revision self-citation rejected, historical self-link legal, CI SUCCESS Python 3.12.14 |
 | M0-020 | 历史世界读取与 Knowledge Cutoff | FINAL PASS | 377+15 | 426ea4c | object/world revision + learned_at knowledge cutoff, zero future leakage, latest-visible snapshot before mutable filters, actual snapshot revision + minimal coverage, CI SUCCESS Python 3.12.14 |
 | M0-021 | Task / Event 状态机冻结 | FINAL PASS | 385+15 | 8818dba | exhaustive Task/Event matrices, terminal-state guards, immutable transition views, state change requires same object + exact next revision, CI SUCCESS Python 3.12.14 |
-| M0-022 | M0 契约总测试与冻结快照 | AUTHORIZED / CHIEF ENGINEER GATE / NOT STARTED | - | - | full M0 gate, schema snapshot + fixtures + GPT-6 independent architecture red-team required before M1 |
+| M0-022 | M0 契约总测试与冻结快照 | CHIEF GATE READY / WAITING ARCHITECT | 391+15 | 95cec41 | schema/hash snapshot + four required Gate fixtures green; no production semantic diff; GPT-6 independent architecture red-team required before FINAL PASS / M1 |
