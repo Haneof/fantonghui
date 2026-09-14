@@ -21,3 +21,6 @@ jobs:
       - name: Run pytest
         run: |
           python -m pytest -v
+      - name: Run reference contract suite
+        run: |
+          PYTHONPATH=aios_core_r2_reference/src python -m pytest aios_core_r2_reference/tests -v
