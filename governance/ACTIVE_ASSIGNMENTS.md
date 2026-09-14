@@ -2,61 +2,72 @@
 
 This file is the cloud roster. An AI agent must not self-assign production work that is not listed here.
 
-## Assignment A — `core-01` Core Implementation Engineer
-
-- Agent ID: `core-01`
-- Status: PATCH REQUIRED / ACTIVE
-- Task: M0-010-R1 — Entity + Relation test hardening
-- Role: Core Implementation Engineer
-- Role prompt: `governance/roles/IMPLEMENTATION_ENGINEER.md`
-- Production branch: `arena/01a09bc6-fantonghui`
-- Patch base commit: `225eb7636f9e88f8373de32aa332eeb83c37fd16`
-- Required cloud result: `governance/agent_reports/core-01/LATEST.md` on the production branch
-- Parallel safety: NOT PARALLEL_SAFE for another core writer
-- Next task M0-011: HOLD
-
-### Production scope
-
-TEST ONLY PATCH.
-
-No production files are authorized to change.
-
-### Production files that must remain unchanged
-
-- all `src/aios_core/**`
-- especially `src/aios_core/contracts/models.py`
-- especially `src/aios_core/storage/sqlite_store.py`
-
-### Required patch work
-
-- harden `tests/unit/test_entity_relation.py`
-- remove ER01 false-green `or True`
-- freeze Entity `object_type` as exact `Literal[ObjectType.ENTITY]`
-- freeze Relation `object_type` as exact `Literal[ObjectType.RELATION]`
-- fix ER18 so both Relation endpoints are real committed Entity objects; the test must isolate the floating `evidence_set_refs` mutation bypass rather than fail later because endpoints are missing
-- update M0-010 review/evidence files and `TASK_PROGRESS_R2.md`
-- update `governance/agent_reports/core-01/LATEST.md` after the final push
-
-### Completion state allowed
-
-- PATCH COMPLETE / WAITING CHIEF REVIEW
-- BLOCKED
-
-Never FINAL PASS.
-
-## Assignment B — `chief-01` Chief Engineer
+## Assignment A — `chief-01` Chief Engineer
 
 - Agent ID: `chief-01`
-- Status: ACTIVE
+- Status: ACTIVE / OWNER
+- Task: M0-011 — DimensionDefinition / DimensionMembership / DimensionDerivation three-layer contract
 - Role: Chief Engineer
 - Role prompt: `governance/roles/CHIEF_ENGINEER.md`
-- Current task: wait for and review `core-01` M0-010-R1 result
-- Required reads after operator says `core-01 做完了`:
-  - this file
-  - `governance/CONTROL_PANEL.md`
-  - production branch `governance/agent_reports/core-01/LATEST.md`
-  - actual branch HEAD/diff/source/reviews/CI
-- Responsibility: issue M0-010 FINAL PASS or another bounded PATCH REQUIRED, update cloud control state, then authorize or hold M0-011.
+- Production branch: `arena/01a09bc6-fantonghui`
+- Frozen base commit: `949e90e58bd073c1da5d23664bfcb1cb8154ebde`
+- Parallel safety: NOT PARALLEL_SAFE for another core writer
+- Next task M0-012: HOLD
+
+### Authority basis
+
+The authoritative taskbook marks M0-011 `负责人级别：总工程师亲自代码`.
+Therefore M0-011 is not assigned to `core-01`.
+
+### Required task outcome
+
+Freeze a three-layer dimension contract:
+- DimensionDefinition = what the dimension is
+- DimensionMembership = which object is mounted to the dimension
+- DimensionDerivation = how a higher-level dimension is derived from lower-level inputs/evidence
+
+Must preserve the taskbook rules:
+- one object may have multiple memberships
+- derivation inputs may include dimensions, events, Claims, Summaries, EvidenceSets; not numeric curves only
+- high-level dimensions must drill down to inputs
+- raw Observation must not be copied into each dimension as private data
+- dimension data_shape must not be forced to vector/curve only
+
+### Current production scaffold
+
+Existing `models.py` already contains:
+- `DimensionDefinition`
+- `DimensionMembership`
+- `DimensionDerivation`
+
+Chief Engineer must independently decide minimal validators/tests before writing.
+
+## Assignment B — `core-01` Core Implementation Engineer
+
+- Agent ID: `core-01`
+- Status: REPORT SYNC REQUIRED THEN IDLE
+- Task: M0-010-R1 closeout only
+- Role: Core Implementation Engineer
+- Role prompt: `governance/roles/IMPLEMENTATION_ENGINEER.md`
+- Working branch: `arena/01a09bc6-fantonghui`
+- Accepted HEAD: `949e90e58bd073c1da5d23664bfcb1cb8154ebde`
+- Required cloud result: `governance/agent_reports/core-01/LATEST.md` on the working branch
+- Production scope: NONE
+
+### Required closeout work
+
+- create/update `governance/agent_reports/core-01/LATEST.md`
+- record task `M0-010-R1`
+- status `PATCH COMPLETE / ACCEPTED BY CHIEF`
+- head commit `949e90e58bd073c1da5d23664bfcb1cb8154ebde`
+- production R1 diff: NO CHANGE
+- local result: 253 passed + Reference 15 passed
+- exact-head CI: SUCCESS, Python 3.12.14, 253 passed
+- unresolved issues: NONE
+- next requested action: NONE / IDLE
+- do not modify `src/aios_core/**`
+- do not start M0-011
+- push the report commit and stop
 
 ## Assignment C — `architect-01` Principal Architect / GPT-6 Red Team
 
@@ -67,8 +78,8 @@ Never FINAL PASS.
 - Role prompt: `governance/roles/PRINCIPAL_ARCHITECT_RED_TEAM.md`
 - Required cloud result when invoked: `governance/agent_reports/architect-01/LATEST.md` on its assigned audit branch
 - Trigger: only according to `MODEL_ROUTING_POLICY.md`
-- Mandatory future engagement: M0 milestone Gate independent architecture/red-team audit.
-- Current instruction: DO NOT self-start.
+- Mandatory future engagement: M0 milestone Gate independent architecture/red-team audit
+- Current instruction: DO NOT self-start
 
 ## Assignment D — `parallel-01` Parallel Implementation Engineer
 
