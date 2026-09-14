@@ -70,8 +70,11 @@ class DimensionLifecycle(StrEnum):
     ACTIVE = "active"
     LOW_ACTIVITY = "low_activity"
     DORMANT = "dormant"
+    MERGED = "merged"
+    SPLIT = "split"
+    REVISED = "revised"
     REJECTED = "rejected"
-    RETIRED = "retired"
+    REACTIVATED = "reactivated"
 
 
 class GoalStatus(StrEnum):
