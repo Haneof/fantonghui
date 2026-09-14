@@ -18,6 +18,7 @@ from aios_core.contracts.time import as_utc, canonical_utc_iso, utc_now
 from aios_core.dependency import validate_dependency_graph_acyclic
 from aios_core.errors import AIOSProtocolError
 from aios_core.storage.idempotency import (
+    canonical_json_dumps,
     normalize_operation_for_persistence,
     normalize_world_object_for_persistence,
     request_fingerprint,
@@ -84,18 +85,25 @@ class SQLiteWorldStore:
                 context={"reason": "sqlite_integrity_error"},
             ) from exc
         except sqlite3.OperationalError as exc:
-            message = str(exc).lower()
-            if "locked" in message or "busy" in message:
+            sqlite_code = getattr(exc, "sqlite_errorcode", None)
+            base_code = sqlite_code & 0xFF if isinstance(sqlite_code, int) else None
+            if base_code in {sqlite3.SQLITE_BUSY, sqlite3.SQLITE_LOCKED}:
                 raise StoreError(
                     ErrorCode.VERSION_CONFLICT,
                     "world store is busy; retry from a fresh snapshot",
-                    context={"reason": "storage_busy"},
+                    context={
+                        "reason": "storage_busy",
+                        "sqlite_errorcode": sqlite_code,
+                    },
                 ) from exc
             reason = "storage_unavailable" if conn is None else "sqlite_operational_error"
             raise StoreError(
                 ErrorCode.STORAGE_FAILURE,
                 "SQLite storage operation failed",
-                context={"reason": reason},
+                context={
+                    "reason": reason,
+                    "sqlite_errorcode": sqlite_code,
+                },
             ) from exc
         except sqlite3.DatabaseError as exc:
             raise StoreError(
@@ -547,7 +555,9 @@ class SQLiteWorldStore:
 
                 refs: list[tuple[str, int]] = []
                 for obj in object_list:
-                    payload = obj.model_dump_json()
+                    payload = canonical_json_dumps(
+                        obj.model_dump(mode="python", round_trip=True)
+                    )
                     conn.execute(
                         """
                         INSERT INTO object_revisions(
@@ -587,7 +597,7 @@ class SQLiteWorldStore:
                         operation.operation_id,
                         operation.session_id,
                         operation.operation_name,
-                        json.dumps(operation.arguments, ensure_ascii=False, default=str),
+                        canonical_json_dumps(operation.arguments),
                         operation.expected_world_revision,
                         operation.reason,
                         operation.idempotency_key,
