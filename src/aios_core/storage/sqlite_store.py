@@ -501,6 +501,14 @@ class SQLiteWorldStore:
         knowledge_cutoff: datetime | None = None,
     ) -> list[dict]:
         """Return the newest visible revision of each object under the supplied cutoff."""
+        if as_of_world_revision is not None or knowledge_cutoff is not None:
+            return self._list_payloads_historical(
+                object_type=object_type,
+                subject_id=subject_id,
+                as_of_world_revision=as_of_world_revision,
+                knowledge_cutoff=knowledge_cutoff,
+            )
+
         clauses = ["1=1"]
         params: list[object] = []
         if object_type is not None:
@@ -509,13 +517,6 @@ class SQLiteWorldStore:
         if subject_id is not None:
             clauses.append("o.subject_id=?")
             params.append(subject_id)
-        if as_of_world_revision is not None:
-            clauses.append("o.world_revision<=?")
-            params.append(as_of_world_revision)
-        if knowledge_cutoff is not None:
-            clauses.append("o.learned_at<=?")
-            params.append(canonical_utc_iso(knowledge_cutoff, "knowledge_cutoff"))
-
         where = " AND ".join(clauses)
         sql = f"""
             SELECT o.payload_json
@@ -523,20 +524,12 @@ class SQLiteWorldStore:
             JOIN (
                 SELECT object_id, MAX(revision) AS max_revision
                 FROM object_revisions
-                WHERE 1=1
                 GROUP BY object_id
             ) latest
             ON latest.object_id=o.object_id AND latest.max_revision=o.revision
             WHERE {where}
             ORDER BY o.recorded_at ASC
         """
-        if as_of_world_revision is not None or knowledge_cutoff is not None:
-            return self._list_payloads_historical(
-                object_type=object_type,
-                subject_id=subject_id,
-                as_of_world_revision=as_of_world_revision,
-                knowledge_cutoff=knowledge_cutoff,
-            )
         with self._connection() as conn:
             return [json.loads(row["payload_json"]) for row in conn.execute(sql, tuple(params)).fetchall()]
 
@@ -548,14 +541,12 @@ class SQLiteWorldStore:
         as_of_world_revision: int | None,
         knowledge_cutoff: datetime | None,
     ) -> list[dict]:
+        # First reconstruct the latest visible revision of each object. Only then
+        # apply mutable-object filters such as subject_id; otherwise an older
+        # matching revision could incorrectly reappear after the latest visible
+        # revision changed subject.
         clauses = ["1=1"]
         params: list[object] = []
-        if object_type is not None:
-            clauses.append("object_type=?")
-            params.append(object_type.value)
-        if subject_id is not None:
-            clauses.append("subject_id=?")
-            params.append(subject_id)
         if as_of_world_revision is not None:
             clauses.append("world_revision<=?")
             params.append(as_of_world_revision)
@@ -563,20 +554,28 @@ class SQLiteWorldStore:
             clauses.append("learned_at<=?")
             params.append(canonical_utc_iso(knowledge_cutoff, "knowledge_cutoff"))
         sql = (
-            "SELECT object_id, revision, recorded_at, payload_json FROM object_revisions WHERE "
+            "SELECT object_id, revision, object_type, subject_id, recorded_at, payload_json "
+            "FROM object_revisions WHERE "
             + " AND ".join(clauses)
             + " ORDER BY object_id, revision DESC"
         )
         with self._connection() as conn:
             rows = conn.execute(sql, tuple(params)).fetchall()
+
         seen: set[str] = set()
         selected: list[tuple[str, dict]] = []
         for row in rows:
-            if row["object_id"] in seen:
+            object_id = str(row["object_id"])
+            if object_id in seen:
                 continue
-            seen.add(row["object_id"])
+            seen.add(object_id)
+            if object_type is not None and row["object_type"] != object_type.value:
+                continue
+            if subject_id is not None and row["subject_id"] != subject_id:
+                continue
             selected.append((row["recorded_at"], json.loads(row["payload_json"])))
-        selected.sort(key=lambda x: x[0])
+
+        selected.sort(key=lambda item: item[0])
         return [payload for _, payload in selected]
 
     def operation_record(self, operation_id: str) -> dict:
