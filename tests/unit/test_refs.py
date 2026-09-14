@@ -617,7 +617,7 @@ def test_r17_pending_dst_false_reject_allowed(tmp_path):
     assert payload_b["object_id"] == obj_id_b
 
 
-# Critical model ref field check - 强化 annotation
+# Critical model ref field check - 强化 annotation + R2 exact ObjectRef
 def test_critical_model_ref_fields_annotation():
     from aios_core.contracts.models import Claim, EventAnchor, EvidenceSet, Dependency
 
@@ -631,24 +631,13 @@ def test_critical_model_ref_fields_annotation():
         assert origin is list, f"{model.__name__}.{field_name} should be list, got {origin} annotation {annotation}"
         assert args == (ObjectRef,), f"{model.__name__}.{field_name} should be list[ObjectRef], got {args}"
 
-    def assert_object_ref(model, field_name):
+    def assert_exact_object_ref(model, field_name):
         hints = get_type_hints(model)
         assert field_name in hints, f"{model.__name__}.{field_name} missing"
         annotation = hints[field_name]
-        # Could be ObjectRef | None or ObjectRef
-        # For Dependency.dependent_ref etc, check if ObjectRef in args or direct
-        if annotation == ObjectRef:
-            return
-        origin = get_origin(annotation)
-        args = get_args(annotation)
-        # For Optional ObjectRef, origin is Union
-        # Check that ObjectRef is in args
-        if origin is not None:
-            # Could be Union
-            assert ObjectRef in args or any(a == ObjectRef for a in args), f"{model.__name__}.{field_name} should be ObjectRef, got {annotation}"
-        else:
-            # Direct
-            assert annotation == ObjectRef, f"{model.__name__}.{field_name} should be ObjectRef, got {annotation}"
+        assert annotation is ObjectRef, (
+            f"{model.__name__}.{field_name} must be exactly ObjectRef, got {annotation}"
+        )
 
     # Claim
     assert_list_of_object_ref(Claim, "support_evidence_set_refs")
@@ -664,6 +653,6 @@ def test_critical_model_ref_fields_annotation():
     assert_list_of_object_ref(EvidenceSet, "counter_refs")
     assert_list_of_object_ref(EvidenceSet, "context_refs")
 
-    # Dependency
-    assert_object_ref(Dependency, "dependent_ref")
-    assert_object_ref(Dependency, "dependency_ref")
+    # Dependency - 必须exactly ObjectRef，不能是 Optional
+    assert_exact_object_ref(Dependency, "dependent_ref")
+    assert_exact_object_ref(Dependency, "dependency_ref")
