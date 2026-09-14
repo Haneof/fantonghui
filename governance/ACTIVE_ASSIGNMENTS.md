@@ -4,39 +4,38 @@ This file is the cloud roster. An AI agent must not self-assign production work 
 
 ## Assignment A — Core Implementation Engineer
 
-- Status: ACTIVE
-- Task: M0-010 — Entity + Relation contract
+- Status: PATCH REQUIRED / ACTIVE
+- Task: M0-010-R1 — Entity + Relation test hardening
 - Role: Core Implementation Engineer
 - Production branch: `arena/01a09bc6-fantonghui`
-- Frozen base commit: `cda888f371fed812cda1b5e08d8a27db5e0c240a`
+- Patch base commit: `225eb7636f9e88f8373de32aa332eeb83c37fd16`
 - Parallel safety: NOT PARALLEL_SAFE for another core writer
 - Next task M0-011: HOLD
 
-### Allowed production scope
+### Production scope
 
-- `src/aios_core/contracts/models.py`
-- only minimal `Entity` / `Relation` validators required by the Chief Engineer command
+TEST ONLY PATCH.
+
+No production files are authorized to change.
 
 ### Production files that must remain unchanged
 
-- `src/aios_core/storage/sqlite_store.py`
-- `src/aios_core/contracts/refs.py`
-- `src/aios_core/contracts/base.py`
-- `src/aios_core/contracts/time.py`
-- `src/aios_core/contracts/enums.py`
-- `src/aios_core/contracts/ids.py`
-- all unrelated models
+- all `src/aios_core/**`
+- especially `src/aios_core/contracts/models.py`
+- especially `src/aios_core/storage/sqlite_store.py`
 
-### Required non-production work
+### Required patch work
 
-- `tests/unit/test_entity_relation.py`
-- M0-009 FINAL PASS archive
-- M0-010 review/evidence files
-- `TASK_PROGRESS_R2.md`
+- harden `tests/unit/test_entity_relation.py`
+- remove ER01 false-green `or True`
+- freeze Entity `object_type` as exact `Literal[ObjectType.ENTITY]`
+- freeze Relation `object_type` as exact `Literal[ObjectType.RELATION]`
+- fix ER18 so both Relation endpoints are real committed Entity objects; the test must isolate the floating `evidence_set_refs` mutation bypass rather than fail later because endpoints are missing
+- update M0-010 review/evidence files and `TASK_PROGRESS_R2.md`
 
 ### Completion state allowed
 
-- CODE COMPLETE / WAITING CHIEF REVIEW
+- PATCH COMPLETE / WAITING CHIEF REVIEW
 - BLOCKED
 
 Never FINAL PASS.
@@ -45,7 +44,7 @@ Never FINAL PASS.
 
 - Status: ACTIVE
 - Role: Chief Engineer
-- Responsibility: review Assignment A, inspect exact GitHub state and CI, issue M0-010 FINAL PASS or PATCH REQUIRED, then authorize or hold M0-011.
+- Responsibility: review M0-010-R1 exact GitHub diff/tests/CI, issue M0-010 FINAL PASS or another bounded PATCH REQUIRED, then authorize or hold M0-011.
 
 ## Principal Architect / GPT-6 Red Team
 
