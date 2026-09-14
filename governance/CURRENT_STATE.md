@@ -8,7 +8,7 @@ This file is the short cloud checkpoint used to recover project state after long
 
 - Milestone: M0 — freeze world contracts and core storage
 - Status: IN PROGRESS
-- Progress: 15/22 tasks FINAL PASS
+- Progress: 16/22 tasks FINAL PASS
 - Core development mode: SINGLE-WRITER for production contracts until M0 Gate
 
 ## Frozen tasks
@@ -27,23 +27,31 @@ This file is the short cloud checkpoint used to recover project state after long
 - M0-012 FINAL PASS — `5ab6ed1c21f2c3f2664104faff3494113bdd5bc1`
 - M0-013 FINAL PASS — `f30987395a034d4e9f826c9193dc82e00165a2e8`
 - M0-014 FINAL PASS — `af49c27c95527ca1d2b28cddd88115b0264b48c4`
-- M0-015 FINAL PASS — semantic frozen commit `3b4e8b603e52830d8be44d33141f722bbba244a0`
+- M0-015 FINAL PASS — `3b4e8b603e52830d8be44d33141f722bbba244a0`
+- M0-016 FINAL PASS — semantic frozen commit `cdbd7ff1d42ba292a2e0ca9972f0c9eccd4666c3`
 
-## M0-015 accepted contract
+## M0-016 accepted contract
 
-Dependency is now an exact-version first-class dependency record. Both endpoints are pinned, semantic Relation graphs remain separate, explicit dependency/proof cycles can be detected, and deterministic exact-revision reverse impact scanning is available without prematurely implementing the M3 persistent correction runtime.
+OperationRequest now has a hardened explicit contract for operation/session identity, arguments, expected world revision, reason, and idempotency key. Same-key replay remains ordered before optimistic concurrency validation, so exact retries return the original result without advancing world revision twice. A new-key stale writer gets VERSION_CONFLICT and is not allowed to overwrite concurrent work. Committed operations remain durably auditable and queryable across store restart.
 
-Formal review: `reviews/M0/M0-015_final_PASS_2026-09-14.md`
+Exact semantic-head CI:
+- GitHub Actions run `34810519222`
+- job `103870768750`
+- CPython 3.12.14 / pytest 8.4.2
+- formal: 341 passed, 1 previously accepted adversarial warning
+- Reference: 15 passed
+- conclusion: SUCCESS
 
-## Active task
+Formal review: `reviews/M0/M0-016_final_PASS_2026-09-14.md`
 
-- M0-016 — OperationRequest、审计与幂等契约
-- Status: IN PROGRESS / CHIEF ENGINEER OWNED
+## Active / next task
+
+- M0-017 — SQLite 追加式世界存储 schema
+- Status: AUTHORIZED / CHIEF ENGINEER OWNED / NOT STARTED
 - Owner: `chief-01`
 - Production branch: `arena/01a09bc6-fantonghui`
-- Frozen base: `3b4e8b603e52830d8be44d33141f722bbba244a0`
-- Taskbook requirements: every world modification carries operation_id/session_id/expected_world_revision/reason/idempotency_key; idempotency lookup precedes optimistic revision conflict checking; replay returns the original result; stale expected revision returns VERSION_CONFLICT; retries must not duplicate side effects; audit records must remain queryable.
-- Work started: OperationRequest contract hardening and an explicit OperationAuditRecord contract have been added on the production branch; formal M0-016 tests/review are still pending, so no FINAL PASS has been issued.
+- Frozen semantic base: `cdbd7ff1d42ba292a2e0ca9972f0c9eccd4666c3`
+- Goal: formally freeze the first-stage append-only SQLite world schema, restart behavior, rollback safety, multi-revision history, WAL/transactions/indexes, and expected-revision concurrency behavior without exposing DB connections to AI Worker
 - `core-01`: IDLE / no production assignment
 - `architect-01`: STANDBY; mandatory at M0 Gate, no current escalation trigger
 - `parallel-01/02`: NOT AUTHORIZED
