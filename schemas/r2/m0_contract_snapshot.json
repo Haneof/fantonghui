@@ -1,29 +1,206 @@
 {
   "enums": {
-    "aios_core.contracts.enums.ActionStatus": ["proposed", "submitted", "acknowledged", "completed", "failed", "outcome_unknown", "cancelled"],
-    "aios_core.contracts.enums.ClaimType": ["fact", "opinion", "belief", "desire", "intention", "plan", "prediction", "promise", "preference", "inference", "hypothesis"],
-    "aios_core.contracts.enums.DimensionLifecycle": ["candidate", "trial", "active", "low_activity", "dormant", "merged", "split", "revised", "rejected", "reactivated"],
-    "aios_core.contracts.enums.ErrorCode": ["INVALID_ARGUMENT", "NOT_FOUND", "VERSION_CONFLICT", "INCOMPLETE_DATA", "STALE_INDEX", "BUDGET_EXHAUSTED", "PERMISSION_DENIED", "DEPENDENCY_INVALID", "OUTCOME_UNKNOWN", "IDEMPOTENCY_CONFLICT", "STORAGE_FAILURE"],
-    "aios_core.contracts.enums.EventStatus": ["candidate", "active", "resolved", "revised", "rejected", "merged", "split"],
-    "aios_core.contracts.enums.EvidenceRole": ["support", "counter", "context"],
-    "aios_core.contracts.enums.GoalSourceType": ["user_explicit", "user_inferred", "ai_self", "app", "external"],
-    "aios_core.contracts.enums.GoalStatus": ["proposed", "active", "paused", "achieved", "abandoned", "unknown"],
-    "aios_core.contracts.enums.KnowledgeState": ["observed", "reported", "inferred", "hypothesis", "unknown", "conflict"],
-    "aios_core.contracts.enums.ObjectType": ["observation", "entity", "relation", "dimension_definition", "dimension_membership", "dimension_derivation", "claim", "evidence_set", "event", "summary", "goal", "dependency", "task", "wake", "session", "action", "outcome", "operation_experience", "tool_proposal"],
-    "aios_core.contracts.enums.SummaryStatus": ["current", "stale", "partial", "missing"],
-    "aios_core.contracts.enums.TaskState": ["draft", "ready", "running", "waiting_time", "waiting_evidence", "waiting_user", "waiting_result", "blocked", "completed", "failed", "expired", "cancelled"],
-    "aios_core.contracts.enums.TaskType": ["immediate", "scheduled", "deadline", "todo", "recurring", "follow_up", "observation", "verification", "maintenance", "app"],
-    "aios_core.contracts.enums.WakeSource": ["mechanical_change", "keyword_entity", "no_update", "task_due", "watch_match", "user_interaction", "safety", "recovery"],
-    "aios_core.contracts.enums.WakeState": ["new", "queued", "merged", "running", "completed", "suppressed", "cancelled"],
-    "aios_core.contracts.time.TimePrecision": ["second", "minute", "hour", "day", "week", "month", "quarter", "half_year", "year", "multi_year", "unknown"]
+    "aios_core.contracts.enums.ActionStatus": [
+      "proposed",
+      "submitted",
+      "acknowledged",
+      "completed",
+      "failed",
+      "outcome_unknown",
+      "cancelled"
+    ],
+    "aios_core.contracts.enums.ClaimType": [
+      "fact",
+      "opinion",
+      "belief",
+      "desire",
+      "intention",
+      "plan",
+      "prediction",
+      "promise",
+      "preference",
+      "inference",
+      "hypothesis"
+    ],
+    "aios_core.contracts.enums.DimensionLifecycle": [
+      "candidate",
+      "trial",
+      "active",
+      "low_activity",
+      "dormant",
+      "merged",
+      "split",
+      "revised",
+      "rejected",
+      "reactivated"
+    ],
+    "aios_core.contracts.enums.ErrorCode": [
+      "INVALID_ARGUMENT",
+      "NOT_FOUND",
+      "VERSION_CONFLICT",
+      "INCOMPLETE_DATA",
+      "STALE_INDEX",
+      "BUDGET_EXHAUSTED",
+      "PERMISSION_DENIED",
+      "DEPENDENCY_INVALID",
+      "OUTCOME_UNKNOWN",
+      "IDEMPOTENCY_CONFLICT",
+      "STORAGE_FAILURE"
+    ],
+    "aios_core.contracts.enums.EventStatus": [
+      "candidate",
+      "active",
+      "resolved",
+      "revised",
+      "rejected",
+      "merged",
+      "split"
+    ],
+    "aios_core.contracts.enums.EvidenceRole": [
+      "support",
+      "counter",
+      "context"
+    ],
+    "aios_core.contracts.enums.GoalSourceType": [
+      "user_explicit",
+      "user_inferred",
+      "ai_self",
+      "app",
+      "external"
+    ],
+    "aios_core.contracts.enums.GoalStatus": [
+      "proposed",
+      "active",
+      "paused",
+      "achieved",
+      "abandoned",
+      "unknown"
+    ],
+    "aios_core.contracts.enums.KnowledgeState": [
+      "observed",
+      "reported",
+      "inferred",
+      "hypothesis",
+      "unknown",
+      "conflict"
+    ],
+    "aios_core.contracts.enums.ObjectType": [
+      "observation",
+      "entity",
+      "relation",
+      "dimension_definition",
+      "dimension_membership",
+      "dimension_derivation",
+      "claim",
+      "evidence_set",
+      "event",
+      "summary",
+      "goal",
+      "dependency",
+      "task",
+      "wake",
+      "session",
+      "action",
+      "outcome",
+      "operation_experience",
+      "tool_proposal"
+    ],
+    "aios_core.contracts.enums.SummaryStatus": [
+      "current",
+      "stale",
+      "partial",
+      "missing"
+    ],
+    "aios_core.contracts.enums.TaskState": [
+      "draft",
+      "ready",
+      "running",
+      "waiting_time",
+      "waiting_evidence",
+      "waiting_user",
+      "waiting_result",
+      "blocked",
+      "completed",
+      "failed",
+      "expired",
+      "cancelled"
+    ],
+    "aios_core.contracts.enums.TaskType": [
+      "immediate",
+      "scheduled",
+      "deadline",
+      "todo",
+      "recurring",
+      "follow_up",
+      "observation",
+      "verification",
+      "maintenance",
+      "app"
+    ],
+    "aios_core.contracts.enums.WakeSource": [
+      "mechanical_change",
+      "keyword_entity",
+      "no_update",
+      "task_due",
+      "watch_match",
+      "user_interaction",
+      "safety",
+      "recovery"
+    ],
+    "aios_core.contracts.enums.WakeState": [
+      "new",
+      "queued",
+      "merged",
+      "running",
+      "completed",
+      "suppressed",
+      "cancelled"
+    ],
+    "aios_core.contracts.time.TimePrecision": [
+      "second",
+      "minute",
+      "hour",
+      "day",
+      "week",
+      "month",
+      "quarter",
+      "half_year",
+      "year",
+      "multi_year",
+      "unknown"
+    ]
   },
   "event_transitions": {
-    "active": ["merged", "rejected", "resolved", "revised", "split"],
-    "candidate": ["active", "merged", "rejected", "revised", "split"],
+    "active": [
+      "merged",
+      "rejected",
+      "resolved",
+      "revised",
+      "split"
+    ],
+    "candidate": [
+      "active",
+      "merged",
+      "rejected",
+      "revised",
+      "split"
+    ],
     "merged": [],
-    "rejected": ["revised"],
-    "resolved": ["merged", "revised", "split"],
-    "revised": ["active", "merged", "rejected", "resolved", "split"],
+    "rejected": [
+      "revised"
+    ],
+    "resolved": [
+      "merged",
+      "revised",
+      "split"
+    ],
+    "revised": [
+      "active",
+      "merged",
+      "rejected",
+      "resolved",
+      "split"
+    ],
     "split": []
   },
   "gate_version": "M0-R2",
@@ -60,17 +237,54 @@
     "aios_core.contracts.time.TemporalExtent": "f39671e5e54ff03f20a7085e1caea8e11d6291def18d66a292304a26962252bc"
   },
   "task_transitions": {
-    "blocked": ["cancelled", "failed", "ready"],
+    "blocked": [
+      "cancelled",
+      "failed",
+      "ready"
+    ],
     "cancelled": [],
     "completed": [],
-    "draft": ["cancelled", "ready"],
+    "draft": [
+      "cancelled",
+      "ready"
+    ],
     "expired": [],
     "failed": [],
-    "ready": ["cancelled", "expired", "running"],
-    "running": ["blocked", "cancelled", "completed", "failed", "waiting_evidence", "waiting_result", "waiting_time", "waiting_user"],
-    "waiting_evidence": ["cancelled", "expired", "ready"],
-    "waiting_result": ["cancelled", "completed", "failed", "ready"],
-    "waiting_time": ["cancelled", "expired", "ready"],
-    "waiting_user": ["cancelled", "expired", "ready"]
+    "ready": [
+      "cancelled",
+      "expired",
+      "running"
+    ],
+    "running": [
+      "blocked",
+      "cancelled",
+      "completed",
+      "failed",
+      "waiting_evidence",
+      "waiting_result",
+      "waiting_time",
+      "waiting_user"
+    ],
+    "waiting_evidence": [
+      "cancelled",
+      "expired",
+      "ready"
+    ],
+    "waiting_result": [
+      "cancelled",
+      "completed",
+      "failed",
+      "ready"
+    ],
+    "waiting_time": [
+      "cancelled",
+      "expired",
+      "ready"
+    ],
+    "waiting_user": [
+      "cancelled",
+      "expired",
+      "ready"
+    ]
   }
 }
