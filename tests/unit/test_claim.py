@@ -13,7 +13,7 @@ from aios_core.contracts.ids import new_object_id
 from aios_core.contracts.models import Claim, Observation
 from aios_core.contracts.operations import OperationRequest
 from aios_core.contracts.refs import ObjectRef, SourceRef
-from aios_core.contracts.time import TemporalExtent, utc_now
+from aios_core.contracts.time import TemporalExtent, as_utc, utc_now
 from aios_core.storage.sqlite_store import SQLiteWorldStore
 
 
@@ -213,10 +213,19 @@ def test_c05_tomorrow_birthday():
     assert claim.claim_type == ClaimType.FACT
     assert claim.knowledge_state == KnowledgeState.REPORTED
     assert claim.confidence == 0.70
-    # valid_time in future vs asserted_at
-    # valid_time.start should be after asserted_at
+    # valid_time in future vs asserted_at - use UTC instant per M0-004
     assert claim.valid_time.start is not None
-    assert claim.valid_time.start > claim.asserted_at
+    assert (
+        as_utc(
+            claim.valid_time.start,
+            "valid_time.start",
+        )
+        >
+        as_utc(
+            claim.asserted_at,
+            "asserted_at",
+        )
+    )
 
 
 # C06 “一定考上”多Claim拆分
@@ -586,8 +595,8 @@ def test_c15_no_semantic_side_effects(tmp_path):
     assert claims[0]["claim_type"] == ClaimType.BELIEF.value
 
 
-# Additional: claimant vs subject independent
-def test_claimant_vs_subject_independent():
+# C16 claimant vs subject independent - strict, no tautology
+def test_c16_claimant_vs_subject_independent():
     base = datetime(2026, 9, 14, 10, 0, tzinfo=timezone.utc)
     claim = make_claim(
         claimant_id="user-1",
@@ -602,5 +611,35 @@ def test_claimant_vs_subject_independent():
     )
     assert claim.claimant_id == "user-1"
     assert claim.subject_id == "mother-subject"
-    assert claim.claimant_id != claim.subject_id or True  # allowed to be different, no constraint that they must equal
-    # No constraint that claimant == subject
+    assert claim.claimant_id != claim.subject_id
+
+# C17 Claim schema精确类型冻结
+def test_c17_claim_schema_exact_types():
+    from typing import get_args, get_origin, get_type_hints
+    from datetime import datetime as dt_datetime
+
+    hints = get_type_hints(Claim)
+
+    assert hints["claimant_id"] is str, f"claimant_id must be exactly str, got {hints['claimant_id']}"
+    assert hints["claim_type"] is ClaimType, f"claim_type must be exactly ClaimType, got {hints['claim_type']}"
+    assert hints["content"] is str, f"content must be exactly str, got {hints['content']}"
+    assert hints["valid_time"] is TemporalExtent, f"valid_time must be exactly TemporalExtent, got {hints['valid_time']}"
+    assert hints["asserted_at"] is dt_datetime, f"asserted_at must be exactly datetime, got {hints['asserted_at']}"
+    assert hints["knowledge_state"] is KnowledgeState, f"knowledge_state must be exactly KnowledgeState, got {hints['knowledge_state']}"
+    assert hints["confidence"] is float, f"confidence must be exactly float, got {hints['confidence']}"
+
+    # unknown_items: list[str]
+    ann = hints["unknown_items"]
+    assert get_origin(ann) is list, f"unknown_items origin must be list, got {get_origin(ann)} {ann}"
+    assert get_args(ann) == (str,), f"unknown_items args must be (str,), got {get_args(ann)}"
+
+    # support_evidence_set_refs: list[ObjectRef]
+    ann = hints["support_evidence_set_refs"]
+    assert get_origin(ann) is list, f"support_evidence_set_refs origin must be list, got {get_origin(ann)}"
+    assert get_args(ann) == (ObjectRef,), f"support_evidence_set_refs args must be (ObjectRef,), got {get_args(ann)}"
+
+    # counter_evidence_set_refs: list[ObjectRef]
+    ann = hints["counter_evidence_set_refs"]
+    assert get_origin(ann) is list, f"counter_evidence_set_refs origin must be list, got {get_origin(ann)}"
+    assert get_args(ann) == (ObjectRef,), f"counter_evidence_set_refs args must be (ObjectRef,), got {get_args(ann)}"
+
