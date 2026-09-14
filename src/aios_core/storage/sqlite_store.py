@@ -38,13 +38,11 @@ def _normalize_idempotency_lookup_key(value: object) -> str:
     Full request normalization happens after lookup for fresh requests and inside
     request_fingerprint for retries. Keeping lookup normalization field-scoped lets
     an existing key classify a dirty retry as IDEMPOTENCY_CONFLICT while preventing
-    unvalidated values from reaching the SQLite binder.
+    unvalidated values from reaching the SQLite binder. Semantic checks that require
+    the full OperationRequest (such as non-blank identity fields) remain there.
     """
 
-    key = _IDEMPOTENCY_KEY_ADAPTER.validate_python(value)
-    if not key.strip():
-        raise ValueError("idempotency_key must not be blank")
-    return key
+    return _IDEMPOTENCY_KEY_ADAPTER.validate_python(value)
 
 
 class StoreError(AIOSProtocolError):
