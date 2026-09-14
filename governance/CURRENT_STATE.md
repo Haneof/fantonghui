@@ -8,7 +8,7 @@ This file is the short cloud checkpoint used to recover project state after long
 
 - Milestone: M0 — freeze world contracts and core storage
 - Status: IN PROGRESS
-- Progress: 16/22 tasks FINAL PASS
+- Progress: 17/22 tasks FINAL PASS
 - Core development mode: SINGLE-WRITER for production contracts until M0 Gate
 
 ## Frozen tasks
@@ -28,30 +28,31 @@ This file is the short cloud checkpoint used to recover project state after long
 - M0-013 FINAL PASS — `f30987395a034d4e9f826c9193dc82e00165a2e8`
 - M0-014 FINAL PASS — `af49c27c95527ca1d2b28cddd88115b0264b48c4`
 - M0-015 FINAL PASS — `3b4e8b603e52830d8be44d33141f722bbba244a0`
-- M0-016 FINAL PASS — semantic frozen commit `cdbd7ff1d42ba292a2e0ca9972f0c9eccd4666c3`
+- M0-016 FINAL PASS — `cdbd7ff1d42ba292a2e0ca9972f0c9eccd4666c3`
+- M0-017 FINAL PASS — acceptance commit `c9bd2d85ff0047515f6f4cc5b9e7058c70cff6dc`
 
-## M0-016 accepted contract
+## M0-017 accepted contract
 
-OperationRequest now has a hardened explicit contract for operation/session identity, arguments, expected world revision, reason, and idempotency key. Same-key replay remains ordered before optimistic concurrency validation, so exact retries return the original result without advancing world revision twice. A new-key stale writer gets VERSION_CONFLICT and is not allowed to overwrite concurrent work. Committed operations remain durably auditable and queryable across store restart.
+The first-stage append-only SQLite world schema is now formally frozen. Required tables are world_meta/world_commits/object_revisions/operations/idempotency_records. Store connections use WAL and foreign keys. Object history is append-only, restart-safe, multi-object commits share one world revision, invalid transactions roll back without partial world/object/operation/idempotency state, stale expected-world-revision writers fail with VERSION_CONFLICT, and AI Worker remains unable to import sqlite3 or storage internals.
 
-Exact semantic-head CI:
-- GitHub Actions run `34810519222`
-- job `103870768750`
+Exact acceptance-head CI:
+- GitHub Actions run `34810803641`
+- job `103871580347`
 - CPython 3.12.14 / pytest 8.4.2
-- formal: 341 passed, 1 previously accepted adversarial warning
+- formal: 353 passed, 1 previously accepted adversarial warning
 - Reference: 15 passed
 - conclusion: SUCCESS
 
-Formal review: `reviews/M0/M0-016_final_PASS_2026-09-14.md`
+Formal review: `reviews/M0/M0-017_final_PASS_2026-09-14.md`
 
 ## Active / next task
 
-- M0-017 — SQLite 追加式世界存储 schema
+- M0-018 — 全局 World Revision 与原子提交
 - Status: AUTHORIZED / CHIEF ENGINEER OWNED / NOT STARTED
 - Owner: `chief-01`
 - Production branch: `arena/01a09bc6-fantonghui`
-- Frozen semantic base: `cdbd7ff1d42ba292a2e0ca9972f0c9eccd4666c3`
-- Goal: formally freeze the first-stage append-only SQLite world schema, restart behavior, rollback safety, multi-revision history, WAL/transactions/indexes, and expected-revision concurrency behavior without exposing DB connections to AI Worker
+- Frozen acceptance base: `c9bd2d85ff0047515f6f4cc5b9e7058c70cff6dc`
+- Goal: formally freeze global world-revision semantics so one successful transaction produces exactly one next world revision shared by all objects, while failed/stale transactions never advance the global revision
 - `core-01`: IDLE / no production assignment
 - `architect-01`: STANDBY; mandatory at M0 Gate, no current escalation trigger
 - `parallel-01/02`: NOT AUTHORIZED
@@ -60,7 +61,7 @@ Formal review: `reviews/M0/M0-016_final_PASS_2026-09-14.md`
 
 - Coding agents never self-declare FINAL PASS.
 - Chief Engineer independently checks actual GitHub HEAD, compare/diff, source, tests, reviews, and exact-head CI.
-- A task is frozen only when the Chief Engineer names the exact accepted semantic commit.
+- A task is frozen only when the Chief Engineer names the exact accepted commit.
 - Review/progress commits after a semantic freeze do not silently redefine the frozen production contract.
 
 ## Recovery rule
