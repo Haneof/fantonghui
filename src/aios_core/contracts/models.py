@@ -184,7 +184,6 @@ class EvidenceSet(WorldObject):
         if not self.member_refs and self.selector is None:
             raise ValueError("EvidenceSet requires member_refs or selector")
 
-        # EvidenceSet refs must be pinned (revision != None) - historical evidence cannot follow latest
         for field_name in [
             "member_refs",
             "support_refs",
@@ -205,7 +204,6 @@ class EvidenceSet(WorldObject):
                         "selector.dimension_refs requires pinned ObjectRef revisions"
                     )
 
-        # knowledge_window cutoff must not be after learned_at (cannot know future)
         if as_utc(
             self.knowledge_window.knowledge_cutoff,
             "knowledge_cutoff",
@@ -225,6 +223,7 @@ class EventAnchor(WorldObject):
     event_time: TemporalExtent = Field(default_factory=TemporalExtent.unknown_time)
     participant_refs: list[ObjectRef] = Field(default_factory=list)
     primary_claim_refs: list[ObjectRef] = Field(default_factory=list)
+    evidence_set_refs: list[ObjectRef] = Field(default_factory=list)
     support_evidence_set_refs: list[ObjectRef] = Field(default_factory=list)
     counter_evidence_set_refs: list[ObjectRef] = Field(default_factory=list)
     confidence: float = Field(ge=0.0, le=1.0)
@@ -236,9 +235,9 @@ class EventAnchor(WorldObject):
 
     @model_validator(mode="after")
     def validate_event_contract(self) -> "EventAnchor":
-        # Event evidence and history links are provenance: they must never follow "latest".
         for field_name in [
             "primary_claim_refs",
+            "evidence_set_refs",
             "support_evidence_set_refs",
             "counter_evidence_set_refs",
             "supersedes_refs",
