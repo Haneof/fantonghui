@@ -2,18 +2,20 @@
 
 > 总任务母表：`AIOS_Core_详细开发任务拆分_R2_总工程师版.md`  
 > 宪法基线：`AIOS宪法2.0.txt` + R1/R2  
-> Active production：`arena/01a09bc6-fantonghui`  
+> Active production / default main：`aios-2.0`  
 > M0 冻结 production baseline：`f2107656d404bb9cac526f71175cbfc1fbbb91cb`  
 > M0 最终 Gate：`governance/agent_reports/M0_FINAL_PASS_2026-09-15.md`  
 > M0 22项对账：`governance/agent_reports/M0_001_022_RECONCILIATION_2026-09-15.md`  
-> 最后更新：2026-09-15（M0-001～M0-022 reconciliation complete）
+> M0→M1 分支清理：`governance/BRANCH_CLEANUP_M0_TO_M1_2026-09-15.md`  
+> M1 职务/并行分配：`governance/M1_ROLE_AND_PARALLEL_ASSIGNMENT_R2_2026-09-15.md`  
+> 最后更新：2026-09-15（M1-001 assigned / in progress）
 
 ## 里程碑总览
 
 | 里程碑 | 目标 | 状态 | 完成度 |
 |---|---|---|---|
 | M0 | 冻结世界契约与核心存储 | **FINAL PASS** | **22/22** |
-| M1 | 可写、可查、可下钻的共同世界 | **READY / UNFROZEN** | 0/16 |
+| M1 | 可写、可查、可下钻的共同世界 | **IN PROGRESS — M1-001** | 0/16 |
 | M2 | 主动运行闭环 | 未开始 | 0/15 |
 | M3 | 长期纠错与多尺度认知 | 未开始 | 0/11 |
 | M4 | 连续一个月虚拟人生 | 未开始 | 0/4 |
@@ -53,8 +55,8 @@
 
 ## M0 Gate 权威证据
 
-- production branch：`arena/01a09bc6-fantonghui`
-- production SHA：`f2107656d404bb9cac526f71175cbfc1fbbb91cb`
+- default main / active production：`aios-2.0`
+- M0 frozen SHA：`f2107656d404bb9cac526f71175cbfc1fbbb91cb`
 - GitHub Actions run：`34872128566`
 - job：`104070337643`
 - formal repository suite：`558 passed / 0 failed`
@@ -63,10 +65,18 @@
 - required gate fixtures：`tests/integration/test_m0_gate_fixtures.py`
 - reconciliation report：`governance/agent_reports/M0_001_022_RECONCILIATION_2026-09-15.md`
 
-## 下一执行入口
+## M1 当前执行
 
-M1 已解除冻结，但必须严格按任务母表执行，不重新设计路线。
+### M1-001 Observation 接入服务与去重
 
-第一项：`M1-001 Observation 接入服务与去重`。
+状态：**ASSIGNED / IN PROGRESS**
 
-M1 的维度挂载、关键词超链、证据下钻分别按母表进入 `M1-004`、`M1-012`、`M1-013`；日/周/月总结仍按冻结路线进入 `M3-004/M3-005`，不得擅自前移或后移。
+Core implementation branch：
+`m1/core-m1-001-observation-ingest-20260915`
+
+Independent tests branch：
+`m1/parallel-m1-001-tests-20260915`
+
+任务范围、验收和禁止事项严格来自总工程师任务母表。当前没有授权 M1-002～M1-016 提前开发；后续只在前置依赖 PASS 后解锁。
+
+M1 的维度挂载、关键词超链、证据下钻分别仍按母表进入 `M1-004`、`M1-012`、`M1-013`；日/周/月总结仍按冻结路线进入 `M3-004/M3-005`，不得擅自前移或后移。
