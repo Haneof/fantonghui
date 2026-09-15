@@ -361,3 +361,61 @@ M0-001 状态 CONDITIONAL PASS，禁止进入 M0-002，修正两个问题并制�
 ### 测试
 - 103 passed + 15 reference
 
+
+
+## 2026-09-15 宪法 v3.0 第 4 份主审（as-built 压力实测补充，服从元裁决 NO-GO）
+
+### 起始
+- 本地撰写基线 `cd8bb29`；发布时 rebase 到 `493a3e0`（元裁决）之上
+- 工程基线：M0 16/22 FINAL PASS，M0-022 BLOCKED，M1~M8 未开始
+- 已存在 6 份 V3 评审档案（A~F）+ 1 份统一元裁决 `PATCH_REQUIRED / AS-WRITTEN NO-GO`
+
+### 评审动作
+- 逐条审读《AIOS核心系统宪法v3.0》六编 116 条，标出 7 处条款自相矛盾（C-1~C-7）
+- 与已冻结 M0 契约对照：确认 `Prediction` / `LifeChapter` / `CommunicationExperience` /
+  `TaskType.PREDICTION_CHECK` / `WakeSource.RELATION_RHYTHM` 不在
+  `schemas/r2/m0_contract_snapshot.json` 内（G1 双基线）；`ErrorCode.STALE_INDEX` 与
+  `BUDGET_EXHAUSTED` 已定义但全仓未抛出；`Task.completion_condition/cancel_condition/recurrence`
+  为无类型 dict，第八十六条条件驱动执行没有契约载体
+- 编写 **as-built** 独立探针 `reviews/architecture/evidence/aios_v3_as_built_probe.py`
+  （不 import 产品代码，只使用 M0-017 冻结 schema 原形：payload_json blob + 现有 3 个索引），
+  灌入 1,000,000 object revision + 2,211,817 依赖边实测
+- rebase 后阅读元裁决与 A/B/D，撰写 0.5 节「收敛/增量对照」并撤回自有 CONDITIONAL PASS 标签
+
+### 关键实测（2 vCPU / SQLite 3.40.1 / 容器 FS）
+- 看板四步序组装（85 行 payload）：**0.3 ms** → 存储侧不是 1 秒首字瓶颈
+- as-built 多关键词共现（`payload_json LIKE`）：**1,282.8~1,357.9 ms/次**
+- as-built 5D 时间滑动（`json_extract occurred_at`）：**1,201.4~1,468.6 ms/次，与窗口大小无关**；
+  对照 `learned_at` 索引 0.2 ms
+- FTS5 中文陷阱：`unicode61 MATCH '妈妈'` = **0 命中**；`trigram MATCH '妈妈'`（2 字）= **0 命中且不报错**；
+  预分词列 = **0.87 ms / 16 命中**
+- 派生投影（`keyword_posting` + `time_bucket`）：存储 **+29%**（704.8→906.7 MB / 1M 行），
+  共现降至 **7.29~47.18 ms**、时间滑动降至 **0.66~112.48 ms**，结果与 LIKE 全表扫描**逐条一致**
+- 依赖传播：M0 内存反向扫描 **9.3 s / 51,822 受影响对象**（≈ **15.55 M token** 复核代价）；
+  索引无预算 231.9 ms；索引预算化（500 节点/深度 2）**10.82 ms**；懒传播 **0.82 ms**
+- 单条提交 fsync（M0-018 语义）：`FULL` 0.47 ms/次、`NORMAL` 0.09 ms/次（容器 FS，端侧为下限）
+- 资源账：1,090 行/日 → **397,850 行/年 ≈ 280 MB/年**（含投影 ≈ 361 MB/年）；
+  token **68.6 M in / 7.3 M out 每用户每年**（对话 56.6%、金字塔 21.7%、每日清洗 17.7%、心跳 4.0%）
+
+### 增量发现（既有 6 份档案未覆盖）
+- RT-12 心理危机被「深夜不宜打扰 + 冷却 + 1~3 句法则」三重压制（最高特权只覆盖硬件摔倒/撞击）
+- RT-13c `IGNORED` 与 `NOT_PERCEIVED` 不可区分 → 第九十七条接受率统计被系统性污染
+- RT-13b 骨传导可懂度里程碑缺失（腕→指→耳有量产先例 Sgnal，评价不利）
+- RT-09 `occurred_at` 由数据源自报 → 回溯标注权限构成认知投毒入口，需可信度分级
+- P1b 单条提交 fsync 代价与 group commit（摄入批次 = 一个 world_revision）
+- 3.6 读侧 as-of 语义：`Claim.valid_time` 是事态有效时间而非信念有效时间；
+  建议 `believed_from/believed_until/invalidated_by_ref` + 区间投影，把回溯修正从「重算」变「关区间」
+
+### 裁决
+- 服从元裁决 **`PATCH_REQUIRED / AS-WRITTEN NO-GO`**；本报告分项分数
+  （架构 9.0 / 工程 5.5 / 形态 7.0 / 规则 6.0，加权 6.9）不作为独立裁决票
+- Top 3 落地项 CORE-P1（派生投影合法化 + 检索/时延 SLO）、CORE-P2（三级保留契约 + 墓碑化删除）、
+  CORE-P3（传播预算化 + 懒复核队列 + 封存免重算）建议直接并入统一修正案，不另开编号
+- 所有阈值型建议均为测试 profile 默认值，不得写成跨硬件永久宪法常量（合第七十六条）
+
+### 产物
+- `reviews/architecture/AIOS_v3.0_CHIEF_REVIEW_R2_AS_BUILT_STRESS_PROBE_2026-09-15.md`
+- `reviews/architecture/evidence/aios_v3_as_built_probe.{py,log}`、`..._result.json`、
+  `..._environment.txt`、`..._SHA256SUMS`
+- `reviews/README.md`、`TASK_PROGRESS_R2.md` 仅追加评审备注，未改动任何任务状态
+- 未改动任何产品代码与宪法文件；探针 DB 写入 `/tmp`（`.gitignore` 已排除 `*.db`）

@@ -59,3 +59,30 @@
 - production review/archive head after candidate may be newer；semantic candidate 与文档归档 commit 必须分开引用
 
 M0 不得在 `architect-01` 对 `9c080f6...` 最新候选独立复审给出可接受 verdict 且 `chief-01` 最终签 Gate 前恢复为 22/22 FINAL PASS。M1 与并行核心开发继续暂停。
+
+## 架构评审备注（2026-09-15，不改变任何任务状态）
+
+《AIOS核心系统宪法v3.0》已有 4 份主审 + 3 份 Gap Audit + 1 份元裁决在库。统一裁决见
+`reviews/architecture/AIOS_V3_MULTI_REVIEW_META_AUDIT_NO_GO_2026-09-16.md`：
+**`PATCH_REQUIRED / AS-WRITTEN NO-GO`**（v3.0 可作愿景与目标架构基线，但当前文本不得作为可直接执行的冻结合同）。
+
+最新一份补充评审（as-built 压力实测）：
+`reviews/architecture/AIOS_v3.0_CHIEF_REVIEW_R2_AS_BUILT_STRESS_PROBE_2026-09-15.md`
+（证据：`reviews/architecture/evidence/aios_v3_as_built_probe.{py,log}`、`..._result.json`、
+`..._environment.txt`、`..._SHA256SUMS`）。它服从上述元裁决，不另立口径。
+
+与本进度表直接相关的两条治理阻断：
+
+- **G1 双基线冲突**：v3.0 宣称唯一宪法基线，但 `schemas/r2/m0_contract_snapshot.json` 仍为
+  `gate_version=M0-R2`，且 v3.0 所需的 `Prediction` / `LifeChapter` / `CommunicationExperience` /
+  `TaskType.PREDICTION_CHECK` / `WakeSource.RELATION_RHYTHM` 均不在冻结契约内。
+  须按第一百一十五条第 3 款提交正式架构变更并重冻结快照后，M0-022 才能与 v3.0 对齐。
+- **G2 验收缺口**：第一百一十四条的验收表中，v3.0 十项机制只有 3 条软性新增验收（V3-01/02/03）
+  + 2 条弱覆盖（A06/A07），无延迟/存储/token SLO、无中文检索可用性、无 FSM 误触率验收。
+  候选补充项见该报告 7.4；最终编号须与报告 D 的 `V31~V45` 消歧后由统一修正案分配。
+
+as-built 实测要点（供 M1 排期参考，非产品 SLO）：当前冻结 schema 上多关键词共现 1.28~1.36 s、
+`occurred_at` 时间窗口查询 1.20~1.47 s（与窗口无关）、单次枢纽实体修正的依赖传播 9.3 s 且波及
+51,822 个对象（≈15.55 M token 复核）；加入派生投影后分别降至 7~47 ms、0.66~112 ms、0.82~10.82 ms。
+
+评审结论与元裁决一致：上述阻断项关闭前，M1 大规模编码保持暂停。

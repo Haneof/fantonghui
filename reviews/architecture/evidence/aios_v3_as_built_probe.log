@@ -1,0 +1,104 @@
+SQLite 3.40.1 / Python 3.11.2 / cpu=2 / target_rows=1,000,000 / target_edges=1,000,000
+
+=== P1 写入吞吐与存储体积（M0-017 冻结 schema，WAL） ===
+  已写入 50,000 行                                             35.0 MB                735 B/row, 59,664 rows/s (synchronous=FULL)
+  已写入 200,000 行                                            141.1 MB               740 B/row, 56,659 rows/s (synchronous=FULL)
+  已写入 500,000 行                                            352.9 MB               740 B/row, 48,915 rows/s (synchronous=FULL)
+  已写入 1,000,000 行                                          704.8 MB               739 B/row, 42,594 rows/s (synchronous=FULL)
+P1 总写入耗时                                                   23.5 s                 1,000,000 行
+P1 主表行数（测量基数）                                              1,000,000              
+
+=== P1b 单条提交（1 Observation = 1 world_revision）fsync 代价 ===
+P1b synchronous=FULL：2000 次单行提交                            0.93 s                 2,146 commits/s（0.47 ms/提交）
+P1b synchronous=NORMAL：2000 次单行提交                          0.18 s                 10,902 commits/s（0.09 ms/提交）
+
+=== P2 当前 schema 已建索引可支撑的查询 ===
+P2 点查 200 次（idx_objects_current_lookup）                    2.1 ms 总               0.011 ms/次, 命中 200
+P2 类型+主体计数（idx_objects_type_subject）                       4.9 ms                 80,340 行
+P2 learned_at 单日范围（idx_objects_learned）                    0.2 ms                 2,725 行
+P2 看板典型查询：最近 50 条观测                                        0.1 ms                 50 行；plan=SEARCH object_revisions USING INDEX idx_objects_type_subject (object_type=? AND subject_id=?)
+
+=== P2b 单次看盘聚合看板（Cockpit Manifest）组装实测 ===
+P2b 第一步 照镜子：AI 自身 identity/growth 切片                       0.05 ms                5 行
+P2b 第二步 校准羁绊：最近关系类 Claim                                   0.07 ms                20 行
+P2b 第三步 定态度：最近事件锚点                                         0.05 ms                10 行
+P2b 第四步 审视现场：最近观测切片                                        0.04 ms                30 行
+P2b 第四步 就绪任务/维度成员挂载                                        0.04 ms                20 行
+P2b 看板组装合计（不含 LLM 首字）                                      0.3 ms                 → 1 秒首字预算中留给世界存储检索的份额
+
+=== P3 多关键词共现检索（宪法第八十九条）——当前 schema 唯一可行路径：LIKE 全表扫描 ===
+P3 2kw [妈妈,生日]                                             1,357.9 ms             命中 3,359 条 / 1,000,000 行
+P3 3kw [妈妈,生日,礼物]                                          1,329.8 ms             命中 65 条 / 1,000,000 行
+P3 3kw [老张,借钱,争执]                                          1,282.8 ms             命中 7 条 / 1,000,000 行
+P3 3kw [加班,熬夜,心悸]                                          1,322.4 ms             命中 9 条 / 1,000,000 行
+
+=== P4 5D 时间滑动条（宪法第八十七条）——occurred_at 在 payload_json 内，无索引 ===
+P4 时间窗口 1d（json_extract 全表扫描）                              1,221.8 ms             命中 2,642 条
+P4 时间窗口 1w（json_extract 全表扫描）                              1,201.4 ms             命中 19,157 条
+P4 时间窗口 1m（json_extract 全表扫描）                              1,354.4 ms             命中 82,045 条
+P4 时间窗口 1y（json_extract 全表扫描）                              1,468.6 ms             命中 670,652 条
+P4 对照：learned_at 1d（有索引）                                   0.2 ms                 命中 2,640 条
+
+=== P5 FTS5 中文关键词可用性实测（unicode61 / trigram / 预分词列） ===
+P5 unicode61 构建（200,000 条文本）                               1,542.2 ms             
+P5 unicode61 MATCH '妈妈' 命中                                 0                      → 中文整串被当作单一 token，子串关键词检索失效
+P5 trigram 构建（200,000 条文本）                                 1,716.7 ms             fts.db 体积（unicode61+trigram，200,000 条短文本）→ 45.9 MB
+P5 trigram MATCH '女朋友'（3 字）命中                              2925                   
+P5 trigram MATCH '妈妈'（2 字）命中                               0                      → 宪法第八十九条的示例关键词多为 2 字，trigram 不可用
+P5 预分词列 FTS5 构建（200,000 条）                                 2,089.6 ms             
+P5 预分词列 MATCH '妈妈 AND 生日 AND 礼物'                           0.87 ms                命中 16 条
+
+=== P6 建议方案：规范化倒排索引 keyword_posting（派生投影，可全量重建） ===
+P6 倒排索引构建（全量一次性）                                           3.6 s                  482,345 postings
+P6 2kw [妈妈,生日]                                             200.25 ms              命中 3,359；与 LIKE 全表扫描结果一致=True（LIKE 慢路径 1,358 ms → 提速 7×）
+P6 3kw [妈妈,生日,礼物]                                          155.28 ms              命中 65；与 LIKE 全表扫描结果一致=True（LIKE 慢路径 1,330 ms → 提速 9×）
+P6 3kw [老张,借钱,争执]                                          42.87 ms               命中 7；与 LIKE 全表扫描结果一致=True（LIKE 慢路径 1,283 ms → 提速 30×）
+P6 3kw [加班,熬夜,心悸]                                          81.88 ms               命中 9；与 LIKE 全表扫描结果一致=True（LIKE 慢路径 1,322 ms → 提速 16×）
+
+=== P6b co_search 查询形状对照：GROUP BY 聚合 vs 最稀有关键词驱动 EXISTS ===
+P6b 2kw [妈妈,生日]                                            47.18 ms               命中 3,359；驱动词=生日(28,695 postings)；结果与 LIKE 全表扫描一致=True（GROUP BY 形状 200 ms → 再提速 4×）
+P6b 3kw [妈妈,生日,礼物]                                         20.20 ms               命中 65；驱动词=礼物(17,532 postings)；结果与 LIKE 全表扫描一致=True（GROUP BY 形状 155 ms → 再提速 8×）
+P6b 3kw [老张,借钱,争执]                                         7.34 ms                命中 7；驱动词=借钱(8,941 postings)；结果与 LIKE 全表扫描一致=True（GROUP BY 形状 43 ms → 再提速 6×）
+P6b 3kw [加班,熬夜,心悸]                                         7.29 ms                命中 9；驱动词=心悸(5,878 postings)；结果与 LIKE 全表扫描一致=True（GROUP BY 形状 82 ms → 再提速 11×）
+P6 time_bucket 投影构建（全量一次性）                                 13.2 s                 
+P6 5D 滑动条 1d（time_bucket 投影）                               0.66 ms                命中 2,642（json_extract 慢路径 1,222 ms → 提速 1,843×）
+P6 5D 滑动条 1w（time_bucket 投影）                               3.86 ms                命中 19,157（json_extract 慢路径 1,201 ms → 提速 311×）
+P6 5D 滑动条 1m（time_bucket 投影）                               14.40 ms               命中 82,045（json_extract 慢路径 1,354 ms → 提速 94×）
+P6 5D 滑动条 1y（time_bucket 投影）                               112.48 ms              命中 670,652（json_extract 慢路径 1,469 ms → 提速 13×）
+P6 加投影后 DB 总体积                                             906.7 MB               投影前 704.8 MB → 投影净增 201.9 MB (+29%)
+
+=== P7 依赖回溯传播（宪法第四十九条 vs 第九十三条）——雪崩实测 ===
+P7 规范化边表构建                                                 7.5 s                  2,211,817 条边
+P7 拓扑规模                                                                           claims=1,000,000 events=200,000 day=10,000 week=1,429 month=358 dim=30 chapter=5
+P7 同规模 Dependency 作为 WorldObject 落库                        23.7 s                 2,211,817 行 payload_json
+P7 M0 路径：全量依赖读入+json.loads+内存 BFS（枢纽实体）                    9.3 s                  解析 2,211,817 条边，传递影响对象 51,822 个
+P7 索引路径（无预算上限）：传递影响对象                                      231.9 ms               51,822 个 / 深度 8 → 与 M0 路径同为 51,822，雪崩规模不变
+P7 索引路径（预算 500 节点 / 深度 2）                                  10.82 ms               500 个 / 深度 1 → 可预测、可入队懒复核
+P7 懒传播（只标记直接依赖者，宪法第九十三条第 3 款）                              0.82 ms                20,000 个直接依赖者
+P7 对照：普通实体（非枢纽）传递影响                                        17.87 ms               7,093 个 / 深度 8
+P7 单次枢纽实体修正的下游复核 Token 代价                                  15.55 M tokens         51,822 个受影响对象 × 300 tokens/次（不含重算输出）
+P7 普通实体修正的下游复核 Token 代价（地板值）                               2.13 M tokens          7,093 个受影响对象 × 300 tokens
+
+=== P8 由实测外推的一年期资源账（宪法第三十三条边缘轻量化前提下） ===
+P8 每日观测：对话/转写切片                                            220 条/日                
+P8 每日观测：心率压缩点+异常波形                                         60 条/日                 
+P8 每日观测：IMU 宏观运动状态                                         120 条/日                
+P8 每日观测：GPS/位置语义点                                          240 条/日                
+P8 每日观测：图像语义化文本                                            40 条/日                 
+P8 每日观测：App/日历/消息摄入                                        150 条/日                
+P8 每日总行数（观测 + 派生认知层）                                       1,090 行/日              
+P8 一年行数外推                                                  397,850 行/年            约 280 MB（739 B/行，含 3 个现有索引）
+P8 建议派生投影（倒排+时间桶）净增存储                                      +29%                   实测 704.8 MB → 906.7 MB；一年外推 361 MB
+
+=== P9 一年期 LLM Token 账（确定性算术模型，不调用任何模型） ===
+P9 每日大模型复盘清洗（宪法第三十三条第 5 款）                                 12.12 M in / 0.66 M out 占输入 17.7%
+P9 多尺度总结金字塔 日/周/月（第二十八条，22 个活跃维度）                          14.92 M in / 5.66 M out 占输入 21.7%
+P9 长平稳心跳唤醒 6 次/日（第八十条）                                     2.76 M in / 0.13 M out 占输入 4.0%
+P9 真人对话 40 轮/日（第八十五条三级流水线）                                 38.84 M in / 0.88 M out 占输入 56.6%
+P9 单用户单年 Token 合计                                          68.6 M in / 7.3 M out  
+P9 年成本估算（中端云模型 $3/$15 每百万 token）                           $316/用户/年              ≈ $26.3/月
+P9 年成本估算（低价批量模型 $0.4/$1.6 每百万 token）                       $39/用户/年               ≈ $3.3/月
+
+=== JSON_SUMMARY ===
+JSON_SUMMARY {"probe": "aios_v3_as_built_probe", "disclaimer": "As-built structural microbenchmark on the frozen M0-017 schema shape (payload_json blob + its 3 indexes). Not an AIOS implementation benchmark, not a wearable/edge benchmark, not a cold-cache result, and not an SLO proof. Absolute latencies are for a 2-vCPU container host; only orders of magnitude and relative ratios should be generalized.", "sqlite_version": "3.40.1", "python_version": "3.11.2", "cpu_count": 2, "rows_target": 1000000, "edges_target": 1000000, "generated_at": "2026-09-15T18:46:47.959773+00:00", "p1_scale_curve": [{"rows": 50000, "db_mb": 35.0, "bytes_per_row": 734.6, "write_rows_per_sec": 59664.0}, {"rows": 200000, "db_mb": 141.1, "bytes_per_row": 739.5, "write_rows_per_sec": 56659.0}, {"rows": 500000, "db_mb": 352.9, "bytes_per_row": 740.2, "write_rows_per_sec": 48915.0}, {"rows": 1000000, "db_mb": 704.8, "bytes_per_row": 739.0, "write_rows_per_sec": 42594.0}], "p1_total_write_seconds": 23.5, "p1b_single_commit": {"FULL": {"commits": 2000, "seconds": 0.93, "commits_per_sec": 2146.1, "ms_per_commit": 0.47}, "NORMAL": {"commits": 2000, "seconds": 0.18, "commits_per_sec": 10902.1, "ms_per_commit": 0.09}}, "p2_point_lookup_ms_per_query": 0.011, "p2_type_subject_count_ms": 4.9, "p2_learned_range_ms": 0.2, "p2_cockpit_recent50_ms": 0.1, "p2b_manifest_assembly": {"steps_ms": {"第一步 照镜子：AI 自身 identity/growth 切片": 0.05, "第二步 校准羁绊：最近关系类 Claim": 0.07, "第三步 定态度：最近事件锚点": 0.05, "第四步 审视现场：最近观测切片": 0.04, "第四步 就绪任务/维度成员挂载": 0.04}, "total_ms": 0.3}, "p3_like_cooccurrence": {"2kw [妈妈,生日]": {"ms": 1357.9, "hits": 3359}, "3kw [妈妈,生日,礼物]": {"ms": 1329.8, "hits": 65}, "3kw [老张,借钱,争执]": {"ms": 1282.8, "hits": 7}, "3kw [加班,熬夜,心悸]": {"ms": 1322.4, "hits": 9}}, "p3_scan_throughput_mb_per_sec": 530.0, "p4_time_slider": {"1d": {"ms": 1221.8, "hits": 2642}, "1w": {"ms": 1201.4, "hits": 19157}, "1m": {"ms": 1354.4, "hits": 82045}, "1y": {"ms": 1468.6, "hits": 670652}, "learned_at_1d_indexed": {"ms": 0.2, "hits": 2640}}, "p4_db_mb_before_projections": 704.8, "p5_fts": {"sample_rows": 200000, "unicode61": {"build_ms_200k": 1542.2, "match_妈妈_hits": 0, "error": null}, "trigram": {"build_ms_200k": 1716.7, "fts_db_mb_unicode61_plus_trigram": 45.9, "match_3char_女朋友_hits": 2925, "match_2char_妈妈_hits": 0, "match_2char_error": null}, "fts_db_mb_final": 62.4, "segmented": {"build_ms_200k": 2089.6, "match_3kw_ms": 0.87, "match_3kw_hits": 16}}, "p6_posting_build_sec": 3.6, "p6_posting_rows": 482345, "p6_posting_cooccurrence": {"2kw [妈妈,生日]": {"ms": 200.25, "hits": 3359, "identical_to_like_scan": true, "missing": 0, "extra": 0}, "3kw [妈妈,生日,礼物]": {"ms": 155.28, "hits": 65, "identical_to_like_scan": true, "missing": 0, "extra": 0}, "3kw [老张,借钱,争执]": {"ms": 42.87, "hits": 7, "identical_to_like_scan": true, "missing": 0, "extra": 0}, "3kw [加班,熬夜,心悸]": {"ms": 81.88, "hits": 9, "identical_to_like_scan": true, "missing": 0, "extra": 0}}, "p6b_rarest_first_cooccurrence": {"2kw [妈妈,生日]": {"ms": 47.18, "hits": 3359, "identical_to_like_scan": true, "posting_cardinality": {"妈妈": 75743, "生日": 28695}, "driver_keyword": "生日"}, "3kw [妈妈,生日,礼物]": {"ms": 20.2, "hits": 65, "identical_to_like_scan": true, "posting_cardinality": {"妈妈": 75743, "生日": 28695, "礼物": 17532}, "driver_keyword": "礼物"}, "3kw [老张,借钱,争执]": {"ms": 7.34, "hits": 7, "identical_to_like_scan": true, "posting_cardinality": {"老张": 25827, "借钱": 8941, "争执": 11782}, "driver_keyword": "借钱"}, "3kw [加班,熬夜,心悸]": {"ms": 7.29, "hits": 9, "identical_to_like_scan": true, "posting_cardinality": {"加班": 42919, "熬夜": 31918, "心悸": 5878}, "driver_keyword": "心悸"}}, "p6_time_bucket_build_sec": 13.2, "p6_time_slider_projection": {"1d": {"ms": 0.66, "hits": 2642}, "1w": {"ms": 3.86, "hits": 19157}, "1m": {"ms": 14.4, "hits": 82045}, "1y": {"ms": 112.48, "hits": 670652}}, "p6_db_mb_after_projections": 906.7, "p7": {"recheck_tokens_single_hub_correction": 15546600, "recheck_tokens_normal_entity_correction": 2127900, "edges": 2211817, "m0_style_full_scan_ms": 9280.7, "m0_style_impacted_nodes": 51822, "indexed_unbounded_ms": 231.9, "indexed_unbounded_impacted_nodes": 51822, "indexed_budgeted_500_depth2_ms": 10.82, "lazy_direct_dependents_ms": 0.82, "lazy_direct_dependents": 20000, "normal_entity_impacted": 7093, "avalanche_ratio_hub_vs_normal": 7.3, "dep_db_mb": 1603.4}, "p8": {"bytes_per_row": 739.0, "daily_observations": 830, "daily_rows": 1090, "year_rows": 397850, "year_mb_existing_schema": 280.0, "projection_overhead_pct": 28.6, "year_mb_with_projections": 361.0, "obs_per_day_breakdown": {"对话/转写切片": 220, "心率压缩点+异常波形": 60, "IMU 宏观运动状态": 120, "GPS/位置语义点": 240, "图像语义化文本": 40, "App/日历/消息摄入": 150}}, "p9_token_budget": {"assumptions": {"tok_per_obs_slice": 40, "tok_per_summary_in": 300, "tok_manifest": 1200, "tok_recall": 800, "tok_window": 1500, "dims_total": 22, "daily_observations": 830, "heartbeat_wakes_per_day": 6, "conv_turns_per_day": 40}, "annual_input_tokens": 68629800, "annual_output_tokens": 7327200, "breakdown_input_tokens": {"每日大模型复盘清洗（宪法第三十三条第 5 款）": 12118000, "多尺度总结金字塔 日/周/月（第二十八条，22 个活跃维度）": 14916400, "长平稳心跳唤醒 6 次/日（第八十条）": 2759400, "真人对话 40 轮/日（第八十五条三级流水线）": 38836000}, "breakdown_output_tokens": {"每日大模型复盘清洗（宪法第三十三条第 5 款）": 657000, "多尺度总结金字塔 日/周/月（第二十八条，22 个活跃维度）": 5662800, "长平稳心跳唤醒 6 次/日（第八十条）": 131400, "真人对话 40 轮/日（第八十五条三级流水线）": 876000}, "annual_cost_usd_mid_tier": 316.0, "annual_cost_usd_batch_tier": 39.0}}
+JSON_OUT reviews/architecture/evidence/aios_v3_as_built_probe_result.json

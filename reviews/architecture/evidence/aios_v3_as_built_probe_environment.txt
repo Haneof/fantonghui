@@ -1,0 +1,12 @@
+# probe environment — aios_v3_as_built_probe (all runs on this host)
+Linux e2b.local 6.1.158+ #1 SMP PREEMPT_DYNAMIC Mon May 11 18:48:24 UTC 2026 x86_64 GNU/Linux
+cpu_count=2
+model name	: Intel(R) Xeon(R) Processor @ 2.60GHz
+               total        used        free      shared  buff/cache   available
+Mem:            3939         282        2127           1        1760        3657
+Python 3.11.2 (main, Apr  8 2026, 01:58:00) [GCC 12.2.0]
+sqlite 3.40.1
+/dev/root        21G  4.5G   16G  23% /
+note=container filesystem; fsync barrier cost may be understated (P1b is a lower bound)
+committed_run: rows=1000000 edges=1000000 seed=20260915 wall_clock=2m14s
+environment_captured_utc=2026-09-15T18:59:11Z
