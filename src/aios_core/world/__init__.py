@@ -1,4 +1,29 @@
-"""World services - Entity/Claim/Event/Dimension/Goal 等写服务占位。
+"""World-domain services layered over immutable AIOS facts."""
 
-M1 实现，M0-001 仅建边界。
-"""
+from .retrospective_annotation import (
+    AnnotationConflictError,
+    AnnotationJournalCorruptionError,
+    BiTemporalEpistemicLens,
+    DependencyEdge,
+    EpistemicSlice,
+    EpistemicWorldLens,
+    RetrospectiveAnnotation,
+    RetrospectiveAnnotationJournal,
+    SingleHopCascadeIsolator,
+    SingleHopIsolationResult,
+    StaleNodeState,
+)
+
+__all__ = [
+    "AnnotationConflictError",
+    "AnnotationJournalCorruptionError",
+    "BiTemporalEpistemicLens",
+    "DependencyEdge",
+    "EpistemicSlice",
+    "EpistemicWorldLens",
+    "RetrospectiveAnnotation",
+    "RetrospectiveAnnotationJournal",
+    "SingleHopCascadeIsolator",
+    "SingleHopIsolationResult",
+    "StaleNodeState",
+]
