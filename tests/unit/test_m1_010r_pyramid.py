@@ -24,6 +24,7 @@ from aios_core.summaries import (
     PyramidError,
     TimePyramidSummary,
     finer_than,
+    scale_for_zoom,
 )
 
 UTC = timezone.utc
@@ -896,3 +897,285 @@ class TestContinuousZoomContract:
         aggregator = PyramidAggregator()
         with pytest.raises(PyramidError, match="cannot span"):
             aggregator.generate_materialized_rollup("YEAR", "dim_dec", events)
+
+
+# ----------------------------------------------------------------------
+# 连续缩放全覆盖：1 秒 ~ 10 年量程内不得存在「无层可用」的死区
+# 工单 §2：支持手环端侧 5D 滑动条从 1 秒到 10 年连续无损缩放与下钻
+# ----------------------------------------------------------------------
+
+
+def _decade_events(*, first_year: int = 2020, years: int = 10, id_prefix: str = "dec"):
+    """按日历日铺满整整十年的原始事件（每天 1 条）。"""
+    events = []
+    day = datetime(first_year, 1, 1, tzinfo=UTC)
+    stop = datetime(first_year + years, 1, 1, tzinfo=UTC)
+    index = 0
+    while day < stop:
+        events.append(
+            {
+                "id": f"{id_prefix}-{index:05d}",
+                "time": day,
+                "text": f"原始事实 {day.date().isoformat()}",
+                "x": round((index % 50) * 0.1, 4),
+                "y": float(index % 7),
+                "z": 1.0,
+                "r": 0.8,
+                "c": 0.9,
+            }
+        )
+        day += timedelta(days=1)
+        index += 1
+    return events
+
+
+class TestContinuousZoomCoverage:
+    def test_scale_for_zoom_is_total_over_the_entire_range(self):
+        """全量程密集采样：每一个滑动条位置都必须落到某个物化层上。
+
+        这是「连续缩放」的实质含义 —— 不是四个离散档位，而是 1 秒到 10 年
+        之间**任意**位置都有层可用。若存在死区，滑动条拖到那里就是空白。
+        """
+        low, high = CONTINUOUS_ZOOM_SECONDS
+        samples = 400
+        seen = set()
+        previous_rank = -1
+        for i in range(samples + 1):
+            # 对数等距采样：细端与粗端都取到足够密度
+            zoom = low * (high / low) ** (i / samples)
+            scale = scale_for_zoom(zoom)
+            assert scale in SCALE_ORDER, f"zoom={zoom:.3f}s 映射到非法尺度 {scale!r}"
+            seen.add(scale)
+            # 单调性：视野变大，承载尺度只能变粗或不变，绝不能变细
+            rank = SCALE_ORDER.index(scale)
+            assert rank >= previous_rank, (
+                f"zoom={zoom:.3f}s 处尺度非单调：{SCALE_ORDER[previous_rank]} -> {scale}"
+            )
+            previous_rank = rank
+        # 非退化：四个尺度都必须真的被用到。全部映射成 YEAR 也满足"全射"，
+        # 但那是个没用的映射 —— 这一条挡住这种假绿。
+        assert seen == set(SCALE_ORDER), f"量程内未被使用的尺度: {set(SCALE_ORDER) - seen}"
+
+    def test_scale_for_zoom_boundaries_are_exact(self):
+        """四个档位边界必须精确（上限硬编码在测试里，与实现双向对锁）。"""
+        cases = [
+            ("DAY", 1.0),                      # 量程下限
+            ("DAY", 86400.0),                  # 恰好一天
+            ("WEEK", 86400.001),               # 刚过一天
+            ("WEEK", 604800.0),                # 恰好一周
+            ("MONTH", 604800.001),             # 刚过一周
+            ("MONTH", 2678400.0),              # 恰好 31 天
+            ("YEAR", 2678400.001),             # 刚过 31 天
+            ("YEAR", 31622400.0),              # 恰好 366 天（YEAR 自然窗口上限）
+            ("YEAR", 315360000.0),             # 量程上限 10 年：由多个 YEAR 节点平铺
+        ]
+        for expected, zoom in cases:
+            assert scale_for_zoom(zoom) == expected, f"zoom={zoom} 应为 {expected}"
+
+    def test_scale_for_zoom_rejects_out_of_contract_input(self):
+        """量程外与非法输入一律 fail-closed，不许悄悄夹到最近档位。"""
+        _, high = CONTINUOUS_ZOOM_SECONDS
+        for bad in (0, 0.0, -1, -0.5, float("nan"), float("inf"), high + 1, "7", None, True):
+            with pytest.raises(PyramidError):
+                scale_for_zoom(bad)
+
+    def test_ten_year_band_is_tiled_by_year_nodes_losslessly(self):
+        """**1 年 ~ 10 年段的无损证明**：十年视野由 10 个 YEAR 节点平铺，
+        其 evidence_ids 之并集 == 全部底层原始事件，一条不少。
+
+        这一段超过 YEAR 的自然窗口（366 天），不可能有单个总结覆盖。
+        此前聚合器没有任何按维度+时间范围检索物化节点的入口，
+        滑动条拖到十年级将取不到数据 —— 本测试固定该入口的存在与无损性。
+        """
+        events = _decade_events()
+        assert len(events) == 3653  # 2020~2029，含 2020/2024/2028 三个闰年
+        all_ids = {event["id"] for event in events}
+
+        aggregator = PyramidAggregator()
+        by_year: dict = {}
+        for event in events:
+            by_year.setdefault(event["time"].year, []).append(event)
+        assert sorted(by_year) == list(range(2020, 2030))
+
+        year_nodes = []
+        for year in sorted(by_year):
+            year_nodes.append(
+                aggregator.generate_materialized_rollup("YEAR", "dim_decade", by_year[year])
+            )
+        assert len(year_nodes) == 10
+        for node in year_nodes:
+            span = (node.end_time - node.start_time).total_seconds()
+            assert span <= MAX_SPAN_SECONDS["YEAR"]
+
+        # 滑动条拖到十年级：center=2025-01-01, zoom=10 年
+        view = aggregator.slider_view(
+            "dim_decade", datetime(2025, 1, 1, tzinfo=UTC), CONTINUOUS_ZOOM_SECONDS[1]
+        )
+        assert len(view) == 10, f"十年视野应铺满 10 个 YEAR 节点，实得 {len(view)}"
+        assert all(node.scale == "YEAR" for node in view)
+        assert [node.start_time for node in view] == sorted(n.start_time for n in view)
+
+        union = set().union(*[set(node.evidence_ids) for node in view])
+        assert union == all_ids, "十年视野的证据并集必须等于全部底层事实"
+
+        # 平铺不得重复计数：每个节点互不相交，总数恰好等于底层事件数
+        assert sum(len(node.evidence_ids) for node in view) == len(all_ids)
+
+        # 底层事实永存：十年物化 + 全量检索之后 vault 一条不少
+        assert aggregator.vault_size() == len(all_ids)
+        for node in view:
+            drilled = aggregator.drill_down(node.summary_id, "DAY")
+            assert {e["id"] for e in drilled} == set(node.evidence_ids)
+
+    def test_one_second_end_is_served_by_raw_events_in_range(self):
+        """**1 秒端的数据源**：亚日级视野直接取原始事件，闭区间、含边界。"""
+        events = [
+            {"id": "t0", "time": BASE, "x": 0.0, "y": 0.0, "z": 0.0, "r": 0.9, "c": 0.9},
+            {"id": "t1", "time": BASE + timedelta(milliseconds=500), "x": 0.0, "y": 0.0, "z": 0.0, "r": 0.9, "c": 0.9},
+            {"id": "t2", "time": BASE + timedelta(seconds=1), "x": 0.0, "y": 0.0, "z": 0.0, "r": 0.9, "c": 0.9},
+            {"id": "t3", "time": BASE + timedelta(seconds=2), "x": 0.0, "y": 0.0, "z": 0.0, "r": 0.9, "c": 0.9},
+        ]
+        aggregator = PyramidAggregator()
+        aggregator.generate_materialized_rollup("DAY", "dim_sec", events)
+
+        window = aggregator.raw_events_in_range(BASE, BASE + timedelta(seconds=1))
+        assert [e["id"] for e in window] == ["t0", "t1", "t2"], "闭区间必须含两端"
+
+        sub_second = aggregator.raw_events_in_range(
+            BASE, BASE + timedelta(milliseconds=500)
+        )
+        assert [e["id"] for e in sub_second] == ["t0", "t1"]
+        # 1 秒端不塌缩：三个互异时间戳必须各自可辨
+        assert len({e["time"] for e in window}) == 3
+
+    def test_raw_events_in_range_returns_deep_copies(self):
+        """区间取数返回深拷贝：污染结果不得回灌证据保险库。"""
+        events = make_events(n_days=1, per_day=4, id_prefix="rng")
+        aggregator = PyramidAggregator()
+        aggregator.generate_materialized_rollup("DAY", "dim_rng", events)
+
+        got = aggregator.raw_events_in_range(BASE, BASE + timedelta(days=1))
+        assert got == events
+        got[0]["text"] = "污染尝试"
+        again = aggregator.raw_events_in_range(BASE, BASE + timedelta(days=1))
+        assert again[0]["text"] == events[0]["text"]
+        assert aggregator.get_raw_event(events[0]["id"])["text"] == events[0]["text"]
+
+    def test_range_queries_on_empty_vault_return_empty_not_error(self):
+        """vault 为空时区间查询返回空列表 —— 但必须说清楚这不是"没有事实"。
+
+        聚合器的 vault 只保存**曾经被某次物化摄入过**的事件；它不是原始事实的
+        权威存储（那是 storage 层的职责，见交付报告 G1）。空结果与"该区间确实
+        没有事实"在语义上不可区分，端侧不得把空列表直接渲染成"这一天什么都没发生"。
+        """
+        aggregator = PyramidAggregator()
+        assert aggregator.raw_events_in_range(BASE, BASE + timedelta(days=1)) == []
+        assert (
+            aggregator.summaries_in_range("YEAR", "dim_x", BASE, BASE + timedelta(days=1))
+            == []
+        )
+        assert aggregator.slider_view("dim_x", BASE, 3600) == []
+
+    def test_summaries_in_range_uses_intersection_not_containment(self):
+        """跨越视野边界的总结必须被返回：它的证据落在视野内。"""
+        events = make_events(n_days=28, per_day=4, id_prefix="isect")
+        aggregator = PyramidAggregator()
+        month = aggregator.generate_materialized_rollup("MONTH", "dim_isect", events)
+
+        # 视野只覆盖该月总结的前 3 天
+        partial = aggregator.summaries_in_range(
+            "MONTH", "dim_isect", BASE, BASE + timedelta(days=3)
+        )
+        assert [s.summary_id for s in partial] == [month.summary_id]
+
+        # 视野完全在总结之前 => 空
+        before = aggregator.summaries_in_range(
+            "MONTH", "dim_isect", BASE - timedelta(days=10), BASE - timedelta(days=5)
+        )
+        assert before == []
+
+    def test_summaries_in_range_isolates_scale_and_dimension(self):
+        """检索必须按尺度与维度双重隔离，不得串台。"""
+        events = make_events(n_days=7, per_day=4, id_prefix="iso2")
+        aggregator = PyramidAggregator()
+        week_a = aggregator.generate_materialized_rollup("WEEK", "dim_a", events)
+        aggregator.generate_materialized_rollup("WEEK", "dim_b", events)
+        aggregator.generate_materialized_rollup("DAY", "dim_a", events[:4])
+        window = (BASE - timedelta(days=1), BASE + timedelta(days=30))
+
+        assert [s.summary_id for s in aggregator.summaries_in_range("WEEK", "dim_a", *window)] == [
+            week_a.summary_id
+        ]
+        assert all(
+            s.dimension_id == "dim_b"
+            for s in aggregator.summaries_in_range("WEEK", "dim_b", *window)
+        )
+        assert all(
+            s.scale == "DAY" for s in aggregator.summaries_in_range("DAY", "dim_a", *window)
+        )
+        assert aggregator.summaries_in_range("YEAR", "dim_a", *window) == []
+        assert aggregator.summaries_in_range("WEEK", "dim_absent", *window) == []
+
+    def test_range_queries_reject_inverted_window(self):
+        """起点晚于终点是调用方错误，必须 fail-closed 而不是静默返回空。"""
+        events = make_events(n_days=1, per_day=2, id_prefix="inv")
+        aggregator = PyramidAggregator()
+        aggregator.generate_materialized_rollup("DAY", "dim_inv", events)
+        with pytest.raises(PyramidError, match="empty query window"):
+            aggregator.raw_events_in_range(BASE + timedelta(days=1), BASE)
+        with pytest.raises(PyramidError, match="empty query window"):
+            aggregator.summaries_in_range(
+                "DAY", "dim_inv", BASE + timedelta(days=1), BASE
+            )
+        # slider_view 的负 zoom 由量程校验先拦住（不是窗口校验）
+        with pytest.raises(PyramidError, match="positive finite"):
+            aggregator.slider_view("dim_inv", BASE, -5)
+
+    def test_time_index_invalidates_when_vault_grows(self):
+        """惰性时间索引必须随 vault 增长失效重建，否则新事实会被查询漏掉。"""
+        first = make_events(n_days=1, per_day=3, id_prefix="idx1")
+        aggregator = PyramidAggregator()
+        aggregator.generate_materialized_rollup("DAY", "dim_idx", first)
+        assert len(aggregator.raw_events_in_range(BASE, BASE + timedelta(days=1))) == 3
+
+        later = make_events(n_days=1, per_day=3, id_prefix="idx2")
+        aggregator.generate_materialized_rollup("DAY", "dim_idx", later)
+        window = aggregator.raw_events_in_range(BASE, BASE + timedelta(days=1))
+        assert len(window) == 6, "索引未失效 => 后摄入的事实被漏掉"
+        assert {e["id"] for e in window} == {e["id"] for e in first + later}
+
+    def test_slider_view_serves_every_zoom_with_the_mapped_scale(self):
+        """滑动条在任意档位取回的节点，尺度都必须等于 scale_for_zoom 的结果。"""
+        events = _decade_events(first_year=2024, years=2, id_prefix="sv")
+        aggregator = PyramidAggregator()
+        by_year: dict = {}
+        for event in events:
+            by_year.setdefault(event["time"].year, []).append(event)
+        for year in sorted(by_year):
+            aggregator.generate_materialized_rollup("YEAR", "dim_sv", by_year[year])
+        # 再物化一层 MONTH，供细档位取数
+        by_month: dict = {}
+        for event in events:
+            by_month.setdefault((event["time"].year, event["time"].month), []).append(event)
+        for key in sorted(by_month):
+            aggregator.generate_materialized_rollup("MONTH", "dim_sv", by_month[key])
+
+        center = datetime(2025, 1, 1, tzinfo=UTC)
+        # (zoom, 应映射到的尺度, 该档位应取到的节点数)
+        # 节点数必须逐个写死：all([]) 恒为真，只断言尺度会让空结果蒙混过关。
+        expectations = [
+            (3600.0, "DAY", 0),        # 本维度未物化 DAY 层 -> 端侧应改取 raw_events_in_range
+            (86400.0, "DAY", 0),
+            (604800.0, "WEEK", 0),     # 本维度未物化 WEEK 层
+            (2678400.0, "MONTH", 2),   # 视野横跨 2024-12 与 2025-01 两个月节点
+            (31536000.0, "YEAR", 2),   # 十年视野铺满 2024/2025 两个 YEAR 节点
+        ]
+        for zoom, expected_scale, expected_count in expectations:
+            assert scale_for_zoom(zoom) == expected_scale
+            view = aggregator.slider_view("dim_sv", center, zoom)
+            assert len(view) == expected_count, (
+                f"zoom={zoom} 在 {expected_scale} 层应取到 {expected_count} 个节点，实得 {len(view)}"
+            )
+            assert all(node.scale == expected_scale for node in view)
+        decade = aggregator.slider_view("dim_sv", center, CONTINUOUS_ZOOM_SECONDS[1])
+        assert {n.start_time.year for n in decade} == {2024, 2025}

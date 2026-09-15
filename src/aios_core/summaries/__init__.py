@@ -12,6 +12,7 @@ from .pyramid_aggregator import (
     PyramidError,
     TimePyramidSummary,
     finer_than,
+    scale_for_zoom,
 )
 
 __all__ = [
@@ -22,4 +23,5 @@ __all__ = [
     "PyramidError",
     "TimePyramidSummary",
     "finer_than",
+    "scale_for_zoom",
 ]
