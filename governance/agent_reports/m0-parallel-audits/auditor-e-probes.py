@@ -16,7 +16,8 @@ import tempfile
 import threading
 from datetime import datetime, timedelta, timezone
 
-sys.path.insert(0, os.environ["AIOS_SRC"])   # = 被审候选的 src/ 目录（见报告 §3 运行方式）
+sys.path.insert(0, os.environ["AIOS_SRC"])   # = 被审 worktree 的 src/ 目录（见报告 §3 运行方式）
+AUDIT_ROOT = os.environ.get("AIOS_ROOT") or os.path.dirname(os.path.abspath(os.environ["AIOS_SRC"]))
 
 from pydantic import ValidationError  # noqa: E402
 
@@ -129,7 +130,7 @@ def e_same_operation_id_new_key():
 
 @case("M0-019 · commit 是否仍留有跳过引用校验的公开逃生舱")
 def e_no_validation_escape_hatch():
-    src = open("/tmp/audit/cand/src/aios_core/storage/sqlite_store.py", encoding="utf-8").read()
+    src = open(os.path.join(AUDIT_ROOT, "src/aios_core/storage/sqlite_store.py"), encoding="utf-8").read()
     public = ["current_world_revision", "commit", "get_payload", "list_payloads", "operation_record"]
     has_flag = "validate_references" in src
     writes_outside = "INSERT INTO" in src.split("def commit")[0]
@@ -452,10 +453,10 @@ def e_dual_lens():
 # ────────────────────── 必查14/15 · 冻结矩阵与快照 ──────────────────────
 @case("必查14 · Task/Event 冻结矩阵未被 B8/B9 补丁改动")
 def e_matrix_no_drift():
-    diff = subprocess.run(["git", "-C", "/tmp/audit/cand", "diff", "--stat", "f38fdd2aa64e31b92c5353206a8aef62c9322087",
+    diff = subprocess.run(["git", "-C", AUDIT_ROOT, "diff", "--stat", "f38fdd2aa64e31b92c5353206a8aef62c9322087",
                            "--", "src/aios_core/services/state_machines.py", "src/aios_core/contracts/enums.py"],
                           capture_output=True, text=True).stdout.strip()
-    sm = open("/tmp/audit/cand/src/aios_core/services/state_machines.py", encoding="utf-8").read()
+    sm = open(os.path.join(AUDIT_ROOT, "src/aios_core/services/state_machines.py"), encoding="utf-8").read()
     four = all(k in sm for k in ("RUNNING", "WAITING_RESULT", "COMPLETED", "CANDIDATE", "REJECTED", "MERGED"))
     if not diff and four:
         return ("OK", "自 B6/B7 批准快照起 state_machines.py/enums.py 无改动（0 文件）")
@@ -464,7 +465,7 @@ def e_matrix_no_drift():
 
 @case("必查15 · schema snapshot 只是结构证据")
 def e_schema_snapshot_scope():
-    p = "/tmp/audit/cand/tests/unit/contracts/test_m0_schema_snapshot.py"
+    p = os.path.join(AUDIT_ROOT, "tests/unit/contracts/test_m0_schema_snapshot.py")
     t = open(p, encoding="utf-8").read()
     behavioral = any(k in t for k in ("SQLiteWorldStore", "commit("))
     return ("INFO", f"快照测试 {'含行为断言（需检查是否被当行为证据）' if behavioral else '仅结构 hash，未冒充行为证明 ✅'}")
@@ -558,7 +559,7 @@ def e_timezone_equivalence():
 
 
 # ═══════════════════════ B10/B11/B12：object_type 自证与 durable 往返 ═══════════════════════
-@case("B10 · 类型标签由调用方自证：基类可伪造 object_type 绕过结构校验")
+@case("M0-017-B3 · 类型标签由调用方自证：基类可伪造 object_type 绕过结构校验")
 def e_spoofed_object_type():
     """`commit` 接受任何 WorldObject，用 `type(obj)` 再校验；基类实例可声明 object_type=observation
     而 payload 完全不含 Observation 必填字段 → 落库的行违反其自称类型的冻结契约。"""
@@ -585,7 +586,7 @@ def e_spoofed_object_type():
     return (verdict, detail)
 
 
-@case("B11 · 自称 dependency 的伪行使后续合法提交抛非协议异常")
+@case("M0-002-B2 · 自称 dependency 的伪行使后续合法提交抛非协议异常")
 def e_spoofed_dependency_bricks_later_commit():
     """上一步的伪造行若自称 dependency，`_validate_dependency_graph` 会对 durable 行做
     `Dependency.model_validate` 且未捕获 → 之后任何合法 Dependency 提交都抛 traceback。"""
@@ -610,7 +611,7 @@ def e_spoofed_dependency_bricks_later_commit():
             "而错误里没有任何 CoreErrorCode 可分支（M0-002 H）")
 
 
-@case("B12 · 子类多带字段即可让 durable payload 无法按其冻结类型读回")
+@case("M0-017-B3 · 子类多带字段即可让 durable payload 无法按其冻结类型读回")
 def e_subclass_extra_fields_break_roundtrip():
     """公共 API 接受任意 WorldObject 子类（模型未 final）；子类合法校验通过并入库，
     但 durable payload 含有冻结模型 extra=forbid 不接受的键 → 按类型读回必然失败。
@@ -622,7 +623,10 @@ def e_subclass_extra_fields_break_roundtrip():
     wid = WidenedObservation(object_id="wide", subject_id="u1", learned_at=T0,
                              recorded_at=T0 + timedelta(seconds=1), created_by="auditor-e",
                              source_kind="test", modality="json", value=1)
-    store.commit([wid], op(key="e34"))
+    try:
+        store.commit([wid], op(key="e34"))
+    except StoreError as exc:
+        return ("OK", f"伪造子类被边界拒绝：{exc.code.name}/{exc.context.get('reason')}")
     payload = store.get_payload("wide")
     try:
         Base.model_validate(payload)
@@ -651,7 +655,7 @@ def main():
 
 
 # ═══════════════════════ B10/B11/B12：object_type 自证与 durable 往返 ═══════════════════════
-@case("B10 · 类型标签由调用方自证：基类可伪造 object_type 绕过结构校验")
+@case("M0-017-B3 · 类型标签由调用方自证：基类可伪造 object_type 绕过结构校验")
 def e_spoofed_object_type():
     """`commit` 接受任何 WorldObject，用 `type(obj)` 再校验；基类实例可声明 object_type=observation
     而 payload 完全不含 Observation 必填字段 → 落库的行违反其自称类型的冻结契约。"""
@@ -678,7 +682,7 @@ def e_spoofed_object_type():
     return (verdict, detail)
 
 
-@case("B11 · 自称 dependency 的伪行使后续合法提交抛非协议异常")
+@case("M0-002-B2 · 自称 dependency 的伪行使后续合法提交抛非协议异常")
 def e_spoofed_dependency_bricks_later_commit():
     """上一步的伪造行若自称 dependency，`_validate_dependency_graph` 会对 durable 行做
     `Dependency.model_validate` 且未捕获 → 之后任何合法 Dependency 提交都抛 traceback。"""
@@ -703,7 +707,7 @@ def e_spoofed_dependency_bricks_later_commit():
             "而错误里没有任何 CoreErrorCode 可分支（M0-002 H）")
 
 
-@case("B12 · 子类多带字段即可让 durable payload 无法按其冻结类型读回")
+@case("M0-017-B3 · 子类多带字段即可让 durable payload 无法按其冻结类型读回")
 def e_subclass_extra_fields_break_roundtrip():
     """公共 API 接受任意 WorldObject 子类（模型未 final）；子类合法校验通过并入库，
     但 durable payload 含有冻结模型 extra=forbid 不接受的键 → 按类型读回必然失败。
@@ -715,7 +719,10 @@ def e_subclass_extra_fields_break_roundtrip():
     wid = WidenedObservation(object_id="wide", subject_id="u1", learned_at=T0,
                              recorded_at=T0 + timedelta(seconds=1), created_by="auditor-e",
                              source_kind="test", modality="json", value=1)
-    store.commit([wid], op(key="e34"))
+    try:
+        store.commit([wid], op(key="e34"))
+    except StoreError as exc:
+        return ("OK", f"伪造子类被边界拒绝：{exc.code.name}/{exc.context.get('reason')}")
     payload = store.get_payload("wide")
     try:
         Base.model_validate(payload)

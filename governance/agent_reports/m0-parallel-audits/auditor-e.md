@@ -203,3 +203,87 @@ M0-002 H 要求「所有协议级失败都有 code + message + context；禁止�
 - 本报告**不宣布** M0 FINAL PASS、不宣布 M1 START、不授权并行核心开发：最终 Gate 权仅属 `chief-01`。
 - 本审计未修改生产分支任何文件；未更新 `governance/agent_reports/architect-01/LATEST.md`；未覆盖任何其他 auditor 报告（`m0-parallel-audits/` 此前在库中不存在）。
 - `ARCHITECTURE PASS` 在本轨不成立；B10 与 B11 修复并各自补测试后，我可在同一天内对新候选复审并给出 E 轨结论。
+
+
+---
+
+## 10. 复评：对生产现 HEAD `f210765`（review(m0): pin X8-X10 repair r2 for exact-head CI）
+
+**触发原因**：本报告成文时生产 HEAD 为 `5acef4a`（candidate 之后仅 +99 行文档）。此后主线合并了 PR #4-#7，`aios-2.0` 与 `arena/01a09bc6-fantonghui` 现同指 `f210765`，并新增了 `src/aios_core/contracts/registry.py`（`CANONICAL_WORLD_OBJECT_MODELS`）与 `tests/unit/test_m0_b10_b11_repair_edges.py` 等。为避免治理记录出现两套 `B10`，本报告全部发现改挂到项目工单编号体系（`M0-0NN-B<k>`）。
+
+**复评方法**：`git worktree` 检出 `f210765`，同一套 28 项探针（本目录 `auditor-e-probes.py`）直接重打新 HEAD，未改动任何生产文件。
+
+### 10.1 编号映射（旧标签 → 项目体系）
+
+| 本报告旧标签 | 新编号 | 复评状态（`f210765` 实测） |
+|---|---|---|
+| B10（声明 `object_type` 与 payload 结构互不校验） | **M0-017-B3** | **已由上游修复关闭** |
+| B11（durable 读取 4 处裸抛内部异常） | **M0-002-B2** | **已关闭**（4 处全部转为协议错误） |
+| B12（重放身份含 `operation_id`） | **M0-016-B3** | 仍成立 → `RULING REQUIRED` |
+| B13（冻结状态矩阵不在持久化边界强制） | 与 **M0-021-B1** 同一缺陷（本审计前一份 R2 清单已登记） | 仍成立 → 请裁定 M0 归属 |
+| B14（`set` 与有序 `list` 归一后同指纹） | **M0-016-B4** | 仍成立（轻微，语义级） |
+| B15（非 JSON 原生值静默有损） | **M0-017-B4** | 部分缓解，仍观察 |
+
+### 10.2 已关闭项的实测证据（说明上游修复覆盖了我的复现路径）
+
+```
+伪造 object_type（基类 OBSERVATION + 缺 source_kind/modality 的 payload）
+  → StoreError INVALID_ARGUMENT/persistence_revalidation_failed          [旧 B10 变体 a]
+子类夹带 extra 键（WidenedObservation.auditor_note）
+  → StoreError INVALID_ARGUMENT/persistence_revalidation_failed（message "world object failed persistence validation"）[旧 B10 变体 b]
+自称 dependency 的伪行 → 下一笔合法提交
+  → 当场 INVALID_ARGUMENT（不再抛 traceback）                                [旧 B11①]
+伪造 pre-B6 形状 result_json / stored_request_fingerprint 非 jsonable
+  → 均无裸抛（idempotency.py:155-157、:46-50 泄漏点已消除）                  [旧 B11②③④]
+非标准 JSON 值：bytes / NaN / Infinity / int 键 / tuple 键
+  → StoreError INVALID_ARGUMENT/durable_json_validation_failed（新增的显式拒绝）
+```
+
+`PYTHONPATH=src pytest`：`f210765` 上 **558 passed**（候选为 420 passed + 1 warning）；`aios_core_r2_reference` 15 passed；`tests/unit/test_m0_gate_fourth_followup.py` 裸跑由「1 条假红」变为 **2 passed**（上一轮记的证据可移植性缺陷已修）。
+
+### 10.3 仍成立项的最小复现（`f210765`）
+
+**M0-016-B3（`RULING REQUIRED`）** — 同一 `idempotency_key`、内容完全相同的等价重试，仅 `operation_id`（attempt id）不同：
+
+```
+→ StoreError IDEMPOTENCY_CONFLICT/request_fingerprint_mismatch，而首笔写入已生效
+```
+任务书 M0-016 A/H 要求「客户端在超时后能够安全重试」，B6 裁决定义身份 = 持久化表示（含主键）。二者冲突未解，需总工裁定：要么把 `operation_id` 从指纹身份中剔除（重试幂等），要么在契约与错误文案上明确「换 attempt id 即视为新请求」并改掉「already used for a different request」这一在此场景为假的描述。
+
+**M0-016-B4（轻微，语义级）** — `{"seq": {"a","b"}}` 与 `{"seq": ["a","b"]}` 归一到同一指纹：以有序语义重复提交会拿到 `idempotent_replay=True` 回执，而 Core 实际从未按有序请求写入。durable 字节相同（`set` 落库前已排序，跨 `PYTHONHASHSEED=0/1/7/42/99/12345` 实测**逐字节一致**，故不构成确定性缺陷）；乱序 `["b","a"]` 会正确冲突。若裁定「集合语义与序列语义是不同请求」，则应让二者指纹可分辨。
+
+**M0-021-B1（本审计即旧 B13，与前份 R2 清单同源）** — `grep -c state_machines src/aios_core/storage/*.py` 仍为 0：`validate_task_transition(COMPLETED, RUNNING)` 抛 `ValueError`，但 `store.commit()` 放行非法终态迁移并落库 `task_state=RUNNING`。请裁定 M0 是否要求唯一写入层强制冻结矩阵；若归属 M2，需在任务书 M0-021 的验收口径里写明「helper 提供、边界不强制」，否则后续评审会反复重开。
+
+**M0-017-B4（观察）** — `complex(1,2)→"1+2j"`、`Decimal("1.5")→"1.5"`、`UUID→str`、`naive datetime→"2026-01-01T00:00:00"`、`set→排序 list` 仍是静默有损转换（`_encoded_json` 的 `json.dumps(..., allow_nan=False)` 只挡住了 NaN/Infinity，其余走默认 `default` 路径），调用方 `get_payload` 读回的类型与提交时不同。建议在 M1 把「payload 必须是 JSON 原生类型」写进 `JsonValue` 契约并在边界拒绝（与已实现的 `durable_json_validation_failed` 同一条路），不要留隐式转换。
+
+**M0-019 残留（重申，非 blocker）** — 类型化引用全量校验无逃生舱（`sqlite_store.py` 中 `grep -n validate_reference` = 0 命中，`commit(objects, operation)` 无绕过参数），但 `value/metadata` 等 `Any` 字段中的「引用形状字典」不被当作引用（实测 `{"fake_ref": {"object_id":"ghost","revision":999}}` 可落库）。与 M0-019 H 的字面范围一致，属可接受边界；若 M1 要做反向索引，需先裁定是否禁止该形状。
+
+### 10.4 Gate 建议（更新）
+
+- 对**指令指定的候选 `659157b`**：结论不变 —— `BLOCKER FOUND`（M0-017-B3 + M0-002-B2 当时为真实契约违反），该历史结论应保留在治理记录里。
+- 对**现 HEAD `f210765`**：两项 BLOCKER 已关闭，探针 28 项中 26 项通过、2 项确认（M0-016-B4、M0-021-B1）+ 1 项待裁定（M0-016-B3）。因此复评口径为 **`RULING REQUIRED`**：只需总工就 M0-016-B3（重试身份）与 M0-021-B1（矩阵归属）各下一次裁定，M0 Gate 的证据链即可闭合。
+- 前一份报告的「是否建议重开」维持：重开 `M0-002`/`M0-005`/`M0-017`/`M0-022` 的 **Gate 证据口径**（现已由 `f210765` 的 registry + 边界再校验实质满足 `M0-017-B3`，可停止重开）；`M0-009`/`M0-019`(R4)、`M0-015`、`M0-016`(B6/B8) 不需重开。
+- 本报告不宣布 `M0 FINAL PASS`，不授权 `M1 START`。
+
+### 10.5 同一探针在修复前后两个 HEAD 上的对照（本报告最有价值的一条证据）
+
+同一份 `auditor-e-probes.py`（未为通过而调整断言），分别指向候选与现 HEAD 的 `git worktree`：
+
+```
+AIOS_SRC=<worktree>/src PYTHONPATH=<worktree>/src python auditor-e-probes.py
+
+候选 659157b → 确认缺陷 6/28：
+  spoofed_object_type · subclass_extra_fields_break_roundtrip      （M0-017-B3）
+  spoofed_dependency_bricks_later_commit · raw_exception_leak…     （M0-002-B2）
+  set_vs_ordered_list_identity（M0-016-B4） · state_machine_not_enforced_by_store（M0-021-B1）
+  + retry_with_new_operation_id = RULING（M0-016-B3）
+现 HEAD f210765 → 确认缺陷 2/28，PROBE-ERROR = 0：
+  仅 set_vs_ordered_list_identity（M0-016-B4） · state_machine_not_enforced_by_store（M0-021-B1）
+  + retry_with_new_operation_id = RULING（M0-016-B3）
+```
+
+含义：M0-017-B3 与 M0-002-B2 的修复**确实针对行为而非改测试**（同一对抗输入由「静默入库 / 裸 traceback」变为 `INVALID_ARGUMENT/persistence_revalidation_failed`、`durable_json_validation_failed`），而这三项在两个 HEAD 上表现完全一致，说明它们不是探针环境差异造成的假象。
+
+**给主线的免费建议（非本审计的裁定范围）**：把本探针的 4 个「修复后已 OK」用例固化为 `tests/unit/` 回归（尤其 `spoofed_object_type`、`subclass_extra_fields_break_roundtrip`、`spoofed_dependency_bricks_later_commit`），否则 M0-017-B3 这一类边界回归只能靠红队复测发现。
+
+*探针本轮已修：静态源码检查的根目录原为硬编码 `/tmp/audit/cand`，现改为由 `AIOS_SRC`/`AIOS_ROOT` 推导（`AUDIT_ROOT`），因此可对任意 worktree 直接运行；`subclass_extra_fields_break_roundtrip` 在遇到协议拒绝时返回 OK 并打印错误码，使同一脚本在修复前后都可用。*
