@@ -14,9 +14,10 @@
     "      （ADJ-011 稳定键）与 evidence（实测或推导依据）。",
     "      没有宪法出处的指标是私人偏好，不是法律；没有实测依据的数字是愿望，不是预算。",
     "格式：JSON 而非 YAML —— Python 标准库原生支持，不给 M0 冻结的 pyproject.toml 增加运行时依赖。",
-    "强制：tests/policy/test_runtime_policy.py（判决）+ test_policy_gate_regression.py（判决的判决）。"
+    "强制：tests/policy/test_runtime_policy.py（判决）+ test_policy_gate_regression.py（判决的判决）。",
+    "v1.3.0 (2026-09-16, 合并线后续写): M1-018 co_search 段回归入法——此前本段单独在 M1-018 工作线投产，在另一条线的 v1.1.0→v1.2.0 ADJ 对齐合并中未带过来。"
   ],
-  "policy_version": "1.2.0",
+  "policy_version": "1.3.0",
   "generated_at": "2026-09-16",
   "constitution_baseline": "CONST-v3.0.1 = AIOS核心系统宪法v3.0 (sha256:4df049fc…ce029f3a525f2) + docs/constitution/v3.0.1_规范裁决集_ADJ-001-012.md (sha256:a75a6db1…123953e18c85)；G0 已于 2026-09-15 签发",
   "upstream_authority": [
@@ -2080,5 +2081,37 @@
     },
     "$honest_note": "12 条里没有一条是『我对 ADJ 错』。这不是客套：ADJ 裁决集是在完整读过 v3.0 全文并做了条款级冲突分析后签发的，而我的 v1.0.0 是在断层审计的基础上做的工程推导 —— 在『条款语义的精确边界』这件事上，前者的信息位置本来就优于后者。我的优势在别处：可执行的判决门、实测数字、以及给判决门写回归测试。两者合流才对。"
   },
-  "$version_collision_note": "【为什么是 1.2.0 而不是 1.1.0】2026-09-16，两条工作线在互不知情的情况下各自产出了一个 v1.1.0：一条把 retention_ttl 入法（M1-019 参数表，已提交，registry 钉哈希 1bcf22f1…），一条做 ADJ-001~012 全量对齐（未提交）。**同一个版本号指代两份不同内容**，这正是注册表要消灭的东西。合并后的工件升为 1.2.0：任何一方都不『赢得』1.1.0 这个号，已提交的那条按规则②原样封存，未提交的那条不占版本号（内容已并入 1.2.0）。我在政策层里写了 id_namespace_registry 专门防止编号漂移，然后在同一周里两次成为它的案例（第一次是设计书 C15/C16 模块编号对撞，第二次就是这个版本号对撞）。"
+  "$version_collision_note": "【为什么是 1.2.0 而不是 1.1.0】2026-09-16，两条工作线在互不知情的情况下各自产出了一个 v1.1.0：一条把 retention_ttl 入法（M1-019 参数表，已提交，registry 钉哈希 1bcf22f1…），一条做 ADJ-001~012 全量对齐（未提交）。**同一个版本号指代两份不同内容**，这正是注册表要消灭的东西。合并后的工件升为 1.2.0：任何一方都不『赢得』1.1.0 这个号，已提交的那条按规则②原样封存，未提交的那条不占版本号（内容已并入 1.2.0）。我在政策层里写了 id_namespace_registry 专门防止编号漂移，然后在同一周里两次成为它的案例（第一次是设计书 C15/C16 模块编号对撞，第二次就是这个版本号对撞）。",
+  "co_search": {
+    "$comment": "M1-018 混合共现检索的执行参数。权重走配置不走 schema（I5 绝对禁止项的反面）。",
+    "constitution_ref": "§89(多关键词共现联想检索), §90(图谱拓扑穿透), §95(全局世界索引), §96(关键词是入口不是真相)",
+    "constitution_stable_keys": [
+      "C24-cosearch",
+      "C24-topology_nav",
+      "C26-global_index",
+      "C26-keyword_entry"
+    ],
+    "adjudication_refs": [
+      "I5 规约 §3.4, R4 §3.4-I5 AC-1~AC-6"
+    ],
+    "evidence": "I5 规约 §3.4；权重为 sim 出厂值，M1.X 调参冻结后随 policy_version 演进",
+    "deadline_ms": 200,
+    "topk_default": 20,
+    "topk_multiplier": 4,
+    "graph": {
+      "max_depth": 2,
+      "frontier_cap": 64
+    },
+    "weights": {
+      "bm25": 1.0,
+      "postings": 0.85,
+      "entity": 0.6,
+      "graph": 0.35,
+      "recency": 0.15,
+      "alias_bonus": 0.25
+    },
+    "zero_hit_fail_loud_for_seed_terms": true,
+    "$zero_hit_note": "M0' 判词：种子族关键词 0 命中 = index 损坏或词典断供，必须 fail-loud 不得静默。M1-018 引擎实现 ZeroHitFatal 例外承载此判词。",
+    "stale_p95_report": true
+  }
 }
