@@ -4,5 +4,29 @@
 """
 
 from .history import HistoricalQueryResult, HistoricalWorldQuery, QueryCoverage
+from .hyperlink_traverser import (
+    AliasAmbiguousError,
+    EntityHyperlinkGraphTraverser,
+    EntityNotRegisteredError,
+    HyperlinkQueryError,
+    HyperlinkTraversalResult,
+    InvalidTraversalDepthError,
+    MalformedIdentifierError,
+    MAX_TRAVERSAL_DEPTH,
+    normalize_alias,
+)
 
-__all__ = ["HistoricalQueryResult", "HistoricalWorldQuery", "QueryCoverage"]
+__all__ = [
+    "HistoricalQueryResult",
+    "HistoricalWorldQuery",
+    "QueryCoverage",
+    "AliasAmbiguousError",
+    "EntityHyperlinkGraphTraverser",
+    "EntityNotRegisteredError",
+    "HyperlinkQueryError",
+    "HyperlinkTraversalResult",
+    "InvalidTraversalDepthError",
+    "MalformedIdentifierError",
+    "MAX_TRAVERSAL_DEPTH",
+    "normalize_alias",
+]
