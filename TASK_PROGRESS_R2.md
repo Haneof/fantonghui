@@ -93,5 +93,13 @@ as-built 实测要点（供 M1 排期参考，非产品 SLO）：当前冻结 sc
 51,822 个对象（≈15.55 M token 复核）；加入派生投影后分别降至 7~47 ms、0.66~112 ms、0.82~10.82 ms。
 
 评审结论与元裁决一致：上述阻断项关闭前，M1 大规模编码保持暂停。
-放行顺序为 **v3.0.1 修正案 → Gate 0（M0-023~M0-032）→ Gate 1（M1）→ Gate 2（M2）→ Gate 3（M3）**；
+放行顺序为 **`NUMCI-001`（编号 registry + CI 门转绿）→ v3.0.1 修正案 → Gate 0（M0-023~M0-032）→
+Gate 1（M1，含 `PROBE-CI-002` 四支探针入 CI）→ Gate 2（M2）→ Gate 3（M3）**；
 Gate 0 未过时只允许做修正案、契约、迁移 fixture 与测试夹具。
+
+> ⚠️ **上面出现的 `M0-023~M0-032` 等号位目前不具备派单效力**：同一号段被 5 套方案重复分配
+> （争用面 66 个号，交叉矩阵见统一母表 §9.2）。号位真源已移至
+> `governance/issue_registry/v3_issue_registry.json`（0.2.0-PROPOSAL 种子），
+> CI 门 `governance/issue_registry/check_issue_registry.py` 当前实跑 **GATE = RED**
+> （规则 A 0 / UNREGISTERED 0 / CONFLICT 39 / UNRATIFIED 21，exit 1；负向对照已验证门会开火）。
+> 派单一律以 registry 的 `slug` 为准，号仅作显示。

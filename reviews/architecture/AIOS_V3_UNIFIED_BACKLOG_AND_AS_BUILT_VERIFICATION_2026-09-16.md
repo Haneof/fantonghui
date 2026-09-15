@@ -5,12 +5,12 @@
 | 文档角色 | **不是第 5 份独立 Gap Audit**。本报告是元裁决 `AIOS_V3_MULTI_REVIEW_META_AUDIT_NO_GO_2026-09-16.md` §6.1 第 5 项与 §7.3 强制要求的交付物：「以 D 为底稿合并 E/F：先做语义去重和同号异义消解，再冻结唯一的 `M0-023~` backlog」「必须生成一份去重母表，保留来源映射」 |
 | 审查人 | AIOS 核心系统总架构师 / 工程审计长（第 4 轮横向对齐审查） |
 | 日期 | 2026-09-16 |
-| 分支 / 基线 | `arena/01a0a631-fantonghui`；文档基线 commit `cc66e13`（含 `493a3e0` 元裁决） |
+| 分支 / 基线 | `arena/01a0a631-fantonghui`；§0~§8 的文档基线为 `cc66e13`（含 `493a3e0` 元裁决）；**§9 为 rebase 到 `00adf2b` 后的追加裁定**（上游新增三份重构方案 P1/P2/P3 与两份元审查） |
 | 比对对象 | 【V3宪法】`AIOS核心系统宪法v3.0.md`(1720 行)、【架构规划】`AIOS Core 系统架构图与开发规划.md`(326 行)、【总工任务书】`AIOS_Core_详细开发任务拆分_R2_总工程师版.md`(4262 行)、【工作台规格】`AIOS认知工作台功能规格.md`(403 行)、【测试规范】`AIOS虚拟世界测试规范.md`(480 行)；合计 7,191 行全文逐条比对 |
 | 代码复核 | `schemas/r2/m0_contract_snapshot.json`（`gate_version=M0-R2`、16 枚举、30 模型哈希、ObjectType 19 类、ErrorCode 11 项）、`src/aios_core/contracts/{models,enums}.py`、`src/aios_core/storage/sqlite_store.py`、`src/aios_core/dependency/graph.py` |
 | 实测依据 | 仅引用**已入库且 SHA256 可校验**的两套探针：本审计 `aios_v3_as_built_probe`（as-built 冻结 schema，1M revision / 2,211,817 边）与报告 A `aios_v3_sqlite_probe`（自建优化 schema，3.6M 对象）。未入库数字一律列入 §5.3「不可引用表」 |
-| 裁决 | **PATCH_REQUIRED / AS-WRITTEN NO-GO**（服从元裁决）。**Gate 0 未过：停止新的 M1/M2 派单**；允许只做 v3.0.1 修正案、契约扩展、迁移 fixture 与测试夹具 |
-| 与既有档案关系 | 收敛于 D(41 gap)/E(30 gap)/F(25 gap)/元裁决(H-01~H-21)；本报告的增量是 **①编号仲裁定稿 ②去重母表 ③as-built 实测验收值 ④五张可直接派单的 12 要素 Issue 卡片 ⑤两条新发现（悬空验收引用 TASK:L3377、测试规模单位与第三十三条冲突）** |
+| 裁决 | **PATCH_REQUIRED / AS-WRITTEN NO-GO**（服从元裁决）。**Gate 0 未过：停止新的 M1/M2 派单**；允许只做 v3.0.1 修正案、契约扩展、迁移 fixture 与测试夹具。**§9 追加：编号权不在任何文档（含本报告），在 `governance/issue_registry/` + CI；`NUMCI-001` 未绿之前不得按任何一套号位派单** |
+| 与既有档案关系 | 收敛于 D(41 gap)/E(30 gap)/F(25 gap)/元裁决(H-01~H-21)；本报告的增量是 **①编号冲突终局矩阵与 registry/CI 解法（§9，含对自身的降级） ②去重母表 ③as-built 实测验收值 ④五张可直接派单的 12 要素 Issue 卡片 ⑤三条新发现（悬空验收引用 TASK:L3377、测试规模单位与第三十三条冲突、`M0-027` 自身即编号冲突）** |
 
 ---
 
@@ -51,7 +51,9 @@
 - **`V` 前缀被 5 套语义占用**：测试规范 V01~V20（场景）、宪法 L1604-1619 V21~V30（场景）、宪法 L1692-1698 V3-01~V3-03（验收）、D V31~V45（场景）、E V31~V36 与 F V31~V37（场景，内容互不相同）。
 - **`A01~A10` 一物两义**：宪法第一百一十四条(L1633-1642) 与【架构规划】§12(L313-324) 同号异义，而 M2-015 裸引 A07/A08/A09（元裁决 H-18 已判定为治理级高价值发现）。
 
-**判词**：在 §3 的编号仲裁定稿并冻结唯一 backlog 之前，任何"按 D/E/F 增补 Issue"的执行动作都会产生**同号异义的第四套语义**，使 Gate 0 的第 8 项（`CONFLICT/UNMAPPED = 0`）永久无法达成。本报告 §3~§4 即为该仲裁与母表的定稿建议，供 v3.0.1 修正案直接采纳。
+**判词**：在任何**机器可校验的编号真源**建立之前，"按 D/E/F 增补 Issue"的执行动作都会产生**同号异义的第四套语义**，使 Gate 0 的第 8 项（`CONFLICT/UNMAPPED = 0`）永久无法达成。
+
+> ⚠️ **本节写于基线 `cc66e13`。rebase 到 `00adf2b` 后事实已升级：冲突不是 3 套而是 5 套（新增 P1/P2/P3 三份重构方案，其中 P1 明文宣布其他提案"全部失效"），本报告 §3 自身也是宣称唯一性的一方，故 §3 已按 §9.3 R1 降级为候选提案 PROPOSAL-α。终局矩阵与解法见 §9。**
 
 ---
 
@@ -155,6 +157,8 @@
 
 ## 3. 编号仲裁（核心交付物 A）
 
+> ⚠️ **降级声明（§9.3 R1）**：本节所有"定稿""唯一"字样已降级为 **候选提案 PROPOSAL-α**。原因：上游 `00adf2b` 之前又落入三份重构方案（P1/P2/P3），各自对同一号段给出不同语义，其中 P1 §10 宣称"审查报告中同号异义的提案全部失效"，元裁决 §六-2 则把编号权判给单一 `V3G-xxx`。**四套自称权威者互斥，本报告不加入争位。** 本节号位的正确用途：作为 registry 的 α 候选输入（`source_docs` 标注 PROPOSAL-α）；本节 §3.1 的**规则**（append-only、前缀即命名空间、宪法编号不动、阈值不入宪法）与 §3.3/§3.4 的**命名空间划分**继续有效并被 §9.3 R3/R4 采纳。
+
 ### 3.1 仲裁规则（先定规则，再定号）
 
 1. **以 D 为底稿**（元裁决 §6.1 第 5 项、§7.3「D 的范围、安全边界、41 项断层和 Gate 设计最完整，作为合并整改母表」）。
@@ -164,7 +168,7 @@
 5. **宪法既有编号不动**：A01~A10 / R1-01~11 / R2-01~15 / R3-01~07 / V3-01~03 / V21~V30 属宪法文本，只能由 v3.0.1 修正案处理；工程侧一律通过映射表引用（`TS-021 ≡ 宪法 V21`）。
 6. **阈值不入宪法**：所有 `PAR-*` 与 `ACC-*` 中的数字都是**测试 profile 默认值**，写入 TEST V0.2 的参数登记表，宪法只要求"有量化 SLO、有退化策略、有版本化 profile"（第七十六条 + 元裁决 §5.2）。
 
-### 3.2 Issue 同号异义消解表（定稿）
+### 3.2 Issue 同号异义消解表（**候选 PROPOSAL-α**；五套方案的终局冲突矩阵见 §9.2）
 
 | 定稿号 | 定稿语义（唯一） | D 原号 | E 原号 | F 原号 | 仲裁说明 |
 |---|---|---|---|---|---|
@@ -252,7 +256,8 @@
 
 1. 每个 Issue 必须按宪法第一百一十三条(L1545-1560)的 **12 要素**施工：任务编号 / 目的 / 输入 / 输出 / 接口 / 数据结构 / 前置依赖 / 禁止行为 / 单元测试 / 集成测试 / **验收场景（引用 `TS-*`）** / 已知限制。
 2. **来源列必填**：保留 D/E/F 原号映射，任何后续修订都能追溯到三份审计的原始判定。
-3. **验收数字只能引用 §5.2 的可引用表**；引用 §5.3 中未入库数字的 Issue 一律退回。
+3. **验收数字只能引用 §5.2 的可引用表**；引用 §5.3 中未取证数字的 Issue 一律退回（三态规则见 §9.4）。
+6. **号位不是真源，slug 才是**（§9.3 R2/R6）：母表每行除"定稿号"外必须带 `slug`；派单时以 `slug` 匹配，号仅作显示。59 项 = 原 57 项 + `NUMCI-001` + `PROBE-CI-002`（§4.9）。
 4. **Gate 归属决定放行顺序**：Gate 0 未过不得派 Gate 1 的编码单；Gate 1 未过不得派 Gate 2。
 5. 母表本身是 v3.0.1 修正案的附件，**修正案发布后由追踪矩阵自动生成**，不再手工维护行号（元裁决 L186）。
 
@@ -394,8 +399,15 @@
 | "TODO 永不做周期复查" | E/F 语气 | 改写（H-19） | M2-005/006：允许机械复查，禁止 LLM 全表盘点 |
 | "`p95 < 50ms` 写入宪法" | C/F | 改写（§5.2） | 写入 TEST V0.2 profile，宪法只要求"有量化 SLO + 退化策略 + 版本化 profile" |
 | "一个 sprint 可修完 / 三个对象只是 schema 工作量" | F | 驳回 #11 | 母表不给工期承诺，只给 Gate 顺序与前置依赖 |
-| "把 D/E/F 编号原样叠加" | 三份审计 | 驳回 #12 | §3 仲裁表为唯一编号来源 |
+| "把 D/E/F 编号原样叠加" | 三份审计 | 驳回 #12 | 归并为 §4 母表；**号位真源已按 §9.3 R2 移至 `governance/issue_registry/`，§3 表降级为 PROPOSAL-α** |
 | "因 V3 缺口追溯宣告既有 R2 M0 测试全部无效" | — | 驳回 #14 | M0 已验证能力（ID/append-only revision/三类时间/幂等/引用完整性/状态机）**保留有效** |
+
+### 4.9 母表增补两项（§9 追加，使用**临时命名空间**，不与任何 `M*-***` 争用）
+
+| 临时号 | Gate | 动作 | 关键输出 | 阻断验收 | 来源 |
+|---|---|---|---|---|---|
+| **`NUMCI-001`** | **Gate 0（阻断其余全部派单，先于 M0-023）** | 新增（**本 commit 已交付种子实现，见 §9.7**） | ①`governance/issue_registry/v3_issue_registry.json`（唯一号位真源：`{id, slug, milestone, gate, semantics, source_docs[], status, conflicting_claims[], traces_to}`）②`governance/issue_registry/check_issue_registry.py`（stdlib CI 门：规则 A registry 完整性 / 规则 B 未注册号被引用即 fail / 规则 C `open_conflicts` 未 RESOLVED 即 fail）③36 个争用号逐号裁决记录 ④`pytest --collect-only -q` 与解释器版本工件入库（终结 558 vs 433 之争） | **CI 输出 `CONFLICT = 0` 且 `UNREGISTERED = 0`**；在此之前任何 `M*-***` 派单一律视为无效单 | §9.3 R2/R3/R5；采纳 P2 铁律一意图（其号 `M0-027` 自身冲突，驳回）；执行元裁决 §六-2「统一编号」与 §六-3「证据入 CI」 |
+| **`PROBE-CI-002`** | Gate 1（M1 规模门硬门） | 新增 | 把 4 支探针并入 CI 并留存工件：`aios_v3_sqlite_probe.py`(A，3.6M) + `probe_500k_schema_search_5d.py` / `probe_fts5_vs_postings.py` / `probe_cjk_tokenizer.py`(B) + 本审计 `aios_v3_as_built_probe.py`；每支产出 stdout + JSON + SHA256；B 的数字由此从"可复现但未取证"转为"可引用" | 中文连续文本与 2 字词召回 **> 0** 硬断言；`occurred_at`（非 `learned_at`）口径的 100 万行时间窗查询必须单独报告；任一探针未留工件 ⇒ 该 Issue 的 SLO 数字不得写入验收 | 元裁决 §六-3；§9.4 三态规则；§5.4-1 口径差 |
 
 ---
 
@@ -463,6 +475,8 @@
 | WAL 旧读者 | 存在旧读者时 WAL **416,152 B** 且 passive checkpoint **0 页**；读者释放后 truncate 归零 | M1-020 的 WAL 长 reader 测试设计 |
 
 ### 5.3 **不可引用**数字表（当前仍散落在 E 的整改建议里，必须替换）
+
+> ⚠️ **本节前提已被上游部分推翻，见 §9.4**：B 的三支探针脚本已由 `f3f1889`/`493a3e0` 补入 `reviews/constitution/evidence/`，故下表"未入库"一栏应读作**「脚本已入库、但无 committed 运行输出/日志/SHA256」= 可复现但未取证（reproducible-but-unattested）**：仍不得写入 Issue 验收，但处置从"永久替换"改为"由 `PROBE-CI-002` 跑一次取证后即可引用"。
 
 | 出现在 | 数字 | 实际来源 | 处置 |
 |---|---|---|---|
@@ -637,6 +651,10 @@ M5-004 → M6-005 → M7-002/M7-005 → M8-004 → M8-003 Gate → POST-M8-HW-00
 | `src/aios_core/storage/sqlite_store.py` | 5 表 3 索引、WAL + `synchronous=FULL` | 仓库冻结件 |
 | `src/aios_core/dependency/graph.py` | `collect_impacted_dependents()` 自述 "deterministic in-memory contract helper, not the M3 persistent reverse index" | 仓库冻结件 |
 | `TASK_PROGRESS_R2.md` | M0 16/22 FINAL PASS；M0-022 **BLOCKED**；M1~M8 未开始 | 仓库现状 |
+| `reviews/constitution/evidence/probe_{500k_schema_search_5d,cjk_tokenizer,fts5_vs_postings}.py` | B 的三支探针脚本（上游 `f3f1889`/`493a3e0` 补入）；**无 committed 运行输出** | 脚本 ✅ / 输出 ❌ ⇒ §9.4「可复现但未取证」 |
+| `governance/issue_registry/v3_issue_registry.json` | §9.3 R2 的编号唯一真源种子（0.2.0-PROPOSAL，68 条注册项 + 66 条冲突记录） | `evidence/SHA256SUMS` ✅ |
+| `governance/issue_registry/check_issue_registry.py` | §9.3 R5 的 CI 门实现（`NUMCI-001`，stdlib-only） | 同上 ✅ |
+| `governance/issue_registry/evidence/check_run_2026-09-16.{log,json}` + `SHA256SUMS` | 正向实跑（GATE=RED：CONFLICT 39 / UNRATIFIED 21 / exit 1）+ 负向对照（篡改副本触发规则 A×4） | ✅ |
 
 ### 8.2 与仓库内既有 8 份档案的关系
 
@@ -651,7 +669,12 @@ M5-004 → M6-005 → M7-002/M7-005 → M8-004 → M8-003 Gate → POST-M8-HW-00
 | **元裁决** `AIOS_V3_MULTI_REVIEW_META_AUDIT_NO_GO_2026-09-16.md` | 本报告**执行**其 §6.1 第 5 项与 §7.3 的强制交付物；H-01~H-21、§5.2 改写表、§5.3 十四条驳回全部落入 §4.8 与母表验收口径 |
 | **前一轮报告** `AIOS_v3.0_CHIEF_REVIEW_R2_AS_BUILT_STRESS_PROBE_2026-09-15.md` | 本报告的实测数字全部来自其探针与日志；其 B1/B2/B3/G1/G2 与 Top 3（CORE-P1/P2/P3）在本报告中被**转译为可派单的 Issue**：CORE-P1→`M0-032 + M1-021 + M1-018`，CORE-P2→`M0-030 + M1-019 + M3-004/005`，CORE-P3→`M3-016 + M3-001 + M2-025` |
 
-> 按元裁决 §0.2 的样本纪律，本报告**不计入独立评审票数**；它是元裁决点名的整改母表交付物。
+| **P1** `AIOS_Core_任务规划与开发任务拆分重构方案_V3_独立首席架构师版.md`（1594 行，rebase 后新增） | 内容质量高（Contract-first、规模门左移、M2 集成事务门、金丝雀），但其 §10 L459 的"其他提案全部失效"条款按 §9.6-1 **裁定无效**；号位一律不采信，内容以 slug 进 registry |
+| **P2** `reviews/architecture/AIOS_Core_全盘工程重构方案与详细任务拆分设计书_2026-09-16.md`（953 行） | 其铁律一（编号由宪法唯一持有 + CI 双义即 fail）被 §9.3 R2/R5 **采纳为机制**；其承载该机制的号 `M0-027` 因自身三套语义被 **驳回**，改挂 `NUMCI-001`；其 `pytest 558 passed` 按 §9.5-4 登记为待 CI 取证 |
+| **P3** `governance/v3.0.1_amendment/PROPOSAL_AIOS_CORE_ENGINEERING_RECONSTRUCTION_2026-09-16.md`（472 行） | 号位沿用 F ⇒ 与 α/β/δ/ε 四方冲突（§9.6-3）；其规模门未指明时间口径与测量主体，数字不得作验收；治理侧"M0 Gate = HOLD_PENDING_PATCH"与本报告 Gate 0 判词一致，予以采纳 |
+| **两份新元审查** `AIOS_v3.0_并行审查报告全景清点与元裁决_2026-09-16.md`(225 行) / `META_REVIEW_PARALLEL_AUDITS_2026-09-16.md`(122 行) | 前者 §六 的"统一编号 / 证据入 CI / 一份 v3.0.1 补丁包"三件收尾工作被 §9.3 落为可执行机制（registry + `NUMCI-001` + `PROBE-CI-002`）；后者 v2 增补的"5 个并行会话、20 个文档条目、实证越硬分数越低"作为本仓库治理债的量化背景采纳。按两者要求，**本报告不再新开元审查口径，只交付机制与矩阵** |
+
+> 按元裁决 §0.2 的样本纪律，本报告**不计入独立评审票数**；它是元裁决点名的整改母表交付物。§9 之后，它的定位进一步收窄为：**跨 6 份文档的号位交叉映射 + registry/CI 种子实现**。
 
 ### 8.3 引用行号索引（本次基线 `cc66e13`；文档改版后应由 M0-023 的追踪矩阵自动生成）
 
@@ -673,6 +696,146 @@ M5-004 → M6-005 → M7-002/M7-005 → M8-004 → M8-003 Gate → POST-M8-HW-00
 6. **§4.7 `PAR-01~PAR-15`** —— 可测参数登记表（第七十六条要求的载体）。
 7. **§4.8 驳回清单映射** —— 14 条，防止团队照 D/E/F 原文执行已被元裁决驳回的判词。
 8. **§5 实测值登记表** —— 可引用 / 不可引用 / SLO 书写模板三段，是"哪个数字能写进 Issue"的唯一裁判。
-9. **§6 五张 12 要素 Issue 卡片** —— M0-023、M0-032、M1-018、M2-009、M2-024，可直接开单。
+9. **§6 五张 12 要素 Issue 卡片** —— M0-023、M0-032、M1-018、M2-009、M2-024（**号位待 registry 重签**，内容可直接开单）。
+10. **§9.2 五套方案终局冲突矩阵** —— 36 个争用号 × 6 份文档，仓库内第一个跨文档号位交叉映射；含"`M0-027` 自身即冲突"与"`M1-017` 是唯一收敛号"两条判定级发现。
+11. **§9.3 R1~R6 终局裁决** —— 编号真源由文档改为文件（`governance/issue_registry/v3_issue_registry.json`，本 commit 提供 0.1.0-PROPOSAL 种子）+ CI 门（`check_issue_registry.py`，本 commit 提供可运行实现，当前实跑为红色）。
+12. **§9.4 三态数字规则 + 母表扩至 59 项** —— 新增 `NUMCI-001`（Gate 0，阻断全部派单）与 `PROBE-CI-002`（Gate 1，4 支探针入 CI 并为 B 的数字取证）。
+
+---
+
+## 9. 上游 6 个 commit 落地后的**编号终局裁定**（本节基线 `00adf2b`，rebase 后追加）
+
+> **本节是本报告自我更正与升级的部分。** 本报告 §3 定稿于基线 `cc66e13`；rebase 到 `00adf2b` 后发现上游在同一时间窗内又落下 6 个 commit、新增**三份各自宣称"唯一编号"的重构方案**与两份元审查。核对结论：§3 的号位主张**不再成立为"唯一"**，必须降级；同时上游三份方案把冲突从 3 套扩大到 5 套。以下给出终局冲突矩阵、终局裁决与可机器校验的解法。
+
+### 9.1 事实登记（全部可在仓库内核验）
+
+| 项 | 事实 | 核验方式 |
+|---|---|---|
+| 基线变更 | 本报告两 commit rebase 到 `00adf2b` 之上；上游新增 6 commit：`f3f1889`(15 条目清点元裁决) → `00e7482`(6 份元审查) → `94d5d85`(v2 全景+接受 NO_GO) → `47d32f1`(V3 roadmap) → `5161f47`(工程重构 PROPOSAL) → `00adf2b`(全盘重构蓝图) | `git log --oneline 493a3e0..00adf2b` |
+| 新增方案 **P1** | `AIOS_Core_任务规划与开发任务拆分重构方案_V3_独立首席架构师版.md`（1594 行，仓库根目录） | §10 L459 明文：**「以下编号是本重构方案的唯一建议编号。审查报告中同号异义的提案全部失效。」** |
+| 新增方案 **P2** | `reviews/architecture/AIOS_Core_全盘工程重构方案与详细任务拆分设计书_2026-09-16.md`（953 行） | 铁律一 L92-96：**验收编号由宪法唯一持有，其他文档只能引用**；落地为 CI 脚本（其自编号 `M0-027`） |
+| 新增方案 **P3** | `governance/v3.0.1_amendment/PROPOSAL_AIOS_CORE_ENGINEERING_RECONSTRUCTION_2026-09-16.md`（472 行） | L110-151：`M0-023~027`/`M1-017~021`/`M2-016~021`/`M3-012~014`，号位实质沿用 F |
+| 新增元审查 | `reviews/constitution/AIOS_v3.0_并行审查报告全景清点与元裁决_2026-09-16.md`（225 行）、`META_REVIEW_PARALLEL_AUDITS_2026-09-16.md`（122 行） | 元裁决 §六 L157-158：已核实编号体系**至少 6 套**，`GAP-` 前缀双占用；建议**「A~F 报告代号 + 单一 `V3G-xxx` 断层号」**；并要求「不要再开第二份元审查」 |
+| 证据入库 | B（`AIOS_v3.0_独立评审报告`）的三支探针脚本已入库 `reviews/constitution/evidence/probe_{500k_schema_search_5d,cjk_tokenizer,fts5_vs_postings}.py` | 元裁决 §五 L180：4 支探针（A 的 3.6M + B 的三支）应并入 CI 作为 **M1 Gate 硬门** |
+
+### 9.2 五套方案的**终局冲突矩阵**（36 个争用号 × 6 份文档）
+
+α = D 与本报告 §3（两者号位一致，本报告以 D 为底稿）；β = E；γ = F；γ′ = P3；δ = P1；ε = P2。「语义簇」= 该号在这些文档中指向**几种互不相同的工作**（同义不同措辞计 1 簇）。
+
+| 争用号 | α：D + 本报告 §3 | β：E | γ：F | γ′：P3 | δ：P1 | ε：P2 | 语义簇 |
+|---|---|---|---|---|---|---|---|
+| **M0-023** | 权威与追溯冻结 | Prediction 契约 | Prediction 契约 | Prediction 契约(023~026) | 权威/命名空间/追溯 | 三对象契约一并冻结 | **3** |
+| **M0-024** | Prediction 契约 | LifeChapter | LifeChapter | LifeChapter | SourceEnvelope/Retention | 双时态与回溯加注 | **4** |
+| **M0-025** | LifeChapter | CommunicationExp | CommunicationExp | CommunicationExp | 双时态可见性 | 控制面对象契约 | **4** |
+| **M0-026** | CommunicationExp+AI seed | — | — | BudgetLedger | Prediction+CheckTask | Observation 质量/包络 | **4** |
+| **M0-027** | TriggerExpression 契约 | — | — | TriggerExpression 契约 | LifeChapter Contract | **编号唯一性 CI 门** | **3** |
+| **M0-028** | Conversation Stream 契约 | — | — | — | CommunicationExp+AI Seed | — | 2 |
+| **M0-029** | CockpitManifest 契约 | — | — | — | TriggerExpression 契约 | — | 2 |
+| **M0-030** | Source Trust/Transform/Retention | — | — | — | Conversation/Turn/Extraction | — | 2 |
+| **M0-031** | 双时态不变量+回溯标注 | — | — | — | ContextPlan/Manifest/Receipt | — | 2 |
+| **M0-032** | 派生投影合法化+schema 扩展 | — | — | — | Budget/Deadline/Degradation | — | 2 |
+| **M1-017** | 模拟端侧降采样管线 | 端侧轻量化摄入 | 多模态摄入策略契约 | 多模态摄入策略 | 模拟源网关+边缘 reducer | 端侧轻量化摄入管线 | 1 |
+| **M1-018** | 中文混合共搜引擎 | 关键词/别名倒排层 | co_search 共现引擎 | co_search 共现内核 | 可逆实体消解+声纹候选 | 检索内核(分词+倒排+FTS5) | **3** |
+| **M1-019** | Retention & Tombstone | 回溯加注服务 | 中文分词与别名 | 中文分词与别名 | 中文混合共搜引擎 | 多关键词共现 co_search | **4** |
+| **M1-020** | 早期规模与查询计划门 | — | 记忆切片排序契约 | 记忆切片排序契约 | Ranking/QueryPlanner/水位 | 5D 时间滑动条 | **3** |
+| **M1-021** | 关键词/别名倒排投影 | — | 规模基准骨架(自 M7-002 前移) | 规模脊柱门 | As-Of 读视图+加注存储 | 图拓扑穿透导航 | **4** |
+| **M1-022** | 检索排序与切片打分 | — | — | — | Retention/Quarantine/Tombstone | 声纹生命周期墓碑/重识别 | **3** |
+| **M1-023** | — | — | — | — | LOD 时间投影+自适应物化 | 检索规模门 | 2 |
+| **M1-024** | — | — | — | — | Early Scale/WAL/Plan 门 | — | 1 |
+| **M1-025** | — | — | — | — | M1 V3 证据金丝雀 | — | 1 |
+| **M2-016** | 活跃会话工作集 | 条件编译引擎 | — | 条件就绪引擎 | TriggerExpression 求值器 | 条件编译+ready queue | 2 |
+| **M2-017** | 增量流式萃取器 | 长会话三级流水线 | — | Wake 乒乓熔断器 | ReadyTaskQueue/Occurrence | CockpitManifest+四步序 | **5** |
+| **M2-018** | 主动召回与上下文组装 | 预算账本与降级阶梯 | 三级流式流水线 | 长会话三级流水线 | 活跃会话工作集 | 三级会话流水线 | **4** |
+| **M2-019** | 端到端延迟/Token 遥测 | 关系节奏心跳 | 关系节奏长平稳心跳 | 关系节奏长平稳心跳 | 增量萃取 Worker | BudgetLedger 记账降级 | **4** |
+| **M2-020** | Prediction Register 运行时 | 穿戴交互 FSM 模拟器 | Prediction Register 服务 | Prediction Register+CheckTask | 主动召回与上下文规划 | 羁绊模型 DIM_AI_RAPPORT | **4** |
+| **M2-021** | 穿戴 InteractionPort+FSM 仿真 | — | 会话输出契约(1~3 句) | 会话输出契约 | CockpitManifest 编译器+收据 | CommunicationExp 风格指标 | **4** |
+| **M2-022** | 关系节奏与静默心跳 | — | — | — | 预算化 AI Worker/工具运行时 | 穿戴交互 FSM+虚拟执行器 | **3** |
+| **M2-023** | 简洁应答与输出契约 | — | — | — | 记忆写入防火墙/来源信任 | 三层 UI 契约 | **3** |
+| **M2-024** | Trigger Eligibility 引擎+Ready 队列 | — | — | 关系节奏与静默心跳 | — | 会话上下文快照与回放 | **3** |
+| **M2-025** | BudgetLedger 与降级阶梯 | — | — | — | InteractionPort/通知 FSM | — | 2 |
+| **M2-026** | — | — | — | — | 端到端延迟与成本遥测 | — | 1 |
+| **M2-027** | — | — | — | — | M2 集成认知事务门 | — | 1 |
+| **M3-012** | 回溯语义加注 | Prediction Register 闭环 | — | 共振候选→证伪门禁 | Typed 失效传播协调器 | Prediction 证伪闭环服务 | **5** |
+| **M3-013** | LifeChapter 候选与基线迁移 | LifeChapter 相变识别归档 | — | LifeChapter 相变服务 | 证据重建+读时有效性守卫 | LifeChapter 相变检测 | 2 |
+| **M3-014** | CommunicationExp+Rapport 巩固 | AI 沟通经验维度 | — | 有界失效传播内核硬化 | 自适应时间总结物化器 | 传播预算化懒重算 | **3** |
+| **M3-015** | Prediction 校准+no-op 传播 | — | — | — | Prediction 验证/校准 | 清洗回归护栏 | 2 |
+| **M3-016** | 有界传播内核 | — | — | — | 共振候选与因果守卫 | — | 2 |
+
+**矩阵读数（四条硬结论）**：
+
+1. **36 个争用号里 31 个有 ≥2 套语义，20 个有 ≥3 套，2 个有 5 套**（`M2-017`、`M3-012`）。这不是"个别撞号"，是**整个 M0~M3 尾部号段的系统性重分配**：D/本报告从 `M0-024` 起排 Prediction，E/F/P3 从 `M0-023` 起排 Prediction，P1 把 Prediction 推到 `M0-026`，P2 把三个对象压进 `M0-023` 一个号 —— **同一个"补 Prediction 契约"的动作，在仓库里有 4 个不同的门牌号**。
+2. **唯一收敛号是 `M1-017`**：6 份文档措辞各异（模拟端侧降采样 / 端侧轻量化摄入 / 多模态摄入策略 / 模拟源网关+边缘 reducer）但**实质同一**（相机→caption-OCR、音频→ASR+声纹、IMU/心率→窗口特征与异常片段、原始 feed 不逐点入长期库）。⇒ **这是争用区间内今天唯一可以无歧义派单的号位**，应作为 registry 的第一条注册项与 CI 的正例。
+3. **矩阵本身还低估了争用面**。把 §9.3 R5 的检查器跑起来后，规则 B 又抓出 **30 个本矩阵未覆盖的号位**：`M0-033/034`、`M3-017~019`、`M4-005~010`、`M5-004~008`、`M6-005~009`、`M7-005~009`、`M8-004~007` —— 其中 **21 个是 P1 单方定义**（其他任何文档都没有这些号），**8 个与 P2/P3/本报告语义冲突**（`M4-005` 三方各异：P1=V3 场景包 V21~V45 / P2=会话层跨日接续 / 本报告=TEST V0.2 场景包 TS-021~TS-051；`M6-005` 四方各异；`M8-004` 两簇：消融矩阵 vs 穿戴契约预留），**1 个疑为同簇**（`M4-009` 盲测门）。⇒ **实际争用面是 66 个号，不是 36 个**；人工做矩阵会漏，机器扫全仓不会漏 —— 这本身就是 R5 的必要性证明。
+4. **最锋利的单点证据：`M0-027`**。P2 用 `M0-027` 承载"扫描 5 份文档、检测同一编号出现两套语义即 fail"的 CI 脚本 —— 而 `M0-027` 自己已被 **3 套语义**占用（D/本报告/P3 = TriggerExpression 契约；P1 = LifeChapter Contract；P2 = 编号唯一性 CI 门）。**用来消灭编号冲突的那个 Issue，本身就是编号冲突**，因此它按现状无法被派单。这条足以证明：编号问题不能靠"再写一份文档宣布唯一"解决，只能靠 registry + CI。
+
+### 9.3 终局裁决（可执行、机器可校验）
+
+**R1 —— 本报告自我降级（审计义务，不是让步）**：§3.2/§3.3/§3.4 中"定稿""唯一编号来源"字样一律降级为 **候选提案 PROPOSAL-α**；§4 母表 57 项的**语义、来源映射、阻断验收继续有效**（这些与号位无关），号位待 registry 分配；§6 五张 12 要素卡片内容有效、卡号待重签。理由：元裁决 §六-2 已把编号统一权判给"单一 `V3G-xxx`"，P1 §10 判给自己，P2 铁律一判给宪法+CI，本报告 §3 判给"D 为底稿的 append-only 序列" —— **四个自称权威者互斥，任何一个继续主张唯一性都只会产生第 5 套语义**，正是 Gate 0 第 8 项 `CONFLICT/UNMAPPED = 0` 永远达不成的机制。
+
+**R2 —— 唯一真源必须是文件，不是文档**：新增 `governance/issue_registry/v3_issue_registry.json`（本 commit 已提供 0.1.0-PROPOSAL 种子）。字段：`{id, slug, milestone, gate, semantics, source_docs[], status, conflicting_claims[]}`。**任何 md / Issue / PR 引用 `M*-***` 号必须能在 registry 命中同 `slug`**，否则 CI fail。文档只能**引用**号，不能**分配**号。
+
+**R3 —— 分配规则**：①先注册 `slug`（语义键，英文短横线式，如 `prediction-contract`），后由 registry 按里程碑序列尾部 append-only 分配号；②**一个 slug 只能有一个号，一个号只能有一个 slug**；③已注册号永不复用、永不改语义（改语义 = 发新号 + 旧号标 `SUPERSEDED_BY`）；④冻结基线 `M0-001~022 / M1-001~016 / M2-001~015 / M3-001~011 / M4~M8 现有号`不进 registry 争用区，只登记不重排（元裁决驳回 #14：已有 FINAL_PASS 不追溯失效）。
+
+**R4 —— 前缀收敛（接受元裁决方向，给出可执行形式）**：`V3G-xxx` = **审计发现（gap）号**，`M*-***` = **工程任务（Issue）号**，两者在 registry 内用 `traces_to` 关联（一个 gap 可映射多个 Issue）；裸 `V` 前缀与 `GAP-` 前缀**停用**（`V` 已被 5 套语义占用，`GAP-` 已被 #7/#11 双占用）。本报告 §3.3 的 `TS-*` 与 §3.4 的 `ACC-*/PAR-*/WB-*/ARCH-*/MOD-C*` 命名空间划分**继续有效**，作为 registry 的 namespace 表。
+
+**R5 —— CI 门先于一切派单**：临时号 **`NUMCI-001`**（专用命名空间，不与任何 M 号争用；P2 的 `M0-027` 意图照单全收，只换号）。本 commit 已提供可运行的最小实现 `governance/issue_registry/check_issue_registry.py`（stdlib，无第三方依赖），执行三条规则：**A** registry 自身完整性（无重号、slug 唯一、里程碑内单调 append-only）；**B** 全仓 md 中引用的非基线 `M*-***` 号必须在 registry 注册，否则 fail；**C** `open_conflicts` 中任何未 `RESOLVED` 的号 ⇒ **fail（门保持红色直到治理方逐号裁决）**。当前实跑结果见 §9.7：**GATE = RED，规则 A 违规 0 / UNREGISTERED 0 / CONFLICT 39 / UNRATIFIED 21，exit code 1**。这就是"编号统一"这件事第一次变成可回归的测试。
+
+**R6 —— 若今天必须派单的最小折中**：每张单强制携带 `slug` + `source_docs` 两个字段，号仅作显示用途；`slug` 冲突即 CI fail。这样即使 5 套号并存也不会派错单 —— 派单的歧义来自"号"，不来自"语义键"。
+
+### 9.4 §5.3 更正：B 的探针**已入库**，处置由"不可引用"精化为"可复现但未取证"
+
+上游 `f3f1889`/`493a3e0` 已把 B 的三支探针脚本补入 `reviews/constitution/evidence/`。§5.3 原文"未入库、不得引用"的前提**部分失效**，现更正为三态：
+
+| 态 | 条件 | 数字 | 可否写进 Issue 验收 |
+|---|---|---|---|
+| **可引用（attested）** | 脚本 + 运行输出 + 日志 + SHA256 均入库 | as-built 1M 全套（§5.2(a)）；A 的 3.6M 全套（§5.2(b)） | ✅ 可以，须注明主体与 profile |
+| **可复现但未取证（reproducible-but-unattested）** | 脚本已入库，**无 committed 运行输出/日志/哈希** | B 的 319 / 654 / 4.2 / 31.3 / 168 / 369 ms、273 / 628 MB | ❌ 暂不可。须由 **`PROBE-CI-002`**（临时号）在 M1 规模门内执行一次，把 stdout + JSON + SHA256 入库后转为"可引用" |
+| **不可引用（unattested）** | 无脚本、无输出，仅正文数字 | 其余散见于评审正文的量级估算 | ❌ 永久不可，须替换 |
+
+**据此本报告 §4 母表由 57 项增至 59 项**：新增 **`NUMCI-001`**（编号 registry CI 门，Gate 0，**阻断其余全部派单**）与 **`PROBE-CI-002`**（4 支探针并入 CI 作为 M1 Gate 硬门 + B 数字取证，Gate 1）。两者都用临时命名空间，等 registry 裁决后由 registry 发正式号。
+
+### 9.5 本报告相对三份新方案的**增量**（不重复 P1/P2/P3 已覆盖的内容）
+
+1. **三份新方案没有一份测过 as-built 冻结 schema**。P1 的 SLO 与 P2/P3 的规模门都建立在"设计 schema 应能达标"的推演上；本报告 §5.2(a) 的实测（三词共现 **1,282.8~1,357.9 ms**、`occurred_at` 时间窗 **1,201.4~1,468.6 ms**、FTS5 `unicode61`/`trigram` 对连续中文与 2 字词 **0 命中且不报错**、传播 **9.3 s → 预算化 10.82 ms**）说明：**在现有冻结 schema 上，P1/P2/P3 写的检索与规模 SLO 一律达不到，必须先落 `M0-032`(α) 派生投影合法化 + 倒排/时间桶物化**。三份方案的 Gate 顺序都没有把这一条前置。
+2. **`occurred_at` 与 `learned_at` 的口径差**（本报告 §5.4 第 1 条）在三份新方案中均未出现：P3/P2 的规模门写"100 万行 p95"，但未指明切的是**发生时间**（payload 内、无索引，as-built 1.2~1.5 s）还是**得知时间**（顶层索引列，B 的 369 ms）。**这一条不写清，规模门会绿灯通过而宪法第八十七条的滑动条仍然不可用。**
+3. **registry 的数据结构与 slug 规则在三份方案中均缺失**：P2 只有一句"CI 扫描编号定义块"，没有真源文件、没有 slug、没有 append-only 与 SUPERSEDED 语义、没有 gap↔Issue 的 `traces_to`；P1 用"宣布其他提案失效"代替机制；P3 未涉及。§9.3 R2~R6 + 本 commit 的种子 registry 与 checker 是第一个可运行实现。
+4. **两处事实性冲突，本报告不裁定、只登记为 CI 应解决的项**（因为它们都可机器校验）：
+   - P2 首页称 `pytest` **558 passed**；P3 首页称 **418+15 全绿待签**（=433）。本沙箱静态清点：`tests/` 下 `def test_` **456** 个（unit 432 / integration 4 / architecture 20）、`parametrize` **32** 处、46 个测试文件。**433 ≈ unit 目录的 def 数，558 ≈ 全仓收集数（含参数化展开）**——两者很可能不是同一口径，而非谁报错。但本沙箱 `python3 -m pytest` 报 `No module named pytest`（且 pip 受 PEP 668 阻断），**无法当场裁定**；⇒ 要求 `NUMCI-001` 同批把 `pytest --collect-only -q` 的输出工件入库，以 CI 输出为准，禁止文档各写一个数。
+   - P1 头部声明工程范围为 **Python 3.12 + Pydantic 2**；本沙箱实测解释器为 **Python 3.11.2**，且 `pydantic` 不可安装（PEP 668）。⇒ 解释器与依赖版本必须写进 registry 的 `environment` 段并由 CI 固定，否则"实测通过"与"本地通过"永远不是同一件事。
+
+### 9.6 对三份新方案的 4 条不留情面的裁定
+
+| # | 对象 | 裁定 |
+|---|---|---|
+| 1 | P1 §10 L459「审查报告中同号异义的提案**全部失效**」 | **该条款无效**。它是以单份文档自我授权废除其他 4 套（含元裁决指定的 `V3G-`），既与元裁决 §六-2 冲突，也与 P2 铁律一冲突；按其执行会立即产生第 5 套语义。P1 的**内容**（Contract-first、左移规模门、M2-027 集成事务门、金丝雀）质量高，应作为 slug 进入 registry，**号位一律不采信** |
+| 2 | P2 的 `M0-027` = 编号唯一性 CI 门 | **意图采纳，号位驳回**（自身 3 套语义，见 §9.2 结论 3）。改挂 `NUMCI-001` |
+| 3 | P3 沿用 F 的号位（`M1-018`=co_search、`M1-021`=规模脊柱门、`M2-020`=Prediction Register） | 号位与 F 一致 ⇒ 与 D/α、E、P1、P2 四方冲突；且其"50万/100万/360万 SLO"未指明时间口径与测量主体（§9.5-2），**在 as-built 上未取证**，不得作为验收数字 |
+| 4 | 三份方案与本报告 §4 母表**无交叉映射** | 三份各自给出 Gate/里程碑结构（P1 §9、P2 §四、P3 §二）却互不引用号位，导致"57 项 vs 各自条目"无法核对。§9.2 矩阵是仓库内**第一个跨 6 份文档的号位交叉映射**；registry 的 `source_docs[]` 字段就是它的机器可读形式 |
+
+### 9.7 本 commit 交付的可运行工件与实跑结果（全部已入库、SHA256 可校验）
+
+| 工件 | 路径 | 内容 |
+|---|---|---|
+| 编号唯一真源（种子） | `governance/issue_registry/v3_issue_registry.json` | `registry_version = 0.2.0-PROPOSAL`；68 条注册项（66 个争用号 + `NUMCI-001` + `PROBE-CI-002`）；66 条 `open_conflicts`（每条含 6 份文档的原始 claims）；`rules`（R3 分配规则 / R4 前缀命名空间与停用前缀 / R6 派单必带 slug）；`environment`（解释器与 pytest 计数争议）；`frozen_baseline`（82 个基线号）；`scope_docs`（8 份） |
+| CI 门（可运行实现） | `governance/issue_registry/check_issue_registry.py` | stdlib-only，无第三方依赖（本沙箱 `pip install` 受 PEP 668 阻断）；三条规则 A/B/C + `--verbose` / `--json`；退出码 0=绿 / 1=红 / 2=环境错误 |
+| 实跑工件 | `governance/issue_registry/evidence/check_run_2026-09-16.log`、`check_run_2026-09-16.json`、`SHA256SUMS` | 正向实跑 + **负向对照**（故意篡改 registry 副本：重号 / slug 撞车 / 窃取冻结基线号 `M0-005` / 删掉一条冲突），证明规则 A/C 真的会开火 |
+
+**正向实跑（基线 `00adf2b`）**：
+
+```
+冻结基线号 82 个；registry 已注册 68 个；扫描 scope_docs 8 份
+规则 A（registry 完整性）违规 : 0
+规则 B（UNREGISTERED 未注册号）: 0
+规则 C（CONFLICT 未消解同号异义）: 39
+规则 C 附（UNRATIFIED 单方声明号）  : 21
+GATE = RED     exit code = 1
+```
+
+**负向对照（篡改副本）**：规则 A 违规 **0 → 4**（A1 重号 / A3 一号两 slug / A4 registry 试图重分配冻结基线号 `M0-005` / A5 里程碑前缀不一致），CONFLICT **39 → 38**（被删掉的那条正是 `M0-023`），exit code 1。⇒ **门不是摆设**：它既能数出冲突，也能在自己被改坏时报警。
+
+**转绿条件（可直接作为 `NUMCI-001` 的验收）**：治理方对 66 个号逐号裁决，把每个号的唯一 slug 与 `resolution` 写入 registry，使 `CONFLICT = 0` 且 `UNRATIFIED = 0`；此后任何文档若再定义一个未注册号或给已注册号换语义，CI 立即变红。**在此之前，本报告与 P1/P2/P3 的任何号位都不具备派单效力（§9.3 R1/R5）。**
+
+> **一句话**：本仓库现在缺的不是第 16 份审查意见，也不是第 4 份"唯一编号"宣告，而是**一个 40 行的 JSON 真源 + 一个 100 行的检查脚本**——两者本 commit 已提供种子实现，等治理方逐号裁决后 CI 门即可转绿。
+
 
 *— AIOS 核心系统总架构师 / 工程审计长，2026-09-16*

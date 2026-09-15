@@ -462,3 +462,41 @@ M0-001 状态 CONDITIONAL PASS，禁止进入 M0-002，修正两个问题并制�
 - 验收层：**M4-002/M4-004** 因悬空引用不可签收
 - 运行层：若无视上述继续编码，**M2** 出现用户可观察断崖，**M3** 为债务放大器（传播 9.3 s / 51,822 对象 / 15.55 M token vs 预算化 10.82 ms，差 860 倍）
 - 裁决：服从元裁决 **PATCH_REQUIRED / AS-WRITTEN NO-GO**；Gate 0 未过前停止新 M1/M2 派单
+
+## 2026-09-16 编号终局裁定：撤回自我唯一性主张 + 交付 registry/CI 门种子（NUMCI-001）
+
+### 起始
+- 上一条目（统一整改母表）推送时被 non-fast-forward 拒绝；`git fetch` 后发现上游在同一时间窗内又落入 6 个 commit（`f3f1889` → `00adf2b`）
+- 本分支两 commit 已 `git rebase FETCH_HEAD` 到 `00adf2b` 之上（无冲突，未 force-push）
+- 上游新增：**P1** 重构方案（1594 行，仓库根）、**P2** 全盘重构设计书（953 行）、**P3** governance PROPOSAL（472 行）、两份元审查（225 / 122 行）、B 的三支探针脚本入库、`verify_design_*.py`
+
+### 做了什么
+1. **核对上游三份方案的号位**：P1 §10 L459 明文「以下编号是本重构方案的唯一建议编号，审查报告中同号异义的提案**全部失效**」；P2 铁律一判给「宪法唯一持有 + CI 双义即 fail」（其承载号为 `M0-027`）；P3 沿用 F 的号位；元裁决 §六-2 判给「A~F 代号 + 单一 `V3G-xxx`」⇒ **四个自称权威者互斥，本报告 §3 是其中之一**
+2. **生成 36 号 × 6 文档终局冲突矩阵**（报告新增 §9.2）：31 个号有 ≥2 套语义、20 个有 ≥3 套、2 个有 5 套（`M2-017`/`M3-012`）；唯一收敛号是 `M1-017`（6 份措辞不同、实质同一）
+3. **抓到最锋利的单点证据**：P2 用来「检测同一编号两套语义即 fail」的 CI Issue 自编号 `M0-027`，而 `M0-027` 已被 3 套语义占用（D/本报告/P3 = TriggerExpression 契约、P1 = LifeChapter、P2 = 编号 CI 门）⇒ **用来消灭编号冲突的 Issue 本身就是编号冲突**
+4. **自我更正**（§9.3 R1）：§3.2/3.3/3.4 的「定稿/唯一」降级为 **候选提案 PROPOSAL-α**；§4 母表的语义、来源映射与阻断验收继续有效，号位待 registry 分配；§5.3 因 B 探针脚本已入库，处置由「不可引用」精化为**「可复现但未取证」**三态规则（§9.4）
+5. **把裁决变成可运行的机制**（不再写第 5 份宣告）：
+   - `governance/issue_registry/v3_issue_registry.json`（0.2.0-PROPOSAL）：68 条注册项、66 条 `open_conflicts`（含 6 份文档原始 claims）、R3 分配规则、R4 前缀命名空间（裸 `V` 与 `GAP-` 停用）、`environment`（解释器/pytest 计数争议）、82 个冻结基线号、8 份 `scope_docs`
+   - `governance/issue_registry/check_issue_registry.py`（stdlib-only，`pip` 受 PEP 668 阻断）：规则 A registry 完整性 / B 未注册号被定义即 fail / C 未消解同号异义即 fail，`--verbose`、`--json`，退出码 0/1/2
+   - 实跑：**GATE = RED**，规则 A 0 / UNREGISTERED 0 / **CONFLICT 39** / **UNRATIFIED 21**，exit 1
+   - **负向对照**（篡改 registry 副本：重号、slug 撞车、窃取冻结基线号 `M0-005`、删一条冲突）⇒ 规则 A **0 → 4**、CONFLICT **39 → 38**，证明门会开火而非摆设
+   - 工件入库：`governance/issue_registry/evidence/check_run_2026-09-16.{log,json}` + `SHA256SUMS`
+
+### 关键发现（本轮新增）
+1. **争用面被人工矩阵低估**：检查器规则 B 首次实跑又抓出 **30 个矩阵未覆盖的号位**（`M0-033/034`、`M3-017~019`、`M4-005~010`、`M5-004~008`、`M6-005~009`、`M7-005~009`、`M8-004~007`）：21 个为 P1 单方定义、8 个与 P2/P3/本报告语义冲突、1 个疑同簇 ⇒ **实际争用面 66 个号，不是 36 个**
+2. **母表由 57 项增至 59 项**：新增 `NUMCI-001`（Gate 0，**先于 M0-023**，阻断全部派单）与 `PROBE-CI-002`（Gate 1，A 的 3.6M + B 的三支 + 本审计 as-built 共 5 支探针入 CI 并留 stdout/JSON/SHA256，为 B 的数字取证）
+3. **三份新方案没有一份测过 as-built 冻结 schema**：其检索/规模 SLO 建立在设计 schema 推演上；按本报告 §5.2(a) 实测（三词共现 1,282.8~1,357.9 ms、`occurred_at` 时间窗 1,201.4~1,468.6 ms、FTS5 对连续中文与 2 字词 0 命中且不报错），**必须先落 `M0-032`(α) 派生投影 + 倒排/时间桶物化才可能达标**，三份方案的 Gate 顺序均未前置这一条
+4. **时间口径未指明**：P2/P3 的规模门写「100 万行 p95」但未说明切 `occurred_at`（payload 内、无索引）还是 `learned_at`（顶层索引列）⇒ 规模门会绿灯通过而宪法第八十七条滑动条仍不可用
+5. **两处事实性冲突登记为 CI 应解决项**（不当场裁定）：P2 称 `pytest 558 passed`、P3 称 `418+15 全绿待签`(=433)；本沙箱静态清点 `def test_` **456**（unit 432 / integration 4 / architecture 20）、`parametrize` 32 处 ⇒ 两数很可能口径不同（全仓收集 vs unit def 数），但本沙箱 `python3 -m pytest` 报 `No module named pytest`（pip 受 PEP 668 阻断）**无法裁定**，改由 `NUMCI-001` 入库 `--collect-only` 工件为准。另 P1 声明目标 Python **3.12**，本沙箱实测 **3.11.2** ⇒ 解释器版本须写进 registry `environment` 并由 CI 固定
+
+### 交付物
+- `reviews/architecture/AIOS_V3_UNIFIED_BACKLOG_AND_AS_BUILT_VERIFICATION_2026-09-16.md`：新增 §9（9.1 事实登记 / 9.2 终局矩阵 / 9.3 R1~R6 裁决 / 9.4 三态数字规则 / 9.5 相对三份新方案的增量 / 9.6 四条裁定 / 9.7 工件与实跑结果），并在 header、§0.3、§3、§4.0、§4.8、§4.9、§5.3、§8.1、§8.2、§8.4 加入降级声明与交叉指引（678 → 841 行）
+- `governance/issue_registry/{v3_issue_registry.json, check_issue_registry.py}` + `evidence/{check_run_2026-09-16.log, check_run_2026-09-16.json, SHA256SUMS}`
+- `reviews/README.md`：「派单编号唯一来源」由**文档**改为**registry 文件 + CI 门**，并补三态性能数字规则
+- `TASK_PROGRESS_R2.md`：放行顺序改为 `NUMCI-001` → v3.0.1 修正案 → Gate 0 → Gate 1(含 `PROBE-CI-002`) → Gate 2 → Gate 3，并声明现有号位暂无派单效力
+- 未改动任何产品代码、契约快照与宪法文件
+
+### 判词
+- 本仓库缺的不是第 16 份审查意见，也不是第 4 份「唯一编号」宣告，而是**一个 JSON 真源 + 一个检查脚本**——两者本轮已交付并实跑为红色
+- **`NUMCI-001` 转绿（CONFLICT = 0 且 UNRATIFIED = 0）之前，任何 `M*-***` 派单一律视为无效单**；派单以 `slug` 匹配，号仅作显示
+- P1 的「其他提案全部失效」条款**裁定无效**（自我授权 + 与元裁决 §六-2、P2 铁律一冲突），但其内容以 slug 进 registry；P2 的 `M0-027` **意图采纳、号位驳回**，改挂 `NUMCI-001`；P3 号位与 F 同源 ⇒ 与四方冲突，其规模数字在 as-built 上未取证，不得作验收

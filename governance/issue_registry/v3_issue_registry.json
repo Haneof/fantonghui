@@ -1,0 +1,1593 @@
+{
+  "registry_version": "0.2.0-PROPOSAL",
+  "status": "PROPOSAL — 待项目总工程师逐号裁决后升格为唯一真源；在此之前 CI 门保持红色",
+  "generated_by": "reviews/architecture/AIOS_V3_UNIFIED_BACKLOG_AND_AS_BUILT_VERIFICATION_2026-09-16.md §9.2/§9.3",
+  "generated_at_commit": "00adf2b",
+  "authority": "编号权属于本文件，不属于任何评审/方案文档（§9.3 R2）。文档只能引用号，不能分配号。",
+  "rules": {
+    "R3_alloc": [
+      "先注册 slug（语义键），后由 registry 按里程碑序列尾部 append-only 分配号",
+      "一个 slug 只能有一个号；一个号只能有一个 slug",
+      "已注册号永不复用、永不改语义；改语义 = 发新号 + 旧号标 SUPERSEDED_BY",
+      "冻结基线号段不进争用区，只登记不重排"
+    ],
+    "R4_prefix": {
+      "V3G-": "审计发现(gap)号",
+      "M*-***": "工程任务(Issue)号",
+      "TS-": "测试场景",
+      "ACC-": "v3.0 工程验收门",
+      "PAR-": "可测参数(profile 默认值)",
+      "WB-": "工作台验收",
+      "ARCH-": "架构规划验收",
+      "MOD-C": "模块责任",
+      "NUMCI-/PROBE-": "临时治理号（裁决后由 registry 发正式号）",
+      "RETIRED": [
+        "裸 V 前缀（已被 5 套语义占用）",
+        "GAP- 前缀（已被 #7/#11 双占用）"
+      ],
+      "link": "gap 与 Issue 通过 traces_to 关联，一个 gap 可映射多个 Issue"
+    },
+    "R6_dispatch": "每张派单必须携带 slug + source_docs；号仅作显示；slug 冲突即 CI fail"
+  },
+  "environment": {
+    "note": "§9.5-4：解释器与依赖版本必须由 CI 固定，禁止文档各写一个数",
+    "sandbox_python3": "3.11.2",
+    "declared_target_python": "3.12 (P1 头部声明)",
+    "pydantic": "本沙箱不可安装(PEP 668)",
+    "pytest_static_count": {
+      "def_test": 456,
+      "unit": 432,
+      "integration": 4,
+      "architecture": 20,
+      "parametrize_decorators": 32,
+      "test_files": 46,
+      "doc_claims": {
+        "P2": "558 passed",
+        "P3": "418+15 全绿待签 (=433)"
+      },
+      "verdict": "两个数字口径不同(全仓收集 vs unit def 数)，本沙箱无 pytest 无法裁定 ⇒ 以 NUMCI-001 入库的 --collect-only 工件为准"
+    }
+  },
+  "frozen_baseline": [
+    "M0-001~M0-022",
+    "M1-001~M1-016",
+    "M2-001~M2-015",
+    "M3-001~M3-011",
+    "M4-001~M4-004",
+    "M5-001~M5-003",
+    "M6-001~M6-004",
+    "M7-001~M7-004",
+    "M8-001~M8-003"
+  ],
+  "scope_docs": [
+    "AIOS_Core_详细开发任务拆分_R2_总工程师版.md",
+    "AIOS_Core_任务规划与开发任务拆分重构方案_V3_独立首席架构师版.md",
+    "reviews/architecture/AIOS_V3_ENGINEERING_GAP_AUDIT_PATCH_REQUIRED_2026-09-16.md",
+    "reviews/architecture/AIOS_Core_全盘工程重构方案与详细任务拆分设计书_2026-09-16.md",
+    "reviews/architecture/AIOS_V3_UNIFIED_BACKLOG_AND_AS_BUILT_VERIFICATION_2026-09-16.md",
+    "reviews/constitution/AIOS_v3.0_工程文档横向对齐断层审计_2026-09-16.md",
+    "reviews/constitution/CONST_V3.0_GAP_AUDIT_2026-09-16.md",
+    "governance/v3.0.1_amendment/PROPOSAL_AIOS_CORE_ENGINEERING_RECONSTRUCTION_2026-09-16.md"
+  ],
+  "issues": [
+    {
+      "id": "M0-023",
+      "slug": "v3-authority-traceability-freeze",
+      "milestone": "M0",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "权威与追溯冻结",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M0-024",
+      "slug": "prediction-contract",
+      "milestone": "M0",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "Prediction 契约",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M0-025",
+      "slug": "life-chapter-contract",
+      "milestone": "M0",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "LifeChapter",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M0-026",
+      "slug": "communication-experience-and-ai-seed-contract",
+      "milestone": "M0",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "CommunicationExp+AI seed",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M0-027",
+      "slug": "trigger-expression-eligibility-contract",
+      "milestone": "M0",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "TriggerExpression 契约",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M0-028",
+      "slug": "conversation-stream-contract",
+      "milestone": "M0",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "Conversation Stream 契约",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M0-029",
+      "slug": "cockpit-manifest-contract",
+      "milestone": "M0",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "CockpitManifest 契约",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M0-030",
+      "slug": "source-trust-transform-retention-contract",
+      "milestone": "M0",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "Source Trust/Transform/Retention",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M0-031",
+      "slug": "bitemporal-invariants-and-retrospective-annotation-contract",
+      "milestone": "M0",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "双时态不变量+回溯标注",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M0-032",
+      "slug": "derived-projection-legalization-and-schema-extension",
+      "milestone": "M0",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "派生投影合法化+schema 扩展",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M1-017",
+      "slug": "simulated-edge-reduction-pipeline",
+      "milestone": "M1",
+      "gate": "Gate1",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "模拟端侧降采样管线",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M1-018",
+      "slug": "chinese-hybrid-co-search-engine",
+      "milestone": "M1",
+      "gate": "Gate1",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "中文混合共搜引擎",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M1-019",
+      "slug": "retention-and-tombstone-worker",
+      "milestone": "M1",
+      "gate": "Gate1",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "Retention & Tombstone",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M1-020",
+      "slug": "early-scale-and-query-plan-gate",
+      "milestone": "M1",
+      "gate": "Gate1",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "早期规模与查询计划门",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M1-021",
+      "slug": "keyword-alias-inverted-projection",
+      "milestone": "M1",
+      "gate": "Gate1",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "关键词/别名倒排投影",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M1-022",
+      "slug": "retrieval-ranking-and-memory-slice-scoring",
+      "milestone": "M1",
+      "gate": "Gate1",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "检索排序与切片打分",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M1-023",
+      "slug": "lod-time-projection-and-adaptive-materialization",
+      "milestone": "M1",
+      "gate": null,
+      "status": "PROPOSAL",
+      "source_docs": [
+        "P1 / P2"
+      ],
+      "semantics": "{\"P1\": \"LOD 时间投影+自适应物化\", \"P2\": \"检索规模门\"}",
+      "note": "α 未定义此号；slug 取自 δ(P1)/ε(P2) 语义，待裁决"
+    },
+    {
+      "id": "M1-024",
+      "slug": "early-scale-wal-and-query-plan-gate",
+      "milestone": "M1",
+      "gate": null,
+      "status": "PROPOSAL",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"Early Scale/WAL/Plan 门\"}",
+      "note": "α 未定义此号；slug 取自 δ(P1)/ε(P2) 语义，待裁决"
+    },
+    {
+      "id": "M1-025",
+      "slug": "m1-v3-evidence-canary",
+      "milestone": "M1",
+      "gate": null,
+      "status": "PROPOSAL",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"M1 V3 证据金丝雀\"}",
+      "note": "α 未定义此号；slug 取自 δ(P1)/ε(P2) 语义，待裁决"
+    },
+    {
+      "id": "M2-016",
+      "slug": "active-conversation-working-set",
+      "milestone": "M2",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "活跃会话工作集",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M2-017",
+      "slug": "incremental-streaming-extractor",
+      "milestone": "M2",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "增量流式萃取器",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M2-018",
+      "slug": "proactive-recall-and-context-assembler",
+      "milestone": "M2",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "主动召回与上下文组装",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M2-019",
+      "slug": "end-to-end-latency-and-token-telemetry",
+      "milestone": "M2",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "端到端延迟/Token 遥测",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M2-020",
+      "slug": "prediction-register-runtime",
+      "milestone": "M2",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "Prediction Register 运行时",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M2-021",
+      "slug": "wearable-interaction-port-and-fsm-simulator",
+      "milestone": "M2",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "穿戴 InteractionPort+FSM 仿真",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M2-022",
+      "slug": "relationship-rhythm-and-quiet-heartbeat-policy",
+      "milestone": "M2",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "关系节奏与静默心跳",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M2-023",
+      "slug": "concise-response-and-interaction-output-contract",
+      "milestone": "M2",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "简洁应答与输出契约",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M2-024",
+      "slug": "trigger-eligibility-engine-and-ready-queue",
+      "milestone": "M2",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "Trigger Eligibility 引擎+Ready 队列",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M2-025",
+      "slug": "budget-ledger-and-degradation-ladder",
+      "milestone": "M2",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "BudgetLedger 与降级阶梯",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M2-026",
+      "slug": "end-to-end-latency-and-cost-telemetry",
+      "milestone": "M2",
+      "gate": null,
+      "status": "PROPOSAL",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"端到端延迟与成本遥测\"}",
+      "note": "α 未定义此号；slug 取自 δ(P1)/ε(P2) 语义，待裁决"
+    },
+    {
+      "id": "M2-027",
+      "slug": "m2-integrated-cognitive-transaction-gate",
+      "milestone": "M2",
+      "gate": null,
+      "status": "PROPOSAL",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"M2 集成认知事务门\"}",
+      "note": "α 未定义此号；slug 取自 δ(P1)/ε(P2) 语义，待裁决"
+    },
+    {
+      "id": "M3-012",
+      "slug": "retrospective-semantic-annotation",
+      "milestone": "M3",
+      "gate": "Gate3",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "回溯语义加注",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M3-013",
+      "slug": "life-chapter-candidate-and-baseline-migration",
+      "milestone": "M3",
+      "gate": "Gate3",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "LifeChapter 候选与基线迁移",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M3-014",
+      "slug": "communication-experience-and-rapport-consolidation",
+      "milestone": "M3",
+      "gate": "Gate3",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "CommunicationExp+Rapport 巩固",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M3-015",
+      "slug": "prediction-calibration-and-noop-propagation",
+      "milestone": "M3",
+      "gate": "Gate3",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "Prediction 校准+no-op 传播",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M3-016",
+      "slug": "bounded-invalidation-propagation-kernel",
+      "milestone": "M3",
+      "gate": "Gate3",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "有界传播内核",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "NUMCI-001",
+      "slug": "issue-numbering-registry-ci-gate",
+      "milestone": "NUMCI",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "本报告 §9.3 R2/R5",
+        "P2 铁律一(号位 M0-027 已驳回)"
+      ],
+      "semantics": "编号 registry 唯一真源 + CI 门（A 完整性 / B 未注册号 / C 未消解冲突）",
+      "note": "临时命名空间，不与任何 M*-*** 争用；阻断其余全部派单"
+    },
+    {
+      "id": "PROBE-CI-002",
+      "slug": "four-probes-in-ci-as-m1-hard-gate",
+      "milestone": "PROBE",
+      "gate": "Gate1",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "本报告 §9.4",
+        "元裁决 §六-3"
+      ],
+      "semantics": "A 的 3.6M 探针 + B 的三支探针 + 本审计 as-built 探针并入 CI，产出 stdout/JSON/SHA256 工件",
+      "note": "临时命名空间；B 的数字由此转为可引用"
+    },
+    {
+      "id": "M0-033",
+      "slug": "capability-authorization-and-interaction-contract",
+      "milestone": "M0",
+      "gate": "Gate0",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"Capability Authorization & Interaction Contract\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M0-034",
+      "slug": "m0-v3-migration-fixture-and-contract-gate",
+      "milestone": "M0",
+      "gate": "Gate0",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"M0-V3 Migration Fixture & Contract Gate\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M3-017",
+      "slug": "life-chapter-candidate-state-machine",
+      "milestone": "M3",
+      "gate": "Gate3",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"LifeChapter Candidate State Machine\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M3-018",
+      "slug": "ai-world-and-communication-experience-consolidation",
+      "milestone": "M3",
+      "gate": "Gate3",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"AI World & CommunicationExperience Consolidation\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M3-019",
+      "slug": "m3-long-term-cognition-gate",
+      "milestone": "M3",
+      "gate": "Gate3",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"M3 Long-Term Cognition Gate\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M4-005",
+      "slug": "test-v02-scenario-pack",
+      "milestone": "M4",
+      "gate": "M4~M8",
+      "status": "OPEN",
+      "source_docs": [
+        "P1",
+        "P2",
+        "本报告"
+      ],
+      "semantics": "{\"P1\": \"V3 Scenario Pack V21~V45\", \"P2\": \"会话层跨日接续\", \"本报告\": \"TEST V0.2 Scenario Pack TS-021~TS-051\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M4-006",
+      "slug": "runtime-stress-and-ablation-pack",
+      "milestone": "M4",
+      "gate": "M4~M8",
+      "status": "OPEN",
+      "source_docs": [
+        "P1",
+        "P2",
+        "本报告"
+      ],
+      "semantics": "{\"P1\": \"Hidden-Truth Generator V2\", \"P2\": \"羁绊演化与关系节奏心跳\", \"本报告\": \"Runtime Stress & Ablation Pack\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M4-007",
+      "slug": "thirty-day-continuous-fault-run",
+      "milestone": "M4",
+      "gate": "M4~M8",
+      "status": "OPEN",
+      "source_docs": [
+        "P1",
+        "P2"
+      ],
+      "semantics": "{\"P1\": \"30-Day Continuous Fault Run\", \"P2\": \"预算月度对账\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M4-008",
+      "slug": "v3-metrics-and-replay-report",
+      "milestone": "M4",
+      "gate": "M4~M8",
+      "status": "OPEN",
+      "source_docs": [
+        "P1",
+        "P2"
+      ],
+      "semantics": "{\"P1\": \"V3 Metrics & Replay Report\", \"P2\": \"漂移与人格一致性检测\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M4-009",
+      "slug": "m4-blind-gate",
+      "milestone": "M4",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1",
+        "P2"
+      ],
+      "semantics": "{\"P1\": \"M4 Blind Gate\", \"P2\": \"反退化盲测（V37~V40）\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M4-010",
+      "slug": "one-month-end-to-end-acceptance",
+      "milestone": "M4",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P2"
+      ],
+      "semantics": "{\"P2\": \"一月端到端（重写 M4-004 的验收口径）\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M5-004",
+      "slug": "communication-experience-ab",
+      "milestone": "M5",
+      "gate": "M4~M8",
+      "status": "OPEN",
+      "source_docs": [
+        "P1",
+        "本报告"
+      ],
+      "semantics": "{\"P1\": \"OperationExperience Policy Executor\", \"本报告\": \"CommunicationExperience A/B\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M5-005",
+      "slug": "communication-experience-controlled-ab",
+      "milestone": "M5",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"CommunicationExperience Controlled A/B\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M5-006",
+      "slug": "trigger-threshold-trial-and-rollback",
+      "milestone": "M5",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"Trigger Threshold Trial & Rollback\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M5-007",
+      "slug": "experience-poisoning-red-team",
+      "milestone": "M5",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"Experience Poisoning Red Team\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M5-008",
+      "slug": "m5-net-benefit-gate",
+      "milestone": "M5",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"M5 Net-Benefit Gate\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M6-005",
+      "slug": "ambient-canvas-skill-card-projection-contract",
+      "milestone": "M6",
+      "gate": "M4~M8",
+      "status": "OPEN",
+      "source_docs": [
+        "P1",
+        "P2",
+        "P3",
+        "本报告"
+      ],
+      "semantics": "{\"P1\": \"Capability Scope & App Projection\", \"P2\": \"跨 App 认知复用的边界与隔离\", \"P3\": \"穿戴模拟渠道\", \"本报告\": \"AmbientCanvas / SkillCard Projection Contract\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M6-006",
+      "slug": "ambient-canvas-and-skill-card-dto",
+      "milestone": "M6",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"AmbientCanvas & SkillCard DTO\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M6-007",
+      "slug": "wearable-projection-simulator-230mm",
+      "milestone": "M6",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"230mm Wearable Projection Simulator\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M6-008",
+      "slug": "cross-app-transfer-and-leakage-test",
+      "milestone": "M6",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"Cross-App Transfer & Leakage Test\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M6-009",
+      "slug": "m6-projection-gate",
+      "milestone": "M6",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"M6 Projection Gate\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M7-005",
+      "slug": "annual-latency-and-cost-slo-gate",
+      "milestone": "M7",
+      "gate": "M4~M8",
+      "status": "OPEN",
+      "source_docs": [
+        "P1",
+        "P2",
+        "本报告"
+      ],
+      "semantics": "{\"P1\": \"One-Year Ingest & Storage Growth Model\", \"P2\": \"一年期成本与规模总账\", \"本报告\": \"End-to-End Latency & Cost SLO 年度正式门\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M7-006",
+      "slug": "sustained-wal-lease-and-recovery-test",
+      "milestone": "M7",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"Sustained WAL, Lease & Recovery Test\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M7-007",
+      "slug": "provider-switch-replay-regression",
+      "milestone": "M7",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"Provider-Switch Replay Regression\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M7-008",
+      "slug": "annual-cost-quality-frontier",
+      "milestone": "M7",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"Annual Cost-Quality Frontier\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M7-009",
+      "slug": "m7-durability-gate",
+      "milestone": "M7",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"M7 Durability Gate\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M8-004",
+      "slug": "wearable-contract-reservation-assessment",
+      "milestone": "M8",
+      "gate": "M4~M8",
+      "status": "OPEN",
+      "source_docs": [
+        "P1",
+        "P2",
+        "P3",
+        "本报告"
+      ],
+      "semantics": "{\"P1\": \"Mechanism Ablation Matrix\", \"P2\": \"消融实验：条件引擎/共现检索/三级流水线各自独立收益\", \"P3\": \"穿戴契约预留评估\", \"本报告\": \"穿戴契约预留评估（FSM 零误触、三层 UI、马达/骨传导抽象、插件最小授权域、离线降级）\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M8-005",
+      "slug": "architecture-simplification-adr-pack",
+      "milestone": "M8",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"Architecture Simplification ADR Pack\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M8-006",
+      "slug": "real-device-readiness-dossier",
+      "milestone": "M8",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"Real-Device Readiness Dossier\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M8-007",
+      "slug": "next-phase-gate",
+      "milestone": "M8",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"Next-Phase Gate\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    }
+  ],
+  "open_conflicts": [
+    {
+      "id": "M0-023",
+      "distinct_semantics": 3,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "权威与追溯冻结",
+        "E": "Prediction 契约",
+        "F": "Prediction 契约",
+        "P3": "Prediction 契约(023~026)",
+        "P1": "权威/命名空间/追溯",
+        "P2": "三对象契约一并冻结"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M0-024",
+      "distinct_semantics": 4,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "Prediction 契约",
+        "E": "LifeChapter",
+        "F": "LifeChapter",
+        "P3": "LifeChapter",
+        "P1": "SourceEnvelope/Retention",
+        "P2": "双时态与回溯加注"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M0-025",
+      "distinct_semantics": 4,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "LifeChapter",
+        "E": "CommunicationExp",
+        "F": "CommunicationExp",
+        "P3": "CommunicationExp",
+        "P1": "双时态可见性",
+        "P2": "控制面对象契约"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M0-026",
+      "distinct_semantics": 4,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "CommunicationExp+AI seed",
+        "P3": "BudgetLedger",
+        "P1": "Prediction+CheckTask",
+        "P2": "Observation 质量/包络"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M0-027",
+      "distinct_semantics": 3,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "TriggerExpression 契约",
+        "P3": "TriggerExpression 契约",
+        "P1": "LifeChapter Contract",
+        "P2": "**编号唯一性 CI 门**"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M0-028",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "Conversation Stream 契约",
+        "P1": "CommunicationExp+AI Seed"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M0-029",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "CockpitManifest 契约",
+        "P1": "TriggerExpression 契约"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M0-030",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "Source Trust/Transform/Retention",
+        "P1": "Conversation/Turn/Extraction"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M0-031",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "双时态不变量+回溯标注",
+        "P1": "ContextPlan/Manifest/Receipt"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M0-032",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "派生投影合法化+schema 扩展",
+        "P1": "Budget/Deadline/Degradation"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M1-017",
+      "distinct_semantics": 1,
+      "status": "RESOLVED_CONVERGENT",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "模拟端侧降采样管线",
+        "E": "端侧轻量化摄入",
+        "F": "多模态摄入策略契约",
+        "P3": "多模态摄入策略",
+        "P1": "模拟源网关+边缘 reducer",
+        "P2": "端侧轻量化摄入管线"
+      },
+      "resolution": "6 份文档措辞不同但实质同一，可直接注册为唯一 slug"
+    },
+    {
+      "id": "M1-018",
+      "distinct_semantics": 3,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "中文混合共搜引擎",
+        "E": "关键词/别名倒排层",
+        "F": "co_search 共现引擎",
+        "P3": "co_search 共现内核",
+        "P1": "可逆实体消解+声纹候选",
+        "P2": "检索内核(分词+倒排+FTS5)"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M1-019",
+      "distinct_semantics": 4,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "Retention & Tombstone",
+        "E": "回溯加注服务",
+        "F": "中文分词与别名",
+        "P3": "中文分词与别名",
+        "P1": "中文混合共搜引擎",
+        "P2": "多关键词共现 co_search"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M1-020",
+      "distinct_semantics": 3,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "早期规模与查询计划门",
+        "F": "记忆切片排序契约",
+        "P3": "记忆切片排序契约",
+        "P1": "Ranking/QueryPlanner/水位",
+        "P2": "5D 时间滑动条"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M1-021",
+      "distinct_semantics": 4,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "关键词/别名倒排投影",
+        "F": "规模基准骨架(自 M7-002 前移)",
+        "P3": "规模脊柱门",
+        "P1": "As-Of 读视图+加注存储",
+        "P2": "图拓扑穿透导航"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M1-022",
+      "distinct_semantics": 3,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "检索排序与切片打分",
+        "P1": "Retention/Quarantine/Tombstone",
+        "P2": "声纹生命周期墓碑/重识别"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M1-023",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "P1": "LOD 时间投影+自适应物化",
+        "P2": "检索规模门"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M1-024",
+      "distinct_semantics": 1,
+      "status": "RESOLVED_CONVERGENT",
+      "claims": {
+        "P1": "Early Scale/WAL/Plan 门"
+      },
+      "resolution": "6 份文档措辞不同但实质同一，可直接注册为唯一 slug"
+    },
+    {
+      "id": "M1-025",
+      "distinct_semantics": 1,
+      "status": "RESOLVED_CONVERGENT",
+      "claims": {
+        "P1": "M1 V3 证据金丝雀"
+      },
+      "resolution": "6 份文档措辞不同但实质同一，可直接注册为唯一 slug"
+    },
+    {
+      "id": "M2-016",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "活跃会话工作集",
+        "E": "条件编译引擎",
+        "P3": "条件就绪引擎",
+        "P1": "TriggerExpression 求值器",
+        "P2": "条件编译+ready queue"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M2-017",
+      "distinct_semantics": 5,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "增量流式萃取器",
+        "E": "长会话三级流水线",
+        "P3": "Wake 乒乓熔断器",
+        "P1": "ReadyTaskQueue/Occurrence",
+        "P2": "CockpitManifest+四步序"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M2-018",
+      "distinct_semantics": 4,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "主动召回与上下文组装",
+        "E": "预算账本与降级阶梯",
+        "F": "三级流式流水线",
+        "P3": "长会话三级流水线",
+        "P1": "活跃会话工作集",
+        "P2": "三级会话流水线"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M2-019",
+      "distinct_semantics": 4,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "端到端延迟/Token 遥测",
+        "E": "关系节奏心跳",
+        "F": "关系节奏长平稳心跳",
+        "P3": "关系节奏长平稳心跳",
+        "P1": "增量萃取 Worker",
+        "P2": "BudgetLedger 记账降级"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M2-020",
+      "distinct_semantics": 4,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "Prediction Register 运行时",
+        "E": "穿戴交互 FSM 模拟器",
+        "F": "Prediction Register 服务",
+        "P3": "Prediction Register+CheckTask",
+        "P1": "主动召回与上下文规划",
+        "P2": "羁绊模型 DIM_AI_RAPPORT"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M2-021",
+      "distinct_semantics": 4,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "穿戴 InteractionPort+FSM 仿真",
+        "F": "会话输出契约(1~3 句)",
+        "P3": "会话输出契约",
+        "P1": "CockpitManifest 编译器+收据",
+        "P2": "CommunicationExp 风格指标"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M2-022",
+      "distinct_semantics": 3,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "关系节奏与静默心跳",
+        "P1": "预算化 AI Worker/工具运行时",
+        "P2": "穿戴交互 FSM+虚拟执行器"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M2-023",
+      "distinct_semantics": 3,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "简洁应答与输出契约",
+        "P1": "记忆写入防火墙/来源信任",
+        "P2": "三层 UI 契约"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M2-024",
+      "distinct_semantics": 3,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "Trigger Eligibility 引擎+Ready 队列",
+        "P3": "关系节奏与静默心跳",
+        "P2": "会话上下文快照与回放"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M2-025",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "BudgetLedger 与降级阶梯",
+        "P1": "InteractionPort/通知 FSM"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M2-026",
+      "distinct_semantics": 1,
+      "status": "RESOLVED_CONVERGENT",
+      "claims": {
+        "P1": "端到端延迟与成本遥测"
+      },
+      "resolution": "6 份文档措辞不同但实质同一，可直接注册为唯一 slug"
+    },
+    {
+      "id": "M2-027",
+      "distinct_semantics": 1,
+      "status": "RESOLVED_CONVERGENT",
+      "claims": {
+        "P1": "M2 集成认知事务门"
+      },
+      "resolution": "6 份文档措辞不同但实质同一，可直接注册为唯一 slug"
+    },
+    {
+      "id": "M3-012",
+      "distinct_semantics": 5,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "回溯语义加注",
+        "E": "Prediction Register 闭环",
+        "P3": "共振候选→证伪门禁",
+        "P1": "Typed 失效传播协调器",
+        "P2": "Prediction 证伪闭环服务"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M3-013",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "LifeChapter 候选与基线迁移",
+        "E": "LifeChapter 相变识别归档",
+        "P3": "LifeChapter 相变服务",
+        "P1": "证据重建+读时有效性守卫",
+        "P2": "LifeChapter 相变检测"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M3-014",
+      "distinct_semantics": 3,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "CommunicationExp+Rapport 巩固",
+        "E": "AI 沟通经验维度",
+        "P3": "有界失效传播内核硬化",
+        "P1": "自适应时间总结物化器",
+        "P2": "传播预算化懒重算"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M3-015",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "Prediction 校准+no-op 传播",
+        "P1": "Prediction 验证/校准",
+        "P2": "清洗回归护栏"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M3-016",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "有界传播内核",
+        "P1": "共振候选与因果守卫"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M0-033",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "Capability Authorization & Interaction Contract"
+      }
+    },
+    {
+      "id": "M0-034",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "M0-V3 Migration Fixture & Contract Gate"
+      }
+    },
+    {
+      "id": "M3-017",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "LifeChapter Candidate State Machine"
+      }
+    },
+    {
+      "id": "M3-018",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "AI World & CommunicationExperience Consolidation"
+      }
+    },
+    {
+      "id": "M3-019",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "M3 Long-Term Cognition Gate"
+      }
+    },
+    {
+      "id": "M4-005",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "P1": "V3 Scenario Pack V21~V45",
+        "P2": "会话层跨日接续",
+        "本报告": "TEST V0.2 Scenario Pack TS-021~TS-051"
+      }
+    },
+    {
+      "id": "M4-006",
+      "distinct_semantics": 3,
+      "status": "OPEN",
+      "claims": {
+        "P1": "Hidden-Truth Generator V2",
+        "P2": "羁绊演化与关系节奏心跳",
+        "本报告": "Runtime Stress & Ablation Pack"
+      }
+    },
+    {
+      "id": "M4-007",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "P1": "30-Day Continuous Fault Run",
+        "P2": "预算月度对账"
+      }
+    },
+    {
+      "id": "M4-008",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "P1": "V3 Metrics & Replay Report",
+        "P2": "漂移与人格一致性检测"
+      }
+    },
+    {
+      "id": "M4-009",
+      "distinct_semantics": 1,
+      "status": "RESOLVED_CONVERGENT",
+      "claims": {
+        "P1": "M4 Blind Gate",
+        "P2": "反退化盲测（V37~V40）"
+      },
+      "resolution": "多份文档措辞不同但疑为同一工作簇，待治理方确认后注册唯一 slug"
+    },
+    {
+      "id": "M4-010",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P2": "一月端到端（重写 M4-004 的验收口径）"
+      }
+    },
+    {
+      "id": "M5-004",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "P1": "OperationExperience Policy Executor",
+        "本报告": "CommunicationExperience A/B"
+      }
+    },
+    {
+      "id": "M5-005",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "CommunicationExperience Controlled A/B"
+      }
+    },
+    {
+      "id": "M5-006",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "Trigger Threshold Trial & Rollback"
+      }
+    },
+    {
+      "id": "M5-007",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "Experience Poisoning Red Team"
+      }
+    },
+    {
+      "id": "M5-008",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "M5 Net-Benefit Gate"
+      }
+    },
+    {
+      "id": "M6-005",
+      "distinct_semantics": 3,
+      "status": "OPEN",
+      "claims": {
+        "P1": "Capability Scope & App Projection",
+        "P2": "跨 App 认知复用的边界与隔离",
+        "P3": "穿戴模拟渠道",
+        "本报告": "AmbientCanvas / SkillCard Projection Contract"
+      }
+    },
+    {
+      "id": "M6-006",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "AmbientCanvas & SkillCard DTO"
+      }
+    },
+    {
+      "id": "M6-007",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "230mm Wearable Projection Simulator"
+      }
+    },
+    {
+      "id": "M6-008",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "Cross-App Transfer & Leakage Test"
+      }
+    },
+    {
+      "id": "M6-009",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "M6 Projection Gate"
+      }
+    },
+    {
+      "id": "M7-005",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "P1": "One-Year Ingest & Storage Growth Model",
+        "P2": "一年期成本与规模总账",
+        "本报告": "End-to-End Latency & Cost SLO 年度正式门"
+      }
+    },
+    {
+      "id": "M7-006",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "Sustained WAL, Lease & Recovery Test"
+      }
+    },
+    {
+      "id": "M7-007",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "Provider-Switch Replay Regression"
+      }
+    },
+    {
+      "id": "M7-008",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "Annual Cost-Quality Frontier"
+      }
+    },
+    {
+      "id": "M7-009",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "M7 Durability Gate"
+      }
+    },
+    {
+      "id": "M8-004",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "P1": "Mechanism Ablation Matrix",
+        "P2": "消融实验：条件引擎/共现检索/三级流水线各自独立收益",
+        "P3": "穿戴契约预留评估",
+        "本报告": "穿戴契约预留评估（FSM 零误触、三层 UI、马达/骨传导抽象、插件最小授权域、离线降级）"
+      }
+    },
+    {
+      "id": "M8-005",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "Architecture Simplification ADR Pack"
+      }
+    },
+    {
+      "id": "M8-006",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "Real-Device Readiness Dossier"
+      }
+    },
+    {
+      "id": "M8-007",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "Next-Phase Gate"
+      }
+    }
+  ],
+  "discovery_note": "0.2.0：由 checker 首次实跑（规则 B）新增 30 个此前未被任何矩阵覆盖的号位（P1 独有 21 个 + 与 P2/P3/本报告冲突 8 个 + 疑同簇 1 个）。⇒ 实际争用面为 66 个号，而非 §9.2 矩阵的 36 个。"
+}
