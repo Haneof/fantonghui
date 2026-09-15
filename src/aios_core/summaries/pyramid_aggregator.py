@@ -29,6 +29,21 @@
   ``TimePyramidSummary`` 子总结列表，其 evidence_ids 之并集与父总结严格相等，
   且子总结可以继续逐级下钻直至 DAY 层原始事件；
 - 下钻是纯读操作：O(log n + k) 窗口定位 + O(k) 物化，典型规模下响应 <= 45ms。
+
+手环 5D 滑动条取数（1 秒 ~ 10 年**连续**缩放）：
+
+- :func:`scale_for_zoom` 把连续量程位置映射到承载它的物化尺度，是全射且单调——
+  量程内任何位置都有层可用，不存在死区；
+- :meth:`PyramidAggregator.slider_view` 按 ``center ± zoom/2`` 定视野一次取数；
+- :meth:`PyramidAggregator.summaries_in_range` 按尺度+维度取回与视野**相交**的物化节点。
+  1 年 ~ 10 年这一段超过 YEAR 的自然窗口（366 天），不可能有单个总结覆盖，
+  由**多个 YEAR 节点平铺**承载，本方法即其唯一检索入口；
+- :meth:`PyramidAggregator.raw_events_in_range` 是 1 秒端的数据源：亚日级视野里没有
+  比原始事件更细的物化层，也不该有——再聚合就是把事实压缩掉了（§25）。
+
+  注意语义边界：这些查询面向**本聚合器 vault 内**的事件，vault 只保存曾被某次物化
+  摄入过的事实，它不是原始事实的权威存储（那是 storage 层的职责）。因此"空结果"与
+  "该区间确实没有事实"不可区分，端侧不得把空列表渲染成「这一天什么都没发生」。
 """
 from __future__ import annotations
 
@@ -37,7 +52,7 @@ import math
 from bisect import bisect_left, bisect_right
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -50,6 +65,7 @@ __all__ = [
     "PyramidError",
     "TimePyramidSummary",
     "finer_than",
+    "scale_for_zoom",
 ]
 
 #: 细 -> 粗 的时间尺度序。索引越小越细粒度（下钻只能向更小索引方向进行）。
@@ -94,6 +110,37 @@ def _normalize_scale(scale: Any) -> str:
 def finer_than(fine_scale: str, coarse_scale: str) -> bool:
     """``fine_scale`` 是否严格细于（低于）``coarse_scale`` 的尺度。"""
     return _SCALE_RANK[_normalize_scale(fine_scale)] < _SCALE_RANK[_normalize_scale(coarse_scale)]
+
+
+def scale_for_zoom(zoom_seconds: Any) -> str:
+    """把手环 5D 滑动条的**连续**量程位置映射到承载它的物化尺度。
+
+    规则：取满足 ``MAX_SPAN_SECONDS[scale] >= zoom_seconds`` 的**最粗**尺度
+    （沿 SCALE_ORDER 细 -> 粗扫描，第一个放得下该视野的就是它）。
+    超过 YEAR 自然窗口（366 天）直到量程上限 10 年的这一段，
+    由**多个 YEAR 节点平铺**承载，故一律返回 ``"YEAR"``。
+
+    这个函数是「1 秒到 10 年连续缩放」得以成立的关键：它必须是**全射**——
+    量程内任何位置都要落到某个物化层上，不允许出现无层可用的死区。
+    ``TestContinuousZoomCoverage`` 对全量程密集采样验证这一点。
+    """
+    if isinstance(zoom_seconds, bool) or not isinstance(zoom_seconds, (int, float)):
+        raise PyramidError(
+            f"zoom_seconds must be a number, got {type(zoom_seconds).__name__}"
+        )
+    zoom = float(zoom_seconds)
+    if math.isnan(zoom) or math.isinf(zoom) or zoom <= 0.0:
+        raise PyramidError(f"zoom_seconds must be a positive finite number, got {zoom_seconds!r}")
+    _, high = CONTINUOUS_ZOOM_SECONDS
+    if zoom > high:
+        raise PyramidError(
+            f"zoom_seconds {zoom:.0f}s exceeds the band-side continuous range "
+            f"(max {high}s = 10 years)"
+        )
+    for scale in SCALE_ORDER:  # 细 -> 粗
+        if zoom <= MAX_SPAN_SECONDS[scale]:
+            return scale
+    return SCALE_ORDER[-1]  # > YEAR 自然窗口：由多个 YEAR 节点平铺承载
 
 
 def _utc_now() -> datetime:
@@ -305,6 +352,11 @@ class PyramidAggregator:
         self._vault: Dict[str, _VaultEvent] = {}
         self._summaries: Dict[str, TimePyramidSummary] = {}
         self._records: Dict[str, _PyramidRecord] = {}
+        # 原始事件的时间序索引（惰性构建）。vault 只增不删，所以 len(_vault)
+        # 就是它的合法版本号：长度一变即重建，写入路径零额外开销。
+        self._index_times: List[datetime] = []
+        self._index_events: List[_VaultEvent] = []
+        self._index_version: int = -1
 
     # ------------------------------------------------------------------
     # 物化聚合
@@ -417,6 +469,86 @@ class PyramidAggregator:
             return _copy_event(self._vault[event_id].payload, {})
         except KeyError:
             raise PyramidError(f"unknown event_id: {event_id!r}") from None
+
+    # ------------------------------------------------------------------
+    # 手环 5D 滑动条取数层（1 秒 ~ 10 年连续缩放）
+    # ------------------------------------------------------------------
+
+    def _time_index(self) -> Tuple[List[datetime], List[_VaultEvent]]:
+        """原始事件的时间序索引，惰性构建 + 长度版本号失效。"""
+        if self._index_version != len(self._vault):
+            ordered = sorted(self._vault.values(), key=lambda v: (v.utc_time, v.event_id))
+            self._index_times = [v.utc_time for v in ordered]
+            self._index_events = ordered
+            self._index_version = len(self._vault)
+        return self._index_times, self._index_events
+
+    def raw_events_in_range(self, start: Any, end: Any) -> List[Dict[str, Any]]:
+        """取回 ``[start, end]`` 闭区间内的原始事件深拷贝（时间序）。
+
+        这是滑动条**1 秒端**的数据源：秒级/亚秒级视野里没有比原始事件更细的
+        物化层，也不该有——再聚合就是把事实压缩掉了（§25）。
+        O(log n + k)：二分定位区间 + 深拷贝命中的 k 条。
+        """
+        low_bound = _as_utc(start, field_name="start", event_id="query_range")
+        high_bound = _as_utc(end, field_name="end", event_id="query_range")
+        if low_bound > high_bound:
+            raise PyramidError(
+                f"empty query window: start {low_bound.isoformat()} > end {high_bound.isoformat()}"
+            )
+        times, ordered = self._time_index()
+        low = bisect_left(times, low_bound)
+        high = bisect_right(times, high_bound)
+        return [_copy_event(v.payload, {}) for v in ordered[low:high]]
+
+    def summaries_in_range(
+        self, scale: Any, dimension_id: Any, start: Any, end: Any
+    ) -> List[TimePyramidSummary]:
+        """取回与 ``[start, end]`` **相交**的该尺度该维度物化总结（时间序）。
+
+        相交而非包含：滑动条视野是任意区间，一个跨越视野边界的总结同样应当
+        被渲染（它的证据落在视野内）。
+
+        这是 1 年 ~ 10 年那一段**唯一**的取数入口：该区间超过 YEAR 的自然窗口，
+        不可能有单个总结覆盖，只能由多个 YEAR 节点平铺，而平铺出来的节点
+        必须能被按维度+时间范围检索回来，否则滑动条拖到十年级就是空的。
+        """
+        normalized_scale = _normalize_scale(scale)
+        normalized_dimension = _validate_dimension_id(dimension_id)
+        low_bound = _as_utc(start, field_name="start", event_id="query_range")
+        high_bound = _as_utc(end, field_name="end", event_id="query_range")
+        if low_bound > high_bound:
+            raise PyramidError(
+                f"empty query window: start {low_bound.isoformat()} > end {high_bound.isoformat()}"
+            )
+        matched = [
+            self._summaries[record.summary_id]
+            for record in self._records.values()
+            if record.scale == normalized_scale
+            and record.dimension_id == normalized_dimension
+            and record.start_utc <= high_bound
+            and record.end_utc >= low_bound
+        ]
+        matched.sort(key=lambda summary: (summary.start_time, summary.summary_id))
+        return matched
+
+    def slider_view(
+        self, dimension_id: Any, center: Any, zoom_seconds: Any
+    ) -> List[TimePyramidSummary]:
+        """滑动条一次取数：``center ± zoom/2`` 定视野，``scale_for_zoom`` 定尺度。
+
+        返回铺满该视野的物化节点（时间序）。视野落在 1 年 ~ 10 年段时返回多个
+        YEAR 节点；视野细到亚日级时本方法返回的是 DAY 层节点，若该区间尚未物化
+        DAY 层则为空列表——此时端侧应改用 :meth:`raw_events_in_range` 直接取
+        原始事件（1 秒端的正确数据源）。
+        """
+        normalized_dimension = _validate_dimension_id(dimension_id)
+        pivot = _as_utc(center, field_name="center", event_id="query_range")
+        zoom = scale_for_zoom(zoom_seconds)  # 顺带校验量程合法性
+        span = timedelta(seconds=float(zoom_seconds) / 2.0)
+        return self.summaries_in_range(
+            zoom, normalized_dimension, pivot - span, pivot + span
+        )
 
     # ------------------------------------------------------------------
     # 内部实现
