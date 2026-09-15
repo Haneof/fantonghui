@@ -381,6 +381,20 @@ class TriggerExpressionObject(WorldObject):
 # ---------------------------------------------------------------------------
 
 
+class SourceEnvelopeV3(BaseModel):
+    """SourceEnvelope 的 V3 显式契约：来源信任道 + 变形谱系 + 保留类。"""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    source_id: str = Field(min_length=1)
+    collector: str = Field(min_length=1)
+    firmware_version: str | None = None
+    transform_lineage: list[dict[str, Any]] = Field(default_factory=list)
+    trust_lane: TrustLane = TrustLane.DATA
+    retention_class: RetentionClass = RetentionClass.REVOCABLE_RAW
+    legal_hold: bool = False
+
+
 class ConversationTurn(WorldObject):
     """对话轮次的一等载体（乱序/重复幂等由 (conv_id, seq) 唯一性在存储层保证）。"""
 
@@ -395,6 +409,7 @@ class ConversationTurn(WorldObject):
     finalized_at: datetime
     extraction_status: ExtractionStatus = ExtractionStatus.PENDING
     skip_reason: str | None = None  # SKIPPED 必填原因（模型无权决定 skip）
+    source_envelope: "SourceEnvelopeV3 | None" = None  # 会话流的信任道/保留类/法务锁（M1-019 GC 面）
 
     @model_validator(mode="after")
     def _turn_rules(self) -> "ConversationTurn":
@@ -562,20 +577,6 @@ class ManifestInstance(WorldObject):
 # ---------------------------------------------------------------------------
 # M0-030 · 信任分级 / 保留 / 墓碑（ADJ-004）
 # ---------------------------------------------------------------------------
-
-
-class SourceEnvelopeV3(BaseModel):
-    """SourceEnvelope 的 V3 显式契约：来源信任道 + 变形谱系 + 保留类。"""
-
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
-    source_id: str = Field(min_length=1)
-    collector: str = Field(min_length=1)
-    firmware_version: str | None = None
-    transform_lineage: list[dict[str, Any]] = Field(default_factory=list)
-    trust_lane: TrustLane = TrustLane.DATA
-    retention_class: RetentionClass = RetentionClass.REVOCABLE_RAW
-    legal_hold: bool = False
 
 
 class RetentionTombstone(WorldObject):

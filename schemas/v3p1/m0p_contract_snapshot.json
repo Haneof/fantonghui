@@ -143,7 +143,7 @@
   "models": {
     "aios_core.contracts.models_v3.BudgetLedgerEntry": "1460a65268f072be7059672a69f833e88340685aa755c1924cf5e0d26ce11630",
     "aios_core.contracts.models_v3.CommunicationExperience": "1e973f4a1730090d21828d377ca3f41ccc4a32a98637bb23cf405afba16e72d7",
-    "aios_core.contracts.models_v3.ConversationTurn": "8f8a853890f8903cc82f6068e3e2b66b59d7378504e4c21d589b34c06220988a",
+    "aios_core.contracts.models_v3.ConversationTurn": "fa1af007d7207056d0d597f149e18285a2b854bf3499dd02f5bdf73ad672d074",
     "aios_core.contracts.models_v3.DeletionLog": "8bef844a82d4f27ad1529caa5fc36f8e33ff1c05ca28a7f83bc377a25668492e",
     "aios_core.contracts.models_v3.DependencyReady": "ce344b869035e2c45072a0d484ad2b876b3106979b80e7d23c41704b4c3a3619",
     "aios_core.contracts.models_v3.EpochBudget": "150cc8c78a3baa374bc3c5cfdb1028710c792909ebfde36843cf356baf9e876b",

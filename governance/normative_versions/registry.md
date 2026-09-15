@@ -22,6 +22,7 @@
 | THRESH-BASE | `governance/thresholds/baseline_v1.json` | v1 | `613114c8562e8a64d7e53cfaac41a5c68c59d9f6d0d9991a48dc3167cee39638` | **REGISTERED**（M0-031 契约落地，v1 基线补登完成） | ADJ-008 |
 | PLAN-R4-B | `AIOS_Core_任务规划与开发任务拆分重构方案_R4.md` | R4 | `89b2b7844e2ad7a63e3f0c77461e562dfb4dfbba4b99e18acbaaf15fe4aa0292` | **CURRENT**（与 PLAN-R4 并行生效的落盘版；runtime_policy $comment 的作者依据） | CONST-v3.0.1 |
 | POLICY-RUNTIME | `governance/runtime_policy.json` | 1.0.0 | `3bf3e8318f5ccaab496bc92b0a887cdfb50fc06dd5304c4f05e3c2ad73ba952b` | **CURRENT**（宪法→法律→判决之法律层；tests/policy fail-closed） | CONST-v3.0.1 |
+|POLICY-RUNTIME|`governance/runtime_policy.json`|1.1.0|`1bcf22f1de533b02c893b76dcaa6925bc654bc528787b5931f5ee6c953937ba5`|**CURRENT**（1.1.0=retention_ttl 入法，M1-019 参数表；取代 1.0.0 行，旧行哈希封存）|CONST-v3.0.1|
 
 ## 过渡期特别说明（G0 签发后 14 天内）
 

@@ -99,16 +99,31 @@ def fill(repo_rows: list[str], rows: list[Row]) -> tuple[list[str], list[str], l
 
 
 def check(rows: list[Row]) -> tuple[list[str], list[str], list[str]]:
-    """核对已登记行。返回 (ok, drift, skipped)。"""
+    """核对已登记行。返回 (ok, drift, skipped)。
+
+    追加式注册表的版本语义：同一文件可以有多行（v1.0.0、v1.1.0……），
+    旧行记录"该版本曾以此哈希签署"这一不可变事实；磁盘上的文件只有一个，
+    因此 --check 只对**每一路径的表内最后一行**（追加序即时间序）做漂移比对，
+    更早的行标记为 archived——它们的历史哈希值永不改写（规则②）。
+    """
+    latest_idx: dict[Path, int] = {}
+    for idx, row in enumerate(rows):
+        p = target_path(row)
+        if p is not None:
+            latest_idx[p] = idx
+
     ok: list[str] = []
     drift: list[str] = []
     skipped: list[str] = []
-    for row in rows:
+    for idx, row in enumerate(rows):
+        p = target_path(row)
+        if p is not None and latest_idx[p] != idx:
+            skipped.append(f"L{row.line_no+1} [{row.spec_id}] archived（已被后续版本行取代，哈希封存）")
+            continue
         hexes = re.findall(r"([0-9a-f]{64})", row.hash_cell)
         if not hexes:
             skipped.append(f"L{row.line_no+1} [{row.spec_id}] 占位未登记（--fill 或治理作业补齐）")
             continue
-        p = target_path(row)
         if p is None or not p.is_file():
             drift.append(f"L{row.line_no+1} [{row.spec_id}] 已登记但文件缺失: {row.path_cell}")
             continue
