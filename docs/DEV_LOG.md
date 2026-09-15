@@ -361,3 +361,194 @@ M0-001 状态 CONDITIONAL PASS，禁止进入 M0-002，修正两个问题并制�
 ### 测试
 - 103 passed + 15 reference
 
+
+
+## 2026-09-15 宪法 v3.0 第 4 份主审（as-built 压力实测补充，服从元裁决 NO-GO）
+
+### 起始
+- 本地撰写基线 `cd8bb29`；发布时 rebase 到 `493a3e0`（元裁决）之上
+- 工程基线：M0 16/22 FINAL PASS，M0-022 BLOCKED，M1~M8 未开始
+- 已存在 6 份 V3 评审档案（A~F）+ 1 份统一元裁决 `PATCH_REQUIRED / AS-WRITTEN NO-GO`
+
+### 评审动作
+- 逐条审读《AIOS核心系统宪法v3.0》六编 116 条，标出 7 处条款自相矛盾（C-1~C-7）
+- 与已冻结 M0 契约对照：确认 `Prediction` / `LifeChapter` / `CommunicationExperience` /
+  `TaskType.PREDICTION_CHECK` / `WakeSource.RELATION_RHYTHM` 不在
+  `schemas/r2/m0_contract_snapshot.json` 内（G1 双基线）；`ErrorCode.STALE_INDEX` 与
+  `BUDGET_EXHAUSTED` 已定义但全仓未抛出；`Task.completion_condition/cancel_condition/recurrence`
+  为无类型 dict，第八十六条条件驱动执行没有契约载体
+- 编写 **as-built** 独立探针 `reviews/architecture/evidence/aios_v3_as_built_probe.py`
+  （不 import 产品代码，只使用 M0-017 冻结 schema 原形：payload_json blob + 现有 3 个索引），
+  灌入 1,000,000 object revision + 2,211,817 依赖边实测
+- rebase 后阅读元裁决与 A/B/D，撰写 0.5 节「收敛/增量对照」并撤回自有 CONDITIONAL PASS 标签
+
+### 关键实测（2 vCPU / SQLite 3.40.1 / 容器 FS）
+- 看板四步序组装（85 行 payload）：**0.3 ms** → 存储侧不是 1 秒首字瓶颈
+- as-built 多关键词共现（`payload_json LIKE`）：**1,282.8~1,357.9 ms/次**
+- as-built 5D 时间滑动（`json_extract occurred_at`）：**1,201.4~1,468.6 ms/次，与窗口大小无关**；
+  对照 `learned_at` 索引 0.2 ms
+- FTS5 中文陷阱：`unicode61 MATCH '妈妈'` = **0 命中**；`trigram MATCH '妈妈'`（2 字）= **0 命中且不报错**；
+  预分词列 = **0.87 ms / 16 命中**
+- 派生投影（`keyword_posting` + `time_bucket`）：存储 **+29%**（704.8→906.7 MB / 1M 行），
+  共现降至 **7.29~47.18 ms**、时间滑动降至 **0.66~112.48 ms**，结果与 LIKE 全表扫描**逐条一致**
+- 依赖传播：M0 内存反向扫描 **9.3 s / 51,822 受影响对象**（≈ **15.55 M token** 复核代价）；
+  索引无预算 231.9 ms；索引预算化（500 节点/深度 2）**10.82 ms**；懒传播 **0.82 ms**
+- 单条提交 fsync（M0-018 语义）：`FULL` 0.47 ms/次、`NORMAL` 0.09 ms/次（容器 FS，端侧为下限）
+- 资源账：1,090 行/日 → **397,850 行/年 ≈ 280 MB/年**（含投影 ≈ 361 MB/年）；
+  token **68.6 M in / 7.3 M out 每用户每年**（对话 56.6%、金字塔 21.7%、每日清洗 17.7%、心跳 4.0%）
+
+### 增量发现（既有 6 份档案未覆盖）
+- RT-12 心理危机被「深夜不宜打扰 + 冷却 + 1~3 句法则」三重压制（最高特权只覆盖硬件摔倒/撞击）
+- RT-13c `IGNORED` 与 `NOT_PERCEIVED` 不可区分 → 第九十七条接受率统计被系统性污染
+- RT-13b 骨传导可懂度里程碑缺失（腕→指→耳有量产先例 Sgnal，评价不利）
+- RT-09 `occurred_at` 由数据源自报 → 回溯标注权限构成认知投毒入口，需可信度分级
+- P1b 单条提交 fsync 代价与 group commit（摄入批次 = 一个 world_revision）
+- 3.6 读侧 as-of 语义：`Claim.valid_time` 是事态有效时间而非信念有效时间；
+  建议 `believed_from/believed_until/invalidated_by_ref` + 区间投影，把回溯修正从「重算」变「关区间」
+
+### 裁决
+- 服从元裁决 **`PATCH_REQUIRED / AS-WRITTEN NO-GO`**；本报告分项分数
+  （架构 9.0 / 工程 5.5 / 形态 7.0 / 规则 6.0，加权 6.9）不作为独立裁决票
+- Top 3 落地项 CORE-P1（派生投影合法化 + 检索/时延 SLO）、CORE-P2（三级保留契约 + 墓碑化删除）、
+  CORE-P3（传播预算化 + 懒复核队列 + 封存免重算）建议直接并入统一修正案，不另开编号
+- 所有阈值型建议均为测试 profile 默认值，不得写成跨硬件永久宪法常量（合第七十六条）
+
+### 产物
+- `reviews/architecture/AIOS_v3.0_CHIEF_REVIEW_R2_AS_BUILT_STRESS_PROBE_2026-09-15.md`
+- `reviews/architecture/evidence/aios_v3_as_built_probe.{py,log}`、`..._result.json`、
+  `..._environment.txt`、`..._SHA256SUMS`
+- `reviews/README.md`、`TASK_PROGRESS_R2.md` 仅追加评审备注，未改动任何任务状态
+- 未改动任何产品代码与宪法文件；探针 DB 写入 `/tmp`（`.gitignore` 已排除 `*.db`）
+
+---
+
+## 2026-09-16 V3 × 全套工程文档横向对齐审查：统一整改母表（Gate 0 交付物）
+
+### 起始
+- 基线 `cc66e13`（含 `493a3e0` 元裁决与上一轮 as-built 评审）
+- 已存在 4 份主审（A/B/C + as-built）、3 份 Gap Audit（D/E/F）、1 份元裁决
+- 元裁决 §6.1 第 5 项与 §7.3 强制要求「以 D 为底稿合并 E/F，消解同号异义，冻结唯一 `M0-023~` backlog」，**此前无人交付**
+
+### 审查动作
+- 全文逐条比对 5 份文件合计 7,191 行：宪法 v3.0(1720)、总工任务书(4262)、测试规范(480)、工作台规格(403)、架构规划(326)
+- 代码侧复核冻结契约：`gate_version=M0-R2`、ObjectType **19 类**、models **30 个**、`TaskType` 10 项（无 `PREDICTION_CHECK`）、`WakeSource` 8 项（无心跳/关系节奏）、`Observation.modality` 为**无枚举自由字符串**（`models.py:31`）、`Task.completion_condition/cancel_condition/recurrence` 为**无类型 dict**（`models.py:332-339`）
+- 交叉核对 D(41 gap)/E(30 gap)/F(25 gap)/元裁决(H-01~H-21)，逐条判定收敛与增量
+
+### 关键发现
+1. **派单链上没有 v3.0**：【总工任务书】L4240-4257 的授权链为 `宪法2.0 + R1 + R2 + 三份规格 → GitHub Issues → 代码`；【架构规划】L5 明写「依据：宪法 v2.0」
+2. **三份 Gap Audit 同号异义**：`M0-023`（D=Authority Freeze / E,F=Prediction）、`M1-019`（D=Tombstone / E=回溯加注 / F=中文分词）、`M2-016`（D=会话工作集 / E,F=条件引擎）、`M2-018`、`M2-019`、`M2-020`、`M2-021`、`M3-012`、`V31`（三套语义）⇒ 照原样叠加将产生第四套任务语义，Gate 0 第 8 项 `CONFLICT/UNMAPPED=0` 永不可达
+3. **`V` 前缀被 5 套语义占用**：测试规范 V01~V20、宪法 V21~V30、宪法验收 V3-01~03、D 的 V31~V45、E/F 的 V31~V37
+4. **悬空验收引用（新发现）**：M4-002 验收 L3377 写 `V01~V30覆盖`，而测试规范只定义到 V20 ⇒ M4 Gate 不可签收
+5. **测试规模单位与第三十三条冲突（新发现）**：测试规范 §5 的 1天 2,000–10,000 / 1月 60,000–300,000 / 1年 70万–360万「条」为宪法口径 reduction 模型（实测 1,090 行/日、397,850 行/年）的 **1.8~9.2 倍**（三尺度比例一致）⇒ TEST V0.2 必须把规模表拆为 `raw feed volume` 与 `long-term object rows` 两列
+6. **三组性能数字互不一致的根因已定位**：B/E 的时间窗测试用**索引列 `learned_at`**（369 ms@100万），本审计用宪法要求的 **payload 内 `occurred_at`**（1,201~1,468 ms）⇒ B 的 369 ms 系统性低估宪法查询；另两组差异来自 payload 密度（628 vs 739 B/行）与 postings 密度（2.5 vs 0.48/行）
+7. **E 引用的 50万/100万数字无入库证据**（元裁决 L216 已判定源自 B 的未入库探针）⇒ 列入「不可引用表」，并给出 as-built 替代值
+8. **1y 档滑动条即使有投影仍不达标**：实测时间桶 1d/1w/1m/1y = 0.66/3.86/14.40/**112.48** ms ⇒ 必须建**二级年桶**（年档读年桶而非日桶求和），这是三份审计均未指出的具体设计要求
+
+### 交付物
+- `reviews/architecture/AIOS_V3_UNIFIED_BACKLOG_AND_AS_BUILT_VERIFICATION_2026-09-16.md`（678 行）
+  - §3.2 Issue 同号异义消解表（34 行定稿，append-only，永不重编号）
+  - §3.3/3.4 `TS-001~051` 场景仲裁 + `A*`/`ARCH-*`/`WB-*`/`ACC-*`/`PAR-*`/`MOD-C*`/`M0~M8` 九命名空间归属
+  - §4 统一整改母表 57 项（Gate 0:10 / Gate 1:10 / Gate 2:16 / Gate 3:8 / M4~M8 与文档:13），每项带 D/E/F 来源映射与阻断验收
+  - §4.6 `ACC-01~ACC-14` v3.0 专属工程门（全部绑定 as-built 实测值）；§4.7 `PAR-01~PAR-15` 可测参数登记表；§4.8 元裁决 14 条驳回项映射
+  - §5 可引用 / 不可引用实测数字登记 + SLO 五要素书写模板
+  - §6 五张可直接派单的 12 要素 Issue 卡片：M0-023、M0-032、M1-018、M2-009（重写）、M2-024
+- `reviews/README.md`：新增「派单编号唯一来源」与「性能数字唯一来源」两条规则
+- `TASK_PROGRESS_R2.md`：新增母表指引与放行顺序；未改动任何任务状态
+- 未改动任何产品代码、契约与宪法文件；未新增探针（复用 `cc66e13` 已入库且 SHA256 校验通过的证据）
+
+### 判词
+- 治理层：**现在就不可派单**（审计首断点 = M0-V3 Gate）
+- 物理层：**M1-012** 是第一个做不出宪法指标的 Issue（as-built 1.28~1.36 s vs「毫秒级」，且 FTS5 默认分词对 2 字中文词静默零召回）
+- 验收层：**M4-002/M4-004** 因悬空引用不可签收
+- 运行层：若无视上述继续编码，**M2** 出现用户可观察断崖，**M3** 为债务放大器（传播 9.3 s / 51,822 对象 / 15.55 M token vs 预算化 10.82 ms，差 860 倍）
+- 裁决：服从元裁决 **PATCH_REQUIRED / AS-WRITTEN NO-GO**；Gate 0 未过前停止新 M1/M2 派单
+
+## 2026-09-16 编号终局裁定：撤回自我唯一性主张 + 交付 registry/CI 门种子（NUMCI-001）
+
+### 起始
+- 上一条目（统一整改母表）推送时被 non-fast-forward 拒绝；`git fetch` 后发现上游在同一时间窗内又落入 6 个 commit（`f3f1889` → `00adf2b`）
+- 本分支两 commit 已 `git rebase FETCH_HEAD` 到 `00adf2b` 之上（无冲突，未 force-push）
+- 上游新增：**P1** 重构方案（1594 行，仓库根）、**P2** 全盘重构设计书（953 行）、**P3** governance PROPOSAL（472 行）、两份元审查（225 / 122 行）、B 的三支探针脚本入库、`verify_design_*.py`
+
+### 做了什么
+1. **核对上游三份方案的号位**：P1 §10 L459 明文「以下编号是本重构方案的唯一建议编号，审查报告中同号异义的提案**全部失效**」；P2 铁律一判给「宪法唯一持有 + CI 双义即 fail」（其承载号为 `M0-027`）；P3 沿用 F 的号位；元裁决 §六-2 判给「A~F 代号 + 单一 `V3G-xxx`」⇒ **四个自称权威者互斥，本报告 §3 是其中之一**
+2. **生成 36 号 × 6 文档终局冲突矩阵**（报告新增 §9.2）：31 个号有 ≥2 套语义、20 个有 ≥3 套、2 个有 5 套（`M2-017`/`M3-012`）；唯一收敛号是 `M1-017`（6 份措辞不同、实质同一）
+3. **抓到最锋利的单点证据**：P2 用来「检测同一编号两套语义即 fail」的 CI Issue 自编号 `M0-027`，而 `M0-027` 已被 3 套语义占用（D/本报告/P3 = TriggerExpression 契约、P1 = LifeChapter、P2 = 编号 CI 门）⇒ **用来消灭编号冲突的 Issue 本身就是编号冲突**
+4. **自我更正**（§9.3 R1）：§3.2/3.3/3.4 的「定稿/唯一」降级为 **候选提案 PROPOSAL-α**；§4 母表的语义、来源映射与阻断验收继续有效，号位待 registry 分配；§5.3 因 B 探针脚本已入库，处置由「不可引用」精化为**「可复现但未取证」**三态规则（§9.4）
+5. **把裁决变成可运行的机制**（不再写第 5 份宣告）：
+   - `governance/issue_registry/v3_issue_registry.json`（0.2.0-PROPOSAL）：68 条注册项、66 条 `open_conflicts`（含 6 份文档原始 claims）、R3 分配规则、R4 前缀命名空间（裸 `V` 与 `GAP-` 停用）、`environment`（解释器/pytest 计数争议）、82 个冻结基线号、8 份 `scope_docs`
+   - `governance/issue_registry/check_issue_registry.py`（stdlib-only，`pip` 受 PEP 668 阻断）：规则 A registry 完整性 / B 未注册号被定义即 fail / C 未消解同号异义即 fail，`--verbose`、`--json`，退出码 0/1/2
+   - 实跑：**GATE = RED**，规则 A 0 / UNREGISTERED 0 / **CONFLICT 39** / **UNRATIFIED 21**，exit 1
+   - **负向对照**（篡改 registry 副本：重号、slug 撞车、窃取冻结基线号 `M0-005`、删一条冲突）⇒ 规则 A **0 → 4**、CONFLICT **39 → 38**，证明门会开火而非摆设
+   - 工件入库：`governance/issue_registry/evidence/check_run_2026-09-16.{log,json}` + `SHA256SUMS`
+
+### 关键发现（本轮新增）
+1. **争用面被人工矩阵低估**：检查器规则 B 首次实跑又抓出 **30 个矩阵未覆盖的号位**（`M0-033/034`、`M3-017~019`、`M4-005~010`、`M5-004~008`、`M6-005~009`、`M7-005~009`、`M8-004~007`）：21 个为 P1 单方定义、8 个与 P2/P3/本报告语义冲突、1 个疑同簇 ⇒ **实际争用面 66 个号，不是 36 个**
+2. **母表由 57 项增至 59 项**：新增 `NUMCI-001`（Gate 0，**先于 M0-023**，阻断全部派单）与 `PROBE-CI-002`（Gate 1，A 的 3.6M + B 的三支 + 本审计 as-built 共 5 支探针入 CI 并留 stdout/JSON/SHA256，为 B 的数字取证）
+3. **三份新方案没有一份测过 as-built 冻结 schema**：其检索/规模 SLO 建立在设计 schema 推演上；按本报告 §5.2(a) 实测（三词共现 1,282.8~1,357.9 ms、`occurred_at` 时间窗 1,201.4~1,468.6 ms、FTS5 对连续中文与 2 字词 0 命中且不报错），**必须先落 `M0-032`(α) 派生投影 + 倒排/时间桶物化才可能达标**，三份方案的 Gate 顺序均未前置这一条
+4. **时间口径未指明**：P2/P3 的规模门写「100 万行 p95」但未说明切 `occurred_at`（payload 内、无索引）还是 `learned_at`（顶层索引列）⇒ 规模门会绿灯通过而宪法第八十七条滑动条仍不可用
+5. **两处事实性冲突登记为 CI 应解决项**（不当场裁定）：P2 称 `pytest 558 passed`、P3 称 `418+15 全绿待签`(=433)；本沙箱静态清点 `def test_` **456**（unit 432 / integration 4 / architecture 20）、`parametrize` 32 处 ⇒ 两数很可能口径不同（全仓收集 vs unit def 数），但本沙箱 `python3 -m pytest` 报 `No module named pytest`（pip 受 PEP 668 阻断）**无法裁定**，改由 `NUMCI-001` 入库 `--collect-only` 工件为准。另 P1 声明目标 Python **3.12**，本沙箱实测 **3.11.2** ⇒ 解释器版本须写进 registry `environment` 并由 CI 固定
+
+### 交付物
+- `reviews/architecture/AIOS_V3_UNIFIED_BACKLOG_AND_AS_BUILT_VERIFICATION_2026-09-16.md`：新增 §9（9.1 事实登记 / 9.2 终局矩阵 / 9.3 R1~R6 裁决 / 9.4 三态数字规则 / 9.5 相对三份新方案的增量 / 9.6 四条裁定 / 9.7 工件与实跑结果），并在 header、§0.3、§3、§4.0、§4.8、§4.9、§5.3、§8.1、§8.2、§8.4 加入降级声明与交叉指引（678 → 841 行）
+- `governance/issue_registry/{v3_issue_registry.json, check_issue_registry.py}` + `evidence/{check_run_2026-09-16.log, check_run_2026-09-16.json, SHA256SUMS}`
+- `reviews/README.md`：「派单编号唯一来源」由**文档**改为**registry 文件 + CI 门**，并补三态性能数字规则
+- `TASK_PROGRESS_R2.md`：放行顺序改为 `NUMCI-001` → v3.0.1 修正案 → Gate 0 → Gate 1(含 `PROBE-CI-002`) → Gate 2 → Gate 3，并声明现有号位暂无派单效力
+- 未改动任何产品代码、契约快照与宪法文件
+
+### 判词
+- 本仓库缺的不是第 16 份审查意见，也不是第 4 份「唯一编号」宣告，而是**一个 JSON 真源 + 一个检查脚本**——两者本轮已交付并实跑为红色
+- **`NUMCI-001` 转绿（CONFLICT = 0 且 UNRATIFIED = 0）之前，任何 `M*-***` 派单一律视为无效单**；派单以 `slug` 匹配，号仅作显示
+- P1 的「其他提案全部失效」条款**裁定无效**（自我授权 + 与元裁决 §六-2、P2 铁律一冲突），但其内容以 slug 进 registry；P2 的 `M0-027` **意图采纳、号位驳回**，改挂 `NUMCI-001`；P3 号位与 F 同源 ⇒ 与四方冲突，其规模数字在 as-built 上未取证，不得作验收
+
+## 2026-09-16 独立首席架构师版《全盘工程重构方案与详细任务拆分设计书》交付（自带可执行验证）
+
+### 任务与立场
+- 角色：**AIOS Core 独立首席架构师与技术总监**。要求：通读宪法 v3.0 / 旧架构规划 / R2 任务书 / 工作台规格 / 虚拟测试规范五份正式文件，**丢弃一切外部框架**，产出自己的重构方案与任务拆分，回答"工程规划与任务拆分如何 100% 支撑 v3.0 落地"
+- 自我约束：不宣称编号唯一性（编号权在 registry）、不宣称 `FINAL_PASS`、不把探针 profile 默认值当宪法常量、**所有数字必须来自已入库且 SHA256 可校验的工件**
+
+### 做了什么
+1. **写出自带探针的设计书**（不是又一份评审）：`reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md`（1,277 行，§0~§5）
+   - §1 独立诊断：三个"没有"（没有读路径契约 / 没有调度代数 / 没有失效语义），并给出**首个崩溃点**的精确定位：`TS-001`（运动会修正 → 中文三词共搜 → 1 秒内出声）在旧图纸下**合计 > 3.7 s**（遍历求值 2181.75 ms + LIKE 全表 306.8 ms + `occurred_at` 月窗 154.3 ms + 无界传播 1086.0 ms + 逐条 fsync 0.18 s/日），而**四道验收门全绿**
+   - §2 架构升级：`MOD-C01~C17` 唯一责任表（新设 C15 调度代数 / C16 检索与时间轴读路径 / C17 控制面），五大机制在数据流上的落点与关键流程图
+   - §3 任务拆分：里程碑接缝门 `G0/G0.5/G1/G2/G2.5/G3/G4~G5` + 横切脊柱 `SPINE-EVIDENCE/SPINE-CONTROL`；**41 个 `RC-*` 标签**（Gate0 8 / Gate0.5 4 / Gate1 8 / Gate2 11 / Gate3 8 / Gate4~5 2）；12 项旧 Issue 重写/废黜表；**5 份代码级规约**（A `TriggerExpression`+物化 READY / B 共搜四计划 / C `CockpitManifest`+预算 / D 有界传播 / E 萃取流水线幂等），每份含 Pydantic2 模型、SQL DDL、调度伪代码、验收标准、绝对禁止事项
+   - §4 工作台与虚拟测试规范升级：设备无关三层 UI 契约、23cm 柔性屏物理约束、防误触 FSM（epoch 门 + 5 条零误触断言）、防说教语调（1~3 句 + 3 指标）、`TS-001~TS-051`、**12 条反退化断言**
+   - §5 放行顺序与关系声明：`NUMCI-001` → v3.0.1 修正案 → G0 → G0.5 → G1 → G2 → G2.5 → G3 → G4 → G5；与 14 份既有档案的收敛/增量关系表
+2. **探针实跑到 1M 规模并全门通过**：`reviews/architecture/evidence/verify_reconstruction_design.py`（62.6 KB，stdlib-only，1M 对象 / 50 万任务 / 6,256,888 postings / DB 1,087.4 MB / wall 111.5 s）⇒ **13/13 门通过，exit 0**
+   - v1：遍历求值 p95 **2181.75 ms** vs 物化队列 top-8 读 **0.012 ms**（**181,812×**）；索引增量重算 247.068 ms（8.8×）；UNKNOWN 普查 678.2 ms（**巡检，不入热路径**）
+   - v2：LIKE 全表 306.752 ms / 裸 FTS5 `unicode61` **0 命中且不报错**（0.038 ms）/ 预分词 FTS5 AND **9.054 ms** / top-K 早停 **0.269 ms** / 实体锚定 **0.901 ms**；**驳回** 3 路 GROUP BY 210.428 ms（超门 4.2×）与无界两两 JOIN 147.246 ms（超门 2.9×）；2 字词 `生日` 召回 **134,916**；别名差值 **3,333 − 2,222 = 1,111 = fixture 真值**
+   - v3：`occurred_at` 月窗扫 154.343 ms / 94,338 行 vs 桶读 DAY 0.100 / MONTH 0.013 / YEAR **0.008 ms**；1y 档年桶比 744 日桶求和快 **84.9×**；同窗口切 `learned_at` = 5.656 ms / **89,320 行**（连行数都不同 ⇒ 口径错误无法靠"看起来快"发现）
+   - v4：看板组装 p95 **0.081 ms**（预算 60 ms ⇒ **741× 余量**），token 565/2048，filler 0
+   - v5：无界传播 **1086.0 ms / 50,000 对象** vs 预算化 **3.516 ms / 500 节点**（**308.9×**）
+   - v6：`fsync FULL` 逐条提交 p50 **0.162 ms** ⇒ 0.18 s/日；group commit 200 行 0.05 ms ⇒ 0.0003 s/日
+   - v7：50 会话 × 50 轮，crash→retry 后 Claim **2,350 = 期望值**（首轮 1,175 → 重试补齐），重复对 **0**，未 finalize 的 turn 被萃取 **0** ⇒ 幂等且**非空转**
+   - G7：I3/I4/I5 三类违规写入全部被 DDL `CHECK` 拒绝（`ENFORCED_BY_DDL`）
+3. **探针被自己的门抓出两个静默缺陷并修正**（写入 §3.7 作为 I7 的例证）：① postings 批量落盘只插入累积列表尾部 6 万条 ⇒ 三词交集恒为 0 而门显示"通过"；② 幂等断言写反，把"重试补齐工作"误判为"重复"
+4. **提交 41 个 `RC-*` 标签给编号 registry，被自己的 CI 门打回 11 条**：`A3 一号一 slug` 报出 11 个 RC slug 与 α/P1 既有提案号**同语义**。按 `R3_alloc` 处理而非绕过 ⇒ registry `0.2.0 → 0.3.0-PROPOSAL`：
+   - 11 个 RC 降级为既有号的 **alias**（写入 owner 的 `aliases/source_docs/spec_ref`），registry 只保留 **30 条 `namespace: RC` 的 PROPOSAL 条目**
+   - 2 处门位分歧登记为 `gate_disputes{status: OPEN}`：`RC-017`→`M2-024`（registry `Gate2` vs 设计书主张 `Gate1`，依据：物化 READY 队列是 schema 级决策）、`RC-028`→`M2-026`（无 gate vs `Gate2`）
+5. **给 `NUMCI-001` 增补四组规则并做负向自测**：`A6`（alias 完整性：别名自身不得是号 / 全 registry 唯一 / 必须 RC 号形）、`A7`（**反虚构**：alias 必须在 `scope_docs` 中真实出现）、`D1~D6`（临时命名空间完整性 + 文档定义位必须已登记）、`E1~E2`（`gate_disputes` 字段与状态合法性）
+   - 实跑：`RULE_A 0 / UNREGISTERED 0 / CONFLICT 39 / UNRATIFIED 21 / RULE_D 0 [RC 30 条 + alias 11 个] / GATE_DISPUTE_OPEN 2` ⇒ **GATE = RED**（正确状态：红在号位未裁决，不是红在无人发现）
+   - **负向自测**（注入 9 类违规到 registry 副本）：`A6×3 / A7×1 / D1~D6 各 1 / E2×1` **全部被捕获，exit=1** ⇒ 新规则会开火，不是摆设
+6. **数字可追溯性校验**：把 1M 工件 JSON 里的 **141 个数值事实**逐一与设计书正文比对，修正 26 处引用（含一次自己造成的链式替换错误：`0.017 → 0.012 → 0.013` 串改了物化读与月桶两个不同量），最终**除 `1000000`（正文写作"1M/100 万"）外全部可在文中定位**
+
+### 关键发现（本轮新增）
+1. **旧图纸最致命的不是慢，是"慢而不报错"**：裸 FTS5 对连续中文 **0 命中 / 0.038 ms / 不报错**，而旧任务书 `M1-012` 的验收只断言"没有异常" ⇒ **会以 0 命中绿灯通过**。同理，遍历式求值、`learned_at` 冒充 `occurred_at`、四步序被砍都不会让任何测试失败
+2. **"退化为机械 Chatbot"的工程定义**：所有门都绿，但宪法十条机制一条都没有真正发生 ⇒ 反制手段只能是**把每条机制改写成一个可判定断言并放进 CI**（§1.3 的 I1~I7 + §3.7 的 G1~G13 + §4.3 的 12 条反退化断言），而不是再写一份理念文档
+3. **存储不是瓶颈，读路径契约才是**：1M 对象 DB 仅 1,087.4 MB、看板组装 0.081 ms（60 ms 预算的 741× 余量）；真正决定成败的是**查询计划与物化派生**（同一需求下旧做法与设计做法相差 **33.9× ~ 181,812×**）
+4. **规模门必须能在 CI 单机 3 分钟内跑完**，否则门不会被跑：1M 档 wall 111.5 s、构建 52.6 s ⇒ CI 跑 10 万档，1M 档在放行门跑一次并归档 SHA256（`RC-018` 的 profile 约束由此而来）
+5. **独立分析与既有提案在 11 处同语义收敛、在 30 处提出五套方案都没有的语义键、在 2 处对有据可依的门位提出异议** ⇒ 收敛表（§3.2.1）本身就是裁决输入，治理方不必再读六份文档
+
+### 交付物
+- `reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md`（1,277 行；§0 立场与读法 / §1 独立诊断 / §2 架构规划升级 / §3 任务拆分重构（含 5 份代码级规约）/ §4 工作台与虚拟测试升级 / §5 放行顺序与关系声明）
+- `reviews/architecture/evidence/verify_reconstruction_design.py` + `verify_reconstruction_design_1m.log` + `verify_reconstruction_design_1m_result.json` + `verify_reconstruction_design_SHA256SUMS`（9 个工件，repo 根 `sha256sum -c` 全 OK）
+- `governance/issue_registry/v3_issue_registry.json`（`0.3.0-PROPOSAL`：98 条注册项 = 68 原有 + 30 RC；11 个 alias；2 处 `gate_disputes`；新增 `rules.R7_provisional`）
+- `governance/issue_registry/check_issue_registry.py`（规则 A/B/C + 新增 A6/A7/D1~D6/E1~E2）
+- `governance/issue_registry/evidence/{check_run_2026-09-16_v0.3.0.log, check_run_2026-09-16_v0.3.0.json, negative_self_test_2026-09-16.log, SHA256SUMS}`
+- `reviews/README.md`：补 `RC-*` 临时命名空间规则与"同 slug ⇒ alias，不发新号"
+- 未改动任何产品代码、契约快照与宪法文件；未新增第 6 套 `M*-***` 号语义
+
+### 判词
+- 本设计书的可信度不来自措辞，而来自**它带的探针跑到了 1M 规模、13 门全绿、且被自己的门抓出两个静默缺陷**；数字与工件 SHA256 双向绑定
+- **门仍为 RED 是正确的**：`CONFLICT 39 / UNRATIFIED 21 / GATE_DISPUTE_OPEN 2` 只能由治理方逐号裁决消除，任何文档（含本文）都无权自行转绿
+- 下一步唯一合法的开工顺序：`NUMCI-001` 转绿 → v3.0.1 修正案入库 → `G0`（含 `RC-001` C 号公案裁定）→ `G0.5`（读路径契约门）→ `G1`

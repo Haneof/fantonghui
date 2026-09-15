@@ -1,0 +1,37 @@
+# 负向自测：证明新增规则 A6/A7/D1~D6/E2 真的会咬（I7 反空转纪律）
+# 手法：复制 registry 到 /tmp/bad_registry.json 并注入 9 类违规，检查器必须 exit=1 且逐条报出
+
+注入违规 7 类：
+  - RC-001.status=APPROVED (违 D2)
+  - RC-002 maps_to=[] 且 origin=MAPPED (违 D3)
+  - RC-003.gate=GateX (违 D4)
+  - RC-004 删 convergence_class (违 D5)
+  - RC-005 改名 RC-5 (违 D1，并触发 D6 因文档定义位 RC-005 不再注册)
+  - M1-018.aliases 注入重复别名/别名自身是号/非 RC 号形/虚构别名 (违 A6×3 + A7)
+  - M2-024.gate_disputes[0].status=MAYBE (违 E2)
+
+检查器输出：exit=1 gate=RED RULE_A=4 RULE_D=7
+  A> A6 别名被重复登记：RC-014 同时是 M1-018 与 M1-018 的别名
+  A> A6 别名自身是一个已注册号：M1-018（alias of M1-018）
+  A> A6 别名必须来自临时命名空间（RC-***）：M1-018 on M1-018
+  A> A7 别名在任何 scope_docs 中都不存在（虚构标签）：RC-999 on M1-018
+  D> D2 临时号 status 必须是 PROPOSAL*：RC-001 = 'APPROVED'
+  D> D3 临时号必须声明 maps_to 或 origin=NEW_NO_PRIOR_CLAIM：RC-002
+  D> D4 临时号 gate 不属已知门集合：RC-003 = 'GateX'
+  D> D5 临时号缺 convergence_class：RC-004
+  D> D1 namespace=RC 但号形不合 RC-***：RC-5
+  D> D6 临时号 RC-005：文档中以定义位出现但未注册/未登记 alias = reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md:L334
+  D> E2 gate_dispute status 非法：M2-024 = 'MAYBE'
+
+期望 vs 实际：
+  A6 期望≥3 实际3 ✅
+  A7 期望≥1 实际1 ✅
+  D1 期望≥1 实际1 ✅
+  D2 期望≥1 实际1 ✅
+  D3 期望≥1 实际1 ✅
+  D4 期望≥1 实际1 ✅
+  D5 期望≥1 实际1 ✅
+  D6 期望≥1 实际1 ✅
+  E2 期望≥1 实际1 ✅
+
+NEGATIVE SELF-TEST = PASS（所有注入违规均被捕获，门 exit=1）

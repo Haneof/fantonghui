@@ -1,0 +1,2284 @@
+{
+  "registry_version": "0.3.0-PROPOSAL",
+  "status": "PROPOSAL — 待项目总工程师逐号裁决后升格为唯一真源；在此之前 CI 门保持红色",
+  "generated_by": "reviews/architecture/AIOS_V3_UNIFIED_BACKLOG_AND_AS_BUILT_VERIFICATION_2026-09-16.md §9.2/§9.3 + reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3（RC-001~RC-041，41 条提案号）",
+  "generated_at_commit": "00adf2b",
+  "authority": "编号权属于本文件，不属于任何评审/方案文档（§9.3 R2）。文档只能引用号，不能分配号。",
+  "rules": {
+    "R3_alloc": [
+      "先注册 slug（语义键），后由 registry 按里程碑序列尾部 append-only 分配号",
+      "一个 slug 只能有一个号；一个号只能有一个 slug",
+      "已注册号永不复用、永不改语义；改语义 = 发新号 + 旧号标 SUPERSEDED_BY",
+      "冻结基线号段不进争用区，只登记不重排"
+    ],
+    "R4_prefix": {
+      "V3G-": "审计发现(gap)号",
+      "M*-***": "工程任务(Issue)号",
+      "TS-": "测试场景",
+      "ACC-": "v3.0 工程验收门",
+      "PAR-": "可测参数(profile 默认值)",
+      "WB-": "工作台验收",
+      "ARCH-": "架构规划验收",
+      "MOD-C": "模块责任",
+      "NUMCI-/PROBE-": "临时治理号（裁决后由 registry 发正式号）",
+      "RETIRED": [
+        "裸 V 前缀（已被 5 套语义占用）",
+        "GAP- 前缀（已被 #7/#11 双占用）"
+      ],
+      "link": "gap 与 Issue 通过 traces_to 关联，一个 gap 可映射多个 Issue",
+      "RC-": "重构设计书提案号（PROPOSAL）；裁决后由 registry 发正式 M* 号，RC 号本身永不进冻结基线"
+    },
+    "R6_dispatch": "每张派单必须携带 slug + source_docs；号仅作显示；slug 冲突即 CI fail",
+    "R7_provisional": {
+      "namespaces": [
+        "NUMCI-",
+        "PROBE-",
+        "RC-"
+      ],
+      "RC": {
+        "meaning": "《独立首席架构师版重构设计书》提出的重构 Issue（slug 为语义键）",
+        "requirements": [
+          "每条必须有 slug（小写短横线式）且全 registry 唯一",
+          "每条必须声明 maps_to（映射到既有 M* 号）或 origin=NEW_NO_PRIOR_CLAIM（证明五套方案均无同等条目）",
+          "status 只能是 PROPOSAL*：RC 号在被治理方裁决前不得被当作已分配的工程号引用",
+          "RC 号不得占用 M* 号段，不得进 frozen_baseline",
+          "scope_docs 中以表格首列定义的 RC-* 必须在本文件注册（规则 D）"
+        ],
+        "alias_rule": "若 RC 标签的 slug 与既有提案号相同 ⇒ 判定为**同语义收敛**，不发新号：在既有号上登记 aliases/spec_ref/source_docs；若 gate 判断不同 ⇒ 登记 gate_disputes（status=OPEN）由治理方裁决。本轮 41 个 RC 标签 = 11 个 alias（收敛） + 30 个新语义键。",
+        "alias_count": 11
+      }
+    }
+  },
+  "environment": {
+    "note": "§9.5-4：解释器与依赖版本必须由 CI 固定，禁止文档各写一个数",
+    "sandbox_python3": "3.11.2",
+    "declared_target_python": "3.12 (P1 头部声明)",
+    "pydantic": "本沙箱不可安装(PEP 668)",
+    "pytest_static_count": {
+      "def_test": 456,
+      "unit": 432,
+      "integration": 4,
+      "architecture": 20,
+      "parametrize_decorators": 32,
+      "test_files": 46,
+      "doc_claims": {
+        "P2": "558 passed",
+        "P3": "418+15 全绿待签 (=433)"
+      },
+      "verdict": "两个数字口径不同(全仓收集 vs unit def 数)，本沙箱无 pytest 无法裁定 ⇒ 以 NUMCI-001 入库的 --collect-only 工件为准"
+    }
+  },
+  "frozen_baseline": [
+    "M0-001~M0-022",
+    "M1-001~M1-016",
+    "M2-001~M2-015",
+    "M3-001~M3-011",
+    "M4-001~M4-004",
+    "M5-001~M5-003",
+    "M6-001~M6-004",
+    "M7-001~M7-004",
+    "M8-001~M8-003"
+  ],
+  "scope_docs": [
+    "AIOS_Core_详细开发任务拆分_R2_总工程师版.md",
+    "AIOS_Core_任务规划与开发任务拆分重构方案_V3_独立首席架构师版.md",
+    "reviews/architecture/AIOS_V3_ENGINEERING_GAP_AUDIT_PATCH_REQUIRED_2026-09-16.md",
+    "reviews/architecture/AIOS_Core_全盘工程重构方案与详细任务拆分设计书_2026-09-16.md",
+    "reviews/architecture/AIOS_V3_UNIFIED_BACKLOG_AND_AS_BUILT_VERIFICATION_2026-09-16.md",
+    "reviews/constitution/AIOS_v3.0_工程文档横向对齐断层审计_2026-09-16.md",
+    "reviews/constitution/CONST_V3.0_GAP_AUDIT_2026-09-16.md",
+    "governance/v3.0.1_amendment/PROPOSAL_AIOS_CORE_ENGINEERING_RECONSTRUCTION_2026-09-16.md",
+    "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md"
+  ],
+  "issues": [
+    {
+      "id": "M0-023",
+      "slug": "v3-authority-traceability-freeze",
+      "milestone": "M0",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "权威与追溯冻结",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M0-024",
+      "slug": "prediction-contract",
+      "milestone": "M0",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "Prediction 契约",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M0-025",
+      "slug": "life-chapter-contract",
+      "milestone": "M0",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "LifeChapter",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M0-026",
+      "slug": "communication-experience-and-ai-seed-contract",
+      "milestone": "M0",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "CommunicationExp+AI seed",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M0-027",
+      "slug": "trigger-expression-eligibility-contract",
+      "milestone": "M0",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)",
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L313（以 RC-006 标签引用本号）"
+      ],
+      "semantics": "TriggerExpression 契约",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键 | 0.3.0：设计书以 RC-006 标签收敛到本号（同语义 ⇒ 不发新号，R3_alloc 一 slug 一号）。",
+      "aliases": [
+        "RC-006"
+      ],
+      "spec_ref": "RC-006=AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md§3.5-A"
+    },
+    {
+      "id": "M0-028",
+      "slug": "conversation-stream-contract",
+      "milestone": "M0",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "Conversation Stream 契约",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M0-029",
+      "slug": "cockpit-manifest-contract",
+      "milestone": "M0",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "CockpitManifest 契约",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M0-030",
+      "slug": "source-trust-transform-retention-contract",
+      "milestone": "M0",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "Source Trust/Transform/Retention",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M0-031",
+      "slug": "bitemporal-invariants-and-retrospective-annotation-contract",
+      "milestone": "M0",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "双时态不变量+回溯标注",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M0-032",
+      "slug": "derived-projection-legalization-and-schema-extension",
+      "milestone": "M0",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "派生投影合法化+schema 扩展",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M1-017",
+      "slug": "simulated-edge-reduction-pipeline",
+      "milestone": "M1",
+      "gate": "Gate1",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)",
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L330（以 RC-013 标签引用本号）"
+      ],
+      "semantics": "模拟端侧降采样管线",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键 | 0.3.0：设计书以 RC-013 标签收敛到本号（同语义 ⇒ 不发新号，R3_alloc 一 slug 一号）。",
+      "aliases": [
+        "RC-013"
+      ]
+    },
+    {
+      "id": "M1-018",
+      "slug": "chinese-hybrid-co-search-engine",
+      "milestone": "M1",
+      "gate": "Gate1",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)",
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L331（以 RC-014 标签引用本号）"
+      ],
+      "semantics": "中文混合共搜引擎",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键 | 0.3.0：设计书以 RC-014 标签收敛到本号（同语义 ⇒ 不发新号，R3_alloc 一 slug 一号）。",
+      "aliases": [
+        "RC-014"
+      ],
+      "spec_ref": "RC-014=AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md§3.5-B"
+    },
+    {
+      "id": "M1-019",
+      "slug": "retention-and-tombstone-worker",
+      "milestone": "M1",
+      "gate": "Gate1",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "Retention & Tombstone",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M1-020",
+      "slug": "early-scale-and-query-plan-gate",
+      "milestone": "M1",
+      "gate": "Gate1",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)",
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L335（以 RC-018 标签引用本号）"
+      ],
+      "semantics": "早期规模与查询计划门",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键 | 0.3.0：设计书以 RC-018 标签收敛到本号（同语义 ⇒ 不发新号，R3_alloc 一 slug 一号）。",
+      "aliases": [
+        "RC-018"
+      ]
+    },
+    {
+      "id": "M1-021",
+      "slug": "keyword-alias-inverted-projection",
+      "milestone": "M1",
+      "gate": "Gate1",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "关键词/别名倒排投影",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M1-022",
+      "slug": "retrieval-ranking-and-memory-slice-scoring",
+      "milestone": "M1",
+      "gate": "Gate1",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)",
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L332（以 RC-015 标签引用本号）"
+      ],
+      "semantics": "检索排序与切片打分",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键 | 0.3.0：设计书以 RC-015 标签收敛到本号（同语义 ⇒ 不发新号，R3_alloc 一 slug 一号）。",
+      "aliases": [
+        "RC-015"
+      ]
+    },
+    {
+      "id": "M1-023",
+      "slug": "lod-time-projection-and-adaptive-materialization",
+      "milestone": "M1",
+      "gate": null,
+      "status": "PROPOSAL",
+      "source_docs": [
+        "P1 / P2"
+      ],
+      "semantics": "{\"P1\": \"LOD 时间投影+自适应物化\", \"P2\": \"检索规模门\"}",
+      "note": "α 未定义此号；slug 取自 δ(P1)/ε(P2) 语义，待裁决"
+    },
+    {
+      "id": "M1-024",
+      "slug": "early-scale-wal-and-query-plan-gate",
+      "milestone": "M1",
+      "gate": null,
+      "status": "PROPOSAL",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"Early Scale/WAL/Plan 门\"}",
+      "note": "α 未定义此号；slug 取自 δ(P1)/ε(P2) 语义，待裁决"
+    },
+    {
+      "id": "M1-025",
+      "slug": "m1-v3-evidence-canary",
+      "milestone": "M1",
+      "gate": null,
+      "status": "PROPOSAL",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"M1 V3 证据金丝雀\"}",
+      "note": "α 未定义此号；slug 取自 δ(P1)/ε(P2) 语义，待裁决"
+    },
+    {
+      "id": "M2-016",
+      "slug": "active-conversation-working-set",
+      "milestone": "M2",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "活跃会话工作集",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M2-017",
+      "slug": "incremental-streaming-extractor",
+      "milestone": "M2",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "增量流式萃取器",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M2-018",
+      "slug": "proactive-recall-and-context-assembler",
+      "milestone": "M2",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "主动召回与上下文组装",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M2-019",
+      "slug": "end-to-end-latency-and-token-telemetry",
+      "milestone": "M2",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "端到端延迟/Token 遥测",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M2-020",
+      "slug": "prediction-register-runtime",
+      "milestone": "M2",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)",
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L351（以 RC-029 标签引用本号）"
+      ],
+      "semantics": "Prediction Register 运行时",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键 | 0.3.0：设计书以 RC-029 标签收敛到本号（同语义 ⇒ 不发新号，R3_alloc 一 slug 一号）。",
+      "aliases": [
+        "RC-029"
+      ]
+    },
+    {
+      "id": "M2-021",
+      "slug": "wearable-interaction-port-and-fsm-simulator",
+      "milestone": "M2",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "穿戴 InteractionPort+FSM 仿真",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M2-022",
+      "slug": "relationship-rhythm-and-quiet-heartbeat-policy",
+      "milestone": "M2",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "关系节奏与静默心跳",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M2-023",
+      "slug": "concise-response-and-interaction-output-contract",
+      "milestone": "M2",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "简洁应答与输出契约",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M2-024",
+      "slug": "trigger-eligibility-engine-and-ready-queue",
+      "milestone": "M2",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)",
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L334（以 RC-017 标签引用本号）"
+      ],
+      "semantics": "Trigger Eligibility 引擎+Ready 队列",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键 | 0.3.0：设计书以 RC-017 标签收敛到本号（同语义 ⇒ 不发新号，R3_alloc 一 slug 一号）。",
+      "aliases": [
+        "RC-017"
+      ],
+      "spec_ref": "RC-017=AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md§3.5-A",
+      "gate_disputes": [
+        {
+          "raised_by": "RC-017（AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3）",
+          "registry_gate": "Gate2",
+          "proposed_gate": "Gate1",
+          "status": "OPEN",
+          "basis": "设计书实测证据：RC-017 的物化 READY 队列是 schema/查询计划级决策（遍历求值实测 2181.75 ms），必须与 M1 schema 同门冻结，不能留到 Gate2；RC-028 的遥测是 §3.6 成本账的输入，须在 Gate2 前可用。"
+        }
+      ]
+    },
+    {
+      "id": "M2-025",
+      "slug": "budget-ledger-and-degradation-ladder",
+      "milestone": "M2",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "BudgetLedger 与降级阶梯",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M2-026",
+      "slug": "end-to-end-latency-and-cost-telemetry",
+      "milestone": "M2",
+      "gate": null,
+      "status": "PROPOSAL",
+      "source_docs": [
+        "P1",
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L350（以 RC-028 标签引用本号）"
+      ],
+      "semantics": "{\"P1\": \"端到端延迟与成本遥测\"}",
+      "note": "α 未定义此号；slug 取自 δ(P1)/ε(P2) 语义，待裁决 | 0.3.0：设计书以 RC-028 标签收敛到本号（同语义 ⇒ 不发新号，R3_alloc 一 slug 一号）。",
+      "aliases": [
+        "RC-028"
+      ],
+      "gate_disputes": [
+        {
+          "raised_by": "RC-028（AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3）",
+          "registry_gate": null,
+          "proposed_gate": "Gate2",
+          "status": "OPEN",
+          "basis": "设计书实测证据：RC-017 的物化 READY 队列是 schema/查询计划级决策（遍历求值实测 2181.75 ms），必须与 M1 schema 同门冻结，不能留到 Gate2；RC-028 的遥测是 §3.6 成本账的输入，须在 Gate2 前可用。"
+        }
+      ]
+    },
+    {
+      "id": "M2-027",
+      "slug": "m2-integrated-cognitive-transaction-gate",
+      "milestone": "M2",
+      "gate": null,
+      "status": "PROPOSAL",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"M2 集成认知事务门\"}",
+      "note": "α 未定义此号；slug 取自 δ(P1)/ε(P2) 语义，待裁决"
+    },
+    {
+      "id": "M3-012",
+      "slug": "retrospective-semantic-annotation",
+      "milestone": "M3",
+      "gate": "Gate3",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "回溯语义加注",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M3-013",
+      "slug": "life-chapter-candidate-and-baseline-migration",
+      "milestone": "M3",
+      "gate": "Gate3",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)"
+      ],
+      "semantics": "LifeChapter 候选与基线迁移",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键"
+    },
+    {
+      "id": "M3-014",
+      "slug": "communication-experience-and-rapport-consolidation",
+      "milestone": "M3",
+      "gate": "Gate3",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)",
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L364（以 RC-037 标签引用本号）"
+      ],
+      "semantics": "CommunicationExp+Rapport 巩固",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键 | 0.3.0：设计书以 RC-037 标签收敛到本号（同语义 ⇒ 不发新号，R3_alloc 一 slug 一号）。",
+      "aliases": [
+        "RC-037"
+      ]
+    },
+    {
+      "id": "M3-015",
+      "slug": "prediction-calibration-and-noop-propagation",
+      "milestone": "M3",
+      "gate": "Gate3",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)",
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L365（以 RC-038 标签引用本号）"
+      ],
+      "semantics": "Prediction 校准+no-op 传播",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键 | 0.3.0：设计书以 RC-038 标签收敛到本号（同语义 ⇒ 不发新号，R3_alloc 一 slug 一号）。",
+      "aliases": [
+        "RC-038"
+      ]
+    },
+    {
+      "id": "M3-016",
+      "slug": "bounded-invalidation-propagation-kernel",
+      "milestone": "M3",
+      "gate": "Gate3",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "PROPOSAL-α (D + 本报告 §3.2)",
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L359（以 RC-032 标签引用本号）"
+      ],
+      "semantics": "有界传播内核",
+      "note": "号位待治理方裁决；slug 为 α 候选语义键 | 0.3.0：设计书以 RC-032 标签收敛到本号（同语义 ⇒ 不发新号，R3_alloc 一 slug 一号）。",
+      "aliases": [
+        "RC-032"
+      ],
+      "spec_ref": "RC-032=AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md§3.5-D"
+    },
+    {
+      "id": "NUMCI-001",
+      "slug": "issue-numbering-registry-ci-gate",
+      "milestone": "NUMCI",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "本报告 §9.3 R2/R5",
+        "P2 铁律一(号位 M0-027 已驳回)"
+      ],
+      "semantics": "编号 registry 唯一真源 + CI 门（A 完整性 / B 未注册号 / C 未消解冲突）",
+      "note": "临时命名空间，不与任何 M*-*** 争用；阻断其余全部派单"
+    },
+    {
+      "id": "PROBE-CI-002",
+      "slug": "four-probes-in-ci-as-m1-hard-gate",
+      "milestone": "PROBE",
+      "gate": "Gate1",
+      "status": "PROPOSAL",
+      "source_docs": [
+        "本报告 §9.4",
+        "元裁决 §六-3"
+      ],
+      "semantics": "A 的 3.6M 探针 + B 的三支探针 + 本审计 as-built 探针并入 CI，产出 stdout/JSON/SHA256 工件",
+      "note": "临时命名空间；B 的数字由此转为可引用"
+    },
+    {
+      "id": "M0-033",
+      "slug": "capability-authorization-and-interaction-contract",
+      "milestone": "M0",
+      "gate": "Gate0",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"Capability Authorization & Interaction Contract\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M0-034",
+      "slug": "m0-v3-migration-fixture-and-contract-gate",
+      "milestone": "M0",
+      "gate": "Gate0",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"M0-V3 Migration Fixture & Contract Gate\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M3-017",
+      "slug": "life-chapter-candidate-state-machine",
+      "milestone": "M3",
+      "gate": "Gate3",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"LifeChapter Candidate State Machine\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M3-018",
+      "slug": "ai-world-and-communication-experience-consolidation",
+      "milestone": "M3",
+      "gate": "Gate3",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"AI World & CommunicationExperience Consolidation\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M3-019",
+      "slug": "m3-long-term-cognition-gate",
+      "milestone": "M3",
+      "gate": "Gate3",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"M3 Long-Term Cognition Gate\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M4-005",
+      "slug": "test-v02-scenario-pack",
+      "milestone": "M4",
+      "gate": "M4~M8",
+      "status": "OPEN",
+      "source_docs": [
+        "P1",
+        "P2",
+        "本报告"
+      ],
+      "semantics": "{\"P1\": \"V3 Scenario Pack V21~V45\", \"P2\": \"会话层跨日接续\", \"本报告\": \"TEST V0.2 Scenario Pack TS-021~TS-051\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M4-006",
+      "slug": "runtime-stress-and-ablation-pack",
+      "milestone": "M4",
+      "gate": "M4~M8",
+      "status": "OPEN",
+      "source_docs": [
+        "P1",
+        "P2",
+        "本报告"
+      ],
+      "semantics": "{\"P1\": \"Hidden-Truth Generator V2\", \"P2\": \"羁绊演化与关系节奏心跳\", \"本报告\": \"Runtime Stress & Ablation Pack\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M4-007",
+      "slug": "thirty-day-continuous-fault-run",
+      "milestone": "M4",
+      "gate": "M4~M8",
+      "status": "OPEN",
+      "source_docs": [
+        "P1",
+        "P2"
+      ],
+      "semantics": "{\"P1\": \"30-Day Continuous Fault Run\", \"P2\": \"预算月度对账\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M4-008",
+      "slug": "v3-metrics-and-replay-report",
+      "milestone": "M4",
+      "gate": "M4~M8",
+      "status": "OPEN",
+      "source_docs": [
+        "P1",
+        "P2"
+      ],
+      "semantics": "{\"P1\": \"V3 Metrics & Replay Report\", \"P2\": \"漂移与人格一致性检测\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M4-009",
+      "slug": "m4-blind-gate",
+      "milestone": "M4",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1",
+        "P2"
+      ],
+      "semantics": "{\"P1\": \"M4 Blind Gate\", \"P2\": \"反退化盲测（V37~V40）\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M4-010",
+      "slug": "one-month-end-to-end-acceptance",
+      "milestone": "M4",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P2"
+      ],
+      "semantics": "{\"P2\": \"一月端到端（重写 M4-004 的验收口径）\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M5-004",
+      "slug": "communication-experience-ab",
+      "milestone": "M5",
+      "gate": "M4~M8",
+      "status": "OPEN",
+      "source_docs": [
+        "P1",
+        "本报告"
+      ],
+      "semantics": "{\"P1\": \"OperationExperience Policy Executor\", \"本报告\": \"CommunicationExperience A/B\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M5-005",
+      "slug": "communication-experience-controlled-ab",
+      "milestone": "M5",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"CommunicationExperience Controlled A/B\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M5-006",
+      "slug": "trigger-threshold-trial-and-rollback",
+      "milestone": "M5",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"Trigger Threshold Trial & Rollback\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M5-007",
+      "slug": "experience-poisoning-red-team",
+      "milestone": "M5",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"Experience Poisoning Red Team\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M5-008",
+      "slug": "m5-net-benefit-gate",
+      "milestone": "M5",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"M5 Net-Benefit Gate\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M6-005",
+      "slug": "ambient-canvas-skill-card-projection-contract",
+      "milestone": "M6",
+      "gate": "M4~M8",
+      "status": "OPEN",
+      "source_docs": [
+        "P1",
+        "P2",
+        "P3",
+        "本报告"
+      ],
+      "semantics": "{\"P1\": \"Capability Scope & App Projection\", \"P2\": \"跨 App 认知复用的边界与隔离\", \"P3\": \"穿戴模拟渠道\", \"本报告\": \"AmbientCanvas / SkillCard Projection Contract\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M6-006",
+      "slug": "ambient-canvas-and-skill-card-dto",
+      "milestone": "M6",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"AmbientCanvas & SkillCard DTO\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M6-007",
+      "slug": "wearable-projection-simulator-230mm",
+      "milestone": "M6",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"230mm Wearable Projection Simulator\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M6-008",
+      "slug": "cross-app-transfer-and-leakage-test",
+      "milestone": "M6",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"Cross-App Transfer & Leakage Test\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M6-009",
+      "slug": "m6-projection-gate",
+      "milestone": "M6",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"M6 Projection Gate\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M7-005",
+      "slug": "annual-latency-and-cost-slo-gate",
+      "milestone": "M7",
+      "gate": "M4~M8",
+      "status": "OPEN",
+      "source_docs": [
+        "P1",
+        "P2",
+        "本报告"
+      ],
+      "semantics": "{\"P1\": \"One-Year Ingest & Storage Growth Model\", \"P2\": \"一年期成本与规模总账\", \"本报告\": \"End-to-End Latency & Cost SLO 年度正式门\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M7-006",
+      "slug": "sustained-wal-lease-and-recovery-test",
+      "milestone": "M7",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"Sustained WAL, Lease & Recovery Test\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M7-007",
+      "slug": "provider-switch-replay-regression",
+      "milestone": "M7",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"Provider-Switch Replay Regression\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M7-008",
+      "slug": "annual-cost-quality-frontier",
+      "milestone": "M7",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"Annual Cost-Quality Frontier\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M7-009",
+      "slug": "m7-durability-gate",
+      "milestone": "M7",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"M7 Durability Gate\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M8-004",
+      "slug": "wearable-contract-reservation-assessment",
+      "milestone": "M8",
+      "gate": "M4~M8",
+      "status": "OPEN",
+      "source_docs": [
+        "P1",
+        "P2",
+        "P3",
+        "本报告"
+      ],
+      "semantics": "{\"P1\": \"Mechanism Ablation Matrix\", \"P2\": \"消融实验：条件引擎/共现检索/三级流水线各自独立收益\", \"P3\": \"穿戴契约预留评估\", \"本报告\": \"穿戴契约预留评估（FSM 零误触、三层 UI、马达/骨传导抽象、插件最小授权域、离线降级）\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M8-005",
+      "slug": "architecture-simplification-adr-pack",
+      "milestone": "M8",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"Architecture Simplification ADR Pack\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M8-006",
+      "slug": "real-device-readiness-dossier",
+      "milestone": "M8",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"Real-Device Readiness Dossier\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "M8-007",
+      "slug": "next-phase-gate",
+      "milestone": "M8",
+      "gate": "M4~M8",
+      "status": "SINGLE_CLAIM",
+      "source_docs": [
+        "P1"
+      ],
+      "semantics": "{\"P1\": \"Next-Phase Gate\"}",
+      "note": "由 check_issue_registry.py 首次实跑（规则 B）发现的未注册号；slug 为候选语义键，待治理方裁决"
+    },
+    {
+      "id": "RC-001",
+      "slug": "mod-c-unique-responsibility-freeze",
+      "namespace": "RC",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "semantics": "`MOD-C01~C17` 唯一责任表冻结",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L308"
+      ],
+      "maps_to": [
+        "M0-023",
+        "M0-027"
+      ],
+      "maps_to_raw": "α M0-023 的一部分 / δ M0-023 / ε M0-027(意图)",
+      "origin": "MAPPED",
+      "key_outputs": "裁定宪法 vs 旧规划的 C 号一物两义（§2.0）；产出 17 模块责任表 + hash；C06/C16、C10/C17 拆分生效",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-002",
+      "slug": "control-plane-object-contracts",
+      "namespace": "RC",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "semantics": "8 个控制面对象契约冻结",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L309"
+      ],
+      "maps_to": [
+        "M0-025",
+        "M0-029",
+        "M0-031",
+        "M0-032"
+      ],
+      "maps_to_raw": "ε M0-025（控制面对象）/ δ M0-031+M0-032 / α M0-029+M0-032",
+      "origin": "MAPPED",
+      "key_outputs": "`BudgetLedger`/`DeadlineClock`/`WatermarkRegistry`/`EpochRegistry`/`ContextPlan`/`CockpitManifest`/`ContextReceipt`/`DegradationLadder`，**独立 `control_plane_*` 表，不进 `ObjectType`**",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-003",
+      "slug": "three-domain-objects-22-freeze",
+      "namespace": "RC",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "semantics": "22 领域对象冻结**（补 3 个一等对象）",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L310"
+      ],
+      "maps_to": [
+        "M0-023",
+        "M0-024",
+        "M0-026"
+      ],
+      "maps_to_raw": "α M0-024~026 / βγ M0-023~025 / δ M0-026~028 / ε M0-023",
+      "origin": "MAPPED",
+      "key_outputs": "`Prediction`/`LifeChapter`/`CommunicationExperience` 三个 Pydantic 模型 + `ObjectType` 三枚举 + `TaskType.PREDICTION_CHECK` + registry 映射",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-004",
+      "slug": "bitemporal-visibility-and-annotation-contract",
+      "namespace": "RC",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "semantics": "双时态可见性与回溯加注契约",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L311"
+      ],
+      "maps_to": [
+        "M0-024",
+        "M0-025",
+        "M0-031",
+        "M1-019"
+      ],
+      "maps_to_raw": "α M0-031 / δ M0-025 / ε M0-024 / β M1-019",
+      "origin": "MAPPED",
+      "key_outputs": "`valid_time/known_time`、`AS_OF_VALID(t)/AS_KNOWN_AT(c)/CURRENT` 读语义、`RetrospectiveAnnotation.annotates_ptr`；**物理 Observation 永不 UPDATE**",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-005",
+      "slug": "source-envelope-trust-lane-retention",
+      "namespace": "RC",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "semantics": "来源包络 + 指令/数据信任道 + 保留契约",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L312"
+      ],
+      "maps_to": [
+        "M0-024",
+        "M0-026",
+        "M0-030"
+      ],
+      "maps_to_raw": "α M0-030 / δ M0-024 / ε M0-026",
+      "origin": "MAPPED",
+      "key_outputs": "`SourceEnvelope{modality 枚举化, sample_rate, reduction_strategy, confidence}`、`instruction/data lane`、`retention_class`、`legal_hold`、`tombstone`",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-007",
+      "slug": "derived-asset-registry-and-projection-legality",
+      "namespace": "RC",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "semantics": "派生物登记与投影合法化",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L314"
+      ],
+      "maps_to": [
+        "M0-032"
+      ],
+      "maps_to_raw": "α M0-032 / δ M0-032(部分)",
+      "origin": "MAPPED",
+      "key_outputs": "`DerivedAssetRegistry{postings/bucket/summary, rebuild_cost, watermark, source_ref}`；把\"18 禁冗余拷贝\"正式解释为\"单一真源 + 可重建派生\"（I1）",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-008",
+      "slug": "mod-c-traceability-matrix",
+      "namespace": "RC",
+      "gate": "Gate0",
+      "status": "PROPOSAL",
+      "semantics": "条款→模块→Issue→test 追踪矩阵",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L315"
+      ],
+      "maps_to": [
+        "M0-023"
+      ],
+      "maps_to_raw": "α M0-023 / δ M0-023",
+      "origin": "MAPPED",
+      "key_outputs": "v3.0 每条机制 → `MOD-C*` → `RC-*/M*` → oracle 文件；`CONFLICT/UNMAPPED = 0` 才可重开 M0 Gate",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-009",
+      "slug": "read-path-contract",
+      "namespace": "RC",
+      "gate": "Gate0.5",
+      "status": "PROPOSAL",
+      "semantics": "读路径契约（`world.read`）",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L321"
+      ],
+      "maps_to": [],
+      "maps_to_raw": "本设计书新增（五套方案均无）",
+      "origin": "NEW_NO_PRIOR_CLAIM",
+      "key_outputs": "`view ∈ {CURRENT, AS_OF_VALID, AS_KNOWN_AT}`、**时间口径显式声明**、每结果附 `index_watermark` + `hit_reasons`（I2）",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-010",
+      "slug": "tokenizer-and-dict-version-freeze",
+      "namespace": "RC",
+      "gate": "Gate0.5",
+      "status": "PROPOSAL",
+      "semantics": "分词器与词典版本冻结",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L322"
+      ],
+      "maps_to": [
+        "M1-018",
+        "M1-019"
+      ],
+      "maps_to_raw": "γ M1-019 / γ' M1-019 / β M1-018(部分)",
+      "origin": "MAPPED",
+      "key_outputs": "`TokenizerVersion{tokenizer_id, dict_version}`、别名表（`母亲 ≡ 妈妈`）、**中文召回 > 0 硬断言**（I7）",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-011",
+      "slug": "index-watermark-and-zero-recall-guard",
+      "namespace": "RC",
+      "gate": "Gate0.5",
+      "status": "PROPOSAL",
+      "semantics": "索引水位与零召回守卫",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L323"
+      ],
+      "maps_to": [
+        "M1-014"
+      ],
+      "maps_to_raw": "本设计书新增（复用 M1-014 的 `STALE_INDEX` 语义）",
+      "origin": "MAPPED",
+      "key_outputs": "`cp_index_watermark{FRESH/STALE/REBUILDING/SUSPECT_ZERO_RECALL}`；召回 0 时必须区分\"真无数据\"与\"索引失效\"",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-012",
+      "slug": "time-bucket-materialization-including-year",
+      "namespace": "RC",
+      "gate": "Gate0.5",
+      "status": "PROPOSAL",
+      "semantics": "时间桶物化（含二级年桶）",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L324"
+      ],
+      "maps_to": [
+        "M1-010",
+        "M1-020",
+        "M1-023"
+      ],
+      "maps_to_raw": "α M1-010 升级 / δ M1-023 / ε M1-020",
+      "origin": "MAPPED",
+      "key_outputs": "`HOUR/DAY/WEEK/MONTH/YEAR` 五档；**1y 档必须读年桶**（实测比日桶求和快 84.9×）；无数据不建空桶",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-016",
+      "slug": "reversible-entity-resolution-and-speaker-lifecycle",
+      "namespace": "RC",
+      "gate": "Gate1",
+      "status": "PROPOSAL",
+      "semantics": "可逆实体消解与声纹生命周期",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L333"
+      ],
+      "maps_to": [
+        "M1-002",
+        "M1-018",
+        "M1-022"
+      ],
+      "maps_to_raw": "δ M1-018 / ε M1-022 / α M1-002 升级",
+      "origin": "MAPPED",
+      "key_outputs": "`MergeProposal → 生效 → SplitRollback`；声纹 6 个月冷热淘汰 + 再遇候选合并；**声纹永不单独授权身份**",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-019",
+      "slug": "retention-quarantine-tombstone-worker",
+      "namespace": "RC",
+      "gate": "Gate1",
+      "status": "PROPOSAL",
+      "semantics": "保留/隔离/墓碑工作器",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L336"
+      ],
+      "maps_to": [
+        "M1-017",
+        "M1-019",
+        "M1-022"
+      ],
+      "maps_to_raw": "α M1-019 / δ M1-022 / γ M1-017(部分)",
+      "origin": "MAPPED",
+      "key_outputs": "引用锁、两阶段删除、幂等擦除模拟、`tombstone`；被 `EvidenceSet`/`Task` 引用不可删",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-020",
+      "slug": "as-of-read-views-and-annotation-store",
+      "namespace": "RC",
+      "gate": "Gate1",
+      "status": "PROPOSAL",
+      "semantics": "as-of 读视图与回溯加注存储",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L337"
+      ],
+      "maps_to": [
+        "M1-019",
+        "M1-021",
+        "M3-012"
+      ],
+      "maps_to_raw": "δ M1-021 / β M1-019 / α M3-012",
+      "origin": "MAPPED",
+      "key_outputs": "`CURRENT/AS_OF_VALID/AS_KNOWN_AT` 三视图 + `validity_event` + 加注存储；\"当时知道\"与\"今天回看\"同时可重建",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-021",
+      "slug": "cockpit-manifest-compiler-and-receipt",
+      "namespace": "RC",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "semantics": "看板编译器与上下文回执",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L343"
+      ],
+      "maps_to": [
+        "M2-009",
+        "M2-017",
+        "M2-021"
+      ],
+      "maps_to_raw": "α M2-009 重写 / δ M2-021 / ε M2-017",
+      "origin": "MAPPED",
+      "key_outputs": "见 §3.5-C 代码级规约",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-022",
+      "slug": "budget-deadline-degradation-runtime",
+      "namespace": "RC",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "semantics": "预算/deadline/降级运行时",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L344"
+      ],
+      "maps_to": [
+        "M2-018",
+        "M2-019",
+        "M2-022",
+        "M2-025"
+      ],
+      "maps_to_raw": "α M2-025 / β M2-018 / δ M2-022 / ε M2-019",
+      "origin": "MAPPED",
+      "key_outputs": "`reserve → settle` 两阶段（I3）、三级账本（会话/日/维度）、四级降级阶梯、`BUDGET_EXHAUSTED` 的**唯一产生者**",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-023",
+      "slug": "three-stage-conversation-pipeline",
+      "namespace": "RC",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "semantics": "三级会话流水线",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L345"
+      ],
+      "maps_to": [
+        "M2-016",
+        "M2-017",
+        "M2-018"
+      ],
+      "maps_to_raw": "α M2-016~018 / β M2-017 / γ M2-018 / δ M2-018~019 / ε M2-018",
+      "origin": "MAPPED",
+      "key_outputs": "见 §3.5-E 代码级规约",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-024",
+      "slug": "proactive-recall-and-context-planner",
+      "namespace": "RC",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "semantics": "主动召回与上下文规划器",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L346"
+      ],
+      "maps_to": [
+        "M2-018",
+        "M2-020"
+      ],
+      "maps_to_raw": "α M2-018 / δ M2-020 / γ' —",
+      "origin": "MAPPED",
+      "key_outputs": "deadline-aware L0/L1/L2 召回、候选融合、来源信任过滤、覆盖/遗漏报告；**恶意 OCR 不得进 instruction lane**",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-025",
+      "slug": "relationship-rhythm-and-quiet-heartbeat",
+      "namespace": "RC",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "semantics": "关系节奏与长平稳心跳（第七类触发族）",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L347"
+      ],
+      "maps_to": [
+        "M2-019",
+        "M2-022",
+        "M2-024"
+      ],
+      "maps_to_raw": "α M2-022 / βγ'γ M2-019 / δ M2-024",
+      "origin": "MAPPED",
+      "key_outputs": "`ConveniencePrefilter{work/driving/sleep ⇒ 绝对沉默}`、负反馈自适应冷却（带上下界）、**后台静默巡检不停**",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-026",
+      "slug": "wake-storm-breaker-and-global-rate-limiter",
+      "namespace": "RC",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "semantics": "Wake 乒乓熔断器与全局限速",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L348"
+      ],
+      "maps_to": [
+        "M2-017"
+      ],
+      "maps_to_raw": "γ' M2-017",
+      "origin": "MAPPED",
+      "key_outputs": "subject-pair 交替滑窗计数 → 强制冷却 + 生成调试任务；全局限速器",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-027",
+      "slug": "memory-write-firewall-and-source-trust-runtime",
+      "namespace": "RC",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "semantics": "记忆写入防火墙与来源信任运行时",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L349"
+      ],
+      "maps_to": [
+        "M0-030",
+        "M2-023"
+      ],
+      "maps_to_raw": "δ M2-023 / α M0-030 的运行时部分",
+      "origin": "MAPPED",
+      "key_outputs": "`DATA/INSTRUCTION` 隔离、外部内容只可引用不可升格为指令、敏感写入 policy、插件最小投影",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-030",
+      "slug": "concise-output-contract-and-longform-interceptor",
+      "namespace": "RC",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "semantics": "1~3 句输出契约与长篇拦截器",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L352"
+      ],
+      "maps_to": [
+        "M2-021",
+        "M2-023"
+      ],
+      "maps_to_raw": "γ M2-021 / γ' M2-021 / α M2-023",
+      "origin": "MAPPED",
+      "key_outputs": "输出长度预算器 + **例外枚举**（安全/无障碍/用户明确要求展开）+ 说教率/被打断率指标",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-031",
+      "slug": "m2-cognitive-transaction-gate",
+      "namespace": "RC",
+      "gate": "Gate2",
+      "status": "PROPOSAL",
+      "semantics": "M2 认知事务门（G2.5）",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L353"
+      ],
+      "maps_to": [
+        "M2-015",
+        "M2-027"
+      ],
+      "maps_to_raw": "δ M2-027 / α M2-015 重写",
+      "origin": "MAPPED",
+      "key_outputs": "金丝雀场景 + Wake storm + 断网 + 模型超时；任一硬不变量失败不得进 M3/M4",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-033",
+      "slug": "read-time-validity-guard-and-evidence-rebuild",
+      "namespace": "RC",
+      "gate": "Gate3",
+      "status": "PROPOSAL",
+      "semantics": "读时有效性守卫与证据重建",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L360"
+      ],
+      "maps_to": [
+        "M3-013",
+        "M3-014"
+      ],
+      "maps_to_raw": "δ M3-013 / ε M3-014(部分)",
+      "origin": "MAPPED",
+      "key_outputs": "eager 一跳标 stale、预算内懒重算、读取时若存在更晚反证必须提示；**未重算旧总结不得静默冒充 `CURRENT`**",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-034",
+      "slug": "adaptive-temporal-summary-materializer",
+      "namespace": "RC",
+      "gate": "Gate3",
+      "status": "PROPOSAL",
+      "semantics": "自适应时间总结物化器",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L361"
+      ],
+      "maps_to": [
+        "M3-005",
+        "M3-014"
+      ],
+      "maps_to_raw": "δ M3-014 / α M3-005 升级",
+      "origin": "MAPPED",
+      "key_outputs": "`raw→day→week→month` 按访问/密度驱动物化、带 watermark、`no-op diff`；**稀疏维度不建空桶**",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-035",
+      "slug": "life-chapter-phase-transition-service",
+      "namespace": "RC",
+      "gate": "Gate3",
+      "status": "PROPOSAL",
+      "semantics": "LifeChapter 相变服务",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L362"
+      ],
+      "maps_to": [
+        "M3-013"
+      ],
+      "maps_to_raw": "α M3-013 / β M3-013 / γ' M3-013 / ε M3-013",
+      "origin": "MAPPED",
+      "key_outputs": "基线结构断裂检测（滞回：≥K 维 ≥D 天，常数为 profile 默认）→ 章节封存 + 基线重置；**一次信号不得直接 ACTIVE**",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-036",
+      "slug": "resonance-candidate-and-causal-guard",
+      "namespace": "RC",
+      "gate": "Gate3",
+      "status": "PROPOSAL",
+      "semantics": "共振候选与因果守卫",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L363"
+      ],
+      "maps_to": [
+        "M3-001",
+        "M3-012",
+        "M3-016"
+      ],
+      "maps_to_raw": "δ M3-016 / γ' M3-012 / α M3-001 重写",
+      "origin": "MAPPED",
+      "key_outputs": "跨维同窗异常 → `HYPOTHESIS` → **强制登记 Prediction** → 对撞通过方可升 `TRIAL`",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-039",
+      "slug": "cleaning-regression-guardrail",
+      "namespace": "RC",
+      "gate": "Gate3",
+      "status": "PROPOSAL",
+      "semantics": "清洗回归护栏",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L366"
+      ],
+      "maps_to": [
+        "M3-015"
+      ],
+      "maps_to_raw": "ε M3-015",
+      "origin": "MAPPED",
+      "key_outputs": "注入 100 条已知价值原话 + 100 条噪声，**误删率 ≤ 1%**（profile 默认）",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-040",
+      "slug": "ts-scenario-pack-with-oracles",
+      "namespace": "RC",
+      "gate": "Gate4~5",
+      "status": "PROPOSAL",
+      "semantics": "`TS-001~TS-051` 场景包（每条带 oracle）",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L372"
+      ],
+      "maps_to": [
+        "M4-005",
+        "M4-010"
+      ],
+      "maps_to_raw": "α M4-005 / δ M4-005 / ε M4-010(部分)",
+      "origin": "MAPPED",
+      "key_outputs": "一次性映射宪法 V21~V30 / R3-01~07 / V3-01~03；消灭 `V01~V30` 悬空引用（旧任务书 L3377）",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "RC-041",
+      "slug": "anti-degeneration-assertion-suite",
+      "namespace": "RC",
+      "gate": "Gate4~5",
+      "status": "PROPOSAL",
+      "semantics": "反退化断言集（防机械 Chatbot）",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L373"
+      ],
+      "maps_to": [],
+      "maps_to_raw": "本设计书新增（五套方案均无同等清单）",
+      "origin": "NEW_NO_PRIOR_CLAIM",
+      "key_outputs": "§4.3 的 12 条断言：静默正确性、零误触、反谄媚、反说教、召回正确性、不空转、四步序发生、口径正确、水位可见、预算可对账、传播有界、派生可重建",
+      "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
+      "convergence_class": "NEW_SEMANTIC_KEY"
+    }
+  ],
+  "open_conflicts": [
+    {
+      "id": "M0-023",
+      "distinct_semantics": 3,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "权威与追溯冻结",
+        "E": "Prediction 契约",
+        "F": "Prediction 契约",
+        "P3": "Prediction 契约(023~026)",
+        "P1": "权威/命名空间/追溯",
+        "P2": "三对象契约一并冻结"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M0-024",
+      "distinct_semantics": 4,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "Prediction 契约",
+        "E": "LifeChapter",
+        "F": "LifeChapter",
+        "P3": "LifeChapter",
+        "P1": "SourceEnvelope/Retention",
+        "P2": "双时态与回溯加注"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M0-025",
+      "distinct_semantics": 4,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "LifeChapter",
+        "E": "CommunicationExp",
+        "F": "CommunicationExp",
+        "P3": "CommunicationExp",
+        "P1": "双时态可见性",
+        "P2": "控制面对象契约"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M0-026",
+      "distinct_semantics": 4,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "CommunicationExp+AI seed",
+        "P3": "BudgetLedger",
+        "P1": "Prediction+CheckTask",
+        "P2": "Observation 质量/包络"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M0-027",
+      "distinct_semantics": 3,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "TriggerExpression 契约",
+        "P3": "TriggerExpression 契约",
+        "P1": "LifeChapter Contract",
+        "P2": "**编号唯一性 CI 门**"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M0-028",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "Conversation Stream 契约",
+        "P1": "CommunicationExp+AI Seed"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M0-029",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "CockpitManifest 契约",
+        "P1": "TriggerExpression 契约"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M0-030",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "Source Trust/Transform/Retention",
+        "P1": "Conversation/Turn/Extraction"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M0-031",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "双时态不变量+回溯标注",
+        "P1": "ContextPlan/Manifest/Receipt"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M0-032",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "派生投影合法化+schema 扩展",
+        "P1": "Budget/Deadline/Degradation"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M1-017",
+      "distinct_semantics": 1,
+      "status": "RESOLVED_CONVERGENT",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "模拟端侧降采样管线",
+        "E": "端侧轻量化摄入",
+        "F": "多模态摄入策略契约",
+        "P3": "多模态摄入策略",
+        "P1": "模拟源网关+边缘 reducer",
+        "P2": "端侧轻量化摄入管线"
+      },
+      "resolution": "6 份文档措辞不同但实质同一，可直接注册为唯一 slug"
+    },
+    {
+      "id": "M1-018",
+      "distinct_semantics": 3,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "中文混合共搜引擎",
+        "E": "关键词/别名倒排层",
+        "F": "co_search 共现引擎",
+        "P3": "co_search 共现内核",
+        "P1": "可逆实体消解+声纹候选",
+        "P2": "检索内核(分词+倒排+FTS5)"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M1-019",
+      "distinct_semantics": 4,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "Retention & Tombstone",
+        "E": "回溯加注服务",
+        "F": "中文分词与别名",
+        "P3": "中文分词与别名",
+        "P1": "中文混合共搜引擎",
+        "P2": "多关键词共现 co_search"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M1-020",
+      "distinct_semantics": 3,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "早期规模与查询计划门",
+        "F": "记忆切片排序契约",
+        "P3": "记忆切片排序契约",
+        "P1": "Ranking/QueryPlanner/水位",
+        "P2": "5D 时间滑动条"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M1-021",
+      "distinct_semantics": 4,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "关键词/别名倒排投影",
+        "F": "规模基准骨架(自 M7-002 前移)",
+        "P3": "规模脊柱门",
+        "P1": "As-Of 读视图+加注存储",
+        "P2": "图拓扑穿透导航"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M1-022",
+      "distinct_semantics": 3,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "检索排序与切片打分",
+        "P1": "Retention/Quarantine/Tombstone",
+        "P2": "声纹生命周期墓碑/重识别"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M1-023",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "P1": "LOD 时间投影+自适应物化",
+        "P2": "检索规模门"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M1-024",
+      "distinct_semantics": 1,
+      "status": "RESOLVED_CONVERGENT",
+      "claims": {
+        "P1": "Early Scale/WAL/Plan 门"
+      },
+      "resolution": "6 份文档措辞不同但实质同一，可直接注册为唯一 slug"
+    },
+    {
+      "id": "M1-025",
+      "distinct_semantics": 1,
+      "status": "RESOLVED_CONVERGENT",
+      "claims": {
+        "P1": "M1 V3 证据金丝雀"
+      },
+      "resolution": "6 份文档措辞不同但实质同一，可直接注册为唯一 slug"
+    },
+    {
+      "id": "M2-016",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "活跃会话工作集",
+        "E": "条件编译引擎",
+        "P3": "条件就绪引擎",
+        "P1": "TriggerExpression 求值器",
+        "P2": "条件编译+ready queue"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M2-017",
+      "distinct_semantics": 5,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "增量流式萃取器",
+        "E": "长会话三级流水线",
+        "P3": "Wake 乒乓熔断器",
+        "P1": "ReadyTaskQueue/Occurrence",
+        "P2": "CockpitManifest+四步序"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M2-018",
+      "distinct_semantics": 4,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "主动召回与上下文组装",
+        "E": "预算账本与降级阶梯",
+        "F": "三级流式流水线",
+        "P3": "长会话三级流水线",
+        "P1": "活跃会话工作集",
+        "P2": "三级会话流水线"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M2-019",
+      "distinct_semantics": 4,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "端到端延迟/Token 遥测",
+        "E": "关系节奏心跳",
+        "F": "关系节奏长平稳心跳",
+        "P3": "关系节奏长平稳心跳",
+        "P1": "增量萃取 Worker",
+        "P2": "BudgetLedger 记账降级"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M2-020",
+      "distinct_semantics": 4,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "Prediction Register 运行时",
+        "E": "穿戴交互 FSM 模拟器",
+        "F": "Prediction Register 服务",
+        "P3": "Prediction Register+CheckTask",
+        "P1": "主动召回与上下文规划",
+        "P2": "羁绊模型 DIM_AI_RAPPORT"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M2-021",
+      "distinct_semantics": 4,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "穿戴 InteractionPort+FSM 仿真",
+        "F": "会话输出契约(1~3 句)",
+        "P3": "会话输出契约",
+        "P1": "CockpitManifest 编译器+收据",
+        "P2": "CommunicationExp 风格指标"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M2-022",
+      "distinct_semantics": 3,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "关系节奏与静默心跳",
+        "P1": "预算化 AI Worker/工具运行时",
+        "P2": "穿戴交互 FSM+虚拟执行器"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M2-023",
+      "distinct_semantics": 3,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "简洁应答与输出契约",
+        "P1": "记忆写入防火墙/来源信任",
+        "P2": "三层 UI 契约"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M2-024",
+      "distinct_semantics": 3,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "Trigger Eligibility 引擎+Ready 队列",
+        "P3": "关系节奏与静默心跳",
+        "P2": "会话上下文快照与回放"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M2-025",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "BudgetLedger 与降级阶梯",
+        "P1": "InteractionPort/通知 FSM"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M2-026",
+      "distinct_semantics": 1,
+      "status": "RESOLVED_CONVERGENT",
+      "claims": {
+        "P1": "端到端延迟与成本遥测"
+      },
+      "resolution": "6 份文档措辞不同但实质同一，可直接注册为唯一 slug"
+    },
+    {
+      "id": "M2-027",
+      "distinct_semantics": 1,
+      "status": "RESOLVED_CONVERGENT",
+      "claims": {
+        "P1": "M2 集成认知事务门"
+      },
+      "resolution": "6 份文档措辞不同但实质同一，可直接注册为唯一 slug"
+    },
+    {
+      "id": "M3-012",
+      "distinct_semantics": 5,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "回溯语义加注",
+        "E": "Prediction Register 闭环",
+        "P3": "共振候选→证伪门禁",
+        "P1": "Typed 失效传播协调器",
+        "P2": "Prediction 证伪闭环服务"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M3-013",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "LifeChapter 候选与基线迁移",
+        "E": "LifeChapter 相变识别归档",
+        "P3": "LifeChapter 相变服务",
+        "P1": "证据重建+读时有效性守卫",
+        "P2": "LifeChapter 相变检测"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M3-014",
+      "distinct_semantics": 3,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "CommunicationExp+Rapport 巩固",
+        "E": "AI 沟通经验维度",
+        "P3": "有界失效传播内核硬化",
+        "P1": "自适应时间总结物化器",
+        "P2": "传播预算化懒重算"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M3-015",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "Prediction 校准+no-op 传播",
+        "P1": "Prediction 验证/校准",
+        "P2": "清洗回归护栏"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M3-016",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "D + 本报告 §3 (PROPOSAL-α)": "有界传播内核",
+        "P1": "共振候选与因果守卫"
+      },
+      "convergent": false
+    },
+    {
+      "id": "M0-033",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "Capability Authorization & Interaction Contract"
+      }
+    },
+    {
+      "id": "M0-034",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "M0-V3 Migration Fixture & Contract Gate"
+      }
+    },
+    {
+      "id": "M3-017",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "LifeChapter Candidate State Machine"
+      }
+    },
+    {
+      "id": "M3-018",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "AI World & CommunicationExperience Consolidation"
+      }
+    },
+    {
+      "id": "M3-019",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "M3 Long-Term Cognition Gate"
+      }
+    },
+    {
+      "id": "M4-005",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "P1": "V3 Scenario Pack V21~V45",
+        "P2": "会话层跨日接续",
+        "本报告": "TEST V0.2 Scenario Pack TS-021~TS-051"
+      }
+    },
+    {
+      "id": "M4-006",
+      "distinct_semantics": 3,
+      "status": "OPEN",
+      "claims": {
+        "P1": "Hidden-Truth Generator V2",
+        "P2": "羁绊演化与关系节奏心跳",
+        "本报告": "Runtime Stress & Ablation Pack"
+      }
+    },
+    {
+      "id": "M4-007",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "P1": "30-Day Continuous Fault Run",
+        "P2": "预算月度对账"
+      }
+    },
+    {
+      "id": "M4-008",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "P1": "V3 Metrics & Replay Report",
+        "P2": "漂移与人格一致性检测"
+      }
+    },
+    {
+      "id": "M4-009",
+      "distinct_semantics": 1,
+      "status": "RESOLVED_CONVERGENT",
+      "claims": {
+        "P1": "M4 Blind Gate",
+        "P2": "反退化盲测（V37~V40）"
+      },
+      "resolution": "多份文档措辞不同但疑为同一工作簇，待治理方确认后注册唯一 slug"
+    },
+    {
+      "id": "M4-010",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P2": "一月端到端（重写 M4-004 的验收口径）"
+      }
+    },
+    {
+      "id": "M5-004",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "P1": "OperationExperience Policy Executor",
+        "本报告": "CommunicationExperience A/B"
+      }
+    },
+    {
+      "id": "M5-005",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "CommunicationExperience Controlled A/B"
+      }
+    },
+    {
+      "id": "M5-006",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "Trigger Threshold Trial & Rollback"
+      }
+    },
+    {
+      "id": "M5-007",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "Experience Poisoning Red Team"
+      }
+    },
+    {
+      "id": "M5-008",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "M5 Net-Benefit Gate"
+      }
+    },
+    {
+      "id": "M6-005",
+      "distinct_semantics": 3,
+      "status": "OPEN",
+      "claims": {
+        "P1": "Capability Scope & App Projection",
+        "P2": "跨 App 认知复用的边界与隔离",
+        "P3": "穿戴模拟渠道",
+        "本报告": "AmbientCanvas / SkillCard Projection Contract"
+      }
+    },
+    {
+      "id": "M6-006",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "AmbientCanvas & SkillCard DTO"
+      }
+    },
+    {
+      "id": "M6-007",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "230mm Wearable Projection Simulator"
+      }
+    },
+    {
+      "id": "M6-008",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "Cross-App Transfer & Leakage Test"
+      }
+    },
+    {
+      "id": "M6-009",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "M6 Projection Gate"
+      }
+    },
+    {
+      "id": "M7-005",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "P1": "One-Year Ingest & Storage Growth Model",
+        "P2": "一年期成本与规模总账",
+        "本报告": "End-to-End Latency & Cost SLO 年度正式门"
+      }
+    },
+    {
+      "id": "M7-006",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "Sustained WAL, Lease & Recovery Test"
+      }
+    },
+    {
+      "id": "M7-007",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "Provider-Switch Replay Regression"
+      }
+    },
+    {
+      "id": "M7-008",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "Annual Cost-Quality Frontier"
+      }
+    },
+    {
+      "id": "M7-009",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "M7 Durability Gate"
+      }
+    },
+    {
+      "id": "M8-004",
+      "distinct_semantics": 2,
+      "status": "OPEN",
+      "claims": {
+        "P1": "Mechanism Ablation Matrix",
+        "P2": "消融实验：条件引擎/共现检索/三级流水线各自独立收益",
+        "P3": "穿戴契约预留评估",
+        "本报告": "穿戴契约预留评估（FSM 零误触、三层 UI、马达/骨传导抽象、插件最小授权域、离线降级）"
+      }
+    },
+    {
+      "id": "M8-005",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "Architecture Simplification ADR Pack"
+      }
+    },
+    {
+      "id": "M8-006",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "Real-Device Readiness Dossier"
+      }
+    },
+    {
+      "id": "M8-007",
+      "distinct_semantics": 1,
+      "status": "SINGLE_CLAIM",
+      "claims": {
+        "P1": "Next-Phase Gate"
+      }
+    }
+  ],
+  "discovery_note": "0.2.0：由 checker 首次实跑（规则 B）新增 30 个此前未被任何矩阵覆盖的号位（P1 独有 21 个 + 与 P2/P3/本报告冲突 8 个 + 疑同簇 1 个）。⇒ 实际争用面为 66 个号，而非 §9.2 矩阵的 36 个。 | 0.3.0：新增 RC 命名空间 41 个标签 ⇒ 11 个与 α/P1 既有提案号同 slug（登记为 alias，不发新号）+ 30 个新语义键条目（Gate0:8 / Gate0.5:4 / Gate1:8 / Gate2:11 / Gate3:8 / Gate4~5:2），其中 RC-009 读路径契约、RC-041 反退化断言集为 origin=NEW_NO_PRIOR_CLAIM。 两处 gate 分歧已登记为 gate_disputes：RC-017→M2-024（Gate2 vs 设计书主张 Gate1）、RC-028→M2-026（无 gate vs Gate2）。"
+}
