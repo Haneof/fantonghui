@@ -4,8 +4,11 @@
 
 1. **总结绝不是压缩删除！** 总结是一个全新的观察层，绝不修改、绝不删除底层事实；
 2. **原始事实永存**：``generate_materialized_rollup`` 生成月/年总结后，日记录与
-   底层原始事件字节级保留在证据保险库（evidence vault）中，vault 只读、永驻内存，
-   绝不允许任何代码路径执行删除或覆盖（呼应"老王案：历史绝不篡改"铁律）；
+   底层原始事件字节级保留在证据保险库（evidence vault）中，vault 只读、**永不删除**，
+   绝不允许任何代码路径执行删除或覆盖（呼应"老王案：历史绝不篡改"铁律）。
+   注意措辞：这里的保证是「永存」（never deleted），不是「永驻内存」（RAM resident）。
+   当前实现的 vault 是进程内字典，进程退出即丢失；§25 要求的是跨进程持久永存，
+   须由 storage 层落盘承载（本模块不做持久化，也不应假装做了）——见交付报告 P2 项；
 3. **多尺度金字塔物化视图**：DAY < WEEK < MONTH < YEAR 四层物化，支撑手环端侧
    5D 滑动条从 1 秒到 10 年（``CONTINUOUS_ZOOM_SECONDS``）连续无损缩放与逐级下钻。
 
@@ -41,6 +44,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 __all__ = [
     "CONTINUOUS_ZOOM_SECONDS",
+    "MAX_SPAN_SECONDS",
     "SCALE_ORDER",
     "PyramidAggregator",
     "PyramidError",
@@ -56,6 +60,19 @@ CONTINUOUS_ZOOM_SECONDS: Tuple[int, int] = (1, 10 * 365 * 24 * 3600)
 
 #: 5D 描述字段：物理距离 (x, y, z) × 时间衰减 (t，即事件 time) × 羁绊权重 (r) × 可信度 (c)。
 _FIVE_D_FIELDS: Tuple[str, ...] = ("x", "y", "z", "r", "c")
+
+#: 每个尺度允许的最大事件跨度（秒）。``generate_materialized_rollup`` 只聚合调用方
+#: 已经切好的**单个自然窗口**，scale 既是标签也是手环 5D 滑动条取内容的依据；
+#: 若跨度超过该尺度的自然上限（例如把 28 天标成 WEEK），标签就在说谎，
+#: 滑动条会按错误粒度取内容 —— 故 fail-closed 拒绝，而不是静默产出一个错标总结。
+#: 上限取该尺度最长自然窗口的长度（最长月 31 天、闰年 366 天），不做日历对齐要求：
+#: 对齐由调用方切片负责，本模块只保证「跨度不超过一个自然窗口」。
+MAX_SPAN_SECONDS: Dict[str, float] = {
+    "DAY": 24 * 3600.0,
+    "WEEK": 7 * 24 * 3600.0,
+    "MONTH": 31 * 24 * 3600.0,
+    "YEAR": 366 * 24 * 3600.0,
+}
 
 _SCALE_RANK: Dict[str, int] = {scale: index for index, scale in enumerate(SCALE_ORDER)}
 
@@ -454,6 +471,14 @@ class PyramidAggregator:
         span_end = vault_events[-1].utc_time
         span_seconds = (span_end - span_start).total_seconds()
 
+        max_span = MAX_SPAN_SECONDS[scale]
+        if span_seconds > max_span:
+            raise PyramidError(
+                f"{scale} rollup cannot span {span_seconds:.0f}s (> {max_span:.0f}s, the "
+                f"longest natural {scale} window); slice the caller window per scale — "
+                "a mislabeled summary would serve the wrong granularity to the 5D slider"
+            )
+
         total_weight = 0.0
         weighted_coords = [0.0, 0.0, 0.0]
         centroid_weight = 0.0
@@ -471,7 +496,13 @@ class PyramidAggregator:
             total_weight += weight
             if vault_event.has_full_5d:
                 xyz = vault_event.xyz
-                assert xyz is not None  # 写入路径已保证 5D 完整 <=> xyz 非空
+                if xyz is None:
+                    # 写入路径已保证 has_full_5d <=> xyz 非空；这里不用 assert，
+                    # 因为 python -O 会剥离 assert，届时不变量破裂会静默变成 TypeError。
+                    raise PyramidError(
+                        "internal invariant broken: event "
+                        f"{vault_event.event_id!r} is marked 5D-complete but has no coordinates"
+                    )
                 weighted_coords[0] += xyz[0] * weight
                 weighted_coords[1] += xyz[1] * weight
                 weighted_coords[2] += xyz[2] * weight
@@ -482,14 +513,35 @@ class PyramidAggregator:
         if centroid_weight > 0:
             centroid = tuple(coord / centroid_weight for coord in weighted_coords)
 
-        headline = f"{scale} 阶段性演变概览"
+        # 机械聚合层只允许陈述**本函数真正测量过的量**。
+        # 违宪点（已修）：此处曾硬编码「关系稳步加深」。该句与任何输入无关——
+        # 本函数不测量趋势方向，在全部事件为负效价、羁绊权重 r 递减、甚至
+        # missingness_ratio == 1.0（五项 5D 描述全缺）时它照样输出，是一句
+        # 恒真的假话。它同时违反：
+        #   · §11 分寸感自涌现 / R3 §5.1「严禁写死亲密度结论」；
+        #   · governance/runtime_policy.json style_constraints
+        #     .hardcoded_intimacy_rules_prohibited = true；
+        #   · ADJ-003「机械触发不直接产生语义结论」（task_readiness
+        #     .mechanical_trigger_output_is_binary_signal_only = true）。
+        # headline 原为「阶段性演变概览」，同样预设了「演变」已经发生
+        # （单事件窗口内不存在演变），一并改为中性的结构标签。
+        headline = f"{scale} 阶段汇总"
         synthesis = (
-            f"在此跨度内沉淀了 {count} 项核心事实，关系稳步加深。"
+            f"在此跨度内沉淀了 {count} 项核心事实（底层原始记录一条未删）。"
             f"5D 聚合：总权重 {total_weight:.3f}"
         )
         if centroid is not None:
             synthesis += (
                 f"，时空重心 ({centroid[0]:.2f}, {centroid[1]:.2f}, {centroid[2]:.2f})"
+            )
+        else:
+            # 不可计算就必须说不可计算，不能沉默省略——沉默会被读成「重心为零/无位置」。
+            synthesis += "，时空重心不可计算（窗口内无 5D 完整且权重非零的事件）"
+        if missing_count:
+            # 缺失必须披露：缺省中性值 1.0 会抬高权重，不披露等于把降级伪装成正常。
+            synthesis += (
+                f"；其中 {missing_count} 项 5D 描述不完整（缺失率 "
+                f"{missing_count / count:.1%}），缺失维度按中性缺省 1.0 计入"
             )
         synthesis += "。"
 
