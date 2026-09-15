@@ -23,7 +23,8 @@
 | PLAN-R4-B | `AIOS_Core_任务规划与开发任务拆分重构方案_R4.md` | R4 | `89b2b7844e2ad7a63e3f0c77461e562dfb4dfbba4b99e18acbaaf15fe4aa0292` | SUPERSEDED（哈希封存；活版本见下表 R4.1 行） | CONST-v3.0.1 |
 | POLICY-RUNTIME | `governance/runtime_policy.json` | 1.0.0 | `3bf3e8318f5ccaab496bc92b0a887cdfb50fc06dd5304c4f05e3c2ad73ba952b` | SUPERSEDED（哈希封存；活版本见下表 1.2.0 行） | CONST-v3.0.1 |
 | POLICY-RUNTIME | `governance/runtime_policy.json` | 1.1.0 | `1bcf22f1de533b02c893b76dcaa6925bc654bc528787b5931f5ee6c953937ba5` | SUPERSEDED（哈希封存；1.1.0=retention_ttl 入法，M1-019 参数表） | CONST-v3.0.1 |
-| POLICY-RUNTIME | `governance/runtime_policy.json` | 1.2.0 | `e947a3da01625f93ccb3163eed12e7ac5fc04208a1505b4f309d0aa59864c091` | **CURRENT**（1.2.0=两条工作线的 v1.1.0 合并：ADJ-001~012 全量对齐 + retention_ttl 入法；27 域；宪法→法律→判决之法律层） | CONST-v3.0.1 |
+| POLICY-RUNTIME | `governance/runtime_policy.json` | 1.2.0 | `e947a3da01625f93ccb3163eed12e7ac5fc04208a1505b4f309d0aa59864c091` | SUPERSEDED（1.2.0=两条工作线的 v1.1.0 合并：ADJ-001~012 全量对齐 + retention_ttl 入法；27 域）（1.2.0=两条工作线的 v1.1.0 合并：ADJ-001~012 全量对齐 + retention_ttl 入法；27 域；宪法→法律→判决之法律层） | CONST-v3.0.1 |
+| POLICY-RUNTIME | `governance/runtime_policy.json` | 1.3.0 | `cc844d6eedcb4496d0c571e9c36f95b74278475a65e5349e73caf122acf302fb` | **CURRENT**（1.3.0=合并两线后 M1-018 co_search 段回归入法；取代 1.2.0 行） | CONST-v3.0.1 |
 | PLAN-R4-B | `AIOS_Core_任务规划与开发任务拆分重构方案_R4.md` | R4.1 | `db87d2f74d7b9f8a85c077fb60d3843cf9c812df361d31e63ed9f2b37e2ecb58` | **CURRENT**（R4.1：§2.1 增编号对撞警告横幅；THRESH-BASE 与 M1-019 落地后两轮对齐） | CONST-v3.0.1 |
 
 > **多版本行的阅读规则（2026-09-16 起）**：同一 `规范编号` + 同一 `文件路径` 可以有多行，

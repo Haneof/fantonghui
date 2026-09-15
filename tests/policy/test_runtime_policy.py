@@ -96,6 +96,7 @@ AUDITABLE_SECTIONS = (
     "manifest_layer_caps",
     "latency_slo",
     "retrieval_slo",
+    "co_search",
     "storage_envelope",
     "retrospective_annotation",
     "propagation_caps",
