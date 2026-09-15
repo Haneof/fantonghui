@@ -27,7 +27,7 @@
 
 | 派单工号 | 责任模块 | 核心任务代号 | 攻坚任务名称 | 派发对象 | 状态 | 核心工程交付物与代码落盘路径 |
 |---|---|---|---|---|:---:|---|
-| **#1** | C01 摄入 | `M1-001R` | 端侧多模态轻量摄入与声纹淘汰 | Agent-01 战队 | **DISPATCHED** | `src/aios_core/ingest/multimodal_edge.py`<br>`tests/unit/test_m1_001r_edge_cleaner.py` |
+| **#1** | C01 摄入 | `M1-001R` | 端侧多模态轻量摄入与声纹淘汰 | Agent-01 战队 | **ADV 加固版已交付（本会话，单测 11 项全绿，待总工沙箱验收）** | `src/aios_core/ingest/multimodal_edge.py`<br>`tests/unit/test_m1_001r_high_entropy_audio.py` |
 | **#2** | C06 查询 | `M1-017` | CJK 拓扑倒排聚集表与多词检索加速 | Agent-02 战队 | **DISPATCHED** | `src/aios_core/query/cjk_inverted_index.py`<br>`tests/unit/test_m1_017_cjk_index.py` |
 | **#3** | C05 总结 | `M1-010R` | 5D 时空多尺度连续聚合器与物化视图 | Agent-03 战队 | **CODED / 单测 25 项全绿（待总工沙箱验收）** | `src/aios_core/summaries/pyramid_aggregator.py`<br>`tests/unit/test_m1_010r_pyramid.py` |
 | **#4** | C06 查询 | `M1-012R` | 实体拓扑超链接网络穿透检索器 | Agent-04 战队 | **DISPATCHED** | `src/aios_core/query/hyperlink_traverser.py`<br>`tests/unit/test_m1_012r_hyperlink.py` |
