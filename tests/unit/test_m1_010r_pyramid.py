@@ -896,3 +896,76 @@ class TestContinuousZoomContract:
         aggregator = PyramidAggregator()
         with pytest.raises(PyramidError, match="cannot span"):
             aggregator.generate_materialized_rollup("YEAR", "dim_dec", events)
+
+
+# ----------------------------------------------------------------------
+# 审计长加固段（arena/01a0a636 独立探针的回归固化）
+# 既有套件：8,784 事件单发计时。本段上探万级规模、单发改 p95 统计闸，
+# 并焊死滑动条契约常量与 ISO 跨年周边界——实现件审计零缺陷，故只加测试。
+# ----------------------------------------------------------------------
+
+
+class TestChiefAuditHardening:
+    def _year_10k(self):
+        events = make_events(start=BASE, n_days=334, per_day=30, id_prefix="aud")
+        assert len(events) == 10_020
+        aggregator = PyramidAggregator()
+        year = aggregator.generate_materialized_rollup("YEAR", "dim_audit", events)
+        return aggregator, events, year
+
+    def test_drill_down_p95_10k_events_within_red_line(self):
+        """万级事件 YEAR→MONTH/DAY 各 15 次采样，p95 ≤ 45ms 红线。"""
+        import statistics  # noqa: F401  (显式导入以表明统计意图)
+        import time
+
+        aggregator, events, year = self._year_10k()
+        samples: dict[str, list[float]] = {"MONTH": [], "DAY": []}
+        for _ in range(15):
+            started = time.perf_counter()
+            months = aggregator.drill_down(year.summary_id, "MONTH")
+            samples["MONTH"].append((time.perf_counter() - started) * 1000)
+            started = time.perf_counter()
+            days = aggregator.drill_down(year.summary_id, "DAY")
+            samples["DAY"].append((time.perf_counter() - started) * 1000)
+        assert len(days) == len(events)
+        # 2026-01-01 起第 0..333 天 → 止于 11-30：严格 11 个自然月窗
+        assert len(months) == 11
+        for target, xs in samples.items():
+            xs.sort()
+            p95 = xs[int(0.95 * len(xs)) - 1]
+            assert p95 <= 45.0, f"YEAR->{target} 万级 p95={p95:.2f}ms 越过 45ms 红线"
+
+    def test_slider_zoom_contract_is_exact(self):
+        """手环 5D 滑动条契约：1 秒到 10 年，四元尺度序逐字焊死。"""
+        lo, hi = CONTINUOUS_ZOOM_SECONDS
+        assert lo == 1
+        assert hi == 10 * 365 * 24 * 3600 == 315_360_000
+        assert SCALE_ORDER == ("DAY", "WEEK", "MONTH", "YEAR")
+
+    def test_iso_week_groups_across_calendar_year_boundary(self):
+        """ISO 跨年周：2025-12-28 属 2025-W52；12-29(周一)~01-04 属 2026-W01。"""
+        w52 = datetime(2025, 12, 28, 10, 0, tzinfo=UTC)
+        w01_times = [datetime(2025, 12, 29, 10, 0, tzinfo=UTC) + timedelta(days=d) for d in range(7)]
+        events = [{"id": "aud-iso-w52-0", "time": w52}] + [
+            {"id": f"aud-iso-w01-{i}", "time": t} for i, t in enumerate(w01_times)
+        ]
+        aggregator = PyramidAggregator()
+        year = aggregator.generate_materialized_rollup("YEAR", "dim_iso", events)
+        weeks = aggregator.drill_down(year.summary_id, "WEEK")
+        assert len(weeks) == 2
+        w01 = next(s for s in weeks if "aud-iso-w52-0" not in s.evidence_ids)
+        w52s = next(s for s in weeks if "aud-iso-w52-0" in s.evidence_ids)
+        assert len(w01.evidence_ids) == 7
+        assert all("w01" in eid for eid in w01.evidence_ids)
+        assert w52s.evidence_ids == ["aud-iso-w52-0"]
+        union = set().union(*(set(s.evidence_ids) for s in weeks))
+        assert union == {e["id"] for e in events}
+
+    def test_evidence_union_lossless_at_10k_scale(self):
+        """万级规模：YEAR 层 == 输入集；MONTH 十二子层并集 == 输入集。"""
+        aggregator, events, year = self._year_10k()
+        input_ids = {e["id"] for e in events}
+        assert set(year.evidence_ids) == input_ids
+        months = aggregator.drill_down(year.summary_id, "MONTH")
+        union = set().union(*(set(m.evidence_ids) for m in months))
+        assert union == input_ids
