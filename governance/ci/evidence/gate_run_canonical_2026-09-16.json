@@ -1,6 +1,6 @@
 {
   "runner": "governance/ci/run_gates.py",
-  "generated_at_utc": "2026-09-15T22:29:10Z",
+  "generated_at_utc": "2026-09-15T22:32:05Z",
   "environment": {
     "python": "3.11.2",
     "sqlite": "3.40.1",
@@ -8,10 +8,10 @@
     "cpu_count": 2
   },
   "git": {
-    "commit": "ebeeb29f61b0e02169e9b3acbcad7fd23f9f9698",
+    "commit": "39de660ee0ad80fe124507b75acc7ac00a66c3d6",
     "dirty": true
   },
-  "wall_s": 17.1,
+  "wall_s": 16.0,
   "hard_failures": [],
   "governance_debt": {
     "CONFLICT": 39,
@@ -57,7 +57,7 @@
     "CG-2": {
       "checker_exit": 1,
       "gate": "RED",
-      "registry_version": "0.3.1-PROPOSAL",
+      "registry_version": "0.3.2-PROPOSAL",
       "counts": {
         "RULE_A": 0,
         "UNREGISTERED": 0,
@@ -108,7 +108,7 @@
     "CG-4": {
       "scale": "100k",
       "exit": 0,
-      "wall_s": 16.9,
+      "wall_s": 15.9,
       "gates_applicable": 13,
       "gates_failed": [],
       "gates_not_applicable": [
@@ -139,7 +139,7 @@
     "PROVENANCE": {
       "written": "reviews/architecture/evidence/PROVENANCE.json",
       "artifacts_bound": 19,
-      "self_sha256": "5b311f071a1972392d3fdcc223502f8ffc85aec83b5bad466efa41f94809f42a",
+      "self_sha256": "d86d515de52a054400ed58d40f7e4ce726553f8f90876aee18399d92b09944bb",
       "changed_this_run": false
     }
   },

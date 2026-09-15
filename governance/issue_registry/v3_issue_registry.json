@@ -1,5 +1,5 @@
 {
-  "registry_version": "0.3.1-PROPOSAL",
+  "registry_version": "0.3.2-PROPOSAL",
   "status": "PROPOSAL — 待项目总工程师逐号裁决后升格为唯一真源；在此之前 CI 门保持红色",
   "generated_by": "reviews/architecture/AIOS_V3_UNIFIED_BACKLOG_AND_AS_BUILT_VERIFICATION_2026-09-16.md §9.2/§9.3 + reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3（RC-001~RC-041，41 条提案号）",
   "generated_at_commit": "00adf2b",
@@ -80,7 +80,7 @@
     "M8-001~M8-003"
   ],
   "scope_docs": [
-    "AIOS_Core_详细开发任务拆分_R2_总工程师版.md",
+    "docs/specifications/AIOS_Core_详细开发任务拆分_R2_总工程师版.md",
     "AIOS_Core_任务规划与开发任务拆分重构方案_V3_独立首席架构师版.md",
     "reviews/architecture/AIOS_V3_ENGINEERING_GAP_AUDIT_PATCH_REQUIRED_2026-09-16.md",
     "reviews/architecture/AIOS_Core_全盘工程重构方案与详细任务拆分设计书_2026-09-16.md",
@@ -2303,5 +2303,5 @@
       }
     }
   ],
-  "discovery_note": "0.2.0：由 checker 首次实跑（规则 B）新增 30 个此前未被任何矩阵覆盖的号位（P1 独有 21 个 + 与 P2/P3/本报告冲突 8 个 + 疑同簇 1 个）。⇒ 实际争用面为 66 个号，而非 §9.2 矩阵的 36 个。 | 0.3.0：新增 RC 命名空间 41 个标签 ⇒ 11 个与 α/P1 既有提案号同 slug（登记为 alias，不发新号）+ 30 个新语义键条目（Gate0:8 / Gate0.5:4 / Gate1:8 / Gate2:11 / Gate3:8 / Gate4~5:2），其中 RC-009 读路径契约、RC-041 反退化断言集为 origin=NEW_NO_PRIOR_CLAIM。 两处 gate 分歧已登记为 gate_disputes：RC-017→M2-024（Gate2 vs 设计书主张 Gate1）、RC-028→M2-026（无 gate vs Gate2）。 | 0.3.1：PROBE-CI-002 标记为 PARTIALLY_IMPLEMENTED（设计书探针 + 五道证据门已入 CI，A/B 探针仍未取证）；NUMCI-001 增记 debt_ratchet；M1-020 挂上规模档实测依据。"
+  "discovery_note": "0.2.0：由 checker 首次实跑（规则 B）新增 30 个此前未被任何矩阵覆盖的号位（P1 独有 21 个 + 与 P2/P3/本报告冲突 8 个 + 疑同簇 1 个）。⇒ 实际争用面为 66 个号，而非 §9.2 矩阵的 36 个。 | 0.3.0：新增 RC 命名空间 41 个标签 ⇒ 11 个与 α/P1 既有提案号同 slug（登记为 alias，不发新号）+ 30 个新语义键条目（Gate0:8 / Gate0.5:4 / Gate1:8 / Gate2:11 / Gate3:8 / Gate4~5:2），其中 RC-009 读路径契约、RC-041 反退化断言集为 origin=NEW_NO_PRIOR_CLAIM。 两处 gate 分歧已登记为 gate_disputes：RC-017→M2-024（Gate2 vs 设计书主张 Gate1）、RC-028→M2-026（无 gate vs Gate2）。 | 0.3.1：PROBE-CI-002 标记为 PARTIALLY_IMPLEMENTED（设计书探针 + 五道证据门已入 CI，A/B 探针仍未取证）；NUMCI-001 增记 debt_ratchet；M1-020 挂上规模档实测依据。 | 0.3.2：档案大整理（commit e7ba42e 等）把 R2 任务书移到 docs/specifications/ ⇒ scope_docs 路径随之更新。此漂移由 governance/ci/run_gates.py 的 CG-2 当场抓出（检查器 FATAL: scope_docs 中的文件不存在），不是人工巡检发现的。"
 }

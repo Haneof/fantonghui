@@ -1,7 +1,7 @@
 {
   "generated_by": "governance/ci/run_gates.py",
   "git": {
-    "commit": "ebeeb29f61b0e02169e9b3acbcad7fd23f9f9698",
+    "commit": "39de660ee0ad80fe124507b75acc7ac00a66c3d6",
     "dirty": true
   },
   "rule": "引用任何数字前先核 script_sha256 与本文件登记值一致；不一致 ⇒ 按统一母表 §9.4 降级为『可复现但未取证』，不得写进 Issue 验收。脚本改动后旧工件即失去溯源，必须重跑或显式标注为历史运行。",
@@ -22,8 +22,8 @@
   },
   "registry": {
     "path": "governance/issue_registry/v3_issue_registry.json",
-    "sha256": "d0628993642bd653314745c7d50516ea11df703ce2bdbe57006504c30e63fa65",
-    "version": "0.3.1-PROPOSAL"
+    "sha256": "1276cc4327c0a79279d4a61f5eb56628328d5864d5b5643449a6c5ac3676a8f5",
+    "version": "0.3.2-PROPOSAL"
   },
   "artifacts": [
     {
