@@ -1,0 +1,143 @@
+{
+  "generated_by": "governance/ci/run_gates.py",
+  "git": {
+    "commit": "ebeeb29f61b0e02169e9b3acbcad7fd23f9f9698",
+    "dirty": true
+  },
+  "rule": "引用任何数字前先核 script_sha256 与本文件登记值一致；不一致 ⇒ 按统一母表 §9.4 降级为『可复现但未取证』，不得写进 Issue 验收。脚本改动后旧工件即失去溯源，必须重跑或显式标注为历史运行。",
+  "git_field_semantics": "git.commit 是**生成本文件时**的 HEAD，git.dirty 表示当时工作区是否有未提交改动；入库的 PROVENANCE.json 因此通常记录的是『产出这批工件时所在的那个 commit + dirty=true』，CI 每次运行都会重写本文件（本文件是派生索引，刻意不进 SHA256SUMS，见 run_gates.py 的清单策略注释）",
+  "scripts": {
+    "probe": {
+      "path": "reviews/architecture/evidence/verify_reconstruction_design.py",
+      "sha256": "3b2182e77784c5ec4718a6ab7cce2f716e82d0dd63dceec59764220ef8750481"
+    },
+    "registry_checker": {
+      "path": "governance/issue_registry/check_issue_registry.py",
+      "sha256": "f3b3be88373e26f83db5660c3275c29004fc6e9000d48119ab943a71e94a2a5b"
+    }
+  },
+  "book": {
+    "path": "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md",
+    "sha256": "1e53163282944cba622fa382427fc91b016dc4ccad544a8a0a2b198ff6ca884d"
+  },
+  "registry": {
+    "path": "governance/issue_registry/v3_issue_registry.json",
+    "sha256": "d0628993642bd653314745c7d50516ea11df703ce2bdbe57006504c30e63fa65",
+    "version": "0.3.1-PROPOSAL"
+  },
+  "artifacts": [
+    {
+      "path": "reviews/architecture/evidence/aios_v3_as_built_probe.log",
+      "sha256": "bdbbe1746421b40ee8a349ec49e57b5aee1e387963c399f6e8cc2f6bf9d2e35c",
+      "bytes": 17892
+    },
+    {
+      "path": "reviews/architecture/evidence/aios_v3_as_built_probe.py",
+      "sha256": "c55c3ea7e3a17be3afe75129997101c64f341da1ea7d6f3f8e173a4b3a51dfa2",
+      "bytes": 51131
+    },
+    {
+      "path": "reviews/architecture/evidence/aios_v3_as_built_probe_result.json",
+      "sha256": "16083b6f44aa97fa6cd74af85e0513dc1b2fb4fcb4a9afe9587bcb939c8b0ef0",
+      "bytes": 7553
+    },
+    {
+      "path": "reviews/architecture/evidence/aios_v3_sqlite_probe.py",
+      "sha256": "3187ba043e30dcd891ec94a8032f80f4c8bf6c98d33fa1bb1d9cc4647357f5f7",
+      "bytes": 18737
+    },
+    {
+      "path": "reviews/architecture/evidence/aios_v3_sqlite_probe_3_6m_result.json",
+      "sha256": "a780b29a02fc704cedaa1fe992bdff365afe4f46a36a0a914106212ece65c9e5",
+      "bytes": 2598
+    },
+    {
+      "path": "reviews/architecture/evidence/verify_design_contracts.py",
+      "sha256": "9a6e15019acb2e459d3e1e5e1b269906d08eb2d49dfcd45ca912adf051943f8e",
+      "bytes": 8989
+    },
+    {
+      "path": "reviews/architecture/evidence/verify_design_ddl.py",
+      "sha256": "1087345b696d9306542cd29497f7078dbc4e23f03de70ba1592753a72ea55bc1",
+      "bytes": 1848
+    },
+    {
+      "path": "reviews/architecture/evidence/verify_reconstruction_design.py",
+      "sha256": "3b2182e77784c5ec4718a6ab7cce2f716e82d0dd63dceec59764220ef8750481",
+      "bytes": 66960
+    },
+    {
+      "path": "reviews/architecture/evidence/verify_reconstruction_design_100k.log",
+      "sha256": "b2b6b57313a71fcdf7a219bc3e89aaf74672fe5f161e9cdc115bf356a15533bc",
+      "bytes": 13418
+    },
+    {
+      "path": "reviews/architecture/evidence/verify_reconstruction_design_100k_result.json",
+      "sha256": "052af83d15e78cbaf46051b48aa1a5ef3a7cf725cc5bba8d1c1154fdfe3714f3",
+      "bytes": 12850,
+      "produced_by": {
+        "probe_version": "1.1.0",
+        "script_sha256": "3b2182e77784c5ec4718a6ab7cce2f716e82d0dd63dceec59764220ef8750481",
+        "scale": "100k",
+        "ci_scale": true,
+        "gate_applicability": {
+          "G2b_rejected_plans_over_gate_at_scale": "NOT_APPLICABLE_AT_SCALE"
+        }
+      }
+    },
+    {
+      "path": "reviews/architecture/evidence/verify_reconstruction_design_1m.log",
+      "sha256": "df2a85d8a2088a460077f35253626bd4cda1d8cb2c0569fa5270b9088a5d68d7",
+      "bytes": 13349
+    },
+    {
+      "path": "reviews/architecture/evidence/verify_reconstruction_design_1m_result.json",
+      "sha256": "d643a47844afbe229a1c0fd33be453aa1814098cc822e55df07fd6b1cfb2f1f3",
+      "bytes": 12735,
+      "produced_by": {
+        "probe_version": "1.1.0",
+        "script_sha256": "3b2182e77784c5ec4718a6ab7cce2f716e82d0dd63dceec59764220ef8750481",
+        "scale": "1m",
+        "ci_scale": false,
+        "gate_applicability": {
+          "G2b_rejected_plans_over_gate_at_scale": "APPLICABLE"
+        }
+      }
+    },
+    {
+      "path": "governance/issue_registry/evidence/check_run_2026-09-16.json",
+      "sha256": "568ec3bac83a400240d548faab1ad644c2c9d3091b4f1ce1adb8dd4fabc3d74a",
+      "bytes": 9876
+    },
+    {
+      "path": "governance/issue_registry/evidence/check_run_2026-09-16.log",
+      "sha256": "049d9ca6da44890427558785ef496d9fd68c3465b6c15f900408650bcbde0bef",
+      "bytes": 11222
+    },
+    {
+      "path": "governance/issue_registry/evidence/check_run_2026-09-16_v0.3.0.json",
+      "sha256": "5b1cc4b6f048f16dff45ba71623091344714b857474f1124b150cc5ed7fc4ba5",
+      "bytes": 10355
+    },
+    {
+      "path": "governance/issue_registry/evidence/check_run_2026-09-16_v0.3.0.log",
+      "sha256": "864b51ef7e01034ab49878660953b8cd54a49b0ffa5cafa0e6638bbbfef21bbe",
+      "bytes": 10984
+    },
+    {
+      "path": "governance/issue_registry/evidence/check_run_2026-09-16_v0.3.1.json",
+      "sha256": "55031b192b72e42d1b1472d87ffd40ddf122f14cffaf6b3dd88a9e6fb92a714a",
+      "bytes": 10355
+    },
+    {
+      "path": "governance/issue_registry/evidence/check_run_2026-09-16_v0.3.1.log",
+      "sha256": "9e501d6a372fcad3d30c7744726fa94b273799815ef07df48b0aa5218dc029b5",
+      "bytes": 11003
+    },
+    {
+      "path": "governance/issue_registry/evidence/negative_self_test_2026-09-16.log",
+      "sha256": "c3e52bb3ff81f3a213267090fc4cf913a1333d1afd8bb5457bbf19d9bbc8fb15",
+      "bytes": 1891
+    }
+  ]
+}

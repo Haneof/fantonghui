@@ -38,6 +38,16 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 # 0. 设计书的 profile 默认值（全部为**可实验默认值**，不是宪法常量 —— 第七十六条）
 # ---------------------------------------------------------------------------
+# 版本与自证：工件必须能回答"我是哪个字节版本的脚本产出的"（铁律 2 的第四元 = profile 版本）。
+PROBE_VERSION = "1.1.0"
+CHANGELOG = {
+    "1.0.0": "13 门首版；1M 全绿（工件 verify_reconstruction_design_1m_result.json 的原始产出者）",
+    "1.1.0": "① 新增 100k CI 档；② G2b 拆成 scale-invariant 的**排序断言**（所有档）与"
+             "**绝对超门断言**（仅 ≥1M 档），小档显式标 NOT_APPLICABLE_AT_SCALE 而非静默跳过；"
+             "③ 输出自带 script_sha256/probe_version/scale，供 PROVENANCE.json 绑定",
+}
+CI_SCALES = ("50k", "100k", "200k")          # CI 单机可跑档（目标 < 3 min，见设计书 §3.7）
+ABSOLUTE_REJECT_SCALE_MIN = 1_000_000         # 绝对超门断言只在 ≥1M 档成立（规模相关性已由实测证明）
 PROFILE = {
     "ttft_budget_ms": 1000.0,        # 第八十五条：穿戴端首字 ~1 秒
     "manifest_budget_ms": 60.0,      # 设计书 §3.4-C：Wake→Manifest 组装预算
@@ -676,6 +686,19 @@ class Design:
                     pct(post_s, .95) <= PROFILE["co_search_p95_ms"],
                 "fts_and_p95_under_gate": pct(fts_seg_s, .95) <= PROFILE["co_search_p95_ms"],
                 "gate_ms": PROFILE["co_search_p95_ms"],
+                # 采纳/驳回的**相对**判定：scale-invariant，任何档都必须成立
+                "best_adopted_p95_ms": round(min(pct(fts_seg_s, .95), pct(topk_s, .95),
+                                                 pct(anchor_s, .95)), 3),
+                "worst_rejected_p95_ms": round(max(pct(post_s, .95), pct(pair_s, .95)), 3),
+                "rejected_slower_than_best_adopted":
+                    pct(post_s, .95) > min(pct(fts_seg_s, .95), pct(topk_s, .95), pct(anchor_s, .95))
+                    and pct(pair_s, .95) > min(pct(fts_seg_s, .95), pct(topk_s, .95), pct(anchor_s, .95)),
+                # 绝对超门判定：只在 ≥1M 档成立（1M 实测 210.4/147.2 ms；小档数据量不足以超门）
+                "absolute_reject_applicable": self.n >= ABSOLUTE_REJECT_SCALE_MIN,
+                "absolute_reject_note": (
+                    f"本档 objects={self.n}；绝对超门断言的适用下限 = {ABSOLUTE_REJECT_SCALE_MIN}。"
+                    "小档若'驳回计划没超门'不代表计划可用，只代表**该档无法证明它不可用** ⇒ "
+                    "标 NOT_APPLICABLE_AT_SCALE，由放行门的 1M 档负责绝对判定（铁律 2：SLO 必须绑定规模档）"),
                 "like_vs_postings_speedup_p95": round(pct(like_s, .95) / max(pct(post_s, .95), 1e-6), 1),
                 "correctness_postings_superset_of_like": post_hits >= like_hits,
                 "correctness_alias_gap_explained":
@@ -1089,9 +1112,12 @@ class Design:
                 self.res["v2_co_search"]["verdict"]["fts_and_p95_under_gate"]
                 and self.res["v2_co_search"]["verdict"]["postings_entity_anchored_p95_under_gate"]
                 and self.res["v2_co_search"]["verdict"]["postings_topk_p95_under_gate"],
-            "G2b_rejected_plans_documented":
-                not self.res["v2_co_search"]["verdict"]["postings_3way_group_by_p95_under_gate"]
-                and not self.res["v2_co_search"]["verdict"]["postings_pairwise_p95_under_gate"],
+            # G2b 拆两层：排序断言 scale-invariant（驳回计划必须慢于最快的采纳计划），
+            # 绝对超门断言只在 ≥1M 档成立 —— 小档不是"跳过"，而是显式 NOT_APPLICABLE_AT_SCALE。
+            "G2b_rejected_plans_slower_than_adopted":
+                self.res["v2_co_search"]["verdict"]["rejected_slower_than_best_adopted"],
+            # 绝对超门断言：仅在 ≥1M 档**可判定**；小档移入 gates_not_applicable（带原因），
+            # 既不算通过也不算失败 —— 绝不允许用"缩小规模"把一条门变成静默 True。
             "G3_cjk_recall_nonzero": self.res["v2_co_search"]["two_char_term_recall"]["postings"] > 0,
             "G4_time_bucket_gate": self.res["v3_time_slider"]["gate_pass"],
             "G5_manifest_budget": self.res["v4_manifest"]["gate_pass"],
@@ -1107,7 +1133,22 @@ class Design:
             "G12_no_unfinalized_extraction":
                 self.res["v7_pipeline"]["unfinalized_turns_extracted"] == 0,
         }
+        v2v = self.res["v2_co_search"]["verdict"]
+        gates_not_applicable: dict[str, str] = {}
+        if not v2v["absolute_reject_applicable"]:
+            gates_not_applicable["G2b_rejected_plans_over_gate_at_scale"] = (
+                f"NOT_APPLICABLE_AT_SCALE：本档 objects={self.n} < {ABSOLUTE_REJECT_SCALE_MIN}；"
+                "被驳回计划在本档未超门只说明**本档无法证明其不可用**，绝对判定归 1M 放行档")
+        else:
+            gates["G2b_rejected_plans_over_gate_at_scale"] = (
+                not v2v["postings_3way_group_by_p95_under_gate"]
+                and not v2v["postings_pairwise_p95_under_gate"])
+        # 守卫：N/A 只允许出现在这一条门上，且只在 <1M 档 —— 防止"把门标 N/A"成为绕过手段
+        assert set(gates_not_applicable) <= {"G2b_rejected_plans_over_gate_at_scale"}
+        assert not gates_not_applicable or self.n < ABSOLUTE_REJECT_SCALE_MIN
         self.res["gates"] = gates
+        self.res["gates_not_applicable"] = gates_not_applicable
+        self.res["gate_count_applicable"] = len(gates)
         self.res["all_gates_pass"] = all(gates.values())
         con.close()
         return self.res
@@ -1115,12 +1156,12 @@ class Design:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--scale", default="200k", choices=["50k", "200k", "1m"])
+    ap.add_argument("--scale", default="200k", choices=["50k", "100k", "200k", "1m"])
     ap.add_argument("--json", default="")
     ap.add_argument("--db", default="/tmp/aios_design_verify.sqlite3")
     args = ap.parse_args()
-    n_obj = {"50k": 50_000, "200k": 200_000, "1m": 1_000_000}[args.scale]
-    n_task = {"50k": 25_000, "200k": 100_000, "1m": 500_000}[args.scale]
+    n_obj = {"50k": 50_000, "100k": 100_000, "200k": 200_000, "1m": 1_000_000}[args.scale]
+    n_task = {"50k": 25_000, "100k": 50_000, "200k": 100_000, "1m": 500_000}[args.scale]
 
     d = Design(args.db, n_obj, n_task)
     wall0 = now_ms()
@@ -1133,6 +1174,21 @@ def main() -> int:
     d.v_write_path()
     d.v7_pipeline()
     res = d.finalize()
+    res["provenance"] = {
+        "probe_version": PROBE_VERSION,
+        "changelog": CHANGELOG,
+        "script_sha256": hashlib.sha256(Path(__file__).resolve().read_bytes()).hexdigest(),
+        "script_path": str(Path(__file__).resolve()),
+        "ci_scale": args.scale in CI_SCALES,
+        "scale_label": args.scale,
+        "objects": n_obj, "tasks": n_task,
+        "gate_applicability": {
+            "G2b_rejected_plans_over_gate_at_scale":
+                "APPLICABLE" if n_obj >= ABSOLUTE_REJECT_SCALE_MIN else "NOT_APPLICABLE_AT_SCALE",
+        },
+        "note": ("工件自证：script_sha256 必须与 evidence/PROVENANCE.json 及 SHA256SUMS 中登记的"
+                 "脚本哈希一致，否则该工件不得被引用为设计书数字来源"),
+    }
     res["environment"] = {
         "python": platform.python_version(), "sqlite": sqlite3.sqlite_version,
         "platform": platform.platform(), "cpu_count": os.cpu_count(),

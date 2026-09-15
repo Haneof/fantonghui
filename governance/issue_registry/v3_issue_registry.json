@@ -1,5 +1,5 @@
 {
-  "registry_version": "0.3.0-PROPOSAL",
+  "registry_version": "0.3.1-PROPOSAL",
   "status": "PROPOSAL — 待项目总工程师逐号裁决后升格为唯一真源；在此之前 CI 门保持红色",
   "generated_by": "reviews/architecture/AIOS_V3_UNIFIED_BACKLOG_AND_AS_BUILT_VERIFICATION_2026-09-16.md §9.2/§9.3 + reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3（RC-001~RC-041，41 条提案号）",
   "generated_at_commit": "00adf2b",
@@ -269,13 +269,20 @@
       "status": "PROPOSAL",
       "source_docs": [
         "PROPOSAL-α (D + 本报告 §3.2)",
-        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L335（以 RC-018 标签引用本号）"
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3:L335（以 RC-018 标签引用本号）",
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.7.1"
       ],
       "semantics": "早期规模与查询计划门",
       "note": "号位待治理方裁决；slug 为 α 候选语义键 | 0.3.0：设计书以 RC-018 标签收敛到本号（同语义 ⇒ 不发新号，R3_alloc 一 slug 一号）。",
       "aliases": [
         "RC-018"
-      ]
+      ],
+      "scale_gate_evidence": {
+        "ci_scale_artifact": "reviews/architecture/evidence/verify_reconstruction_design_100k_result.json",
+        "release_scale_artifact": "reviews/architecture/evidence/verify_reconstruction_design_1m_result.json",
+        "finding": "旧图纸崩溃路径合计：100k 档 1,114.9 ms（仅超 1 s 预算 11%）vs 1M 档 3,544.7 ms（超 254%）⇒ **CI 档不得单独作为放行依据**；G2b 绝对超门断言在 <1M 档标 NOT_APPLICABLE_AT_SCALE",
+        "rule": "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.7.1"
+      }
     },
     {
       "id": "M1-021",
@@ -597,23 +604,39 @@
       "status": "PROPOSAL",
       "source_docs": [
         "本报告 §9.3 R2/R5",
-        "P2 铁律一(号位 M0-027 已驳回)"
+        "P2 铁律一(号位 M0-027 已驳回)",
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.7.4"
       ],
       "semantics": "编号 registry 唯一真源 + CI 门（A 完整性 / B 未注册号 / C 未消解冲突）",
-      "note": "临时命名空间，不与任何 M*-*** 争用；阻断其余全部派单"
+      "note": "临时命名空间，不与任何 M*-*** 争用；阻断其余全部派单；门本身保持 RED 直到治理方逐号裁决（RED 是正确状态，不是缺陷）",
+      "implemented_by": [
+        "governance/issue_registry/check_issue_registry.py（规则 A/B/C + A6/A7/D1~D6/E1~E2）",
+        "governance/ci/run_gates.py CG-2（调用检查器 + 治理债棘轮 governance/ci/gate_baseline.json）"
+      ],
+      "debt_ratchet": "CONFLICT/UNRATIFIED/GATE_DISPUTE_OPEN 只许减少；增大即 CI hard fail"
     },
     {
       "id": "PROBE-CI-002",
       "slug": "four-probes-in-ci-as-m1-hard-gate",
       "milestone": "PROBE",
       "gate": "Gate1",
-      "status": "PROPOSAL",
+      "status": "PROPOSAL_PARTIALLY_IMPLEMENTED",
       "source_docs": [
         "本报告 §9.4",
-        "元裁决 §六-3"
+        "元裁决 §六-3",
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.7.4"
       ],
       "semantics": "A 的 3.6M 探针 + B 的三支探针 + 本审计 as-built 探针并入 CI，产出 stdout/JSON/SHA256 工件",
-      "note": "临时命名空间；B 的数字由此转为可引用"
+      "note": "临时命名空间；B 的数字由此转为可引用",
+      "implemented_partially_by": [
+        "governance/ci/run_gates.py（CG-1 工件溯源 / CG-2 registry+棘轮 / CG-3 文档↔registry / CG-4 设计书探针 CI 档实跑 / CG-5 数字追溯）",
+        "governance/ci/negative_self_test.py（9 场景负向自测，全部命中预期规则）",
+        ".github/workflows/governance-gates.yml（push/PR 跑 100k 档 + 自测；workflow_dispatch 可跑 1M 放行档）"
+      ],
+      "remaining": [
+        "A 的 3.6M 探针、B 的三支探针尚未接入 CI（脚本已入库但无运行工件 ⇒ 按统一母表 §9.4 仍属『可复现但未取证』）",
+        "as-built 探针（aios_v3_as_built_probe.py）已有归档工件，但未纳入 run_gates 的 CG-4 实跑"
+      ]
     },
     {
       "id": "M0-033",
@@ -2280,5 +2303,5 @@
       }
     }
   ],
-  "discovery_note": "0.2.0：由 checker 首次实跑（规则 B）新增 30 个此前未被任何矩阵覆盖的号位（P1 独有 21 个 + 与 P2/P3/本报告冲突 8 个 + 疑同簇 1 个）。⇒ 实际争用面为 66 个号，而非 §9.2 矩阵的 36 个。 | 0.3.0：新增 RC 命名空间 41 个标签 ⇒ 11 个与 α/P1 既有提案号同 slug（登记为 alias，不发新号）+ 30 个新语义键条目（Gate0:8 / Gate0.5:4 / Gate1:8 / Gate2:11 / Gate3:8 / Gate4~5:2），其中 RC-009 读路径契约、RC-041 反退化断言集为 origin=NEW_NO_PRIOR_CLAIM。 两处 gate 分歧已登记为 gate_disputes：RC-017→M2-024（Gate2 vs 设计书主张 Gate1）、RC-028→M2-026（无 gate vs Gate2）。"
+  "discovery_note": "0.2.0：由 checker 首次实跑（规则 B）新增 30 个此前未被任何矩阵覆盖的号位（P1 独有 21 个 + 与 P2/P3/本报告冲突 8 个 + 疑同簇 1 个）。⇒ 实际争用面为 66 个号，而非 §9.2 矩阵的 36 个。 | 0.3.0：新增 RC 命名空间 41 个标签 ⇒ 11 个与 α/P1 既有提案号同 slug（登记为 alias，不发新号）+ 30 个新语义键条目（Gate0:8 / Gate0.5:4 / Gate1:8 / Gate2:11 / Gate3:8 / Gate4~5:2），其中 RC-009 读路径契约、RC-041 反退化断言集为 origin=NEW_NO_PRIOR_CLAIM。 两处 gate 分歧已登记为 gate_disputes：RC-017→M2-024（Gate2 vs 设计书主张 Gate1）、RC-028→M2-026（无 gate vs Gate2）。 | 0.3.1：PROBE-CI-002 标记为 PARTIALLY_IMPLEMENTED（设计书探针 + 五道证据门已入 CI，A/B 探针仍未取证）；NUMCI-001 增记 debt_ratchet；M1-020 挂上规模档实测依据。"
 }

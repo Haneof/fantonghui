@@ -133,3 +133,20 @@ Gate 0 未过时只允许做修正案、契约、迁移 fixture 与测试夹具�
   （`governance/issue_registry/evidence/negative_self_test_2026-09-16.log`）。
 - **状态不变**：M1 及以后大规模编码保持暂停；门为 RED 期间任何 `M*-***` 派单无效，派单以 `slug` 为准。
   本轮未改动任何产品代码、契约快照与宪法文件。
+
+### 2026-09-16 追加：证据门入 CI（`PROBE-CI-002` 部分实现）
+
+- **新增可执行的证据门**：`governance/ci/run_gates.py`（五道门，stdlib-only）+ `governance/ci/negative_self_test.py`
+  （9 场景负向自测）+ `.github/workflows/governance-gates.yml`（push/PR 跑 100k 档与自测，解释器矩阵 3.11/3.12；
+  `workflow_dispatch` 可跑 1M 放行档）。实跑 **`VERDICT = PASS` / hard failures = 0**，负向自测 **9/9 命中预期规则**。
+- **拦住的三类腐化**：①脚本改了而工件未重跑（工件内嵌 `script_sha256` 与当前脚本字节哈希比对，不符即 fail）；
+  ②文档引用 registry 中不存在的号 / slug 漂移 / 门位私自改动（`RC-*` 与 alias 双向核对，slug 逐字相同）；
+  ③文档数字与工件脱节或旧值回潮（1M 工件 146 个数值事实必须能在正文定位；`superseded_values` 黑名单 +
+  `HISTORICAL-RUN-VALUES` 哨兵区，哨兵区 >5% 全文即 fail）。
+- **治理债与工程正确性分账**：`CONFLICT/UNRATIFIED/gate 争议`不计入 hard fail（否则门永久红 ⇒ 会被 `|| true` 绕过），
+  改为对 `governance/ci/gate_baseline.json` 做**棘轮**：只许减少，增大即 fail。
+- **规模档纪律（实测依据，写入 `M1-020`/`RC-018`）**：旧图纸崩溃路径在 **100k 档 1,114.9 ms（超预算 11%）**、
+  **1M 档 3,544.7 ms（超 254%）** ⇒ **CI 档不得单独作为放行依据**；探针 G2b 的绝对超门断言在 <1M 档显式标
+  `NOT_APPLICABLE_AT_SCALE`（并有守卫防止"标 N/A"成为绕过手段），排序断言在所有档成立。
+- **状态不变**：编号门仍为 **RED**（`CONFLICT 39 / UNRATIFIED 21 / GATE_DISPUTE_OPEN 2`），M1 及以后大规模编码保持暂停；
+  registry 升为 `0.3.1-PROPOSAL`（`PROBE-CI-002` = `PROPOSAL_PARTIALLY_IMPLEMENTED`，A 的 3.6M 与 B 的三支探针仍未取证）。

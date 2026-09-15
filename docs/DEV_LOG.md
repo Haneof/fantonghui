@@ -552,3 +552,87 @@ M0-001 状态 CONDITIONAL PASS，禁止进入 M0-002，修正两个问题并制�
 - 本设计书的可信度不来自措辞，而来自**它带的探针跑到了 1M 规模、13 门全绿、且被自己的门抓出两个静默缺陷**；数字与工件 SHA256 双向绑定
 - **门仍为 RED 是正确的**：`CONFLICT 39 / UNRATIFIED 21 / GATE_DISPUTE_OPEN 2` 只能由治理方逐号裁决消除，任何文档（含本文）都无权自行转绿
 - 下一步唯一合法的开工顺序：`NUMCI-001` 转绿 → v3.0.1 修正案入库 → `G0`（含 `RC-001` C 号公案裁定）→ `G0.5`（读路径契约门）→ `G1`
+
+## 2026-09-16 把证据焊进 CI：探针 v1.1.0（自证溯源 + CI 档）、`run_gates.py` 五道门、9 场景负向自测
+
+### 起因（上一轮的遗留风险）
+上一轮交付的设计书引用了 141 个实测数字，但**没有任何机器强制**保证：脚本改了工件还继续被引用、
+文档数字与工件脱节、文档引用 registry 里不存在的号。这三种腐化都不会让任何测试失败 ⇒ 本轮把它们全部变成 hard fail。
+
+### 做了什么
+1. **探针 `1.0.0 → 1.1.0`**（`reviews/architecture/evidence/verify_reconstruction_design.py`）
+   - **工件自证**：输出新增 `provenance{probe_version, script_sha256, scale_label, ci_scale, gate_applicability}`
+     ⇒ 每份工件都能回答"我是哪个字节版本的脚本、在哪个规模档产出的"（铁律 2 的第四元）
+   - **新增 100k CI 档**（原为 50k/200k/1m）：100k 实跑 wall **16.2 s**、DB **158.6 MB** ⇒ 每次 push 都跑得动
+   - **G2b 拆成两层**（13 门 → **14 门**）：`G2b-1 排序断言`（被驳回计划必须慢于最快采纳计划）在**所有档**成立；
+     `G2b-2 绝对超门断言`只在 **≥1M 档可判定**，小档移入 `gates_not_applicable{原因}` 并加守卫断言
+     （N/A 只允许这一条门、只在 <1M 档）⇒ **绝不允许用"缩小规模"把一条门变成静默 True**
+   - 重跑并归档两档工件：1M **14/14 门通过 exit 0**（wall 116.6 s、DB 1,087.4 MB）；100k **13 适用门全绿 + 1 条 N/A**
+2. **规模档对照（新 §3.7.1）——本轮最重要的实测发现**
+   - 旧图纸崩溃路径合计：**100k 档 1,114.9 ms（仅超 1 s 预算 11%）** vs **1M 档 3,544.7 ms（超 254%）**
+     ⇒ **只跑 CI 档会把 §1.2 诊断的崩溃判成"性能略紧"**。故写死两条规则进 `RC-018`/`M1-020`：
+     ①G2b-2 在 <1M 档必须显式 N/A；②**CI 档不得单独作为放行依据**，放行门各跑一次 1M 并归档 SHA256
+   - 被驳回计划在 100k 档只有 18.980 / 9.689 ms（都在 50 ms 门内）⇒ "超门"是 1M 档才有权下的结论；
+     但排序关系在两档都成立（100k：18.980 vs 0.079 = 240×；1M：207.014 vs 0.290 = 714×）⇒ **驳回理由是稳健的**
+3. **同脚本两次 1M 运行的漂移披露（新 §3.7.2）**：遍历求值 2181.75 → **2014.61 ms**（−7.7%）、
+   看板组装 0.081 → **0.098 ms**（+21.0%）、`fsync` p50 0.162 → **0.190 ms**（+17.3%）、年桶加速 84.9 → **94.4×**
+   ⇒ 亚毫秒级测量的相对漂移可达 ±20%。据此：①设计书全部验收写成**带余量的不等式**而非点值；
+   ②按第 2 次运行**统一改齐 43 组数字**（单次同时替换，杜绝上一轮那种链式污染）；
+   ③旧运行值列入 `superseded_values` 由 CI 防回潮，历史值只允许出现在 `HISTORICAL-RUN-VALUES` 哨兵区内
+   （哨兵区占全文 >5% 即 fail，防止用哨兵掩盖回潮）
+4. **`governance/ci/run_gates.py`（新，stdlib-only，五道门）**
+   - `CG-1` 两份 `SHA256SUMS` 逐条校验 + **溯源断裂检测**（工件 `script_sha256` ≠ 当前脚本哈希 ⇒ fail）
+   - `CG-2` 调用编号门：规则 A/B/D/E-格式违规 ⇒ hard fail；`CONFLICT/UNRATIFIED/gate 争议` ⇒ **治理债 + 棘轮**
+     （`governance/ci/gate_baseline.json`，只许减少；增大即 fail）
+   - `CG-3` 文档↔registry：设计书引用的 41 个 `RC-*` 必须已注册或已登记 alias；registry 每条 RC/alias 必须在书中出现；
+     **slug 逐字相同**；门位一致（除非 owner 上有 OPEN 的 `gate_disputes`）
+   - `CG-4` 当场跑探针 CI 档：exit 0 + 全部适用门通过 + `gates_not_applicable` 白名单校验 + **I7 非空转四项复核**
+     （2 字词召回 > 0 / 月窗行数 > 0 / Claim = 期望值 / **重试确实补齐了活**）
+   - `CG-5` 数字可追溯：1M 工件 **146 个数值事实**必须能在正文定位（豁免表显式登记在 baseline）；旧值回潮 = 0
+   - 实跑：**`VERDICT = PASS`，hard failures = 0**，wall 17 s（含 100k 探针）
+5. **`governance/ci/negative_self_test.py`（新）：证明门会开火**
+   - 把仓库子树复制到 `/tmp`（`AIOS_GATES_REPO` 覆盖），逐个注入违规：**11/11 场景命中预期规则**，对照场景 exit 0
+   - S1 篡改工件字节 → CG-1；S2 改脚本不重跑 → **CG-1 溯源断裂**；S3 改 slug → CG-3；S4 引用 `RC-099` → CG-3；
+     S5 调低 baseline → **CG-2 棘轮**；S6 哨兵外写回 `2181.75` → CG-5；S7 删哨兵 → CG-5；S8 收紧探针门限 → **CG-4 实跑失败**；
+     **S9 把未注册号藏进代码跨度且未登记理由 → CG-3（证明允许清单不是后门）**；
+     **S10 开一个 >5% 全文的巨大哨兵区 → CG-5（证明哨兵不可被扩大滥用）**
+6. **`.github/workflows/governance-gates.yml`（新）**：push/PR 跑 100k 档 + 负向自测，解释器矩阵 **3.11 / 3.12 双跑**
+   （registry `environment` 记录 P1 声明 3.12、审计沙箱实测 3.11.2 ⇒ 版本属 profile，两个都跑）；
+   `workflow_dispatch` 且 `scale=1m` 时跑**放行档**并上传工件
+7. **registry `0.3.0 → 0.3.1-PROPOSAL`**：`PROBE-CI-002` 标为 **`PROPOSAL_PARTIALLY_IMPLEMENTED`**
+   （已接入设计书探针 + 五道证据门；**A 的 3.6M 与 B 的三支探针仍未取证**，按 §9.4 仍属"可复现但未取证"）；
+   `NUMCI-001` 增记 `debt_ratchet`；`M1-020`（`RC-018` 收敛号）挂上规模档实测依据与"CI 档不得单独放行"规则
+
+### 自己踩到并修掉的坑（记下来，因为它们都会再犯）
+1. **无穷回归**：把带时间戳的运行日志放进 `SHA256SUMS` ⇒ "刷新清单 → 本次运行又写新日志 → 清单又不符"。
+   连撞两次（S0 对照假失败）。**修法**：清单只覆盖**输入**（脚本/工件/文档/registry/baseline/workflow），
+   运行记录一律不进清单，完整性交给 git 与 `PROVENANCE.json`
+2. **自指回路**：自测结果 JSON 被自测自己重写，又被自己哈希 ⇒ 同上。修法同上（移出清单）
+3. **崩溃而非判负**：篡改工件造成非法 UTF-8 时，`CG-1/CG-3/CG-5` 的 `read_text` 未捕获
+   `UnicodeDecodeError` ⇒ 门以 `exit 2`（环境错误）退出而不是 `exit 1`（判负）。**修法**：三处全部加捕获并转为 hard fail
+   （一个把"被攻击"报成"环境坏了"的门，等于给篡改开了后门）
+4. **临时树不完整**：负向自测复制仓库子树时漏了 registry 的 `scope_docs` 与 `.github/workflows` ⇒ 对照场景假失败。
+   **修法**：按 registry 的 `scope_docs` 动态复制 + 整棵复制 `governance/`、`.github/`
+5. **容器 UTC 与仓库本地日期不一致**（22:11 UTC = 次日本地）⇒ 自测工件名带错日期。**修法**：运行记录用固定文件名
+6. **门抓住了我自己**：设计书在负向自测表里字面写了 `RC-099`（S4 的注入示例），CG-3 立刻判"引用未注册号"。
+   没有为了让门变绿而删掉那句话，而是给 CG-3 补上**断言位 vs 字面量**的区分（与 registry 检查器规则 B 同一纪律），
+   并要求字面量里的未注册号必须进 baseline 的 `quoted_label_allowlist` 且附理由；再用 S9 证明这个允许清单不是后门
+
+### 交付物
+- `reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md`（1,323 → **1,359 行**；
+  新增 §3.7.1 规模档对照 / §3.7.2 漂移披露 / §3.7.3 溯源 / §3.7.4 五道门 + 9 场景自测表；全文数字按第 2 次 1M 运行改齐）
+- `reviews/architecture/evidence/`：探针 v1.1.0、`verify_reconstruction_design_1m_result.json`/`.log`（重跑）、
+  **新增 `verify_reconstruction_design_100k_result.json`/`.log`**、`PROVENANCE.json`（派生索引，绑定工件↔脚本哈希↔规模档↔git）、
+  `verify_reconstruction_design_SHA256SUMS`（15 → 16 条）
+- `governance/ci/`：**新增** `run_gates.py`、`negative_self_test.py`、`gate_baseline.json`（治理债棘轮 + 豁免表 + 旧值黑名单）、
+  `evidence/{gate_run_canonical_2026-09-16.log,.json, negative_self_test_2026-09-16.log, gate_runner_negative_self_test.json}`
+- `.github/workflows/governance-gates.yml`；`reviews/README.md`（证据门规则）；`TASK_PROGRESS_R2.md`
+- registry `0.3.1-PROPOSAL`；未改动任何产品代码、契约快照与宪法文件
+
+### 判词
+- 门本身仍为 **RED**（`CONFLICT 39 / UNRATIFIED 21 / GATE_DISPUTE_OPEN 2`）——这是**正确状态**：红在号位未裁决。
+  本轮新增的是"工程正确性"层的 **PASS**：溯源、一致性、可追溯性、探针 CI 档全绿，且**已证明会开火**
+- 本轮最该被记住的一条实测结论：**CI 档不能替代放行档**。旧图纸在 100k 档只超预算 11%，在 1M 档超 254%；
+  如果只在 CI 档设门，§1.2 诊断的那个崩溃就会被判成"性能略紧"而放行
+- 第二条：**亚毫秒测量有 ±20% 漂移**，所以任何"某设计余量 741×"式的点值引用都是错的（正确为 **612×**）。
+  结论只能建立在量级差与排序关系上（167,884× / 714× / 240× / 0 命中 vs 134,916 命中），这些在两次运行、两个规模档上方向一致

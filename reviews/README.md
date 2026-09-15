@@ -25,6 +25,18 @@
   ⑤`check_issue_registry.py` 的规则 `A6/A7/D1~D6/E1~E2` 强制以上全部（含"alias 必须在文档中真实出现"的反虚构检查），
   并已做**负向自测**（注入 9 类违规全部被捕获，exit=1）：`governance/issue_registry/evidence/negative_self_test_2026-09-16.log`。
   当前实跑：`RC` 条目 30 个 / alias 11 个 / OPEN gate 分歧 2 处（`M2-024`、`M2-026`）
+- **证据门（`PROBE-CI-002` 的可执行形态）**：`governance/ci/run_gates.py`（stdlib-only，五道门）
+  把"文档 ↔ registry ↔ 探针工件"三者的一致性变成 CI 断言：
+  `CG-1` 工件哈希 + **溯源**（工件内嵌 `script_sha256` 必须等于当前脚本字节哈希；脚本改了没重跑 ⇒ fail）、
+  `CG-2` 调用编号门 + **治理债棘轮**（`CONFLICT/UNRATIFIED/gate 争议`只许减少）、
+  `CG-3` 文档↔registry（RC 标签必须已注册/已登记 alias、slug 逐字相同、门位一致或有 OPEN 争议）、
+  `CG-4` 当场跑探针 CI 档（100k，含 I7 非空转四项复核）、
+  `CG-5` 数字可追溯（1M 工件的每个数值事实必须能在设计书正文定位；旧运行值不得回潮，
+  历史值只允许出现在 `HISTORICAL-RUN-VALUES` 哨兵区内）。
+  实跑 **VERDICT = PASS**；负向自测 11 场景 **11/11 命中预期规则**（含两条反后门：允许清单外的字面量号、超闸的哨兵区）
+  （`governance/ci/negative_self_test.py`，工件在 `governance/ci/evidence/`）。
+  **治理债不算 hard fail**：号位未裁决造成的红色只能由治理方消除，把它设成 hard fail 会让门永久红而被绕过。
+  workflow：`.github/workflows/governance-gates.yml`（push/PR 跑 100k + 自测；`workflow_dispatch` 可跑 1M 放行档）
 - **性能数字唯一来源与三态规则**：Issue 验收只允许引用该文件 §5.2「可引用数字表」（as-built 探针与
   A 的 3.6M 探针，脚本+输出+日志+SHA256 均已入库）。三态见其 §9.4：**可引用**（有工件）／
   **可复现但未取证**（脚本已入库但无运行工件，如 B 的三支探针 ⇒ 暂不得写入验收，须由 `PROBE-CI-002`

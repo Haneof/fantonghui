@@ -1,0 +1,60 @@
+{
+  "written_by": "governance/ci/run_gates.py --write-baseline",
+  "written_at_utc": "2026-09-15T21:56:15Z",
+  "git": {
+    "commit": "ebeeb29f61b0e02169e9b3acbcad7fd23f9f9698",
+    "dirty": true
+  },
+  "registry_version": "0.3.0-PROPOSAL",
+  "debt_baseline": {
+    "CONFLICT": 39,
+    "UNRATIFIED_SINGLE_CLAIM": 21,
+    "GATE_DISPUTE_OPEN": 2
+  },
+  "hard_gates_must_be_zero": [
+    "RULE_A",
+    "UNREGISTERED",
+    "RULE_D"
+  ],
+  "note": "治理债 = 号位未裁决造成的 CONFLICT/UNRATIFIED/gate 争议。棘轮规则：只许减少。本文件只能由人工在裁决后重写，且必须附裁决依据。 quoted_label_allowlist 只允许登记'字面量提及且确非本仓库号'的标签，扩容必须在 diff 中可见（本文件进 SHA256SUMS）。",
+  "citation_exemptions": {
+    "key_suffixes": [
+      "p50",
+      "p50_ms",
+      "note",
+      "changelog",
+      "wall_ms",
+      "objects",
+      "insert_and_index_ms",
+      "analyze_ms"
+    ],
+    "reason": "p50/note/wall 属运行环境量，不进入设计书正文；objects 在正文写作『1M/100 万』；构建耗时以四舍五入形式引用（如 57.7 s）"
+  },
+  "superseded_values": [
+    "2181.75",
+    "247.068",
+    "678.2",
+    "9.054",
+    "306.752",
+    "210.428",
+    "147.246",
+    "154.343",
+    "5.656",
+    "169.403",
+    "84.9×",
+    "0.081",
+    "1086.0",
+    "3.516",
+    "308.9",
+    "181,812",
+    "741×",
+    "218%",
+    "13/13 门",
+    "52.6 s",
+    "111.5 s"
+  ],
+  "quoted_label_allowlist": {
+    "RC-099": "负向自测 S4 的注入示例（'设计书在断言位引用一个不存在的号'），非本仓库号；见 governance/ci/negative_self_test.py"
+  },
+  "quoted_label_allowlist_note": "清单只登记**文档正文当前确实以字面量提及**的未注册号。S9 场景在仓库副本里注入 `RC-098` 并删掉其允许条目，因此真清单不需要为它留位置。"
+}

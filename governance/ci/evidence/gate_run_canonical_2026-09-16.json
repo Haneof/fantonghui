@@ -1,0 +1,147 @@
+{
+  "runner": "governance/ci/run_gates.py",
+  "generated_at_utc": "2026-09-15T22:29:10Z",
+  "environment": {
+    "python": "3.11.2",
+    "sqlite": "3.40.1",
+    "platform": "Linux-6.1.158+-x86_64-with-glibc2.36",
+    "cpu_count": 2
+  },
+  "git": {
+    "commit": "ebeeb29f61b0e02169e9b3acbcad7fd23f9f9698",
+    "dirty": true
+  },
+  "wall_s": 17.1,
+  "hard_failures": [],
+  "governance_debt": {
+    "CONFLICT": 39,
+    "UNRATIFIED_SINGLE_CLAIM": 21,
+    "GATE_DISPUTE_OPEN": 2
+  },
+  "notes": [
+    "CG-3 字面量提及未注册号 RC-099（允许清单理由：负向自测 S4 的注入示例（'设计书在断言位引用一个不存在的号'），非本仓库号；见 governance/ci/negative_self_test.py）"
+  ],
+  "sections": {
+    "CG-1": {
+      "sums_files": 26,
+      "sums_ok": 26,
+      "artifacts": [
+        {
+          "artifact": "verify_reconstruction_design_1m_result.json",
+          "sha256": "d643a47844afbe229a1c0fd33be453aa1814098cc822e55df07fd6b1cfb2f1f3",
+          "probe_version": "1.1.0",
+          "script_sha256_in_artifact": "3b2182e77784c5ec4718a6ab7cce2f716e82d0dd63dceec59764220ef8750481",
+          "script_sha256_actual": "3b2182e77784c5ec4718a6ab7cce2f716e82d0dd63dceec59764220ef8750481",
+          "scale": "1m",
+          "ci_scale": false,
+          "all_gates_pass": true,
+          "gate_count_applicable": 14,
+          "gates_not_applicable": []
+        },
+        {
+          "artifact": "verify_reconstruction_design_100k_result.json",
+          "sha256": "052af83d15e78cbaf46051b48aa1a5ef3a7cf725cc5bba8d1c1154fdfe3714f3",
+          "probe_version": "1.1.0",
+          "script_sha256_in_artifact": "3b2182e77784c5ec4718a6ab7cce2f716e82d0dd63dceec59764220ef8750481",
+          "script_sha256_actual": "3b2182e77784c5ec4718a6ab7cce2f716e82d0dd63dceec59764220ef8750481",
+          "scale": "100k",
+          "ci_scale": true,
+          "all_gates_pass": true,
+          "gate_count_applicable": 13,
+          "gates_not_applicable": [
+            "G2b_rejected_plans_over_gate_at_scale"
+          ]
+        }
+      ]
+    },
+    "CG-2": {
+      "checker_exit": 1,
+      "gate": "RED",
+      "registry_version": "0.3.1-PROPOSAL",
+      "counts": {
+        "RULE_A": 0,
+        "UNREGISTERED": 0,
+        "CONFLICT": 39,
+        "UNRATIFIED_SINGLE_CLAIM": 21,
+        "RULE_D": 0,
+        "GATE_DISPUTE_OPEN": 2
+      },
+      "rc_entries": 30,
+      "aliases": 11,
+      "scope_docs_scanned": 9,
+      "open_disputes": [
+        "E M2-024：RC-017（AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3） 主张 Gate1，registry 现为 Gate2 —— 待裁决",
+        "E M2-026：RC-028（AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3） 主张 Gate2，registry 现为 None —— 待裁决"
+      ],
+      "ratchet": {
+        "CONFLICT": {
+          "baseline": 39,
+          "now": 39,
+          "delta": 0
+        },
+        "UNRATIFIED_SINGLE_CLAIM": {
+          "baseline": 21,
+          "now": 21,
+          "delta": 0
+        },
+        "GATE_DISPUTE_OPEN": {
+          "baseline": 2,
+          "now": 2,
+          "delta": 0
+        }
+      },
+      "baseline_registry_version": "0.3.0-PROPOSAL"
+    },
+    "CG-3": {
+      "rc_cited_in_assert_position": 41,
+      "rc_entries": 30,
+      "aliases": 11,
+      "slug_or_gate_mismatches": 0,
+      "unknown_labels": [],
+      "orphan_entries": [],
+      "quoted_labels": 32,
+      "quoted_unknown_labels": [
+        "RC-099"
+      ],
+      "quoted_allowlist_size": 1
+    },
+    "CG-4": {
+      "scale": "100k",
+      "exit": 0,
+      "wall_s": 16.9,
+      "gates_applicable": 13,
+      "gates_failed": [],
+      "gates_not_applicable": [
+        "G2b_rejected_plans_over_gate_at_scale"
+      ],
+      "db_size_mb": 158.6,
+      "python": "3.11.2",
+      "sqlite": "3.40.1",
+      "probe_version": "1.1.0",
+      "non_vacuous_checked": [
+        "two_char_recall",
+        "month_window_rows",
+        "claims_equals_expected",
+        "retry_actually_filled"
+      ],
+      "vacuous_findings": []
+    },
+    "CG-5": {
+      "facts_in_artifact": 146,
+      "uncited": 0,
+      "uncited_list": [],
+      "superseded_values_checked": 21,
+      "stale_found": [],
+      "historical_regions": 1,
+      "historical_region_chars": 4169,
+      "historical_region_share": 0.0481
+    },
+    "PROVENANCE": {
+      "written": "reviews/architecture/evidence/PROVENANCE.json",
+      "artifacts_bound": 19,
+      "self_sha256": "5b311f071a1972392d3fdcc223502f8ffc85aec83b5bad466efa41f94809f42a",
+      "changed_this_run": false
+    }
+  },
+  "verdict": "PASS"
+}

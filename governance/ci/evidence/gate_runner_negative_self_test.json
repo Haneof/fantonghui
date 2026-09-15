@@ -1,0 +1,83 @@
+{
+  "all_pass": true,
+  "runner": "governance/ci/run_gates.py",
+  "scenarios": [
+    {
+      "exit": 0,
+      "expected_marker": "(PASS)",
+      "hard_failures": 0,
+      "scenario": "S0 对照（不注入任何违规）",
+      "verdict": "PASS"
+    },
+    {
+      "exit": 1,
+      "expected_marker": "哈希不符",
+      "hard_failures": 3,
+      "scenario": "S1 篡改 1M 工件字节",
+      "verdict": "PASS"
+    },
+    {
+      "exit": 1,
+      "expected_marker": "溯源断裂",
+      "hard_failures": 3,
+      "scenario": "S2 改探针脚本但不重跑工件（溯源断裂）",
+      "verdict": "PASS"
+    },
+    {
+      "exit": 1,
+      "expected_marker": "slug 不一致",
+      "hard_failures": 4,
+      "scenario": "S3 改 registry 中 RC-001 的 slug",
+      "verdict": "PASS"
+    },
+    {
+      "exit": 1,
+      "expected_marker": "不存在的临时号",
+      "hard_failures": 2,
+      "scenario": "S4 设计书引用不存在的 RC-099",
+      "verdict": "PASS"
+    },
+    {
+      "exit": 1,
+      "expected_marker": "治理债棘轮被突破",
+      "hard_failures": 2,
+      "scenario": "S5 把 baseline 的 CONFLICT 调低 1（棘轮）",
+      "verdict": "PASS"
+    },
+    {
+      "exit": 1,
+      "expected_marker": "数字回潮",
+      "hard_failures": 2,
+      "scenario": "S6 哨兵区外写回旧运行值",
+      "verdict": "PASS"
+    },
+    {
+      "exit": 1,
+      "expected_marker": "哨兵",
+      "hard_failures": 3,
+      "scenario": "S7 删掉 HISTORICAL 哨兵",
+      "verdict": "PASS"
+    },
+    {
+      "exit": 1,
+      "expected_marker": "探针门失败",
+      "hard_failures": 5,
+      "scenario": "S8 收紧探针门限使采纳计划超门",
+      "verdict": "PASS"
+    },
+    {
+      "exit": 1,
+      "expected_marker": "不在 baseline 的",
+      "hard_failures": 2,
+      "scenario": "S9 字面量提及未注册号且允许清单里没有它",
+      "verdict": "PASS"
+    },
+    {
+      "exit": 1,
+      "expected_marker": "哨兵区域占全文",
+      "hard_failures": 2,
+      "scenario": "S10 扩大哨兵区以掩盖回潮（>5% 全文）",
+      "verdict": "PASS"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+[✅] S0 对照（不注入任何违规）: exit=0 hard=0 对照通过
+[✅] S1 篡改 1M 工件字节: exit=1 hard=3 命中「哈希不符」
+      - CG-1 哈希不符：reviews/architecture/evidence/verify_reconstruction_design_1m_result.json 期望 d643a47844af… 实际 096da368e9f7…
+      - CG-1 工件不是合法 JSON：verify_reconstruction_design_1m_result.json: Expecting ',' delimiter: line 386 column 4 (char 11100)
+      - CG-5 1M 工件不可读/不可解析（无法做数字追溯）：JSONDecodeError: Expecting ',' delimiter: line 386 column 4 (char 11100)
+[✅] S2 改探针脚本但不重跑工件（溯源断裂）: exit=1 hard=3 命中「溯源断裂」
+      - CG-1 哈希不符：reviews/architecture/evidence/verify_reconstruction_design.py 期望 3b2182e77784… 实际 e3945a298d37…
+      - CG-1 溯源断裂：verify_reconstruction_design_1m_result.json 由脚本 3b2182e77784… 产出，当前脚本为 e3945a298d37… ⇒ 脚本改动后未重跑，该工件不得作为文档数字来源（铁律 2 第四元）
+      - CG-1 溯源断裂：verify_reconstruction_design_100k_result.json 由脚本 3b2182e77784… 产出，当前脚本为 e3945a298d37… ⇒ 脚本改动后未重跑，该工件不得作为文档数字来源（铁律 2 第四元）
+[✅] S3 改 registry 中 RC-001 的 slug: exit=1 hard=4 命中「slug 不一致」
+      - CG-1 哈希不符：v3_issue_registry.json 期望 d0628993642b… 实际 d06d48cc9f8f…
+      - CG-1 哈希不符：governance/issue_registry/v3_issue_registry.json 期望 d0628993642b… 实际 d06d48cc9f8f…
+      - CG-2 registry 完整性违规 RULE_A = 1（必须为 0）
+[✅] S4 设计书引用不存在的 RC-099: exit=1 hard=2 命中「不存在的临时号」
+      - CG-1 哈希不符：reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md 期望 1e5316328294… 实际 72dc4e2a1c8d…
+      - CG-3 设计书在**断言位**引用了 registry 中不存在的临时号：RC-099（文档只能引用号，不能分配号 —— §9.3 R2）
+[✅] S5 把 baseline 的 CONFLICT 调低 1（棘轮）: exit=1 hard=2 命中「治理债棘轮被突破」
+      - CG-1 哈希不符：governance/ci/gate_baseline.json 期望 e5ccfe8576c6… 实际 edc6c3f9702a…
+      - CG-2 治理债棘轮被突破：CONFLICT 38 → 39（只许减少；新增争用号/新争议必须先裁决再入库）
+[✅] S6 哨兵区外写回旧运行值: exit=1 hard=2 命中「数字回潮」
+      - CG-1 哈希不符：reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md 期望 1e5316328294… 实际 4e47dfe46331…
+      - CG-5 设计书正文出现已被取代的旧运行值（数字回潮）：2181.75 ⇒ 必须重跑 --write-baseline 前先核对工件
+[✅] S7 删掉 HISTORICAL 哨兵: exit=1 hard=3 命中「哨兵」
+      - CG-1 哈希不符：reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md 期望 1e5316328294… 实际 b71a3ce0a279…
+      - CG-5 设计书缺少 HISTORICAL-RUN-VALUES 哨兵区域 ⇒ 无法区分'漂移披露'与'数字回潮'
+      - CG-5 设计书正文出现已被取代的旧运行值（数字回潮）：2181.75, 678.2, 306.752, 84.9×, 0.081, 741× ⇒ 必须重跑 --write-baseline 前先核对工件
+[✅] S8 收紧探针门限使采纳计划超门: exit=1 hard=5 命中「探针门失败」
+      - CG-1 哈希不符：reviews/architecture/evidence/verify_reconstruction_design.py 期望 3b2182e77784… 实际 e707104acc58…
+      - CG-1 溯源断裂：verify_reconstruction_design_1m_result.json 由脚本 3b2182e77784… 产出，当前脚本为 e707104acc58… ⇒ 脚本改动后未重跑，该工件不得作为文档数字来源（铁律 2 第四元）
+      - CG-1 溯源断裂：verify_reconstruction_design_100k_result.json 由脚本 3b2182e77784… 产出，当前脚本为 e707104acc58… ⇒ 脚本改动后未重跑，该工件不得作为文档数字来源（铁律 2 第四元）
+[✅] S9 字面量提及未注册号且允许清单里没有它: exit=1 hard=2 命中「不在 baseline 的」
+      - CG-1 哈希不符：reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md 期望 1e5316328294… 实际 4356ac4aafca…
+      - CG-3 设计书在字面量中提及未注册号 RC-098，且不在 baseline 的 quoted_label_allowlist 中 ⇒ 要么注册/登记 alias，要么显式登记理由
+[✅] S10 扩大哨兵区以掩盖回潮（>5% 全文）: exit=1 hard=2 命中「哨兵区域占全文」
+      - CG-1 哈希不符：reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md 期望 1e5316328294… 实际 735edb746208…
+      - CG-5 哨兵区域占全文 34.9% > 5% ⇒ 疑似用哨兵掩盖回潮
+------------------------------------------------------------------------------
+负向自测：11 个场景，失败 0 个，wall 13.1 s
+结论：CG-1（哈希+溯源）/ CG-2（棘轮）/ CG-3（文档↔registry）/ CG-4（探针门）/ CG-5（数字回潮+哨兵）**全部会开火**。
