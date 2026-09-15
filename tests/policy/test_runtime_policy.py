@@ -38,7 +38,7 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[2]
 POLICY_PATH = REPO_ROOT / "governance" / "runtime_policy.json"
 TRACE_MATRIX_PATH = REPO_ROOT / "governance" / "traceability_matrix.csv"
-ADJ_SET_PATH = REPO_ROOT / "governance" / "v3.0.1_规范裁决集_ADJ-001-012.md"
+ADJ_SET_PATH = REPO_ROOT / "docs" / "constitution" / "v3.0.1_规范裁决集_ADJ-001-012.md"
 
 # 裁决集全 12 条。ADJ-010 §3：ADJ-001 与 ADJ-004 属深水区裁决，
 # 再变更须重走全量 G0 合议 —— 故此处硬编码而非从政策文件读取，
@@ -1945,16 +1945,22 @@ def test_threshold_baseline_file_exists_and_is_hash_registered() -> None:
 
     rows = [r for r in _registry_rows() if r[0] == tg["baseline_registry_id"]]
     assert rows, f"{tg['baseline_registry_id']} 未在 registry.md 登记"
-    live = [r for r in rows if "HISTORICAL-ROW" not in r[3]]
-    assert live, f"{tg['baseline_registry_id']} 只有历史行、没有活行"
-    reg_path = live[0][1].split("+")[-1].strip().strip("`")
+    # 活行 = 表内**最后**一行（位置语义，与 hash_registry.py 一致）。
+    # 不要按状态文本筛选：SUPERSEDED/archived 的判定依据是位置，不是措辞；
+    # 按措辞筛会选中已封存的旧版本行，拿旧哈希去比当前文件，制造一条无法消除的假红。
+    live = rows[-1]
+    reg_path = live[1].split("+")[-1].strip().strip("`")
     assert reg_path == rel, f"注册表登记的路径 {reg_path} 与政策层指向的 {rel} 不一致"
 
     import hashlib
     digest = hashlib.sha256(path.read_bytes()).hexdigest()
-    assert digest in live[0][4], (
+    assert digest in live[4], (
         f"{tg['baseline_registry_id']} 的登记哈希与文件实际哈希不符 —— "
         f"规则③ 漂移即红检。文件: {digest[:16]}…"
+    )
+    assert "SUPERSEDED" not in live[3], (
+        f"{tg['baseline_registry_id']} 的活行（末行）状态是 SUPERSEDED —— "
+        f"版本链末尾必须有一个生效版本，否则该规范当前无生效版本"
     )
 
 
