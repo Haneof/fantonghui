@@ -5,14 +5,20 @@ camera adapter may pass a short-lived frame buffer to
 :meth:`EdgeMultimodalCleaner.evaluate_and_clean_image`, but the cleaner only
 returns bounded text metadata.  Mutable input buffers are zeroed before the
 method returns; immutable ``bytes`` remain owned by the caller and are never
-retained by this component.
+retained by this component.  The ADV surface also exposes deterministic
+128-bit voice LSH matching and an inclusive 180-day hot-to-archive state
+machine without changing the legacy manager's strict ``> 180 days`` contract.
 """
 
 from __future__ import annotations
 
+import hashlib
+from collections import defaultdict
 from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime, timedelta
+from functools import lru_cache
 from math import isfinite
+from threading import RLock
 from typing import Any, ClassVar, Literal
 from uuid import uuid4
 
@@ -111,6 +117,279 @@ class VoiceprintProfile(BaseModel):
         return self
 
 
+class RawByteSink:
+    """Zero caller-owned writable frames and retain no raw payload reference."""
+
+    __slots__ = ("_lock", "_purged_bytes", "_purged_frames")
+
+    def __init__(self) -> None:
+        self._lock = RLock()
+        self._purged_frames = 0
+        self._purged_bytes = 0
+
+    def purge(self, raw_bytes: bytes | bytearray | memoryview) -> None:
+        if not isinstance(raw_bytes, (bytes, bytearray, memoryview)):
+            raise TypeError("raw_bytes must be bytes-like")
+        byte_count = (
+            raw_bytes.nbytes if isinstance(raw_bytes, memoryview) else len(raw_bytes)
+        )
+        EdgeMultimodalCleaner._zero_mutable_buffer(raw_bytes)
+        with self._lock:
+            self._purged_frames += 1
+            self._purged_bytes += byte_count
+
+    @property
+    def purged_frame_count(self) -> int:
+        with self._lock:
+            return self._purged_frames
+
+    @property
+    def purged_byte_count(self) -> int:
+        with self._lock:
+            return self._purged_bytes
+
+    @property
+    def retained_byte_count(self) -> Literal[0]:
+        return 0
+
+
+class VoiceprintAudioSlice(BaseModel):
+    """Audio-free 128-dimensional feature slice emitted by upstream DSP."""
+
+    model_config = ConfigDict(
+        extra="forbid",
+        frozen=True,
+        allow_inf_nan=False,
+        str_strip_whitespace=True,
+    )
+
+    slice_id: str = Field(min_length=1, max_length=160)
+    speaker_key: str = Field(min_length=1, max_length=160)
+    feature_vector: tuple[float, ...] = Field(min_length=128, max_length=128)
+    detected_at: datetime
+
+    @field_validator("detected_at")
+    @classmethod
+    def detected_at_must_be_aware(cls, value: datetime) -> datetime:
+        require_aware(value, "detected_at")
+        return value
+
+
+class VoiceprintLSHEngine:
+    """Build deterministic 128-bit random-hyperplane locality-sensitive hashes."""
+
+    LSH_DIMENSIONS: ClassVar[Literal[128]] = 128
+
+    @classmethod
+    def feature_hash(cls, vector: Sequence[float]) -> str:
+        if len(vector) != cls.LSH_DIMENSIONS:
+            raise ValueError("voice feature vector must contain exactly 128 values")
+        normalized: list[float] = []
+        for value in vector:
+            number = float(value)
+            if not isfinite(number):
+                raise ValueError("voice feature vector must contain finite values")
+            normalized.append(number)
+
+        bit_field = 0
+        for row in cls._projection_rows():
+            projection = sum(
+                value * sign for value, sign in zip(normalized, row, strict=True)
+            )
+            bit_field = (bit_field << 1) | int(projection >= 0.0)
+        return f"{bit_field:032x}"
+
+    @classmethod
+    def build_profiles(
+        cls,
+        slices: Sequence[VoiceprintAudioSlice],
+        *,
+        entity_bindings: Mapping[str, str] | None = None,
+    ) -> list[VoiceprintProfile]:
+        bindings = entity_bindings or {}
+        grouped: dict[str, list[VoiceprintAudioSlice]] = defaultdict(list)
+        for item in slices:
+            audio_slice = VoiceprintAudioSlice.model_validate(item)
+            grouped[audio_slice.speaker_key].append(audio_slice)
+
+        profiles: list[VoiceprintProfile] = []
+        for speaker_key in sorted(grouped):
+            speaker_slices = grouped[speaker_key]
+            accumulator = [0.0] * cls.LSH_DIMENSIONS
+            for audio_slice in speaker_slices:
+                for index, value in enumerate(audio_slice.feature_vector):
+                    accumulator[index] += value
+            averaged = [value / len(speaker_slices) for value in accumulator]
+            entity_id = bindings.get(speaker_key)
+            if entity_id is not None and (
+                not isinstance(entity_id, str) or not entity_id.strip()
+            ):
+                raise ValueError("entity binding must be a non-blank string")
+            detected_times = [item.detected_at for item in speaker_slices]
+            profiles.append(
+                VoiceprintProfile(
+                    voiceprint_id=(
+                        "vp_lsh_"
+                        + hashlib.sha256(speaker_key.encode("utf-8")).hexdigest()[:24]
+                    ),
+                    entity_id=entity_id,
+                    feature_hash=cls.feature_hash(averaged),
+                    first_detected_at=min(detected_times),
+                    last_contact_at=max(detected_times),
+                    is_tombstone=False,
+                )
+            )
+        return profiles
+
+    @classmethod
+    def bind_nearest_entities(
+        cls,
+        profiles: Sequence[VoiceprintProfile],
+        *,
+        enrolled_entity_hashes: Mapping[str, str],
+        max_hamming_distance: int = 16,
+    ) -> list[VoiceprintProfile]:
+        """Bind only an unambiguous nearby enrollment; ties remain unbound."""
+
+        if isinstance(max_hamming_distance, bool) or not isinstance(
+            max_hamming_distance, int
+        ):
+            raise TypeError("max_hamming_distance must be an integer")
+        if not 0 <= max_hamming_distance <= cls.LSH_DIMENSIONS:
+            raise ValueError("max_hamming_distance must be between 0 and 128")
+
+        enrollments: list[tuple[str, str]] = []
+        for entity_id, feature_hash in enrolled_entity_hashes.items():
+            if not isinstance(entity_id, str) or not entity_id.strip():
+                raise ValueError("enrolled entity_id must be a non-blank string")
+            cls.hamming_distance(feature_hash, feature_hash)
+            enrollments.append((entity_id, feature_hash))
+
+        bound: list[VoiceprintProfile] = []
+        for item in profiles:
+            profile = VoiceprintProfile.model_validate(item)
+            cls.hamming_distance(profile.feature_hash, profile.feature_hash)
+            if profile.entity_id is not None or profile.is_tombstone or not enrollments:
+                bound.append(profile)
+                continue
+            ranked = sorted(
+                (
+                    cls.hamming_distance(profile.feature_hash, feature_hash),
+                    entity_id,
+                )
+                for entity_id, feature_hash in enrollments
+            )
+            nearest_distance, nearest_entity_id = ranked[0]
+            nearest_is_unique = len(ranked) == 1 or ranked[1][0] != nearest_distance
+            if nearest_distance <= max_hamming_distance and nearest_is_unique:
+                profile = profile.model_copy(update={"entity_id": nearest_entity_id})
+            bound.append(profile)
+        return bound
+
+    @staticmethod
+    def hamming_distance(left_hash: str, right_hash: str) -> int:
+        for value in (left_hash, right_hash):
+            if len(value) != 32:
+                raise ValueError("LSH hash must encode exactly 128 bits")
+            try:
+                int(value, 16)
+            except ValueError as exc:
+                raise ValueError("LSH hash must be hexadecimal") from exc
+        return (int(left_hash, 16) ^ int(right_hash, 16)).bit_count()
+
+    @staticmethod
+    @lru_cache(maxsize=1)
+    def _projection_rows() -> tuple[tuple[int, ...], ...]:
+        rows: list[tuple[int, ...]] = []
+        for projection_index in range(128):
+            random_bytes = hashlib.shake_256(
+                f"AIOS-M1-001R-LSH-{projection_index}".encode()
+            ).digest(128)
+            rows.append(tuple(1 if value & 1 else -1 for value in random_bytes))
+        return tuple(rows)
+
+
+class VoiceprintLifecycleSnapshot(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    evaluated_at: datetime
+    active_matching_profiles: list[VoiceprintProfile] = Field(default_factory=list)
+    archived_profiles: list[VoiceprintProfile] = Field(default_factory=list)
+    newly_tombstoned_ids: list[str] = Field(default_factory=list)
+
+    @field_validator("evaluated_at")
+    @classmethod
+    def evaluated_at_must_be_aware(cls, value: datetime) -> datetime:
+        require_aware(value, "evaluated_at")
+        return value
+
+
+class VoiceprintTTLStateMachine:
+    """Inclusive 180-day ADV lifecycle: active hot table -> tombstone archive."""
+
+    TOMBSTONE_AT: ClassVar[timedelta] = timedelta(days=180)
+
+    def __init__(self, profiles: Sequence[VoiceprintProfile] = ()) -> None:
+        self._lock = RLock()
+        self._active: dict[str, VoiceprintProfile] = {}
+        self._archived: dict[str, VoiceprintProfile] = {}
+        self._last_advanced_at: datetime | None = None
+        seen: dict[str, VoiceprintProfile] = {}
+        for item in profiles:
+            profile = VoiceprintProfile.model_validate(item)
+            if profile.voiceprint_id in seen:
+                if seen[profile.voiceprint_id] != profile:
+                    raise ValueError(
+                        "voiceprint_id has conflicting profiles: "
+                        f"{profile.voiceprint_id}"
+                    )
+                continue
+            seen[profile.voiceprint_id] = profile
+            destination = self._archived if profile.is_tombstone else self._active
+            destination[profile.voiceprint_id] = profile
+
+    def advance(self, current_time: datetime) -> VoiceprintLifecycleSnapshot:
+        require_aware(current_time, "current_time")
+        now = as_utc(current_time, "current_time")
+        newly_tombstoned: list[str] = []
+        with self._lock:
+            if self._last_advanced_at is not None and now < self._last_advanced_at:
+                raise ValueError("current_time cannot move backwards")
+            for voiceprint_id, profile in list(self._active.items()):
+                should_archive = (
+                    profile.entity_id is None
+                    and now - as_utc(profile.last_contact_at, "last_contact_at")
+                    >= self.TOMBSTONE_AT
+                )
+                if not should_archive:
+                    continue
+                tombstoned = profile.model_copy(update={"is_tombstone": True})
+                self._archived[voiceprint_id] = tombstoned
+                del self._active[voiceprint_id]
+                newly_tombstoned.append(voiceprint_id)
+            self._last_advanced_at = now
+            return self._snapshot(current_time, newly_tombstoned)
+
+    def snapshot(self, current_time: datetime) -> VoiceprintLifecycleSnapshot:
+        require_aware(current_time, "current_time")
+        with self._lock:
+            return self._snapshot(current_time, [])
+
+    def _snapshot(
+        self,
+        evaluated_at: datetime,
+        newly_tombstoned_ids: list[str],
+    ) -> VoiceprintLifecycleSnapshot:
+        return VoiceprintLifecycleSnapshot(
+            evaluated_at=evaluated_at,
+            active_matching_profiles=[
+                self._active[key] for key in sorted(self._active)
+            ],
+            archived_profiles=[self._archived[key] for key in sorted(self._archived)],
+            newly_tombstoned_ids=sorted(newly_tombstoned_ids),
+        )
+
+
 class EdgeMultimodalCleaner:
     """Apply the fixed edge quality gate and emit text-only observations.
 
@@ -123,16 +402,20 @@ class EdgeMultimodalCleaner:
     DEFAULT_CAPTION: ClassVar[str] = "日常活动场景"
     DEFAULT_TAGS: ClassVar[tuple[str, ...]] = ("routine",)
 
-    __slots__ = ("_clock", "_id_factory")
+    __slots__ = ("_clock", "_id_factory", "raw_byte_sink")
 
     def __init__(
         self,
         *,
         clock: Callable[[], datetime] = utc_now,
         id_factory: Callable[[], str] | None = None,
+        raw_byte_sink: RawByteSink | None = None,
     ) -> None:
         self._clock = clock
         self._id_factory = id_factory or (lambda: f"obs_img_{uuid4().hex}")
+        self.raw_byte_sink = (
+            raw_byte_sink if raw_byte_sink is not None else RawByteSink()
+        )
 
     def evaluate_and_clean_image(
         self,
@@ -184,7 +467,7 @@ class EdgeMultimodalCleaner:
                 captured_at=captured_at,
             )
         finally:
-            self._zero_mutable_buffer(raw_bytes)
+            self.raw_byte_sink.purge(raw_bytes)
 
     @staticmethod
     def _read_quality_score(image_metadata: Mapping[str, Any]) -> float:
