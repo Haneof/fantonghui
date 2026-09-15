@@ -6,6 +6,7 @@ M1-010R 实现：``PyramidAggregator`` / ``TimePyramidSummary``。
 """
 from .pyramid_aggregator import (
     CONTINUOUS_ZOOM_SECONDS,
+    VaultBackend,
     MAX_SPAN_SECONDS,
     SCALE_ORDER,
     PyramidAggregator,
@@ -17,6 +18,7 @@ from .pyramid_aggregator import (
 
 __all__ = [
     "CONTINUOUS_ZOOM_SECONDS",
+    "VaultBackend",
     "MAX_SPAN_SECONDS",
     "SCALE_ORDER",
     "PyramidAggregator",

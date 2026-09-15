@@ -1181,6 +1181,272 @@ class TestContinuousZoomCoverage:
         assert {n.start_time.year for n in decade} == {2024, 2025}
 
 
+# ----------------------------------------------------------------------
+# 跨进程永存（宪法 §25「原始事实永存」/ §93「严禁篡改历史」）
+#
+# 默认 vault 是进程内 dict：月总结生成后日记录确实一条没删，但一次重启就把
+# 十年的事实全带走了。那不是压缩删除，却是同一件事的另一种结果 —— 在手环上
+# 进程被回收、设备重启是常态，所以 §25 在默认配置下并不成立。
+# VaultBackend 是它的落点：只永存原始事实，派生量确定性重算，视图可重算不落盘。
+# ----------------------------------------------------------------------
+
+
+class _FakeDurableVault:
+    """跨进程永存后端的测试替身（不是生产实现，不替 storage 层做技术选型）。
+
+    自身也遵守「只增不改不删」：同 id 写入不同内容立即失败。后端不得提供
+    覆盖或删除语义，否则 §93 的保护在存储层就被绕过了。
+    """
+
+    def __init__(self) -> None:
+        self.rows: dict[str, dict] = {}
+        self.items_calls = 0
+        self.put_calls = 0
+
+    def put(self, event_id: str, payload: dict) -> None:
+        self.put_calls += 1
+        existing = self.rows.get(event_id)
+        if existing is not None and existing != payload:
+            raise AssertionError(
+                f"后端被要求覆盖已永存的原始事实 {event_id!r} —— 违反 §93"
+            )
+        self.rows[event_id] = payload
+
+    def items(self):
+        self.items_calls += 1
+        return list(self.rows.items())
+
+    def __len__(self) -> int:
+        return len(self.rows)
+
+
+class TestDurableVaultPermanence:
+    def test_raw_facts_survive_a_process_restart(self):
+        """重启（新建聚合器实例）后，底层原始事实必须一条不少地还在。"""
+        events = make_events(n_days=31, per_day=6, id_prefix="dur")
+        backend = _FakeDurableVault()
+
+        first_life = PyramidAggregator(vault_backend=backend)
+        month = first_life.generate_materialized_rollup("MONTH", "dim_dur", events)
+        assert first_life.vault_size() == len(events) == 186
+
+        # 进程重启：全新实例，只带着同一个持久后端回来
+        second_life = PyramidAggregator(vault_backend=backend)
+        assert second_life.vault_size() == 186
+        assert len(backend) == 186
+        for event in events:
+            assert second_life.get_raw_event(event["id"]) == event, (
+                f"重启后原始事实 {event['id']!r} 丢失或被改写"
+            )
+        assert month.evidence_ids and set(month.evidence_ids) <= set(backend.rows)
+
+    def test_rematerialization_from_restored_vault_is_lossless(self):
+        """重启后只靠永存的事实重算视图，结果必须与原视图逐字段相同。
+
+        这是「不持久化总结」这个设计决策的正当性证明：总结必须能从事实
+        **完整重算**，否则不落盘就等于丢了东西。
+        """
+        events = make_events(n_days=31, per_day=6, id_prefix="remat")
+        backend = _FakeDurableVault()
+
+        first_life = PyramidAggregator(vault_backend=backend)
+        original = first_life.generate_materialized_rollup("MONTH", "dim_remat", events)
+
+        second_life = PyramidAggregator(vault_backend=backend)
+        restored = second_life.raw_events_in_range(
+            original.start_time, original.end_time
+        )
+        assert len(restored) == 186
+        rebuilt = second_life.generate_materialized_rollup(
+            "MONTH", "dim_remat", restored, now=original.start_time
+        )
+
+        # 派生量（utc_time / base_weight / prox / 缺失计数）全部由重算得来，
+        # 因此凡参与合成的量都必须逐位复现 —— 合成文本是最严的公共探针。
+        for field_name in (
+            "scale",
+            "start_time",
+            "end_time",
+            "dimension_id",
+            "headline",
+            "synthesis_text",
+            "evidence_ids",
+            "missingness_ratio",
+        ):
+            assert getattr(rebuilt, field_name) == getattr(original, field_name), field_name
+
+    def test_derived_quantities_recompute_identically_with_partial_5d(self):
+        """含缺失 5D 的数据同样必须重算一致（缺省中性值 1.0 的语义不能漂移）。"""
+        events = make_events(n_days=7, per_day=5, id_prefix="part5d")
+        for index in range(0, 35, 3):  # 每 3 条抹掉一个 5D 字段
+            events[index].pop(["x", "y", "z", "r", "c"][index % 5], None)
+        backend = _FakeDurableVault()
+
+        first_life = PyramidAggregator(vault_backend=backend)
+        original = first_life.generate_materialized_rollup("WEEK", "dim_p5", events)
+        assert original.missingness_ratio > 0.0
+
+        second_life = PyramidAggregator(vault_backend=backend)
+        rebuilt = second_life.generate_materialized_rollup(
+            "WEEK",
+            "dim_p5",
+            second_life.raw_events_in_range(original.start_time, original.end_time),
+            now=original.start_time,
+        )
+        assert rebuilt.missingness_ratio == pytest.approx(original.missingness_ratio)
+        assert rebuilt.synthesis_text == original.synthesis_text
+
+    def test_tamper_with_history_is_rejected_across_a_restart(self):
+        """**§93 的保护必须跨重启生效**：改写一条已永存的事实，重启后也要被拒。
+
+        若摄入路径不先水合再查重，重启后的新实例看不到已永存的事实，
+        一次改写历史的尝试就会被当成新事件放行。
+        """
+        events = make_events(n_days=3, per_day=2, id_prefix="tamper")
+        backend = _FakeDurableVault()
+        PyramidAggregator(vault_backend=backend).generate_materialized_rollup(
+            "WEEK", "dim_tamper", events
+        )
+
+        rewritten = copy.deepcopy(events)
+        rewritten[0]["text"] = "被篡改的历史"
+
+        second_life = PyramidAggregator(vault_backend=backend)
+        with pytest.raises(PyramidError, match="evidence conflict"):
+            second_life.generate_materialized_rollup("WEEK", "dim_tamper", rewritten)
+
+        # 拒绝之后，永存的那一条仍是原文
+        assert second_life.get_raw_event(events[0]["id"])["text"] == "原始事实 0-0"
+        assert backend.rows[events[0]["id"]]["text"] == "原始事实 0-0"
+
+    def test_identical_replay_after_restart_is_idempotent_not_a_conflict(self):
+        """同内容重放不是篡改：重启后重复摄入完全相同的事实必须幂等通过。"""
+        events = make_events(n_days=3, per_day=2, id_prefix="replay2")
+        backend = _FakeDurableVault()
+        PyramidAggregator(vault_backend=backend).generate_materialized_rollup(
+            "WEEK", "dim_rp2", events
+        )
+        second_life = PyramidAggregator(vault_backend=backend)
+        summary = second_life.generate_materialized_rollup("WEEK", "dim_rp2", events)
+        assert summary.missingness_ratio == 0.0
+        assert set(summary.evidence_ids) == {e["id"] for e in events}
+        assert second_life.vault_size() == len(events)
+
+    def test_backend_record_is_isolated_from_both_sides(self):
+        """落盘副本必须与两侧对象都隔离：任何一侧被改，永存记录都不动。"""
+        events = make_events(n_days=1, per_day=2, id_prefix="isolate")
+        backend = _FakeDurableVault()
+        aggregator = PyramidAggregator(vault_backend=backend)
+        aggregator.generate_materialized_rollup("DAY", "dim_iso3", events)
+
+        # 调用方事后篡改输入
+        events[0]["text"] = "调用方篡改"
+        assert backend.rows[events[0]["id"]]["text"] == "原始事实 0-0"
+
+        # 后端侧的对象被篡改，也不得污染已水合的 vault
+        backend.rows[events[0]["id"]]["text"] = "后端侧篡改"
+        assert aggregator.get_raw_event(events[0]["id"])["text"] == "原始事实 0-0"
+
+        # 重启后新实例水合的是后端当前内容 —— 但水合本身也取独立副本
+        revived = PyramidAggregator(vault_backend=backend)
+        assert revived.get_raw_event(events[0]["id"])["text"] == "后端侧篡改"
+        backend.rows[events[0]["id"]]["text"] = "再改一次"
+        assert revived.get_raw_event(events[0]["id"])["text"] == "后端侧篡改"
+
+    def test_backend_never_shrinks_even_when_a_rollup_fails(self):
+        """后端只增不减：连失败的物化也不许让永存事实变少。"""
+        backend = _FakeDurableVault()
+        aggregator = PyramidAggregator(vault_backend=backend)
+        events = make_events(n_days=28, per_day=2, id_prefix="shrink")
+        with pytest.raises(PyramidError, match="cannot span"):
+            aggregator.generate_materialized_rollup("WEEK", "dim_shrink", events)
+        assert len(backend) == 56
+        before = len(backend)
+        aggregator.generate_materialized_rollup("MONTH", "dim_shrink", events)
+        assert len(backend) == before, "重复摄入同一批事实不得让后端膨胀或收缩"
+
+    def test_views_are_deliberately_not_persisted(self):
+        """物化总结**有意**不落盘：视图是可重算的观察层，要永存的是事实。
+
+        把视图也落盘会引入"事实与视图不一致"这个新的一致性问题（§25 说总结是
+        全新的观察层）。本测试固定这个决策，防止有人误以为重启后金字塔还在。
+        """
+        events = make_events(n_days=7, per_day=3, id_prefix="noview")
+        backend = _FakeDurableVault()
+        first_life = PyramidAggregator(vault_backend=backend)
+        week = first_life.generate_materialized_rollup("WEEK", "dim_nv", events)
+        assert first_life.summary_ids() == [week.summary_id]
+
+        second_life = PyramidAggregator(vault_backend=backend)
+        assert second_life.summary_ids() == [], "重启后金字塔视图为空是**预期行为**"
+        with pytest.raises(PyramidError, match="unknown summary_id"):
+            second_life.drill_down(week.summary_id, "DAY")
+        # 但事实全在，视图可原地重建
+        assert second_life.vault_size() == len(events)
+        rebuilt = second_life.generate_materialized_rollup(
+            "WEEK", "dim_nv", second_life.raw_events_in_range(BASE, BASE + timedelta(days=7))
+        )
+        assert set(rebuilt.evidence_ids) == set(week.evidence_ids)
+
+    def test_hydration_happens_at_most_once_per_instance(self):
+        """水合是 O(n) 的一次性代价，不得在每次读操作时重复拉取全量。"""
+        events = make_events(n_days=7, per_day=3, id_prefix="hydrate")
+        backend = _FakeDurableVault()
+        PyramidAggregator(vault_backend=backend).generate_materialized_rollup(
+            "WEEK", "dim_hy", events
+        )
+        # 第一条命在首次摄入时也水合过一次 —— 这是**正确**行为：后端可能已存着
+        # 上一次运行永存下来的事实，不水合就会把改写历史的尝试当成新事件放行。
+        baseline = backend.items_calls
+        assert baseline == 1
+
+        second_life = PyramidAggregator(vault_backend=backend)
+        assert backend.items_calls == baseline, "构造时不应拉取（惰性水合）"
+        second_life.vault_size()
+        assert backend.items_calls == baseline + 1, "首次访问必须水合一次"
+        second_life.get_raw_event(events[0]["id"])
+        second_life.raw_events_in_range(BASE, BASE + timedelta(days=7))
+        second_life.vault_size()
+        assert backend.items_calls == baseline + 1, (
+            f"水合被重复执行：每个实例应恰好一次，实得 {backend.items_calls - baseline} 次"
+        )
+
+    def test_default_configuration_has_no_persistence_and_is_unchanged(self):
+        """不传后端时行为与既往完全一致：进程内 vault，无跨实例可见性。
+
+        这条守住"新增参数不得改变默认语义"——否则 60 项既有测试的绿就成了假绿。
+        """
+        events = make_events(n_days=3, per_day=2, id_prefix="dflt")
+        first = PyramidAggregator()
+        first.generate_materialized_rollup("WEEK", "dim_dflt", events)
+        second = PyramidAggregator()
+        assert first.vault_size() == len(events)
+        assert second.vault_size() == 0
+        with pytest.raises(PyramidError, match="unknown event_id"):
+            second.get_raw_event(events[0]["id"])
+
+    def test_backend_vault_still_holds_every_red_line(self):
+        """接上后端之后，原有宪法红线必须逐条依然成立（不是"能跑就行"）。"""
+        events = make_events(n_days=28, per_day=5, id_prefix="allred")
+        backend = _FakeDurableVault()
+        aggregator = PyramidAggregator(vault_backend=backend)
+        snapshot = copy.deepcopy(events)
+
+        aggregator.generate_materialized_rollup("DAY", "dim_ar", events[:5])
+        aggregator.generate_materialized_rollup("WEEK", "dim_ar", events[:35])
+        month = aggregator.generate_materialized_rollup("MONTH", "dim_ar", events)
+
+        # §25 总结绝不是压缩删除：三层物化后底层事实一条不少
+        assert aggregator.vault_size() == len(events) == 140
+        assert len(backend) == 140
+        for event in snapshot:
+            assert aggregator.get_raw_event(event["id"]) == event
+        # 证据链完整度 100%
+        assert set(month.evidence_ids) == {e["id"] for e in snapshot}
+        # 无损下钻
+        assert aggregator.drill_down(month.summary_id, "DAY") == snapshot
+
+
 # 审计长加固段（arena/01a0a636 独立探针的回归固化）
 # 既有套件：8,784 事件单发计时。本段上探万级规模、单发改 p95 统计闸，
 # 并焊死滑动条契约常量与 ISO 跨年周边界——实现件审计零缺陷，故只加测试。

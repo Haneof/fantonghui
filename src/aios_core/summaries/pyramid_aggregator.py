@@ -7,8 +7,12 @@
    底层原始事件字节级保留在证据保险库（evidence vault）中，vault 只读、**永不删除**，
    绝不允许任何代码路径执行删除或覆盖（呼应"老王案：历史绝不篡改"铁律）。
    注意措辞：这里的保证是「永存」（never deleted），不是「永驻内存」（RAM resident）。
-   当前实现的 vault 是进程内字典，进程退出即丢失；§25 要求的是跨进程持久永存，
-   须由 storage 层落盘承载（本模块不做持久化，也不应假装做了）——见交付报告 P2 项；
+   **默认配置下 vault 是进程内字典，进程退出即丢失**——在手环上进程被回收、设备重启
+   是常态，所以默认配置并不满足 §25 的跨进程永存。要满足它，构造时传入一个
+   :class:`VaultBackend` 实现：原始事实即跨进程永存，重启后新建的聚合器水合出全部
+   底层事实，§93 的篡改检测也随之跨重启生效。
+   本模块只**定义契约、不选定存储引擎**（sqlite / 文件 / KV 由 storage 层决定），
+   以免在聚合器内部替存储层做架构决策；
 3. **多尺度金字塔物化视图**：DAY < WEEK < MONTH < YEAR 四层物化，支撑手环端侧
    5D 滑动条从 1 秒到 10 年（``CONTINUOUS_ZOOM_SECONDS``）连续无损缩放与逐级下钻。
 
@@ -53,12 +57,13 @@ from bisect import bisect_left, bisect_right
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Protocol, Tuple
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 __all__ = [
     "CONTINUOUS_ZOOM_SECONDS",
+    "VaultBackend",
     "MAX_SPAN_SECONDS",
     "SCALE_ORDER",
     "PyramidAggregator",
@@ -231,6 +236,47 @@ def _copy_event(value: Any, memo: Dict[int, Any]) -> Any:
     return value
 
 
+class VaultBackend(Protocol):
+    """证据保险库的**持久化后端契约** —— 宪法 §25「原始事实永存」的落点。
+
+    为什么需要它：聚合器默认的 vault 是进程内 dict，进程退出即全部丢失。
+    在手环上进程被系统回收、设备重启是常态，于是「原始事实永存」在默认配置下
+    **根本不成立**——月总结生成后日记录确实一条没删，但一次重启就把十年的事实
+    全带走了。这不是压缩删除，是同一件事的另一种结果。
+
+    契约边界（有意划窄，避免在聚合器里替 storage 层做架构决策）：
+
+    - **只持久化原始事实载荷**（``payload``，即调用方事件的结构化深拷贝）。
+      派生量（``utc_time`` / ``base_weight`` / ``has_full_5d`` / ``xyz``）**不落盘**，
+      重新装载时由 :func:`_as_utc` 与 :func:`_describe_event` 确定性重算——
+      重算结果必须与首次摄入时逐位相同，已有测试固定。
+      理由：落盘派生量就等于落盘一份"可能过期的解释"，而 §93 严禁篡改历史
+      要求历史只有一种权威形态，那就是原始事实本身。
+    - **不持久化物化总结**。总结是可从事实完整重算的新观察层（§25 说总结是
+      "全新的观察层"），要永存的是事实，不是视图。视图落盘反而会引入
+      "事实与视图不一致"这个新的一致性问题。
+    - 后端**必须只增不改不删**：``put`` 同一 ``event_id`` 只允许写入内容完全相同
+      的载荷。冲突检测由聚合器在摄入路径上完成（跨重启同样生效），
+      后端不需要自己判重，但不得提供删除或覆盖语义的接口。
+
+    当前装载策略：首次访问 vault 时**全量水合**（O(n) 一次）。这对可穿戴端
+    的十万级事实量是可接受的；若规模再上一个量级，应给本契约补 ``get(event_id)``
+    以支持按 id 惰性装载，而不是继续全量拉取。
+    """
+
+    def put(self, event_id: str, payload: Dict[str, Any]) -> None:
+        """写入一条原始事实（只增；同 id 同内容重复写入必须幂等）。"""
+        ...
+
+    def items(self) -> Iterable[Tuple[str, Dict[str, Any]]]:
+        """枚举全部已永存的原始事实，用于跨进程重启后水合 vault。"""
+        ...
+
+    def __len__(self) -> int:
+        """已永存的原始事实条数。"""
+        ...
+
+
 def _describe_event(
     payload: Dict[str, Any], event_id: str
 ) -> Tuple[float, bool, Optional[Tuple[float, float, float]]]:
@@ -347,8 +393,21 @@ class PyramidAggregator:
       无法污染 vault。
     """
 
-    def __init__(self, *, clock: Optional[Callable[[], datetime]] = None) -> None:
+    def __init__(
+        self,
+        *,
+        clock: Optional[Callable[[], datetime]] = None,
+        vault_backend: Optional[VaultBackend] = None,
+    ) -> None:
+        """``vault_backend`` 缺省为 None（进程内 vault，行为与既往完全一致）。
+
+        传入一个 :class:`VaultBackend` 实现后，原始事实即跨进程永存（§25）：
+        重启后新建的聚合器共享同一后端，首次访问时水合出全部底层事实，
+        证据冲突检测也随之跨重启生效。
+        """
         self._clock = clock or _utc_now
+        self._backend = vault_backend
+        self._hydrated = vault_backend is None  # 无后端时无需水合
         self._vault: Dict[str, _VaultEvent] = {}
         self._summaries: Dict[str, TimePyramidSummary] = {}
         self._records: Dict[str, _PyramidRecord] = {}
@@ -460,11 +519,13 @@ class PyramidAggregator:
         return list(self._summaries)
 
     def vault_size(self) -> int:
-        """证据保险库中永存的底层原始事件数量。"""
+        """证据保险库中永存的底层原始事件数量（含从持久化后端水合回来的）。"""
+        self._ensure_hydrated()
         return len(self._vault)
 
     def get_raw_event(self, event_id: str) -> Dict[str, Any]:
         """取回底层原始事件的深拷贝（宪法审计入口：原始事实永存可验证）。"""
+        self._ensure_hydrated()
         try:
             return _copy_event(self._vault[event_id].payload, {})
         except KeyError:
@@ -474,8 +535,35 @@ class PyramidAggregator:
     # 手环 5D 滑动条取数层（1 秒 ~ 10 年连续缩放）
     # ------------------------------------------------------------------
 
+    def _ensure_hydrated(self) -> None:
+        """从持久化后端水合底层原始事实（每个实例至多一次）。
+
+        只恢复**原始事实**，派生量按写入路径同一套函数确定性重算；
+        物化总结不恢复——它是可从事实完整重算的观察层，见 VaultBackend 契约。
+        """
+        if self._hydrated or self._backend is None:
+            self._hydrated = True
+            return
+        for event_id, payload in self._backend.items():
+            if event_id in self._vault:
+                continue
+            utc_time = _as_utc(payload["time"], field_name="time", event_id=event_id)
+            base_weight, has_full_5d, xyz = _describe_event(payload, event_id)
+            self._vault[event_id] = _VaultEvent(
+                # 水合也取独立副本：隔离必须是双向的，否则后端侧持有的那个 dict
+                # 被改动一次，就等于历史被篡改了一次（§93）。
+                payload=_copy_event(payload, {}),
+                event_id=event_id,
+                utc_time=utc_time,
+                base_weight=base_weight,
+                has_full_5d=has_full_5d,
+                xyz=xyz,
+            )
+        self._hydrated = True
+
     def _time_index(self) -> Tuple[List[datetime], List[_VaultEvent]]:
         """原始事件的时间序索引，惰性构建 + 长度版本号失效。"""
+        self._ensure_hydrated()
         if self._index_version != len(self._vault):
             ordered = sorted(self._vault.values(), key=lambda v: (v.utc_time, v.event_id))
             self._index_times = [v.utc_time for v in ordered]
@@ -567,6 +655,9 @@ class PyramidAggregator:
         utc_time = _as_utc(payload["time"], field_name="time", event_id=event_id)
         base_weight, has_full_5d, xyz = _describe_event(payload, event_id)
 
+        # 先水合再查重：否则重启后的新实例看不到已永存的事实，
+        # 一次改写历史的尝试就会被当成新事件放行（§93 严禁篡改历史）。
+        self._ensure_hydrated()
         existing = self._vault.get(event_id)
         if existing is not None:
             if existing.payload != payload:
@@ -585,6 +676,10 @@ class PyramidAggregator:
             xyz=xyz,
         )
         self._vault[event_id] = vault_event
+        if self._backend is not None:
+            # 落盘的是**独立副本**：持久记录不得与本进程内的对象共享引用，
+            # 否则后端侧的一次意外修改就等于篡改历史（§93）。
+            self._backend.put(event_id, _copy_event(payload, {}))
         return vault_event
 
     def _materialize(
