@@ -303,7 +303,7 @@ def test_ensure_schema_is_idempotent() -> None:
 
 
 def test_co_search_at_scale_stays_under_30ms() -> None:
-    """2 万实体 / 约 60 万倒排行规模下，三词求交仍须 <= 30ms。
+    """2 万实体 / 约 110 万倒排行规模下，三词求交仍须 <= 30ms。
 
     这是 M1-023 检索规模门的缩小版；完整 100 万行门在 M1-023 单独跑。
     """
@@ -330,6 +330,47 @@ def test_co_search_at_scale_stays_under_30ms() -> None:
         assert elapsed_ms <= 30.0, (
             f"20k 实体 / {stats['postings_rows']} 行倒排下 co_search "
             f"耗时 {elapsed_ms:.3f}ms，超过 30ms"
+        )
+    finally:
+        conn.close()
+
+
+def test_co_search_supernode_worst_case_is_bounded() -> None:
+    """超节点最坏情况：查询词几乎命中每个实体时的真实开销。
+
+    上一条测试查的是**稀有词**（只有 1 个实体含），实测 0.01ms——那不能
+    证明"毫秒级"。真正的最坏情况是查询词为超节点：本例中「公」「司」等
+    词元各有 20,000 行倒排，求交必须扫完全部候选。
+
+    实测（SQLite 3.40.1，20k 实体 / 110 万倒排行）：中位 24.75ms。
+    这里给 200ms 的宽松上界以免 CI 抖动误报；重点是**锁住量级**，
+    防止将来退化成全表扫描。
+
+    注意：该开销随实体数近似线性增长，20k 实体已用掉 30ms 预算的大部分。
+    因此 M1-023 规模门必须包含超节点场景，并且 M1-018/019 需要
+    超节点阈值与时间窗预裁剪——单靠本加速表撑不到 100 万实体。
+    """
+    conn = sqlite3.connect(":memory:")
+    try:
+        conn.execute("PRAGMA synchronous = OFF")
+        idx = CJKTopologicalInvertedIndex(conn)
+
+        base = "今天去了公司开会讨论项目进度然后回家做饭休息"
+        idx.index_many(
+            [(f"ent_{i}", f"{base}编号{i}", NOW_NS + i) for i in range(20_000)]
+        )
+
+        # 确认这确实是超节点场景，否则本测试失去意义
+        assert idx.explain(["公司"])["公司"] >= 20_000
+
+        idx.co_search(["公司", "项目", "进度"])  # 预热，排除页缓存冷启动
+        started = time.perf_counter()
+        hits = idx.co_search(["公司", "项目", "进度"])
+        elapsed_ms = (time.perf_counter() - started) * 1000
+
+        assert len(hits) == 20_000
+        assert elapsed_ms <= 200.0, (
+            f"超节点三词求交耗时 {elapsed_ms:.3f}ms，量级异常（实测基线约 25ms）"
         )
     finally:
         conn.close()
