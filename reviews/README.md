@@ -10,6 +10,12 @@
   不得被引用为任何开发任务的 FINAL_PASS
 - 同一对象存在多份架构评审时，以 `reviews/architecture/AIOS_V3_MULTI_REVIEW_META_AUDIT_NO_GO_2026-09-16.md`
   的统一元裁决为准；后到的评审必须声明与既有档案的收敛/增量关系，不得另立裁决口径
+- **派单编号唯一来源**：三份 Gap Audit（D/E/F）存在同号异义（如 `M0-023`/`M1-019`/`M2-016`/`V31`）。
+  在 v3.0.1 修正案采纳
+  `reviews/architecture/AIOS_V3_UNIFIED_BACKLOG_AND_AS_BUILT_VERIFICATION_2026-09-16.md`
+  的 §3 编号仲裁表之前，禁止按任何单份审计的 Issue 编号开工
+- **性能数字唯一来源**：Issue 验收只允许引用该文件 §5.2「可引用数字表」（as-built 探针与 A 的
+  3.6M 探针，均有入库证据）；§5.3 列出的未入库数字不得写入验收
 - 宪法/R1/R2/架构规格仍以仓库根目录正式文件为唯一权威
 - reviews/ 不修改系统定义，只保存工程裁决
 - 每个重大任务至少保留 PATCH_REQUIRED / FINAL_PASS 等关键审查记录

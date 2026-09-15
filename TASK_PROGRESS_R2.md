@@ -66,6 +66,13 @@ M0 不得在 `architect-01` 对 `9c080f6...` 最新候选独立复审给出可�
 `reviews/architecture/AIOS_V3_MULTI_REVIEW_META_AUDIT_NO_GO_2026-09-16.md`：
 **`PATCH_REQUIRED / AS-WRITTEN NO-GO`**（v3.0 可作愿景与目标架构基线，但当前文本不得作为可直接执行的冻结合同）。
 
+**统一整改母表（派单前必读）**：
+`reviews/architecture/AIOS_V3_UNIFIED_BACKLOG_AND_AS_BUILT_VERIFICATION_2026-09-16.md`
+——按元裁决 §6.1 第 5 项「以 D 为底稿合并 E/F」生成，含 Issue 同号异义仲裁表（§3.2）、
+`TS-*`/`ACC-*`/`PAR-*`/`ARCH-*`/`WB-*`/`MOD-C*` 命名空间定稿（§3.3~3.4）、55 项母表（§4）、
+可引用与不可引用实测数字登记（§5）、五张 12 要素 Issue 卡片（§6）。
+**在该母表被 v3.0.1 修正案采纳前，禁止按 D/E/F 任一份的 Issue 编号派单。**
+
 最新一份补充评审（as-built 压力实测）：
 `reviews/architecture/AIOS_v3.0_CHIEF_REVIEW_R2_AS_BUILT_STRESS_PROBE_2026-09-15.md`
 （证据：`reviews/architecture/evidence/aios_v3_as_built_probe.{py,log}`、`..._result.json`、
@@ -86,3 +93,5 @@ as-built 实测要点（供 M1 排期参考，非产品 SLO）：当前冻结 sc
 51,822 个对象（≈15.55 M token 复核）；加入派生投影后分别降至 7~47 ms、0.66~112 ms、0.82~10.82 ms。
 
 评审结论与元裁决一致：上述阻断项关闭前，M1 大规模编码保持暂停。
+放行顺序为 **v3.0.1 修正案 → Gate 0（M0-023~M0-032）→ Gate 1（M1）→ Gate 2（M2）→ Gate 3（M3）**；
+Gate 0 未过时只允许做修正案、契约、迁移 fixture 与测试夹具。
