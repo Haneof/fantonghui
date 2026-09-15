@@ -1,0 +1,92 @@
+{
+  "disclaimer": "Synthetic single-user structural SQLite microbenchmark; not an AIOS implementation benchmark, wearable benchmark, cold-cache result, or SLO proof.",
+  "environment": {
+    "sqlite_version": "3.40.1",
+    "python_version": "3.11.2",
+    "journal_mode": "WAL",
+    "synchronous": "NORMAL"
+  },
+  "requested_rows": 3600000,
+  "counts": {
+    "object_revisions": 3600000,
+    "fts_rows": 3600000,
+    "term_postings": 663812,
+    "dependencies": 3959999,
+    "daily_rollups": 17520
+  },
+  "build": {
+    "objects_fts_postings_seconds": 60.448,
+    "dependencies_seconds": 18.622,
+    "rollups_and_analyze_seconds": 5.264,
+    "total_build_seconds": 84.334
+  },
+  "steady_state_warm_queries": {
+    "indexed_recent_time_slice": {
+      "p50_ms": 0.102,
+      "p95_ms": 0.155,
+      "max_ms": 0.163,
+      "result_cardinality_or_value": 100
+    },
+    "raw_one_dimension_year_daily_aggregate": {
+      "p50_ms": 24.224,
+      "p95_ms": 25.489,
+      "max_ms": 26.338,
+      "result_cardinality_or_value": 365
+    },
+    "precomputed_rollup_equivalent": {
+      "p50_ms": 0.135,
+      "p95_ms": 0.204,
+      "max_ms": 0.206,
+      "result_cardinality_or_value": 365
+    },
+    "fts5_three_term_and_pretokenized_chinese": {
+      "p50_ms": 0.136,
+      "p95_ms": 0.167,
+      "max_ms": 0.174,
+      "result_cardinality_or_value": 360
+    },
+    "normalized_posting_three_term_intersection": {
+      "p50_ms": 2.047,
+      "p95_ms": 2.137,
+      "max_ms": 2.381,
+      "result_cardinality_or_value": 360
+    },
+    "reverse_dependency_supernode_materialization": {
+      "p50_ms": 133.276,
+      "p95_ms": 137.755,
+      "max_ms": 137.755,
+      "result_cardinality_or_value": 360004
+    },
+    "bounded_dependency_walk_depth_4_limit_10001": {
+      "p50_ms": 0.215,
+      "p95_ms": 0.27,
+      "max_ms": 0.27,
+      "result_cardinality_or_value": 121
+    }
+  },
+  "cjk_tokenizer_probe": {
+    "continuous_chinese_match_rows": 0,
+    "pretokenized_chinese_match_rows": 1,
+    "note": "The default unicode61 tokenizer does not segment continuous Chinese text into these words; the explicit space-pretokenized row is the only hit."
+  },
+  "wal_old_reader_probe": {
+    "wal_bytes_before_extra_commits": 0,
+    "wal_bytes_with_old_reader_snapshot": 416152,
+    "passive_checkpoint": {
+      "busy": 0,
+      "log_pages": 101,
+      "checkpointed_pages": 0
+    },
+    "truncate_after_reader_released": {
+      "busy": 0,
+      "log_pages": 0,
+      "checkpointed_pages": 0,
+      "wal_bytes": 0
+    }
+  },
+  "sizes": {
+    "db_bytes": 1813762048,
+    "wal_bytes": 0,
+    "shm_bytes": 0
+  }
+}
