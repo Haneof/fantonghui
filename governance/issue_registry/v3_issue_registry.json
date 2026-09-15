@@ -631,7 +631,7 @@
       "implemented_partially_by": [
         "governance/ci/run_gates.py（CG-1 工件溯源 / CG-2 registry+棘轮 / CG-3 文档↔registry / CG-4 设计书探针 CI 档实跑 / CG-5 数字追溯）",
         "governance/ci/negative_self_test.py（9 场景负向自测，全部命中预期规则）",
-        ".github/workflows/governance-gates.yml（push/PR 跑 100k 档 + 自测；workflow_dispatch 可跑 1M 放行档）"
+        "governance/ci/governance-gates.workflow.yml（workflow 模板：push/PR 跑 100k 档 + 自测；workflow_dispatch 可跑 1M 放行档。因 GitHub App 缺 workflows 权限暂未安装到 .github/workflows/）"
       ],
       "remaining": [
         "A 的 3.6M 探针、B 的三支探针尚未接入 CI（脚本已入库但无运行工件 ⇒ 按统一母表 §9.4 仍属『可复现但未取证』）",

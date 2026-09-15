@@ -36,7 +36,9 @@
   实跑 **VERDICT = PASS**；负向自测 11 场景 **11/11 命中预期规则**（含两条反后门：允许清单外的字面量号、超闸的哨兵区）
   （`governance/ci/negative_self_test.py`，工件在 `governance/ci/evidence/`）。
   **治理债不算 hard fail**：号位未裁决造成的红色只能由治理方消除，把它设成 hard fail 会让门永久红而被绕过。
-  workflow：`.github/workflows/governance-gates.yml`（push/PR 跑 100k + 自测；`workflow_dispatch` 可跑 1M 放行档）
+  workflow 模板：`governance/ci/governance-gates.workflow.yml`（push/PR 跑 100k + 自测；`workflow_dispatch` 可跑 1M 放行档）。
+  ⚠️ **尚未安装到 `.github/workflows/`**：本会话的 GitHub App 令牌缺 `workflows` 权限，远端拒绝该类推送；
+  需有权限者 `cp` 过去并提交（模板头部写了两种安装方式）。未安装期间门仍可本机/任何 CI 直接调用。
 - **性能数字唯一来源与三态规则**：Issue 验收只允许引用该文件 §5.2「可引用数字表」（as-built 探针与
   A 的 3.6M 探针，脚本+输出+日志+SHA256 均已入库）。三态见其 §9.4：**可引用**（有工件）／
   **可复现但未取证**（脚本已入库但无运行工件，如 B 的三支探针 ⇒ 暂不得写入验收，须由 `PROBE-CI-002`

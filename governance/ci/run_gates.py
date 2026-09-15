@@ -85,7 +85,7 @@ MANIFEST_FILES = [
     "governance/ci/run_gates.py",
     "governance/ci/negative_self_test.py",
     "governance/ci/gate_baseline.json",
-    ".github/workflows/governance-gates.yml",
+    "governance/ci/governance-gates.workflow.yml",
 ]
 # 自测结果 JSON 同样**不进清单**：它由自测自身重写，被哈希就会形成"写→不符→再写"的自指回路。
 # 它作为运行记录入库（内容字节确定性，便于 diff），完整性由 git 与 PROVENANCE.json 保证。

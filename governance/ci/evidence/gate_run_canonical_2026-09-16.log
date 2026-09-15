@@ -1,11 +1,11 @@
 ==============================================================================
-治理与证据 CI 门  |  python 3.11.2 / wall 16.0 s
+治理与证据 CI 门  |  python 3.11.2 / wall 18.1 s
 ==============================================================================
 CG-1 工件溯源 : 26/26 哈希核对通过；2 个工件已绑定脚本哈希
 CG-2 编号门   : checker=RED registry=0.3.2-PROPOSAL RC 条目 30 / alias 11
                 治理债 CONFLICT=39 UNRATIFIED=21 GATE_DISPUTE=2（棘轮：只许减少）
 CG-3 文档↔registry : 断言位引用 41 个 RC 标签（字面量 32 个，其中未注册 1 个走允许清单）/ registry 30 条 + 11 alias / slug或门位不符 0
-CG-4 探针     : 100k 档 exit=0 适用门 13 失败 0 N/A ['G2b_rejected_plans_over_gate_at_scale'] wall 15.9 s
+CG-4 探针     : 100k 档 exit=0 适用门 13 失败 0 N/A ['G2b_rejected_plans_over_gate_at_scale'] wall 18.0 s
 CG-5 数字追溯 : 工件事实 146 未引用 0；旧值回潮 0
 ------------------------------------------------------------------------------
 VERDICT = PASS   hard failures = 0

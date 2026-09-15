@@ -1,7 +1,7 @@
 {
   "generated_by": "governance/ci/run_gates.py",
   "git": {
-    "commit": "39de660ee0ad80fe124507b75acc7ac00a66c3d6",
+    "commit": "6e43d5d40fcd2d7ac66a27c344045c93901e9af1",
     "dirty": true
   },
   "rule": "引用任何数字前先核 script_sha256 与本文件登记值一致；不一致 ⇒ 按统一母表 §9.4 降级为『可复现但未取证』，不得写进 Issue 验收。脚本改动后旧工件即失去溯源，必须重跑或显式标注为历史运行。",
@@ -18,11 +18,11 @@
   },
   "book": {
     "path": "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md",
-    "sha256": "1e53163282944cba622fa382427fc91b016dc4ccad544a8a0a2b198ff6ca884d"
+    "sha256": "92b301b5040d5cd6f9936e93c9a6763cc5ea5ca0b1c3f9a44958f0177c13d479"
   },
   "registry": {
     "path": "governance/issue_registry/v3_issue_registry.json",
-    "sha256": "1276cc4327c0a79279d4a61f5eb56628328d5864d5b5643449a6c5ac3676a8f5",
+    "sha256": "beea16cffc5524d2c008de4b66b25c7c11f7ae4c1005df68e55390d1e38ff3ac",
     "version": "0.3.2-PROPOSAL"
   },
   "artifacts": [

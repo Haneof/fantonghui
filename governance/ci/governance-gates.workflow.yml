@@ -1,3 +1,19 @@
+# ⚠️ 这是一份 **workflow 模板**，不是生效的 workflow。
+#
+# 原因：本会话使用的 GitHub App 令牌没有 `workflows` 权限，push 含
+# `.github/workflows/*` 的提交会被远端拒绝：
+#   "refusing to allow a GitHub App to create or update workflow
+#    `.github/workflows/governance-gates.yml` without `workflows` permission"
+#
+# 安装方式（需要有 workflows 权限的人执行，二选一）：
+#   ① cp governance/ci/governance-gates.workflow.yml .github/workflows/governance-gates.yml && git commit && git push
+#   ② 在 Arena 里为本仓库授予 GitHub App 的 workflows 权限后，由代理执行 ①
+#
+# 未安装期间，门本身仍然可用（本机 / 任何 CI 均可直接调用，stdlib-only，无需依赖安装）：
+#   python3 governance/ci/run_gates.py --scale 100k        # 五道证据门（约 16 s）
+#   python3 governance/ci/negative_self_test.py            # 11 场景负向自测（约 13 s）
+# 两者的 canonical 运行工件已入库：governance/ci/evidence/
+#
 name: Governance & Evidence Gates (NUMCI-001 / PROBE-CI-002)
 
 # 为什么单独一个 workflow：

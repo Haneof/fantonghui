@@ -653,3 +653,16 @@ M0-001 状态 CONDITIONAL PASS，禁止进入 M0-002，修正两个问题并制�
   在 registry 中仍属 **CONFLICT / UNRATIFIED**，门为 **RED**；按 §9.3 R5，RED 期间的 `M*-***` 派单
   一律视为无效单。代码已经落地这一事实本身，说明**编号裁决已经不能再拖**——
   现在是"先干活后补号"，其代价是同一号位可能对应两套实现（`M1-017` 已出现"双实现复核补丁"提交即为征兆）。
+
+### 2026-09-16 追记 2：workflow 权限被拒 ⇒ 改为可安装模板（门不因此停摆）
+
+- `git push` 被远端拒绝：`refusing to allow a GitHub App to create or update workflow
+  .github/workflows/governance-gates.yml without workflows permission`。
+- 处置：`git mv` 到 **`governance/ci/governance-gates.workflow.yml`**（模板），头部写明两种安装方式与
+  未安装期间的等价调用命令；同步更新设计书 §3.7.3/§3.7.4、`reviews/README.md`、registry 的
+  `PROBE-CI-002.implemented_partially_by`、以及 `run_gates.py` 的清单条目。
+- **门本身不依赖 GitHub Actions**：`run_gates.py` 与 `negative_self_test.py` 均为 stdlib-only，
+  本机与任何 CI 都能直接跑；canonical 运行工件已入库。因此这次权限拒绝**只延迟了自动化触发，
+  没有削弱任何断言**。
+- 待办（需要有 `workflows` 权限的人）：`cp governance/ci/governance-gates.workflow.yml
+  .github/workflows/governance-gates.yml` 并提交。
