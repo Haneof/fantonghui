@@ -1,0 +1,91 @@
+# NUMCI-001 CI 门实跑（registry 0.3.0-PROPOSAL）
+# 生成时间：2026-09-15T21:31:00Z
+# 命令：python3 governance/issue_registry/check_issue_registry.py --verbose
+# 环境：python3 3.11.2 / Linux 6.1.158+ / 仅标准库
+# 本轮变更：新增 RC 命名空间（30 条 PROPOSAL）+ 11 个 alias + 2 处 gate_disputes；检查器增补规则 A6/A7/D1~D6/E1~E2
+
+==============================================================================
+NUMCI-001 Issue 编号 CI 门  |  registry governance/issue_registry/v3_issue_registry.json @ 0.3.0-PROPOSAL
+==============================================================================
+冻结基线号 82 个；registry 已注册 98 个；扫描 scope_docs 9 份
+规则 A（registry 完整性）违规 : 0
+规则 B（UNREGISTERED 未注册号）: 0
+规则 C（CONFLICT 未消解同号异义）: 39
+规则 C 附（UNRATIFIED 单方声明号）  : 21
+规则 D（临时命名空间 RC-* 完整性）: 0   [RC 条目 30 个 / alias 11 个]
+规则 E（OPEN gate 分歧待裁决）    : 2
+------------------------------------------------------------------------------
+GATE = RED
+
+[CONFLICT]
+  - C M0-023：3 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=权威与追溯冻结; E=Prediction 契约; F=Prediction 契约; P3=Prediction 契约(023~026); P1=权威/命名空间/追溯; P2=三对象契约一并冻结
+  - C M0-024：4 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=Prediction 契约; E=LifeChapter; F=LifeChapter; P3=LifeChapter; P1=SourceEnvelope/Retention; P2=双时态与回溯加注
+  - C M0-025：4 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=LifeChapter; E=CommunicationExp; F=CommunicationExp; P3=CommunicationExp; P1=双时态可见性; P2=控制面对象契约
+  - C M0-026：4 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=CommunicationExp+AI seed; P3=BudgetLedger; P1=Prediction+CheckTask; P2=Observation 质量/包络
+  - C M0-027：3 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=TriggerExpression 契约; P3=TriggerExpression 契约; P1=LifeChapter Contract; P2=**编号唯一性 CI 门**
+  - C M0-028：2 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=Conversation Stream 契约; P1=CommunicationExp+AI Seed
+  - C M0-029：2 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=CockpitManifest 契约; P1=TriggerExpression 契约
+  - C M0-030：2 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=Source Trust/Transform/Retention; P1=Conversation/Turn/Extraction
+  - C M0-031：2 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=双时态不变量+回溯标注; P1=ContextPlan/Manifest/Receipt
+  - C M0-032：2 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=派生投影合法化+schema 扩展; P1=Budget/Deadline/Degradation
+  - C M1-018：3 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=中文混合共搜引擎; E=关键词/别名倒排层; F=co_search 共现引擎; P3=co_search 共现内核; P1=可逆实体消解+声纹候选; P2=检索内核(分词+倒排+FTS5)
+  - C M1-019：4 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=Retention & Tombstone; E=回溯加注服务; F=中文分词与别名; P3=中文分词与别名; P1=中文混合共搜引擎; P2=多关键词共现 co_search
+  - C M1-020：3 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=早期规模与查询计划门; F=记忆切片排序契约; P3=记忆切片排序契约; P1=Ranking/QueryPlanner/水位; P2=5D 时间滑动条
+  - C M1-021：4 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=关键词/别名倒排投影; F=规模基准骨架(自 M7-002 前移); P3=规模脊柱门; P1=As-Of 读视图+加注存储; P2=图拓扑穿透导航
+  - C M1-022：3 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=检索排序与切片打分; P1=Retention/Quarantine/Tombstone; P2=声纹生命周期墓碑/重识别
+  - C M1-023：2 套语义未消解 —— P1=LOD 时间投影+自适应物化; P2=检索规模门
+  - C M2-016：2 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=活跃会话工作集; E=条件编译引擎; P3=条件就绪引擎; P1=TriggerExpression 求值器; P2=条件编译+ready queue
+  - C M2-017：5 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=增量流式萃取器; E=长会话三级流水线; P3=Wake 乒乓熔断器; P1=ReadyTaskQueue/Occurrence; P2=CockpitManifest+四步序
+  - C M2-018：4 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=主动召回与上下文组装; E=预算账本与降级阶梯; F=三级流式流水线; P3=长会话三级流水线; P1=活跃会话工作集; P2=三级会话流水线
+  - C M2-019：4 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=端到端延迟/Token 遥测; E=关系节奏心跳; F=关系节奏长平稳心跳; P3=关系节奏长平稳心跳; P1=增量萃取 Worker; P2=BudgetLedger 记账降级
+  - C M2-020：4 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=Prediction Register 运行时; E=穿戴交互 FSM 模拟器; F=Prediction Register 服务; P3=Prediction Register+CheckTask; P1=主动召回与上下文规划; P2=羁绊模型 DIM_AI_RAPPORT
+  - C M2-021：4 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=穿戴 InteractionPort+FSM 仿真; F=会话输出契约(1~3 句); P3=会话输出契约; P1=CockpitManifest 编译器+收据; P2=CommunicationExp 风格指标
+  - C M2-022：3 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=关系节奏与静默心跳; P1=预算化 AI Worker/工具运行时; P2=穿戴交互 FSM+虚拟执行器
+  - C M2-023：3 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=简洁应答与输出契约; P1=记忆写入防火墙/来源信任; P2=三层 UI 契约
+  - C M2-024：3 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=Trigger Eligibility 引擎+Ready 队列; P3=关系节奏与静默心跳; P2=会话上下文快照与回放
+  - C M2-025：2 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=BudgetLedger 与降级阶梯; P1=InteractionPort/通知 FSM
+  - C M3-012：5 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=回溯语义加注; E=Prediction Register 闭环; P3=共振候选→证伪门禁; P1=Typed 失效传播协调器; P2=Prediction 证伪闭环服务
+  - C M3-013：2 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=LifeChapter 候选与基线迁移; E=LifeChapter 相变识别归档; P3=LifeChapter 相变服务; P1=证据重建+读时有效性守卫; P2=LifeChapter 相变检测
+  - C M3-014：3 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=CommunicationExp+Rapport 巩固; E=AI 沟通经验维度; P3=有界失效传播内核硬化; P1=自适应时间总结物化器; P2=传播预算化懒重算
+  - C M3-015：2 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=Prediction 校准+no-op 传播; P1=Prediction 验证/校准; P2=清洗回归护栏
+  - C M3-016：2 套语义未消解 —— D + 本报告 §3 (PROPOSAL-α)=有界传播内核; P1=共振候选与因果守卫
+  - C M4-005：2 套语义未消解 —— P1=V3 Scenario Pack V21~V45; P2=会话层跨日接续; 本报告=TEST V0.2 Scenario Pack TS-021~TS-051
+  - C M4-006：3 套语义未消解 —— P1=Hidden-Truth Generator V2; P2=羁绊演化与关系节奏心跳; 本报告=Runtime Stress & Ablation Pack
+  - C M4-007：2 套语义未消解 —— P1=30-Day Continuous Fault Run; P2=预算月度对账
+  - C M4-008：2 套语义未消解 —— P1=V3 Metrics & Replay Report; P2=漂移与人格一致性检测
+  - C M5-004：2 套语义未消解 —— P1=OperationExperience Policy Executor; 本报告=CommunicationExperience A/B
+  - C M6-005：3 套语义未消解 —— P1=Capability Scope & App Projection; P2=跨 App 认知复用的边界与隔离; P3=穿戴模拟渠道; 本报告=AmbientCanvas / SkillCard Projection Contract
+  - C M7-005：2 套语义未消解 —— P1=One-Year Ingest & Storage Growth Model; P2=一年期成本与规模总账; 本报告=End-to-End Latency & Cost SLO 年度正式门
+  - C M8-004：2 套语义未消解 —— P1=Mechanism Ablation Matrix; P2=消融实验：条件引擎/共现检索/三级流水线各自独立收益; P3=穿戴契约预留评估; 本报告=穿戴契约预留评估（FSM 零误触、三层 UI、马达/骨传导抽象、插件最小授权域、离线降级）
+
+[UNRATIFIED_SINGLE_CLAIM]
+  - U M0-033：仅 P1 单方声明，尚无跨文档冲突，但未经治理方裁决注册
+  - U M0-034：仅 P1 单方声明，尚无跨文档冲突，但未经治理方裁决注册
+  - U M3-017：仅 P1 单方声明，尚无跨文档冲突，但未经治理方裁决注册
+  - U M3-018：仅 P1 单方声明，尚无跨文档冲突，但未经治理方裁决注册
+  - U M3-019：仅 P1 单方声明，尚无跨文档冲突，但未经治理方裁决注册
+  - U M4-010：仅 P2 单方声明，尚无跨文档冲突，但未经治理方裁决注册
+  - U M5-005：仅 P1 单方声明，尚无跨文档冲突，但未经治理方裁决注册
+  - U M5-006：仅 P1 单方声明，尚无跨文档冲突，但未经治理方裁决注册
+  - U M5-007：仅 P1 单方声明，尚无跨文档冲突，但未经治理方裁决注册
+  - U M5-008：仅 P1 单方声明，尚无跨文档冲突，但未经治理方裁决注册
+  - U M6-006：仅 P1 单方声明，尚无跨文档冲突，但未经治理方裁决注册
+  - U M6-007：仅 P1 单方声明，尚无跨文档冲突，但未经治理方裁决注册
+  - U M6-008：仅 P1 单方声明，尚无跨文档冲突，但未经治理方裁决注册
+  - U M6-009：仅 P1 单方声明，尚无跨文档冲突，但未经治理方裁决注册
+  - U M7-006：仅 P1 单方声明，尚无跨文档冲突，但未经治理方裁决注册
+  - U M7-007：仅 P1 单方声明，尚无跨文档冲突，但未经治理方裁决注册
+  - U M7-008：仅 P1 单方声明，尚无跨文档冲突，但未经治理方裁决注册
+  - U M7-009：仅 P1 单方声明，尚无跨文档冲突，但未经治理方裁决注册
+  - U M8-005：仅 P1 单方声明，尚无跨文档冲突，但未经治理方裁决注册
+  - U M8-006：仅 P1 单方声明，尚无跨文档冲突，但未经治理方裁决注册
+  - U M8-007：仅 P1 单方声明，尚无跨文档冲突，但未经治理方裁决注册
+
+[GATE_DISPUTE_OPEN]
+  - E M2-024：RC-017（AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3） 主张 Gate1，registry 现为 Gate2 —— 待裁决
+  - E M2-026：RC-028（AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3） 主张 Gate2，registry 现为 None —— 待裁决
+
+门为红色 ⇒ 按本报告 §9.3 R5：任何 M*-*** 派单一律视为无效单，直到治理方逐号裁决并写入 registry 的 resolution。
+另有 gate 分歧未裁决（规则 E）：同一号在两份文档中被放在不同门 ⇒ 放行顺序无法确定，必须先裁决再派单。
+
+exit_code=0

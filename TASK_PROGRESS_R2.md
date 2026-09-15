@@ -103,3 +103,33 @@ Gate 0 未过时只允许做修正案、契约、迁移 fixture 与测试夹具�
 > CI 门 `governance/issue_registry/check_issue_registry.py` 当前实跑 **GATE = RED**
 > （规则 A 0 / UNREGISTERED 0 / CONFLICT 39 / UNRATIFIED 21，exit 1；负向对照已验证门会开火）。
 > 派单一律以 registry 的 `slug` 为准，号仅作显示。
+
+---
+
+### 2026-09-16 更新：独立首席架构师版重构设计书入库，放行顺序细化
+
+- **新交付**：`reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md`
+  （1,277 行）。它不是第 16 份评审，而是**自带可执行探针的设计提案**：
+  `reviews/architecture/evidence/verify_reconstruction_design.py` 在 **1M 对象 / 50 万任务 / 626 万 postings /
+  DB 1,087.4 MB** 上实跑，**13/13 门通过，exit 0**，工件 + 日志 + JSON + SHA256 已入库
+  （`verify_reconstruction_design_SHA256SUMS`，repo 根 `sha256sum -c` 全 OK）。
+- **放行顺序细化**（在上文 `NUMCI-001 → v3.0.1 → Gate 0 → Gate 1 → Gate 2 → Gate 3` 基础上**插入两道新门**，
+  依据是探针实测而非论证）：
+  `NUMCI-001` 转绿 → v3.0.1 修正案 → **G0**（含 `RC-001` C 号公案裁定：宪法 C01~C14 与旧规划 C01~C14 一物两义）
+  → **G0.5 读路径契约门（新设）** → **G1**（含 `PROBE-CI-002` 五支探针入 CI）→ **G2** → **G2.5 调度代数门（新设）**
+  → **G3** → **G4~G5**。
+  - `G0.5` 必须前置于 M1 编码：中文检索与时间轴**没有读路径契约**时，裸 FTS5 对连续中文
+    **0 命中 / 0.038 ms / 不报错**，旧 `M1-012` 验收只断言"无异常" ⇒ 会以 0 命中绿灯通过。
+  - `G2.5` 必须前置于 M2 运行时：遍历 50 万任务求值就绪实测 **p95 2181.75 ms**（1 s 首字预算的 218%），
+    而读物化 READY 队列 top-8 仅 **0.012 ms**（**181,812×**）⇒ 这是 **schema/查询计划级决策**，不能留到运行时再改。
+- **编号纪律（registry `0.2.0 → 0.3.0-PROPOSAL`）**：设计书提交 **41 个 `RC-*` 标签**，被 CI 门
+  `A3 一号一 slug` **打回 11 条**（与 α/P1 既有提案号同语义）。按 `R3_alloc` 处理而非绕过：
+  11 个降级为既有号的 **alias**，registry 保留 **30 条 `namespace: RC` 的 PROPOSAL 条目**，
+  2 处门位分歧登记为 `gate_disputes{OPEN}`（`M2-024`：registry `Gate2` vs 设计书 `Gate1`；`M2-026`：无 gate vs `Gate2`）。
+- **CI 门增补规则并做负向自测**：`A6`（alias 完整性）/ `A7`（alias 必须在文档中真实出现，反虚构）/
+  `D1~D6`（临时命名空间完整性）/ `E1~E2`（gate 争议合法性）。当前实跑
+  **`RULE_A 0 / UNREGISTERED 0 / CONFLICT 39 / UNRATIFIED 21 / RULE_D 0 / GATE_DISPUTE_OPEN 2` ⇒ GATE = RED**；
+  负向自测注入 9 类违规**全部被捕获，exit=1**
+  （`governance/issue_registry/evidence/negative_self_test_2026-09-16.log`）。
+- **状态不变**：M1 及以后大规模编码保持暂停；门为 RED 期间任何 `M*-***` 派单无效，派单以 `slug` 为准。
+  本轮未改动任何产品代码、契约快照与宪法文件。

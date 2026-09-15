@@ -1,0 +1,362 @@
+{
+  "profile": {
+    "ttft_budget_ms": 1000.0,
+    "manifest_budget_ms": 60.0,
+    "co_search_p95_ms": 50.0,
+    "time_bucket_p95_ms": 20.0,
+    "propagation_budget_ms": 50.0,
+    "propagation_max_nodes": 500,
+    "propagation_max_depth": 2,
+    "manifest_token_tier": {
+      "SAFETY": 512,
+      "ROUTINE": 2048,
+      "REVIEW": 8192
+    },
+    "active_window_tokens": 1500,
+    "cjk_bigram_min_recall": 1,
+    "max_postings_per_object": 8
+  },
+  "scale": {
+    "objects": 1000000,
+    "tasks": 500000
+  },
+  "fixture_truth": {
+    "tri_all_three_terms": 3333,
+    "duo_two_terms": 6666,
+    "alias_mother": 1111,
+    "fixture_month": "2024-03"
+  },
+  "build": {
+    "occurred_at_range": {
+      "min": "2023-11-14T22:13:59",
+      "max": "2024-11-13T22:12:49"
+    },
+    "insert_and_index_ms": 52639.9,
+    "analyze_ms": 1885.4,
+    "db_size_mb": 861.1,
+    "bytes_per_row": 902.9,
+    "postings_rows": 6256888,
+    "postings_per_object": 6.26
+  },
+  "time_bucket_build": {
+    "ms": 5562.6,
+    "rows_by_kind": {
+      "DAY": 8784,
+      "MONTH": 312,
+      "YEAR": 48
+    }
+  },
+  "task_build": {
+    "ms": 12776.8,
+    "tasks": 500000
+  },
+  "edge_build": {
+    "ms": 4847.8,
+    "edges": 549999,
+    "hub_fanout": 49999
+  },
+  "v1_ready_queue": {
+    "materialized_ready_read_ms": {
+      "p50": 0.008,
+      "p95": 0.012,
+      "top_n": 8
+    },
+    "wake_time_budget_ms": 5.0,
+    "tasks": 500000,
+    "wake_ts": "2024-03-01T00:00:00",
+    "fired_event_keys": [
+      "sub:妈妈",
+      "sub:生日"
+    ],
+    "naive_full_scan_ms": {
+      "p50": 1990.175,
+      "p95": 2181.75
+    },
+    "subscription_index_ms": {
+      "p50": 236.68,
+      "p95": 247.068
+    },
+    "ready_set_size": {
+      "naive": 71148,
+      "indexed": 71148
+    },
+    "correctness_ready_sets_equal": true,
+    "unknown_not_woken_but_kept": {
+      "count": 216715,
+      "census_ms": 678.2,
+      "rule": "UNKNOWN 既不 READY 也不丢弃（三值律）；其普查是巡检查询，**不得进入调度热路径**（否则会吃掉整个 1 s 首字预算）"
+    },
+    "speedup_p95": 8.8,
+    "acceptance": "READY 计算不得遍历全部任务；两条路径 READY 集合必须完全相等；Wake 时只读物化 READY 队列的 top-N（<= 5 ms），全量重算只能是**增量维护**动作；WAITING/UNKNOWN 任务不得进入 manifest（I4）"
+  },
+  "v2_co_search": {
+    "terms": [
+      "妈妈",
+      "生日",
+      "礼物"
+    ],
+    "objects": 1000000,
+    "like_scan": {
+      "hits": 2222,
+      "p50_ms": 286.037,
+      "p95_ms": 306.752
+    },
+    "fts5_raw_unicode61_AS_BUILT": {
+      "hits": 0,
+      "p95_ms": 0.038,
+      "note": "**未预分词**的原始中文 = as-built 做法；连续中文串按整段成一个 token，故命中恒为 0 且**不报错**"
+    },
+    "raw_two_char_hits": 0,
+    "presegmented_two_char_hits": 134916,
+    "fts5_presegmented_and": {
+      "hits": 3333,
+      "p95_ms": 9.054,
+      "note": "预分词后 AND 共现（设计书采用路径）"
+    },
+    "term_postings_3way_group_by": {
+      "hits": 3333,
+      "p50_ms": 197.326,
+      "p95_ms": 210.428,
+      "verdict": "**REJECTED_PLAN**：3 路 GROUP BY + HAVING 在 1M 对象 / 6.26M postings 上超出 50 ms 门；本探针保留它只为交叉核对命中数（真值对照）"
+    },
+    "term_postings_pairwise_selectivity_ordered": {
+      "hits": 3333,
+      "p50_ms": 116.81,
+      "p95_ms": 147.246,
+      "selectivity_postings_counts": [
+        130967,
+        134605,
+        134916
+      ],
+      "verdict": "**ADOPTED_PLAN-A**：按 postings 基数升序做两两 JOIN 交集"
+    },
+    "term_postings_pairwise_topk_early_termination": {
+      "hits_capped": 200,
+      "p50_ms": 0.236,
+      "p95_ms": 0.269,
+      "verdict": "**ADOPTED_PLAN-C**：无锚定时必须 top-K 早停 + 后置排序，绝不做全量交集计数（全量计数见 REJECTED_PLAN）"
+    },
+    "term_postings_entity_anchored": {
+      "hits": 1,
+      "p95_ms": 0.901,
+      "verdict": "**ADOPTED_PLAN-B**：实体锚定预过滤（第八十九条），单实体范围内三词共现"
+    },
+    "two_char_term_recall": {
+      "like_full_scan": 134916,
+      "postings": 134916,
+      "fts5_raw": 0,
+      "fts5_presegmented": 134916,
+      "acceptance": "必须 > 0（I7）；实测 postings=134916, presegmented=134916, raw=0"
+    },
+    "alias_recall_postings": 132078,
+    "verdict": {
+      "postings_pairwise_p95_under_gate": false,
+      "postings_entity_anchored_p95_under_gate": true,
+      "postings_topk_p95_under_gate": true,
+      "postings_3way_group_by_p95_under_gate": false,
+      "fts_and_p95_under_gate": true,
+      "gate_ms": 50.0,
+      "like_vs_postings_speedup_p95": 1.5,
+      "correctness_postings_superset_of_like": true,
+      "correctness_alias_gap_explained": true,
+      "correctness_note": "LIKE 只能命中字面串；postings 走**别名归一**（母亲 ≡ 妈妈），故 postings 命中必须是 LIKE 的超集，且超出部分必须**恰好等于**别名 fixture 行数 —— 差值对不上就说明索引或别名表有 bug",
+      "fixture_truth": {
+        "tri_all_three_terms": 3333,
+        "duo_two_terms": 6666,
+        "alias_mother": 1111,
+        "fixture_month": "2024-03"
+      }
+    }
+  },
+  "v3_time_slider": {
+    "scan_occurred_at_month_window": {
+      "rows": 94338,
+      "p50_ms": 151.214,
+      "p95_ms": 154.343
+    },
+    "scan_occurred_at_year_window": {
+      "rows": 872392,
+      "p50_ms": 156.716,
+      "p95_ms": 165.829
+    },
+    "scan_learned_at_indexed_month": {
+      "rows": 89320,
+      "p95_ms": 5.656,
+      "note": "旧口径；与宪法要求的发生时间不同源"
+    },
+    "bucket_day": {
+      "buckets_scanned": 744,
+      "objects": 94338,
+      "p50_ms": 0.073,
+      "p95_ms": 0.1
+    },
+    "bucket_month": {
+      "buckets_scanned": 24,
+      "objects": 94338,
+      "p50_ms": 0.006,
+      "p95_ms": 0.013
+    },
+    "bucket_year": {
+      "buckets_scanned": 24,
+      "objects": 872392,
+      "p50_ms": 0.006,
+      "p95_ms": 0.008
+    },
+    "year_via_day_bucket_summation": {
+      "p50_ms": 0.622,
+      "p95_ms": 0.679,
+      "day_buckets": 744
+    },
+    "year_via_year_bucket": {
+      "p95_ms": 0.008
+    },
+    "year_bucket_speedup": 84.9,
+    "drilldown_page200": {
+      "rows": 200,
+      "p95_ms": 169.403
+    },
+    "acceptance": "宏观档必须只读桶；DAY/MONTH/YEAR 桶查询 p95 <= 20.0 ms；1y 档必须读**年桶**（日桶求和随天数线性退化）；窗口一律按 occurred_at，禁止用 learned_at 冒充",
+    "gate_pass": true,
+    "non_vacuous": true
+  },
+  "v4_manifest": {
+    "assembly_ms": {
+      "p50": 0.05,
+      "p95": 0.081
+    },
+    "budget_ms": 60.0,
+    "gate_pass": true,
+    "token_estimate": 565,
+    "tier_ceiling": 2048,
+    "manifest_hash": "10ec06b104f957fa",
+    "system_filler_turns": 0,
+    "waiting_tasks_in_manifest": 0,
+    "acceptance": "四步序 = **单次 prompt 内 4 个 segment**（I5），不是 4 次模型往返；manifest 只挂 READY（I4）；receipt 落库使'模型当时看到什么'可复现"
+  },
+  "v5_propagation": {
+    "unbounded_in_memory": {
+      "ms": 1086.0,
+      "reached_objects": 50000,
+      "note": "复刻现状 dependency/graph.py 的全量入内存做法"
+    },
+    "bounded_budgeted": {
+      "p50_ms": 1.048,
+      "p95_ms": 3.516,
+      "visited": 500,
+      "truncated": true,
+      "budget_nodes": 500,
+      "budget_depth": 2
+    },
+    "speedup": 308.9,
+    "gate_pass": true,
+    "acceptance": "超节点必须有界；普通 RELATES_TO 不传播；未重算的旧总结不得静默冒充 CURRENT（读时有效性守卫）；语义 no-op（只换措辞）不得触发传播"
+  },
+  "v6_write_path": {
+    "fsync_FULL_per_commit_ms": {
+      "p50": 0.162,
+      "p95": 0.239
+    },
+    "group_commit_200_rows_ms": 0.05,
+    "projected_daily_fsync_s": {
+      "per_row_commit_FULL": 0.18,
+      "group_commit_NORMAL": 0.0003
+    },
+    "acceptance": "摄入必须 group commit；预算必须 reserve→settle 两阶段（I3）"
+  },
+  "v7_pipeline": {
+    "conversations": 50,
+    "turns_per_conv": 50,
+    "active_window_token_budget": 1500,
+    "first_pass_ms": 22.3,
+    "retry_pass_ms": 6.9,
+    "retried_conversations": 25,
+    "claims": {
+      "before_retry": 1175,
+      "after_retry": 2350,
+      "duplicate_conv_seq_pairs": 0
+    },
+    "claims_expected_total": 2350,
+    "idempotent_under_crash_retry": true,
+    "idempotency_rule": "重试**补齐**被回滚的工作（claims 增长是正确的），但 (conv_id, seq) 不得出现第二次 ⇒ 以 dup==0 且总数==期望值判定",
+    "unfinalized_turns_extracted": 0,
+    "max_watermark_lag_tokens": 0,
+    "acceptance": "crash/retry 不得产生重复 Claim；未 finalize 的 turn 不得被萃取；前台窗口 token 必须 <= profile 预算；水位 lag 超阈值时前台保留未萃取原文"
+  },
+  "invariant_selfcheck": {
+    "I4_waiting_task_in_receipt": "ENFORCED_BY_DDL",
+    "I5_system_filler_turn": "ENFORCED_BY_DDL",
+    "I3_unreserved_negative": "ENFORCED_BY_DDL"
+  },
+  "schema": {
+    "tables": [
+      "conv_turn",
+      "cp_budget_ledger",
+      "cp_context_receipt",
+      "cp_deadline",
+      "cp_index_watermark",
+      "dep_edge",
+      "extracted_claim",
+      "extraction_job",
+      "extraction_watermark",
+      "invalidation_frontier",
+      "obs",
+      "obs_fts",
+      "obs_fts_config",
+      "obs_fts_content",
+      "obs_fts_data",
+      "obs_fts_docsize",
+      "obs_fts_idx",
+      "obs_fts_raw",
+      "obs_fts_raw_config",
+      "obs_fts_raw_content",
+      "obs_fts_raw_data",
+      "obs_fts_raw_docsize",
+      "obs_fts_raw_idx",
+      "task_occurrence",
+      "task_queue",
+      "term_dict",
+      "term_postings",
+      "time_bucket",
+      "trigger_expression"
+    ],
+    "table_count": 29,
+    "indexes": [
+      "ix_cp_ledger_scope",
+      "ix_edge_src",
+      "ix_expr_subkey",
+      "ix_expr_task",
+      "ix_obs_entity",
+      "ix_obs_learned",
+      "ix_postings_obj",
+      "ix_task_next_fire",
+      "ix_task_ready",
+      "ix_turn_conv"
+    ],
+    "db_size_mb": 1087.4
+  },
+  "gates": {
+    "G1_ready_queue_not_full_scan": true,
+    "G2_co_search_adopted_plans_p95": true,
+    "G2b_rejected_plans_documented": true,
+    "G3_cjk_recall_nonzero": true,
+    "G4_time_bucket_gate": true,
+    "G5_manifest_budget": true,
+    "G6_propagation_bounded": true,
+    "G7_invariants_enforced_by_ddl": true,
+    "G8_ready_sets_equal": true,
+    "G9_postings_recall_superset_and_alias_gap_exact": true,
+    "G10_time_window_non_vacuous": true,
+    "G11_pipeline_idempotent": true,
+    "G12_no_unfinalized_extraction": true
+  },
+  "all_gates_pass": true,
+  "environment": {
+    "python": "3.11.2",
+    "sqlite": "3.40.1",
+    "platform": "Linux-6.1.158+-x86_64-with-glibc2.36",
+    "cpu_count": 2,
+    "scale": "1m",
+    "wall_ms": 111500.1,
+    "disclaimer": "合成数据 + 容器文件系统；数字用于**方案间相对比较与门限可达性证明**，不是产品 SLO 承诺；实体手环闪存与真实模型延迟不在本探针范围内"
+  }
+}
