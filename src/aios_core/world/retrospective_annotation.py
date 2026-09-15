@@ -92,9 +92,36 @@ class RetrospectiveAnnotation(BaseModel):
     target_time_start: datetime
     target_time_end: datetime
     learned_at: datetime = Field(default_factory=_utc_now)
+    recorded_at: datetime = Field(
+        default_factory=_utc_now,
+        description="注记落账时间；缺省时经 _align_recorded_at 与 learned_at 对齐（learned_at = recorded_at = T_today）",
+    )
     source_statement_ref: str = Field(
         min_length=1, description="新认知来源指针（如司法裁定书编号）"
     )
+
+    @model_validator(mode="before")
+    @classmethod
+    def _align_recorded_at(cls, data: Any) -> Any:
+        """agent-05 增量硬化：对齐 learned_at/recorded_at 双时间戳。
+
+        云端工单原文：自身的 learned_at = recorded_at = T_now（今天的时间戳）。
+        缺省规则（不依赖真实时钟，保证冻结时刻测试的确定性）：
+        - 两者皆缺 → 取同一 now 锚点；
+        - 仅 recorded_at 缺 → 回填 learned_at（显式的『今天只写在今天』）；
+        - 仅 learned_at 缺 → 回填 recorded_at。
+        """
+        if isinstance(data, dict):
+            learned = data.get("learned_at")
+            recorded = data.get("recorded_at")
+            if learned is None and recorded is None:
+                now = _utc_now()
+                data = {**data, "learned_at": now, "recorded_at": now}
+            elif recorded is None:
+                data = {**data, "recorded_at": learned}
+            elif learned is None:
+                data = {**data, "learned_at": recorded}
+        return data
 
     @model_validator(mode="after")
     def _validate_time_contract(self) -> "RetrospectiveAnnotation":
@@ -106,6 +133,18 @@ class RetrospectiveAnnotation(BaseModel):
             ) from exc
         if inverted:
             raise ValueError("target_time_start must not be after target_time_end")
+
+        # agent-05 增量硬化（认知单向向前，严禁倒写历史）：
+        learned_utc = _as_aware_utc(self.learned_at, "learned_at")
+        recorded_utc = _as_aware_utc(self.recorded_at, "recorded_at")
+        target_end_utc = _as_aware_utc(self.target_time_end, "target_time_end")
+        if recorded_utc < learned_utc:
+            raise ValueError("recorded_at must be >= learned_at")
+        if learned_utc < target_end_utc:
+            raise ValueError(
+                "learned_at must be >= target_time_end: 回溯注记只能在目标切片"
+                "结束之后学到（learned_at = T_today），严禁假装当时就已知晓"
+            )
         return self
 
 

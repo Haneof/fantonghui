@@ -510,3 +510,70 @@ class TestGate4_SingleHopIsolation:
             iso.reverse_invalidate("cognition:unknown:node")
         with pytest.raises(ValueError, match="itself"):
             iso.add_dependency("node:L1:00000", "node:L1:00000")
+
+
+# ======================================================================
+# agent-05 双线收敛增量硬化：learned_at = recorded_at = T_today 对齐
+# 与「严禁倒写历史」排序校验（为纯增量断言，不改变队友已合入语义）
+# ======================================================================
+
+
+class TestGate2_R2ContractHardline:
+    """工单原文「自身的 learned_at = recorded_at = T_now（今天的时间戳）」
+    在本模型上成立；任何倒签到切片终点之前的构造都必须被拒绝。"""
+
+    def test_recorded_at_defaults_align_with_learned_at_today(self):
+        annotation = make_annotation()  # 未显式传 recorded_at
+        assert annotation.learned_at == T_TODAY
+        assert annotation.recorded_at == T_TODAY  # 缺省回填 = learned_at = T_today
+
+    def test_both_timestamps_omitted_share_one_anchor(self):
+        annotation = RetrospectiveAnnotation(
+            annotation_id="ann:hardline:no-times",
+            target_entity_id=ENTITY,
+            semantic_overlay="司法查封/欺诈重估",
+            target_time_start=T0,
+            target_time_end=T0 + timedelta(days=30),  # 已闭合的过去切片
+            source_statement_ref="doc:judicial_ruling:freeze:hardline",
+        )
+        assert annotation.recorded_at == annotation.learned_at
+        assert annotation.learned_at >= annotation.target_time_end
+
+    def test_pretending_to_know_before_slice_end_is_rejected(self):
+        """假装 T0+100 天就已知晓查封裁定：倒写历史，契约直接拒绝。"""
+        with pytest.raises(ValidationError):
+            RetrospectiveAnnotation(
+                annotation_id="ann:hardline:backdated",
+                target_entity_id=ENTITY,
+                semantic_overlay="欺诈重估",
+                target_time_start=T0,
+                target_time_end=T_TODAY,
+                learned_at=T0 + timedelta(days=100),
+                source_statement_ref="doc:backdated",
+            )
+
+    def test_recorded_at_earlier_than_learned_at_is_rejected(self):
+        with pytest.raises(ValidationError):
+            RetrospectiveAnnotation(
+                annotation_id="ann:hardline:recorded-before",
+                target_entity_id=ENTITY,
+                semantic_overlay="欺诈重估",
+                target_time_start=T0,
+                target_time_end=T_TODAY,
+                learned_at=T_TODAY,
+                recorded_at=T_TODAY - timedelta(seconds=1),
+                source_statement_ref="doc:recorded-before",
+            )
+
+    def test_recorded_at_after_learned_at_ingestion_delay_allowed(self):
+        annotation = RetrospectiveAnnotation(
+            annotation_id="ann:hardline:ingestion-delay",
+            target_entity_id=ENTITY,
+            semantic_overlay="司法查封/欺诈重估",
+            target_time_start=T0,
+            target_time_end=T_TODAY,
+            learned_at=T_TODAY,
+            recorded_at=T_TODAY + timedelta(hours=2),  # 合法摄入延迟
+            source_statement_ref="doc:ingestion-delay",
+        )
+        assert annotation.recorded_at > annotation.learned_at
