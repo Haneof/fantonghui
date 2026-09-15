@@ -30,5 +30,7 @@
 | **#1** | C01 摄入 | `M1-001R` | 端侧多模态轻量摄入与声纹淘汰 | Agent-01 战队 | **ADV 加固版已交付（本会话，单测 11 项全绿，待总工沙箱验收）** | `src/aios_core/ingest/multimodal_edge.py`<br>`tests/unit/test_m1_001r_high_entropy_audio.py` |
 | **#2** | C06 查询 | `M1-017` | CJK 拓扑倒排聚集表与多词检索加速 | Agent-02 战队 | **DISPATCHED** | `src/aios_core/query/cjk_inverted_index.py`<br>`tests/unit/test_m1_017_cjk_index.py` |
 | **#3** | C05 总结 | `M1-010R` | 5D 时空多尺度连续聚合器与物化视图 | Agent-03 战队 | **CODED / 单测 25 项全绿（待总工沙箱验收）** | `src/aios_core/summaries/pyramid_aggregator.py`<br>`tests/unit/test_m1_010r_pyramid.py` |
-| **#4** | C06 查询 | `M1-012R` | 实体拓扑超链接网络穿透检索器 | Agent-04 战队 | **DISPATCHED** | `src/aios_core/query/hyperlink_traverser.py`<br>`tests/unit/test_m1_012r_hyperlink.py` |
+| **#4** | C06 查询 | `M1-012R` | 实体拓扑超链接网络穿透检索器 | Agent-04 战队 | **CODED / 单测 15 项全绿（待总工沙箱验收）** | `src/aios_core/query/hyperlink_traverser.py`<br>`tests/unit/test_m1_012r_hyperlink.py` |
 | **#5** | C02/C05 | `M1-018` | 认知反向传播语义图层契约 (老王案) | Agent-05 战队 | **CODED / 单测 18 项全绿（待总工沙箱验收）** | `src/aios_core/world/retrospective_annotation.py`<br>`tests/unit/test_m1_018_retrospective_annotation.py` |
+| **#6** | C04 工作台 | `M2-009R` | 高密危机单看板 1500 Token 物理截断流水线 | Agent-05 战队 | **CODED / 单测 11 项全绿（待总工沙箱验收）** | `src/aios_core/cockpit/pipeline.py`<br>`tests/unit/test_m2_009r_cockpit_budget.py` |
+| **#7** | C03 唤醒 | `M0-023-V22` | 跨模态心血管突发危机 P0 硬件直穿快速通道 | Agent-05 战队 | **CODED / 单测 5 项全绿（待总工沙箱验收）** | `src/aios_core/wake/dispatcher.py`<br>`tests/unit/test_v22_acute_cardiac_fall_safety.py` |
