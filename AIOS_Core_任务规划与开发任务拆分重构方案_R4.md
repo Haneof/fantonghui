@@ -6,9 +6,11 @@
 > **被重构对象**：《AIOS Core 系统架构图与开发规划》V0.1、《AIOS认知工作台功能规格》V0.1、《AIOS虚拟世界测试规范》V0.1、《AIOS_Core_详细开发任务拆分_R2_总工程师版》R2-DEV-FULL v2.0
 > **配套产物**：
 > - `governance/runtime_policy.json` **v1.1.0** —— **机器可读的运行时政策层（本方案的核心新构件，已落盘；v1.1.0 已按 v3.0.1 裁决集 ADJ-001~012 全量对齐）**
-> - `tests/policy/test_runtime_policy.py` —— **政策层判决（已落盘并实测通过：118/118，纯标准库，pytest 与独立运行双入口）**
-> - `tests/policy/test_policy_gate_regression.py` —— **给判决本身写的回归测试（已落盘并实测通过：206/206 个违宪变异全部被抓住）**
-> - `reviews/R4_policy_vs_ADJ_alignment_2026-09-15.md` —— **政策层 × v3.0.1 裁决集对齐报告（12 条逐条裁决：3 条我错了 / 6 条 ADJ 更锐 / 2 条已编码 / 1 条编号对撞已上交；含判决门在对齐过程中判红 8 次的完整记录）**
+> - `tests/policy/test_runtime_policy.py` —— **政策层判决（已落盘并实测通过：126/126，纯标准库，pytest 与独立运行双入口）**
+> - `tests/policy/test_policy_gate_regression.py` —— **给判决本身写的回归测试（已落盘并实测通过：227/227 个违宪变异全部被抓住）**
+> - `reviews/R4_policy_vs_ADJ_alignment_2026-09-15.md` —— **政策层 × v3.0.1 裁决集对齐报告（12 条逐条裁决：3 条我错了 / 6 条 ADJ 更锐 / 2 条已编码 / 1 条编号对撞已上交；含判决门在对齐过程中判红 8 次的完整记录，以及 §8 第二轮：THRESH-BASE 落地后我又漂移两次的复盘）**
+> - `tests/policy/test_hash_registry_versioning.py` —— **规范版本注册表的版本化登记纪律（14 条，已实测通过）**：处置 `registry.md` 规则②③的组合死结（已登记文件原本无法合法演进），并钉住 `HISTORICAL-ROW` 豁免标记的防滥用边界
+> - `tools/governance/hash_registry.py` —— **补 `HISTORICAL-ROW` 版本追加机制 + 修 `--fill` 排版压扁缺陷**（后者是可审计性缺陷：治理表靠 diff 评审，一次只改哈希格的补登若把整行重排，评审者就看不出动了哪一格）
 > - `.github/workflows/ci.yml` —— **接线补丁已备好但未落盘（GitHub App 缺 `workflows` 权限）；见 §M0.1-009 的 apply-ready diff。政策门已被现有 `pytest` 步骤自动收集，不接线也能跑**
 > - `reviews/AIOS_v3.0_chief_review_2026-09-15.md` —— 架构压力测试与实测证据
 > - `reviews/AIOS_v3.0_alignment_gap_audit_2026-09-15.md` —— 文档级断层审计（55 条编号断层）
@@ -196,7 +198,7 @@ M1-012 §D 的技术指导原文是"**第一版 SQLite FTS5 + Entity alias index
 ├──────────────────────────────────────────────────────────────────────┤
 │ 第三层【判决】 tests/policy/ + CI 门  ← 本方案新增的强制机关            │
 │   职责：每次 push 检查系统是否守宪                                      │
-│   形态：118 条判决断言 + 206 个违宪变异回归，纯标准库，fail-closed      │
+│   形态：126 条判决断言 + 227 个违宪变异回归，纯标准库，fail-closed      │
 │   权力：**判红即阻塞合并**。与现有 tests/architecture 同等待遇          │
 └──────────────────────────────────────────────────────────────────────┘
 ```
@@ -686,7 +688,7 @@ M-CI【新增】压缩 30 天认知循环 + 退化不变量守卫
 | **M0.1-005** | `Session` 硬化：状态枚举 + `MentalStartupTrace` schema | **总工亲自** |
 | **M0.1-006** | `TimePrecision` 尺度阶梯对齐（补 10s/10min/10y）+ "5D" 的形式化定义 | 编码代理 + 总工审核 |
 | **M0.1-007** | `Observation` 摄入分层字段（`ingest_tier` / `retention_state` / `aggregation_window`）+ `data_quality` 认知权限边界条款 | 总工审核 |
-| **M0.1-008** | **`governance/runtime_policy.json` v1.1.0 + `tests/policy/`**（C19/C20 的落地，编号待 ADJ-010 一级治理变更裁决）<br/>**状态：已交付可运行版本 —— 判决门 118/118 通过，变异回归 206/206 全部抓住违宪；已按 v3.0.1 裁决集全量对齐** | **总工亲自** |
+| **M0.1-008** | **`governance/runtime_policy.json` v1.1.0 + `tests/policy/`**（C19/C20 的落地，编号待 ADJ-010 一级治理变更裁决）<br/>**状态：已交付可运行版本 —— 判决门 126/126 通过，变异回归 227/227 全部抓住违宪；已按 v3.0.1 裁决集全量对齐；THRESH-BASE（M0-031）落地后已完成第二轮跨工件对齐** | **总工亲自** |
 | **M0.1-009** | **CI 接线（唯一待人工应用的一步）**：把政策门加进 `.github/workflows/ci.yml`<br/>**状态：补丁已备好但未落盘 —— 见下方说明。这是全方案唯一一处"我做不到"的地方** | 有 `workflows` 权限的人 |
 
 #### M0.1-009 的补丁与它为什么没被我直接提交

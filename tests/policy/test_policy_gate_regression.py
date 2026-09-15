@@ -2403,6 +2403,219 @@ def test_case_201_trace_matrix_missing_is_caught() -> None:
         gate.TRACE_MATRIX_PATH = original
 
 
+
+# ---------------------------------------------------------------------------
+# CASE-202~222：THRESH-BASE 落地后的跨工件一致性执法面
+#
+# 这批 case 的来源与前面几批不同：前面几批来自"法律要求什么"，
+# 这批来自"我实际漂移过什么"。CASE-206 与 CASE-208 复刻的是我在同一轮里
+# 亲手犯下的两次同义异名错误（change_log 字段名、learn_channel 枚举名）。
+# 把自己犯过的错固化成回归用例，是唯一能保证不重犯的机制 ——
+# 记忆会失效，测试不会。
+# ---------------------------------------------------------------------------
+
+
+def test_case_202_baseline_path_pointing_nowhere_is_caught() -> None:
+    """政策层指向一份不存在的基线，等于阈值治理没有出厂基线（ADJ-008(b)）。"""
+    def m(p: dict[str, Any]) -> None:
+        p["threshold_governance"]["factory_baseline_frozen_in"] = "governance/thresholds/nope.json"
+
+    _assert_caught(m, "test_threshold_baseline_file_exists_and_is_hash_registered")
+
+
+def test_case_203_baseline_existence_requirement_dropped_is_caught() -> None:
+    """把"基线文件必须存在"关掉，政策层就退化为一句指向空气的引用。"""
+    def m(p: dict[str, Any]) -> None:
+        p["threshold_governance"]["baseline_file_must_exist"] = False
+
+    _assert_caught(m, "test_threshold_baseline_file_exists_and_is_hash_registered")
+
+
+def test_case_204_registry_id_renamed_is_caught() -> None:
+    """登记编号写错，注册表里就查无此人 —— 而查无此人与尚未登记在旧写法下是同一个结果。"""
+    def m(p: dict[str, Any]) -> None:
+        p["threshold_governance"]["baseline_registry_id"] = "THRESH-WRONG"
+
+    _assert_caught(m, "test_threshold_baseline_file_exists_and_is_hash_registered")
+
+
+def test_case_205_hash_registration_requirement_dropped_is_caught() -> None:
+    """未登记的基线可以被悄悄改掉，那它就不是"出厂基线"而是"当前配置"。"""
+    def m(p: dict[str, Any]) -> None:
+        p["threshold_governance"]["baseline_file_must_be_hash_registered"] = False
+
+    _assert_caught(m, "test_threshold_baseline_file_exists_and_is_hash_registered")
+
+
+def test_case_206_change_log_fields_reverted_to_my_invented_names_is_caught() -> None:
+    """【复刻我自己的错误 #1】prev_value → previous_value，一物两名即漂移源。
+
+    我在 v1.1.0 初版写了 [previous_value,new_value,evidence_input_window,learning_hash]，
+    而落地基线是 [param_id,prev_value,next_value,input_window,learner_hash,
+    rationale,applied_at,reversible]。四个同义异名 + 四个漏项。
+    """
+    def m(p: dict[str, Any]) -> None:
+        f = p["threshold_governance"]["change_log_fields"]
+        f[f.index("prev_value")] = "previous_value"
+        f[f.index("next_value")] = "new_value"
+
+    _assert_caught(m, "test_policy_does_not_redefine_the_baseline_change_log_field_names")
+
+
+def test_case_207_reversible_field_dropped_is_caught() -> None:
+    """漏掉 reversible，"可回滚"就从实现约束退化为态度表态。"""
+    def m(p: dict[str, Any]) -> None:
+        p["threshold_governance"]["change_log_fields"].remove("reversible")
+
+    _assert_caught(m, "test_policy_does_not_redefine_the_baseline_change_log_field_names")
+
+
+def test_case_208_learn_channel_enum_reintroduced_locally_is_caught() -> None:
+    """【复刻我自己的错误 #2】政策层重新枚举基线拥有的词表（且我把 DUAL 写成 BIDIRECTIONAL）。
+
+    这是纯新增键的变异：判决门不会因为多了一个键而读到错值，
+    但"本地枚举"本身就是被禁止的形态 —— 故必须 allow_additive。
+    """
+    def m(p: dict[str, Any]) -> None:
+        p["threshold_governance"]["learn_channel_enum"] = ["STRICTER_ONLY", "NONE", "BIDIRECTIONAL"]
+
+    _assert_caught(
+        m,
+        "test_policy_does_not_hardcode_a_vocabulary_the_baseline_owns",
+        allow_additive=True,
+    )
+
+
+def test_case_209_vocabulary_owner_claimed_by_policy_itself_is_caught() -> None:
+    """把词表所有权认领回政策层，"不得本地枚举"就失去了依据。"""
+    def m(p: dict[str, Any]) -> None:
+        p["threshold_governance"]["learn_channel_vocabulary_owner"] = "governance/runtime_policy.json"
+
+    _assert_caught(m, "test_policy_does_not_hardcode_a_vocabulary_the_baseline_owns")
+
+
+def test_case_210_derivation_requirement_dropped_is_caught() -> None:
+    """允许本地声明枚举取值，等于给下一次同义异名开了门。"""
+    def m(p: dict[str, Any]) -> None:
+        p["threshold_governance"]["learn_channel_declared_values_must_be_derived_from_baseline"] = False
+
+    _assert_caught(m, "test_policy_does_not_hardcode_a_vocabulary_the_baseline_owns")
+
+
+def test_case_211_policy_role_promoted_to_definer_is_caught() -> None:
+    """政策层一旦自称定义方而非消费方，重复定义就变得"合法"了。"""
+    def m(p: dict[str, Any]) -> None:
+        p["threshold_governance"]["single_source_of_truth"]["policy_layer_role"] = "authoritative_definer"
+
+    _assert_caught(m, "test_policy_does_not_redefine_the_baseline_change_log_field_names")
+
+
+def test_case_212_min_field_count_raised_beyond_reality_is_caught() -> None:
+    """最小字段数是个下限约束；把它抬到不可能满足，说明它在被当装饰。"""
+    def m(p: dict[str, Any]) -> None:
+        p["threshold_governance"]["change_log_field_count_min"] = 99
+
+    _assert_caught(m, "test_policy_does_not_redefine_the_baseline_change_log_field_names")
+
+
+def test_case_213_safety_channel_relaxed_to_dual_is_caught() -> None:
+    """ADJ-008(d)：人身安全参数进入双向学习通道，就是安全阈值被长期磨钝的入口。"""
+    def m(p: dict[str, Any]) -> None:
+        p["threshold_governance"]["safety_lane_true_implies_learn_channel"] = "DUAL"
+
+    _assert_caught(m, "test_safety_lane_parameters_are_stricter_only_with_a_declared_direction")
+
+
+def test_case_214_safety_exclusion_flag_dropped_is_caught() -> None:
+    """把"安全参数不进下调通道"关掉，方向单调性约束就没了声明依据。"""
+    def m(p: dict[str, Any]) -> None:
+        p["threshold_governance"]["safety_parameters_excluded_from_learning_downward_channel"] = False
+
+    _assert_caught(m, "test_safety_lane_parameters_are_stricter_only_with_a_declared_direction")
+
+
+def test_case_215_safety_examples_reverted_to_self_invented_names_is_caught() -> None:
+    """自造名字的举例无法被校验：拿 fall_detection 去基线里找，找不到，
+    而"找不到"与"找错"在 .get() 语义下是同一个结果 —— 本轮踩过的坑。
+    """
+    def m(p: dict[str, Any]) -> None:
+        p["threshold_governance"]["safety_parameter_examples"] = ["fall_detection", "impact_detection"]
+
+    _assert_caught(m, "test_safety_lane_parameters_are_stricter_only_with_a_declared_direction")
+
+
+def test_case_216_heartbeat_default_pushed_outside_three_to_five_hours_is_caught() -> None:
+    """出厂默认 6 小时，超出 ADJ-002 承认的 3~5 小时区间。"""
+    def m(p: dict[str, Any]) -> None:
+        p["threshold_governance"]["heartbeat_interval_factory_default_s"] = 21600
+
+    _assert_caught(m, "test_heartbeat_factory_default_lies_inside_the_constitutional_default_range")
+
+
+def test_case_217_constitutional_range_widened_to_legitimise_anything_is_caught() -> None:
+    """把 [3,5] 放宽成 [1,24]，任何默认值都"合法"了 —— 这是在改法律，不是改参数。
+
+    这条 case 是设计出来的而不是事后补的：我先写了这个变异，发现纯算术断言抓不到
+    （10800 落在 [1,24] 内，基线值也仍然相等），于是回到判决门把区间硬编码钉死。
+    **变异测试的价值不在于确认守卫有效，而在于发现守卫无效。**
+    """
+    def m(p: dict[str, Any]) -> None:
+        p["threshold_governance"]["heartbeat_interval_constitutional_default_range_h"] = [1, 24]
+
+    _assert_caught(m, "test_heartbeat_factory_default_lies_inside_the_constitutional_default_range")
+
+
+def test_case_218_heartbeat_default_relegalised_as_law_is_caught() -> None:
+    """ADJ-002 §1：把出厂默认重新升格为每用户铁律，撞上 §80之3 的反馈自适应。"""
+    def m(p: dict[str, Any]) -> None:
+        p["heartbeat"]["interval_hours_is_factory_default_not_law"] = False
+
+    _assert_caught(m, "test_heartbeat_factory_default_lies_inside_the_constitutional_default_range")
+
+
+def test_case_219_enforced_by_stripped_making_assertion_prose_is_caught() -> None:
+    """摘掉执法点，断言就从法律退化为散文 —— 散文不会被违反，因为它从不被执行。"""
+    def m(p: dict[str, Any]) -> None:
+        p["threshold_governance"]["policy_assertions_on_baseline"]["g_safety_params_are_stricter_only"]["enforced_by"] = []
+
+    _assert_caught(m, "test_every_threshold_baseline_assertion_names_a_real_enforcing_test")
+
+
+def test_case_220_enforced_by_pointing_at_nonexistent_test_is_caught() -> None:
+    """接线断裂：enforced_by 指向一个不存在的判决断言。
+
+    与回归套件的 target-existence 守卫是同一类假绿通道 ——
+    判决门改名而政策层未同步，断言就指向空气。
+    """
+    def m(p: dict[str, Any]) -> None:
+        ent = p["threshold_governance"]["policy_assertions_on_baseline"]["a_baseline_file_exists"]
+        ent["enforced_by"] = ["test_this_function_does_not_exist"]
+
+    _assert_caught(m, "test_every_threshold_baseline_assertion_names_a_real_enforcing_test")
+
+
+def test_case_221_baseline_assertions_silently_pruned_is_caught() -> None:
+    """把九条基线断言删到只剩两条，其余七项性质就无人看守了。"""
+    def m(p: dict[str, Any]) -> None:
+        pa = p["threshold_governance"]["policy_assertions_on_baseline"]
+        for k in ["d_log_written_before_value_change", "e_log_replayable_from_baseline",
+                  "f_every_param_declares_learn_channel", "g_safety_params_are_stricter_only",
+                  "h_heartbeat_default_within_constitutional_range", "i_no_duplicate_vocabulary",
+                  "c_change_protocol_present"]:
+            pa.pop(k, None)
+
+    _assert_caught(m, "test_every_threshold_baseline_assertion_names_a_real_enforcing_test")
+
+
+def test_case_222_statement_field_removed_from_assertion_entry_is_caught() -> None:
+    """结构化断言退化成裸字符串，就无法再被元断言逐条校验。"""
+    def m(p: dict[str, Any]) -> None:
+        pa = p["threshold_governance"]["policy_assertions_on_baseline"]
+        pa["a_baseline_file_exists"] = "基线文件必须存在"
+
+    _assert_caught(m, "test_every_threshold_baseline_assertion_names_a_real_enforcing_test")
+
+
 # ---------------------------------------------------------------------------
 # 独立运行入口（与 test_runtime_policy.py 保持同一种双入口约定）
 # ---------------------------------------------------------------------------

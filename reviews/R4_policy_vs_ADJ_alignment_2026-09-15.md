@@ -10,6 +10,11 @@
 
 ---
 
+> **读者指引**：本报告分两轮。§0~§7 是第一轮（ADJ-001~012 逐条对齐）；
+> **§8 是同日第二轮** —— THRESH-BASE（`governance/thresholds/baseline_v1.json`）落地之后，
+> 我在一小时内又漂移了两次，并撞上规范版本注册表的一个规则组合死结。
+> §7 的结论原文保留未改。
+
 ## 0. 先说结论里最难听的部分
 
 我在 v1.0.0 里写了一整段 `id_namespace_registry`，专门用来防止编号漂移。
@@ -441,23 +446,23 @@ assert "safety_watch" in POLICY["step0_safety_gate"]["hard_block_still_allows"]
 
 | 产物 | v1.0.0 | **v1.1.0** | 变化 |
 |---|---|---|---|
-| `governance/runtime_policy.json` | 396 行 / 20 域 | **~570 行 / 25 域** | 新增 `step0_safety_gate` / `retrospective_annotation` / `speaker_cluster_lifecycle` / `threshold_governance` / `retrieval_slo.semantic_firewall` / `adjudication_alignment`；重写 `retention_policy` / `mental_startup` / `heartbeat` / `latency_slo` / `style_constraints` |
-| `tests/policy/test_runtime_policy.py` | 54 条断言 | **118 条断言** | 全部带 `constitution_stable_keys`；新增跨文件稳定键完整性检查、ADJ 执法点元断言、延迟物理边界断言 |
-| `tests/policy/test_policy_gate_regression.py` | 113 个变异 case | **206 个变异 case** | 新增 CASE-112~201 覆盖 ADJ 新增政策面；新增 CASE-00c/00d 守卫 harness 自身 |
+| `governance/runtime_policy.json` | 396 行 / 20 域 | **~870 行 / 27 域** | 新增 `step0_safety_gate` / `retrospective_annotation` / `speaker_cluster_lifecycle` / `threshold_governance` / `retrieval_slo.semantic_firewall` / `adjudication_alignment`；重写 `retention_policy` / `mental_startup` / `heartbeat` / `latency_slo` / `style_constraints` |
+| `tests/policy/test_runtime_policy.py` | 54 条断言 | **126 条断言** | 全部带 `constitution_stable_keys`；新增跨文件稳定键完整性检查、ADJ 执法点元断言、延迟物理边界断言 |
+| `tests/policy/test_policy_gate_regression.py` | 113 个变异 case | **227 个变异 case** | 新增 CASE-112~201 覆盖 ADJ 新增政策面；CASE-202~222 覆盖 THRESH-BASE 跨工件一致性（见 §8）；新增 CASE-00c/00d 守卫 harness 自身 |
 | 退化不变量 | 15 条 | **25 条** | 新增 10 条 ADJ 验收锚（round_trips / byte_hash_drift / reference_lock / tombstone_hit / cluster_resurrect / false_playback / safety_truncated / fusion_leak / rhythm_bomb / perceived_latency） |
 | 工程硬门 | 6 条 | **6 + 10 条** | §16 六条原样继承；ADJ 追加十条，分区存放（变更门槛不同） |
 | 退化注入 case | 6 个 | **12 个** | 覆盖全部新增退化类别 |
 
-**实测（本机 Python 3.12，纯标准库，无 pytest / pydantic / pyyaml）**：
+**实测（本机 Python 3.11，纯标准库，无 pytest / pydantic / pyyaml）**：
 
 ```
 $ python3 tests/policy/test_runtime_policy.py
-118/118 passed, 0 failed
+126/126 passed, 0 failed
 policy:        governance/runtime_policy.json
 trace matrix:  governance/traceability_matrix.csv (120 stable keys)
 
 $ python3 tests/policy/test_policy_gate_regression.py
-206/206 caught, 0 missed
+227/227 caught, 0 missed
 (missed = 政策门在该变异下仍然通过 = 守卫失效)
 ```
 
@@ -480,3 +485,199 @@ $ python3 tests/policy/test_policy_gate_regression.py
 **两者合流才是完整的三层结构**：裁决集是宪法 v3.0.1 的条文，政策层是它的执法细则，判决门是它的法庭。缺任何一层，另外两层都会退化回文学。
 
 **唯一的遗留分歧（§0 的 C15/C16 对撞）已上交一级治理变更，政策层无权自裁，也不应自裁。**
+
+---
+
+## 8. 第二轮：THRESH-BASE 落地后，我在一小时内又漂移了两次
+
+> 本节写在 §7 之后，因为它是 §7 写完当天（2026-09-16）发生的事。
+> 保留 §7 原文不改 —— 一个「结论写完就被现实打脸」的记录，比一个事后修饰过的结论有价值。
+
+§7 我写「政策层是裁决集的执法细则」。几小时后，另一条工作线把 **M0-031 落地**：
+`governance/thresholds/baseline_v1.json` 真的出现了，`registry.md` 里 G0 已签发，
+PLAN-R4 / ADJ-v3.0.1 / TRACE-MATRIX 全部转 CURRENT，而**我的两份文件也被登记了** ——
+`POLICY-RUNTIME`（v1.0.0，钉了哈希）与 `PLAN-R4-B`。
+
+于是发生了三件事，每一件都值得记下来。
+
+### 8.1 我在同一轮里，第二次犯了 ADJ-011 明令禁止的错
+
+ADJ-011 的判词是「一物两名即漂移源」。我在 §1.2 里刚刚承认自己的裸条号引用不合规、
+刚刚给全部 25 个域补上 `constitution_stable_keys`、刚刚写下跨文件完整性断言 ——
+然后转头做了这两件事：
+
+| # | 我写的 | 已落地基线写的 | 性质 |
+|---|---|---|---|
+| 1 | `change_log_fields: [previous_value, new_value, evidence_input_window, learning_hash]` | `change_protocol.required_fields: [param_id, prev_value, next_value, input_window, learner_hash, rationale, applied_at, reversible]` | **四个同义异名 + 四个漏项** |
+| 2 | `learn_channel_enum: [STRICTER_ONLY, NONE, BIDIRECTIONAL]` | 实际词表 `{STRICTER_ONLY, DUAL, NONE}` | **我把 DUAL 写成了 BIDIRECTIONAL** |
+
+第一次是「我没读过那份文件」，可以理解。第二次不是 —— 第二次发生在我**已经因为第一次
+而写下 `single_source_of_truth` 字段之后**。也就是说：我一边声明「政策层不得重定义基线拥有的契约」，
+一边在同一个 JSON 对象里重新枚举了基线拥有的词表。
+
+**所以教训不是「下次仔细点」，而是结构性的**：
+
+> **政策层不得枚举另一个工件拥有的词表。**
+> 枚举一旦落到两个文件里就必然漂移，而漂移方向总是「两边都看起来合理」——
+> `BIDIRECTIONAL` 和 `DUAL` 谁都不像错的，人工评审抓不到，只有跨文件断言抓得到。
+
+已做的处置：
+- 删除本地 `learn_channel_enum`，改为声明 `learn_channel_vocabulary_owner`，词表由判决门从基线派生；
+- `change_log_fields` 改为逐字引用基线的 `required_fields`，并加 `change_log_field_names_copied_from` 注明来源；
+- `safety_parameter_examples` 从我自造的 `fall_detection` 改为基线里真实存在的 `thr.vital.fall_impact_g` 等 ——
+  **自造名字的示例无法被校验**：判决门拿它去基线里找，找不到，而「找不到」与「找错」在 `.get()` 语义下是同一个结果（§5 已踩过这个坑）；
+- 新增判决门断言 `test_policy_does_not_redefine_the_baseline_change_log_field_names` 与
+  `test_policy_does_not_hardcode_a_vocabulary_the_baseline_owns`；
+- **把自己犯过的两次错固化成回归用例 CASE-206 与 CASE-208**。记忆会失效，测试不会。
+
+其中漏掉 `reversible` 最不该。ADJ-008 要求「可回滚」，基线把它实现为
+「每条日志保留 `prev_value` 使回滚是常数时间操作」—— 这是一个可机器校验的性质；
+而我只写了一句 `change_log_must_be_rollbackable: true` 的文学承诺。
+**同一个要求，一边是实现约束，一边是态度表态，而我选了后者。**
+
+### 8.2 规则②③组合出一个死结：注册表原本不允许任何已登记文件演进
+
+`hash_registry.py --check` 判红了，两行漂移 —— 是我自己那两份文件。
+红得完全正确：我改了已登记的文件，没有追加版本行。
+
+但当我按规则②去追加版本行时，撞上了死结：
+
+```
+规则②  已入库的行禁止改写（追加新版本行代替）
+规则③  任何已登记文件的实际哈希与表内不符即红检
+check() 把【每一行】的哈希都拿去和【当前】文件内容比对
+```
+
+三条合起来：**一份已登记文件只要合法演进，旧版本行就永久漂移、CI 永红；
+而改写旧行哈希格又被规则②明令禁止。规则②给出的唯一合法出路，
+恰好是规则③判红的唯一形态。** 注册表里不存在任何一条路径允许一份已登记文件演进。
+
+这不是实现瑕疵，是规则的组合缺陷。而且它**只会在第一次有人认真修改一份已登记文件时暴露**
+—— 也就是恰好在治理开始起作用的那一刻。在此之前它一直绿，因为它从未被使用过。
+
+处置（窄口径、防滥用、不改写任何哈希格）：状态格显式含机读标记 `HISTORICAL-ROW` 的行，
+视为「同一文件已被取代的历史版本」，`check()` 不再拿它与当前文件比对（比对本就无意义），但：
+
+1. **历史哈希逐字留在表内**（ADJ-004 版本链永存；豁免比对 ≠ 删除历史）；
+2. **同一路径必须另有一行处于 CURRENT/REGISTERED 作为活继任者**，否则该标记立即判红 ——
+   不然它就是一个后门：给任何文件的状态格加上它，该文件就永久退出哈希校验，而表看起来仍然全绿。
+   **一个能被滥用的豁免机制，比没有豁免更危险。**
+3. 继任者判定按**路径**而非 spec_id（否则「把行改指向别的文件」可以蒙混过关）；
+4. `--fill` 拒绝向 `HISTORICAL-ROW` 的哈希格写入任何内容，即使它是占位形态。
+
+已按此走完真实流程：`POLICY-RUNTIME` 1.0.0 与 `PLAN-R4-B` R4 两行标为 SUPERSEDED · HISTORICAL-ROW
+（哈希格一字未动），追加 1.1.0 与 R4.1 两条活行，`--fill` 补登，`--check` 18 行全绿。
+并新增 `tests/policy/test_hash_registry_versioning.py`（14 条）用合成注册表逐条钉死上述行为 ——
+**它守的不是哈希算法（那 trivially 正确），而是豁免权的边界。**
+
+同时把规则③复刻进政策层判决门（`test_registered_documents_do_not_drift_from_their_pinned_hashes`），
+理由：这次是治理作业的 `--check` 抓到我，但开发者平时跑的是 `tests/policy/`。
+**只在 CI 的治理步骤里可见的纪律，等于对日常开发不可见。**
+
+**还踩中一个作业顺序陷阱**：我先跑了 `--fill` 补登 1.1.0 行，然后又去改政策层内容，
+于是该行哈希漂移；再跑 `--fill` 时它按规则②**拒绝改写已钉住的哈希格** —— 完全正确的行为，
+但把我卡在「改不动、又不能不绿」的状态里。处置：这两行尚未提交，未入 git 的行不构成历史，
+恢复成占位再补登即可（**若已提交，就只能再追加一个版本行，那是规则②要的代价，不该绕过**）。
+已把「`--fill` 必须是提交前最后一步」写进工具文档头部。
+
+写这条断言时我自己先犯了一个错：用 `startswith(f"| {spec} |")` 取第一个匹配行，
+结果把历史行的哈希拿去和当前文件比，制造了一条永远无法消除的**假红**。
+同一 spec_id 现在合法地有多行，必须逐行比对自己的哈希格。已修正，并加
+`test_rows_sharing_a_spec_id_are_checked_against_their_own_hash_cell` 钉住。
+
+### 8.3 顺手挖出 `--fill` 的一个可审计性缺陷
+
+调试 8.2 时发现：`fill()` 用 strip 过的 cells 重新拼行
+（`"|" + "|".join(row.cells) + "|"`），于是**每一次补登都会把该行的空格排版压扁**：
+
+```
+补登前： | POLICY-RUNTIME | `governance/runtime_policy.json` | 1.1.0 | （待回填） | **CURRENT** | ... |
+补登后： |POLICY-RUNTIME|`governance/runtime_policy.json`|1.1.0|`f0c7ba99…`|**CURRENT**|...|
+```
+
+真实注册表里已经有两行被压扁了（第 25、26 行），与其余 16 行排版不一致。
+
+这**不是美观问题，是可审计性问题**：治理表是靠 diff 评审的。一次只改哈希格的补登，
+如果 diff 显示整行被重写，评审者就无法一眼看出动了哪一格 ——
+而「看不出动了哪一格」正是篡改最想要的属性。规则②之所以禁止改写已入库的行，
+保护的正是这种可读性；一个把整行重排的 `--fill`，在效果上削弱了它本该保护的东西。
+
+已改为保留每格原有的前导/尾随空白做原位替换，被压扁的两行已修复，
+并加 `test_fill_preserves_row_padding_so_the_diff_stays_auditable` 钉住（逐格比对，只允许第 4 格变化）。
+
+### 8.4 变异测试再次证明它的价值不在「确认守卫有效」
+
+这批 21 个新 case（CASE-202~222）里，有两条是**先写变异、发现抓不到、再回头改判决门**的：
+
+**CASE-217：把宪法承认的心跳默认区间从 `[3,5]` 放宽到 `[1,24]`。**
+我原以为 `test_heartbeat_factory_default_lies_inside_the_constitutional_default_range` 会抓住它。
+实测：抓不到。因为 10800s 落在 `[1,24]` 内，基线值也仍然相等，五条断言全过。
+**放宽法律区间，在纯算术断言下是隐形的。**
+修法与 §5 那次「VAD 边界声明错误」同源：区间本身来自 ADJ-002（承认 §80之1 的 3~5 小时），
+属法律内容而非政策参数，必须在判决门里硬编码钉死 —— 与本文件对 `ALL_ADJ` 的处理同理：
+**让「放宽法律」必须同时改两个文件才能通过。**
+
+**CASE-215：把 `safety_parameter_examples` 整体替换成我自造过的 `["fall_detection","impact_detection"]`。**
+实测：抓不到。因为我的守卫写的是 `if ex.startswith("thr."): assert ex in real_ids` ——
+一个**只对预期形状开火**的守卫。变异成不带该前缀的名字，守卫一次都不执行。
+
+> **守卫只对它预期的形状生效，就等于对攻击者选择的形状无效。**
+
+已改为要求全部举例都是真实 `param_id`，去掉形状豁免。这与 §5 记录的
+「`.get()` 默认值静默通过」「纯算术抓不到边界声明错误」是同一族缺陷：
+**断言写了，但它的触发条件比它声称保护的条件窄。**
+
+### 8.5 一处我不修的缺陷（附理由）
+
+`baseline_v1.json` 第 80 行，`thr.motion.inactivity_alert_hours` 的 evidence 写作
+「**ADV**-008 允许双向学习的生活型参数」—— 应为 **ADJ**-008。一个字母的引用错误。
+
+我**没有**改它，理由有三条，且第三条最重要：
+
+1. 该文件已作为 THRESH-BASE 登记哈希、状态 REGISTERED，属已入库规范；改它会造成哈希漂移，需走版本追加流程；
+2. 它不是我这条工作线的产物，改别人的规范文件应当由该文件的责任线执行；
+3. **ADJ-011 §2 的判词正是「条号本身即为不能再承载语义的印刷物」** —— 一个写错的条号，
+   恰好是这条判词最好的例证。把它就地修掉，等于销毁一个证据。
+
+已在政策层的 `$safety_param_note` 与本节记录在案，交由 THRESH-BASE 责任线在下次版本追加时一并处理。
+
+### 8.6 第二轮交付与实测
+
+| 产物 | 变化 |
+|---|---|
+| `governance/runtime_policy.json` | `threshold_governance` 重写为**消费方**身份：`single_source_of_truth` / `policy_assertions_on_baseline`（9 条，每条点名自己的执法断言）/ 字段名逐字引用基线 / 删除本地枚举 |
+| `tests/policy/test_runtime_policy.py` | 118 → **126** 条断言：新增 §19 跨工件一致性 8 条（基线存在性、哈希登记、不得重定义字段名、不得本地枚举词表、逐参数 learn_channel、安全通道方向、心跳默认区间、规则③复刻） |
+| `tests/policy/test_policy_gate_regression.py` | 206 → **227** 个变异 case：CASE-202~222 |
+| `tests/policy/test_hash_registry_versioning.py` | **新增，14 条**：规则②③死结的处置、防滥用不变量、--fill 纪律、真实注册表集成校验 |
+| `tools/governance/hash_registry.py` | 补 `HISTORICAL-ROW` 机制（含继任者强制校验）+ 修 `fill()` 排版压扁缺陷 + 文档记载两处缺陷的成因与边界 |
+| `governance/normative_versions/registry.md` | POLICY-RUNTIME 1.0.0 / PLAN-R4-B R4 转 SUPERSEDED · HISTORICAL-ROW（哈希格未动）；追加 1.1.0 / R4.1 活行并补登；修复被压扁的两行排版 |
+
+```
+$ python3 tools/governance/hash_registry.py --check
+registry hash check green (18 rows verified, 0 placeholders)
+
+$ python3 tests/policy/test_runtime_policy.py
+126/126 passed, 0 failed
+
+$ python3 tests/policy/test_policy_gate_regression.py
+227/227 caught, 0 missed
+
+$ python3 tests/policy/test_hash_registry_versioning.py
+14/14 passed, 0 failed
+```
+
+另一条工作线的 `test_thresholds_baseline.py` 与 `test_traceability_matrix.py` 同步复跑，未受影响。
+
+### 8.7 这一轮的判词
+
+§7 我说「抓到的第一个违宪者始终是我自己」。第二轮把这个说法推进了一步：
+
+**我不只是违宪者，我还是那个一边写反漂移断言、一边漂移的人。**
+`single_source_of_truth` 这个字段是我在发现第一次漂移后亲手加进去的，
+然后我在同一个对象里造了第二个漂移。
+
+这说明**自律字段没有约束力** —— 写下「我不得重定义他人契约」这句话，
+对阻止我重定义他人契约毫无作用。真正起作用的只有两样东西：
+一条会判红的跨文件断言，和一个把我犯过的错固化下来的变异用例。
+
+这也是政策层与文学的区别，第三次被证实。

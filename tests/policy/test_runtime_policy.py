@@ -1048,11 +1048,9 @@ def test_every_threshold_evolution_step_is_logged_replayable_and_rollbackable() 
     """
     tg = POLICY["threshold_governance"]
     assert tg["threshold_change_log_required_for_every_evolution_step"] is True
-    assert set(tg["change_log_fields"]) == {
-        "previous_value", "new_value", "evidence_input_window", "learning_hash"
-    }
     assert tg["change_log_must_be_replayable"] is True
     assert tg["change_log_must_be_rollbackable"] is True
+    # 字段名不再本地定义 —— 见 §19 test_policy_does_not_redefine_the_baseline_change_log_field_names
 
 
 def test_safety_thresholds_may_only_move_stricter() -> None:
@@ -1064,8 +1062,9 @@ def test_safety_thresholds_may_only_move_stricter() -> None:
     """
     tg = POLICY["threshold_governance"]
     assert tg["safety_parameters_excluded_from_learning_downward_channel"] is True
-    assert tg["safety_parameter_direction_constraint"] == "only_stricter_via_governance_process"
-    assert "fall_detection" in tg["safety_parameter_examples"]
+    assert tg["safety_parameter_direction_constraint"] == "learn_channel=STRICTER_ONLY"
+    # 举例必须用基线里真实存在的 param_id；逐参数校验见 §19
+    assert "thr.vital.fall_impact_g" in tg["safety_parameter_examples"]
 
     gates = POLICY["engineering_hard_gates"]["added_by_adjudication_set"]
     assert gates["safety_threshold_learned_downward"]["value"] == 0
@@ -1889,6 +1888,299 @@ def test_deep_water_adjudications_require_full_g0_reconsent() -> None:
     """
     note = POLICY["id_namespace_registry"]["namespaces"]["ADJ-001..012"]["note"]
     assert "ADJ-001" in note and "ADJ-004" in note and "G0" in note
+
+
+# ---------------------------------------------------------------------------
+# 19. 阈值基线跨工件一致性（THRESH-BASE 于 M0-031 落地后的新执法面）
+#
+# 本节的存在理由：v1.1.0 初版我一边声明"阈值治理归 governance/thresholds/"，
+# 一边自己重新定义了一套字段名与枚举名，结果与已落地基线**同义异名**
+# （previous_value vs prev_value、BIDIRECTIONAL vs DUAL），同一轮里犯了两次。
+# 这正是 ADJ-011 要消灭的"一物两名"。本节把"政策层不得重定义他人拥有的契约"
+# 从一句自律变成机器执法。
+# ---------------------------------------------------------------------------
+
+
+def _load_threshold_baseline() -> dict[str, Any]:
+    path = REPO_ROOT / "governance" / "thresholds" / "baseline_v1.json"
+    assert path.is_file(), (
+        f"ADJ-008(b) 要求出厂基线冻结在 governance/thresholds/；文件缺失: {path}"
+    )
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _registry_rows() -> list[tuple[str, str, str, str, str]]:
+    """解析 registry.md，返回 [(规范编号, 路径格, 版本格, 状态格, 整行原文)]。
+
+    整行原文是必须的：规则② 允许同一规范编号存在多行（历史版本行 + 活行），
+    因此不能用 `startswith(f"| {spec} |")` 取第一个匹配行 —— 那会把历史行的
+    哈希拿来和当前文件比，制造一条永远无法消除的假红。
+    """
+    reg = REPO_ROOT / "governance" / "normative_versions" / "registry.md"
+    assert reg.is_file(), f"规范版本注册表缺失: {reg}"
+    out = []
+    for line in reg.read_text(encoding="utf-8").splitlines():
+        if not line.startswith("|"):
+            continue
+        cells = [c.strip().strip("*").strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) < 6 or set(cells[0]) <= {"-", ":"}:
+            continue
+        out.append((cells[0], cells[1].strip("`"), cells[2], cells[4], line))
+    return out
+
+
+def test_threshold_baseline_file_exists_and_is_hash_registered() -> None:
+    """ADJ-008(b)：基线不仅要有文件，还要在规范版本注册表里被哈希登记。
+
+    没有登记的基线可以被悄悄改掉 —— 那它就不是"出厂基线"，只是"当前配置"。
+    本断言把 政策层 → 注册表 → 基线文件 三者钉在一起。
+    """
+    tg = POLICY["threshold_governance"]
+    rel = tg["factory_baseline_frozen_in"]
+    path = REPO_ROOT / rel
+    assert path.is_file(), f"政策层指向的基线文件不存在: {rel}"
+    assert tg["baseline_file_must_exist"] is True
+    assert tg["baseline_file_must_be_hash_registered"] is True
+
+    rows = [r for r in _registry_rows() if r[0] == tg["baseline_registry_id"]]
+    assert rows, f"{tg['baseline_registry_id']} 未在 registry.md 登记"
+    live = [r for r in rows if "HISTORICAL-ROW" not in r[3]]
+    assert live, f"{tg['baseline_registry_id']} 只有历史行、没有活行"
+    reg_path = live[0][1].split("+")[-1].strip().strip("`")
+    assert reg_path == rel, f"注册表登记的路径 {reg_path} 与政策层指向的 {rel} 不一致"
+
+    import hashlib
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    assert digest in live[0][4], (
+        f"{tg['baseline_registry_id']} 的登记哈希与文件实际哈希不符 —— "
+        f"规则③ 漂移即红检。文件: {digest[:16]}…"
+    )
+
+
+def test_policy_does_not_redefine_the_baseline_change_log_field_names() -> None:
+    """ADJ-008(c) + ADJ-011：政策层引用基线的字段名，不得本地改名或另立一套。
+
+    我犯过的错：政策层写 [previous_value,new_value,evidence_input_window,learning_hash]，
+    基线是 [param_id,prev_value,next_value,input_window,learner_hash,rationale,applied_at,reversible]。
+    四个同义异名 + 四个漏项。这条断言让该错误无法再次通过。
+    """
+    tg = POLICY["threshold_governance"]
+    base = _load_threshold_baseline()
+    protocol = base["change_protocol"]
+    # 注意：不要用 `a or b` 短路去读两个可能路径 —— 这正是本轮踩过的
+    # ".get() 默认值静默通过"同类坑。直接读唯一权威路径，缺键就大声 KeyError。
+    sst = tg["single_source_of_truth"]
+    assert sst["policy_layer_must_not_redefine_field_names"] is True
+    assert sst["policy_layer_role"] == "consumer_and_enforcer", (
+        "政策层自称权威定义方 —— 那它就会与基线各写一套字段名，必然漂移（我已漂移过一次）"
+    )
+    assert sst["authority_file"] == tg["factory_baseline_frozen_in"]
+    assert set(tg["change_log_fields"]) == set(protocol["required_fields"]), (
+        "政策层的 change_log_fields 与基线 change_protocol.required_fields 不一致 —— "
+        "一物两名即漂移源。政策层是消费方，必须逐字引用。"
+    )
+    assert len(tg["change_log_fields"]) >= tg["change_log_field_count_min"]
+    # 我原来漏掉的四个字段，逐个点名，防止被再次删掉
+    for must_have in ("param_id", "rationale", "applied_at", "reversible"):
+        assert must_have in tg["change_log_fields"], f"缺失 {must_have}（v1.1.0 初版曾漏）"
+    assert tg["change_log_must_include_reversible_flag"] is True
+
+
+def test_policy_does_not_hardcode_a_vocabulary_the_baseline_owns() -> None:
+    """ADJ-011：政策层不得枚举另一个工件拥有的词表。
+
+    我犯过的错（同一轮第二次）：写死 learn_channel_enum=[...,BIDIRECTIONAL]，
+    而基线用的是 DUAL。教训是结构性的：枚举一旦落到两个文件里必然漂移，
+    且漂移方向总是"两边都看起来合理"，人工评审抓不到。
+    """
+    tg = POLICY["threshold_governance"]
+    assert "learn_channel_enum" not in tg, (
+        "政策层不得本地枚举 learn_channel —— 该词表归 baseline_v1.json 所有。"
+        "请删除本地枚举，改为声明 learn_channel_vocabulary_owner。"
+    )
+    assert tg["learn_channel_vocabulary_owner"] == "governance/thresholds/baseline_v1.json"
+    assert tg["learn_channel_declared_values_must_be_derived_from_baseline"] is True
+
+    base = _load_threshold_baseline()
+    used = {p["learn_channel"] for p in base["parameters"]}
+    # 词表由基线自身派生，政策层只能声明"必须来自基线"，不能声明具体取值
+    assert used <= {"STRICTER_ONLY", "DUAL", "NONE"}, f"基线出现未知 learn_channel: {used}"
+    assert tg["safety_lane_true_implies_learn_channel"] in used
+
+
+def test_every_baseline_parameter_declares_a_learn_channel_and_bounds() -> None:
+    """ADJ-008：每个阈值参数必须自带学习通道声明、硬边界与宪法引用。
+
+    没有 learn_channel 的参数，实现者会默认它可学习 —— 而默认可学习
+    正是安全阈值被长期磨钝的入口。缺省必须是"不学习"，而非"可学习"。
+    """
+    base = _load_threshold_baseline()
+    params = base["parameters"]
+    assert params, "基线没有任何参数，等于没有基线"
+    for p in params:
+        pid = p.get("param_id", "<无 param_id>")
+        assert p.get("learn_channel"), f"{pid} 未声明 learn_channel（缺省不得视为可学习）"
+        assert "value" in p and "unit" in p, f"{pid} 缺 value/unit"
+        b = p.get("bounds") or {}
+        assert "hard_min" in b and "hard_max" in b, f"{pid} 缺硬边界 —— 学习无边界即失控"
+        assert b["hard_min"] <= p["value"] <= b["hard_max"], f"{pid} 出厂值越出自己的硬边界"
+        assert p.get("constitution_ref"), f"{pid} 缺宪法引用（ADJ-011 §2）"
+        # 进学习通道的参数必须有步长上限，否则"可回放"也救不了单步巨跳
+        if p["learn_channel"] != "NONE":
+            assert p.get("learning"), f"{pid} 可学习但没有 learning 步长约束"
+            assert p["learning"].get("max_delta_per_cycle_pct"), f"{pid} 缺单周期最大步长"
+
+
+def test_safety_lane_parameters_are_stricter_only_with_a_declared_direction() -> None:
+    """ADJ-008(d)：人身安全参数不进入学习型下调通道，且必须声明"更严"是哪个方向。
+
+    只说"只能更严"是不够的 —— 血氧下限的"更严"是调高，撞击阈值的"更严"是调低。
+    没有 safer_direction，"只许更严"在代码里无法实现，只能靠人理解。
+    """
+    tg = POLICY["threshold_governance"]
+    base = _load_threshold_baseline()
+    safety = [p for p in base["parameters"] if p.get("safety_lane")]
+    assert safety, "基线没有任何 safety_lane 参数 —— 那 ADJ-008(d) 无执法对象"
+    for p in safety:
+        assert p["learn_channel"] == tg["safety_lane_true_implies_learn_channel"], (
+            f"{p['param_id']} 属人身安全参数却可双向学习 —— 违反 ADJ-008(d)"
+        )
+        assert p.get("safer_direction") in ("raise", "lower"), (
+            f"{p['param_id']} 未声明 safer_direction，'只许更严'不可实现"
+        )
+    assert tg["safety_parameters_excluded_from_learning_downward_channel"] is True
+    # 政策层举的例子必须**全部**是基线里真实存在的 param_id。
+    # 不要写 `if ex.startswith("thr.")` 这类形状豁免：变异测试 CASE-215 实测证明，
+    # 把举例整体替换成不带该前缀的自造名字，守卫就一次都不开火。
+    real_ids = {p["param_id"] for p in base["parameters"]}
+    assert tg["safety_parameter_examples"], "政策层未举任何安全参数示例"
+    for ex in tg["safety_parameter_examples"]:
+        assert ex in real_ids, (
+            f"政策层举例 {ex} 在基线中不存在 —— 悬空引用；"
+            "自造名字的示例无法被校验，只会让读者以为有校验"
+        )
+
+    gates = POLICY["engineering_hard_gates"]["added_by_adjudication_set"]
+    assert gates["safety_threshold_learned_downward"]["value"] == 0
+    assert gates["safety_threshold_learned_downward"]["authority"] == "ADJ-008(d)"
+
+
+def test_heartbeat_factory_default_lies_inside_the_constitutional_default_range() -> None:
+    """ADJ-002 × ADJ-008 的接合处：区间是对**出厂默认**的合法性检查，不是对每用户运行值的铁律。
+
+    v1.0.0 我把两者搞混，把 3~5 小时写成运行值上下限（等于铁律），撞上 §80之3 的反馈自适应。
+    本断言同时钉住两件事：出厂默认必须在区间内（ADJ-002 承认的默认），
+    且政策层不得把它写成运行值的硬边界（ADJ-008 归入二级治理参数）。
+    """
+    tg = POLICY["threshold_governance"]
+    hb = POLICY["heartbeat"]
+    lo_h, hi_h = tg["heartbeat_interval_constitutional_default_range_h"]
+    default_s = tg["heartbeat_interval_factory_default_s"]
+    # 区间本身来自 ADJ-002（承认 §80之1 的 3~5 小时为出厂默认），属法律内容。
+    # 硬编码在此，与本文件对 ALL_ADJ 的处理同理：让"放宽区间"必须同时改两个文件，
+    # 否则把 [3,5] 改成 [1,24] 就能让任何默认值合法 —— 变异测试实测抓不到，故显式钉死。
+    assert [lo_h, hi_h] == [3, 5], (
+        f"宪法承认的心跳出厂默认区间是 3~5 小时（ADJ-002），政策层写成了 {lo_h}~{hi_h}。"
+        "放宽法律区间需要一级治理变更，政策层无权自裁。"
+    )
+    assert lo_h * 3600 <= default_s <= hi_h * 3600, (
+        f"出厂默认 {default_s}s 不在宪法承认的 {lo_h}~{hi_h} 小时区间内"
+    )
+
+    base = _load_threshold_baseline()
+    row = next(p for p in base["parameters"] if p["param_id"] == "thr.system.heartbeat_interval_s")
+    assert row["value"] == default_s, (
+        f"政策层声明的出厂默认 {default_s}s 与基线 {row['value']}s 不一致 —— 又是一物两名"
+    )
+    # 关键：它是可学习的（DUAL），不是铁律；但学习只在硬边界内
+    assert row["learn_channel"] == "DUAL", "心跳间隔若不可学习，则违反 §80之3 反馈自适应"
+    assert row["bounds"]["hard_min"] <= default_s <= row["bounds"]["hard_max"]
+    assert hb["interval_hours_is_factory_default_not_law"] is True, (
+        "政策层必须显式声明心跳间隔是出厂默认而非法律铁律（ADJ-002 §1）"
+    )
+
+
+def test_registered_documents_do_not_drift_from_their_pinned_hashes() -> None:
+    """registry.md 规则③：任何已登记文件的实际哈希与表内不符即红检。
+
+    本断言在政策层判决门里复刻 hash_registry.py --check，理由：
+    2026-09-16 我修改了已登记的 POLICY-RUNTIME 与 PLAN-R4-B 两份文件而没有
+    追加版本行，被 hash_registry 判红。这条断言让"改了已登记文件却忘了登记"
+    在开发者最常跑的那套测试里也立刻可见，而不是只在 CI 的治理作业里可见。
+
+    历史行（状态格含 HISTORICAL-ROW）豁免比对，但必须有同路径的活继任者行 ——
+    否则该标记等同于把文件永久豁免出校验。
+    """
+    import hashlib
+
+    rows = _registry_rows()
+    live: dict[str, list[str]] = {}
+    for spec, path_cell, _ver, status, _line in rows:
+        if "HISTORICAL-ROW" not in status and ("CURRENT" in status or "REGISTERED" in status):
+            live.setdefault(path_cell, []).append(spec)
+
+    hex64 = re.compile(r"([0-9a-f]{64})")
+    checked = 0
+    for spec, path_cell, _ver, status, row_line in rows:
+        if "HISTORICAL-ROW" in status:
+            assert live.get(path_cell), (
+                f"[{spec}] 标为 HISTORICAL-ROW 但同路径无 CURRENT/REGISTERED 继任者行 —— "
+                f"防滥用不变量被破坏（该文件将被永久豁免出哈希校验）"
+            )
+            continue
+        seg = path_cell.split("+")[-1].strip().strip("`")
+        f = REPO_ROOT / seg
+        if not f.suffix or not f.is_file():
+            continue
+        pins = hex64.findall(row_line)
+        if not pins:
+            continue  # 占位待补登
+        actual = hashlib.sha256(f.read_bytes()).hexdigest()
+        checked += 1
+        assert actual in pins, (
+            f"[{spec}] 哈希漂移：文件 {seg} 的实际哈希 {actual[:16]}… 不在登记行内。"
+            f"规则②③：请追加新版本行（勿改写旧行哈希），再运行 "
+            f"python tools/governance/hash_registry.py --fill"
+        )
+    assert checked >= 10, f"仅校验了 {checked} 行，注册表疑似被清空或格式变更"
+
+
+
+def test_every_threshold_baseline_assertion_names_a_real_enforcing_test() -> None:
+    """元断言：policy_assertions_on_baseline 的每条都必须点名真实存在的执法断言。
+
+    复用本轮从 ADJ 对齐学到的同一个纪律（test_every_adjudication_has_at_least_one_
+    enforcing_invariant_or_gate）。一份政策可以列出九条漂亮的"宪法性断言"，
+    而其中若干条根本没有能在 CI 里判红的执法点 —— 那它们就是散文。
+    散文不会被违反，因为它从来不会被执行。
+
+    这里要求 enforced_by 指向的函数在本模块内真实可调用，
+    使"写了断言、忘了实现"与"实现了、忘了接线"两种失效都判红。
+    """
+    pa = POLICY["threshold_governance"]["policy_assertions_on_baseline"]
+    entries = {k: v for k, v in pa.items() if not k.startswith("$")}
+    assert len(entries) >= 9, f"基线宪法性断言只剩 {len(entries)} 条，疑似被删减"
+
+    prose_only = []
+    dangling = []
+    for key, ent in entries.items():
+        assert isinstance(ent, dict) and "statement" in ent, f"{key} 不是结构化断言（缺 statement）"
+        enforcers = ent.get("enforced_by") or []
+        if not enforcers:
+            prose_only.append(key)
+            continue
+        for fn in enforcers:
+            if not callable(globals().get(fn)):
+                dangling.append(f"{key} → {fn}")
+    assert not prose_only, (
+        f"以下基线断言没有任何执法点，是散文而非法律: {prose_only}\n"
+        "  请为每条补一个能在 CI 判红的断言，或删掉这条断言（不要留着好看）。"
+    )
+    assert not dangling, (
+        f"以下 enforced_by 指向不存在的判决断言（接线断裂）: {dangling}\n"
+        "  判决门改名时必须同步更新政策层的 enforced_by —— 与回归套件的"
+        "  target-existence 守卫是同一类假绿通道。"
+    )
 
 
 # ---------------------------------------------------------------------------
