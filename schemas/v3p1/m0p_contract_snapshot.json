@@ -1,0 +1,249 @@
+{
+  "enums": {
+    "aios_core.contracts.enums_v3.BudgetLane": [
+      "notify",
+      "investigate",
+      "chapter",
+      "review",
+      "extraction"
+    ],
+    "aios_core.contracts.enums_v3.DepEdgeType": [
+      "evidence_of",
+      "derived_from",
+      "revision_of",
+      "entity_ref",
+      "summary_of",
+      "prediction_check"
+    ],
+    "aios_core.contracts.enums_v3.EpochState": [
+      "draft",
+      "marking",
+      "budgeted_review",
+      "continuation",
+      "done",
+      "quarantined_partial"
+    ],
+    "aios_core.contracts.enums_v3.ExtractionStatus": [
+      "pending",
+      "spanned",
+      "extracted",
+      "skipped"
+    ],
+    "aios_core.contracts.enums_v3.InteractionChannel": [
+      "haptic",
+      "visual_glance",
+      "private_audio",
+      "speaker"
+    ],
+    "aios_core.contracts.enums_v3.JobState": [
+      "queued",
+      "running",
+      "committed",
+      "dead_letter"
+    ],
+    "aios_core.contracts.enums_v3.LifeChapterStatus": [
+      "candidate",
+      "active",
+      "archived",
+      "revised",
+      "rejected"
+    ],
+    "aios_core.contracts.enums_v3.ManifestLane": [
+      "notify",
+      "investigate",
+      "chapter"
+    ],
+    "aios_core.contracts.enums_v3.ObjectTypeV3": [
+      "prediction",
+      "life_chapter",
+      "communication_experience",
+      "retrospective_annotation",
+      "trigger_expression",
+      "conversation_turn",
+      "extraction_job",
+      "manifest_instance",
+      "notification_receipt",
+      "retention_tombstone",
+      "deletion_log",
+      "budget_ledger_entry",
+      "invalidation_epoch",
+      "speaker_cluster"
+    ],
+    "aios_core.contracts.enums_v3.OutcomeDelivery": [
+      "unknown",
+      "delivered",
+      "seen",
+      "ignored",
+      "refused"
+    ],
+    "aios_core.contracts.enums_v3.PredictionStatus": [
+      "pending",
+      "supported",
+      "falsified",
+      "inconclusive",
+      "expired"
+    ],
+    "aios_core.contracts.enums_v3.ProvenanceClass": [
+      "observation",
+      "external",
+      "inference",
+      "introspection"
+    ],
+    "aios_core.contracts.enums_v3.RetentionClass": [
+      "revocation_free",
+      "revocable_raw",
+      "ephemeral_session"
+    ],
+    "aios_core.contracts.enums_v3.SafetyVerdict": [
+      "ok",
+      "quiet",
+      "hard_block"
+    ],
+    "aios_core.contracts.enums_v3.SpeakerClusterStatus": [
+      "active",
+      "retired",
+      "tombstone"
+    ],
+    "aios_core.contracts.enums_v3.TaskTypeV3": [
+      "prediction_check",
+      "semantic_review"
+    ],
+    "aios_core.contracts.enums_v3.TombstoneStage": [
+      "stage1_soft",
+      "stage2_shredded"
+    ],
+    "aios_core.contracts.enums_v3.TriState": [
+      "true",
+      "false",
+      "unknown"
+    ],
+    "aios_core.contracts.enums_v3.TriggerOp": [
+      "atom",
+      "all_of",
+      "any_of",
+      "not"
+    ],
+    "aios_core.contracts.enums_v3.TrustLane": [
+      "instruction",
+      "user_dialog",
+      "data"
+    ],
+    "aios_core.contracts.enums_v3.VerbosityLevel": [
+      "concise",
+      "normal",
+      "detailed"
+    ],
+    "aios_core.contracts.enums_v3.WakeSourceV3": [
+      "relation_rhythm",
+      "semantic_review",
+      "invalidation_review"
+    ]
+  },
+  "gate_version": "M0P-V3.0.1",
+  "models": {
+    "aios_core.contracts.models_v3.BudgetLedgerEntry": "1460a65268f072be7059672a69f833e88340685aa755c1924cf5e0d26ce11630",
+    "aios_core.contracts.models_v3.CommunicationExperience": "1e973f4a1730090d21828d377ca3f41ccc4a32a98637bb23cf405afba16e72d7",
+    "aios_core.contracts.models_v3.ConversationTurn": "8f8a853890f8903cc82f6068e3e2b66b59d7378504e4c21d589b34c06220988a",
+    "aios_core.contracts.models_v3.DeletionLog": "8bef844a82d4f27ad1529caa5fc36f8e33ff1c05ca28a7f83bc377a25668492e",
+    "aios_core.contracts.models_v3.DependencyReady": "ce344b869035e2c45072a0d484ad2b876b3106979b80e7d23c41704b4c3a3619",
+    "aios_core.contracts.models_v3.EpochBudget": "150cc8c78a3baa374bc3c5cfdb1028710c792909ebfde36843cf356baf9e876b",
+    "aios_core.contracts.models_v3.EventMatched": "7cb5b7d347ca060237a19d7291754c8edece76441a6028b0b96f613904a151b7",
+    "aios_core.contracts.models_v3.ExtractionJob": "bb39ead78830ae09f6283e7073156274b82ce5afb736d84f30798941d5a468c4",
+    "aios_core.contracts.models_v3.FactorSeed": "a9d5b4d4cc5d954797271e95a34847e0390e4a38bac41f1a93dbb49c5fcd0533",
+    "aios_core.contracts.models_v3.FourStepsSections": "2a9f31486c98ae284457127378103499b1258724dc4d9d575da0647328b4c020",
+    "aios_core.contracts.models_v3.InvalidationEpoch": "ba938d8367ff0335c8ce167871fa0cfb6039b81f19bd29a8d414d825f5954456",
+    "aios_core.contracts.models_v3.LifeChapter": "55ddc819341da7a002cf309acdadccc876f6f16cd311712c024d611301dacf93",
+    "aios_core.contracts.models_v3.ManifestInstance": "58c89900b6994fe985f8ea290b7dec336acbb8bb9c88ed602efae02483e3c9e8",
+    "aios_core.contracts.models_v3.MechanicalPredicate": "602c207fe718916e6048d9a74a9ecdc4b3c403c807af768932a399ba13fb0d53",
+    "aios_core.contracts.models_v3.NotificationReceipt": "75a40b49aa842a0567c358e615dc5078ad18560e7e1c97306ad48a08da168a95",
+    "aios_core.contracts.models_v3.OmissionDetail": "ac7bd1956b3da059d21d8a051ad6c3fff3fc6ce55bc7bd1338d4c2fec48ed38b",
+    "aios_core.contracts.models_v3.Prediction": "fc0d1170be0285ade28123219edac122eeb5d0441ad88b06330a4dc50ab0000c",
+    "aios_core.contracts.models_v3.PredictionCheckWindow": "cd5d7c579987c056f681c5b353825c12f4bf7e890eeab23ee0dec335465517f5",
+    "aios_core.contracts.models_v3.RelativeTimeSpec": "4c04aaa995fa85173480cd9ddd64d901fc4a1222eacbe0a51f7310366c6ea767",
+    "aios_core.contracts.models_v3.RetentionTombstone": "587f76d8a99d1866e97c8884f7fa5fc4885c2a36f0736a5a11d6070efd96b5b8",
+    "aios_core.contracts.models_v3.RetrospectiveAnnotation": "8e3fd08c952b82efba326dc3e15d192660eb8c1fb10b0862abf87c6a1fef951f",
+    "aios_core.contracts.models_v3.ReviewTaskUnit": "df76cd640a470acd7957b5b7c25993e7d87732f3b959f23b19b8327c4059ad70",
+    "aios_core.contracts.models_v3.SafetyGateVerdict": "f102158fc3d3bad4e597209028f2c9c9f7f8a539d58c5d41735424732d4ccff1",
+    "aios_core.contracts.models_v3.SemanticPredicate": "1ae0912ebb43b2cb17b92f09a01f0a14c10e0d4f22106ccd08a00c99c8fbc75f",
+    "aios_core.contracts.models_v3.SlotRef": "a3c0c15071e6c6e7a353e75b42d0eee387904a804126213eebeeb61166df18f6",
+    "aios_core.contracts.models_v3.SourceEnvelopeV3": "f3ea88511cfdf7292b3f488fb7041a3ffb58f5f42df70029ddf30e3f2aabfe29",
+    "aios_core.contracts.models_v3.SpeakerCluster": "fb803632f7df13051d0691272c5b2c9a679e050df58585fe8d0ecf0e8a001939",
+    "aios_core.contracts.models_v3.TimeReached": "57d0dabab964a64074d0ec6ce4cd8138c1e9c862c286e1d6d2189bbbf18b84ca",
+    "aios_core.contracts.models_v3.TriggerExpression": "ae6c4e6da5e53da83d9db6e6db96a2f50cd7f4538651e65ec03205d837e53a27",
+    "aios_core.contracts.models_v3.TriggerExpressionObject": "ba5784c90f0b268cb60f3dddb29362c1ab3e2ee717aaaae0b24394c98bf1fdfb",
+    "aios_core.contracts.models_v3.WatermarkState": "d1fe18a75dc7bed9fda6da7b5d1693ee8be1f4b635d9f111e59785ff04c86f2e"
+  },
+  "transitions": {
+    "epoch": {
+      "budgeted_review": [
+        "continuation",
+        "done",
+        "quarantined_partial"
+      ],
+      "continuation": [
+        "budgeted_review",
+        "done",
+        "quarantined_partial"
+      ],
+      "done": [],
+      "draft": [
+        "marking"
+      ],
+      "marking": [
+        "budgeted_review",
+        "continuation",
+        "done",
+        "quarantined_partial"
+      ],
+      "quarantined_partial": [
+        "budgeted_review",
+        "continuation",
+        "done"
+      ]
+    },
+    "life_chapter": {
+      "active": [
+        "archived",
+        "revised"
+      ],
+      "archived": [
+        "revised"
+      ],
+      "candidate": [
+        "active",
+        "rejected"
+      ],
+      "rejected": [],
+      "revised": []
+    },
+    "prediction": {
+      "expired": [],
+      "falsified": [],
+      "inconclusive": [
+        "pending"
+      ],
+      "pending": [
+        "expired",
+        "falsified",
+        "inconclusive",
+        "supported"
+      ],
+      "supported": []
+    },
+    "speaker_cluster": {
+      "active": [
+        "retired"
+      ],
+      "retired": [
+        "tombstone"
+      ],
+      "tombstone": []
+    },
+    "tombstone": {
+      "stage1_soft": [
+        "stage2_shredded"
+      ],
+      "stage2_shredded": []
+    }
+  }
+}
