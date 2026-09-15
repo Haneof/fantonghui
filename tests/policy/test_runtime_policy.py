@@ -2108,35 +2108,49 @@ def test_registered_documents_do_not_drift_from_their_pinned_hashes() -> None:
     追加版本行，被 hash_registry 判红。这条断言让"改了已登记文件却忘了登记"
     在开发者最常跑的那套测试里也立刻可见，而不是只在 CI 的治理作业里可见。
 
-    历史行（状态格含 HISTORICAL-ROW）豁免比对，但必须有同路径的活继任者行 ——
-    否则该标记等同于把文件永久豁免出校验。
+    版本语义采用与工具一致的**位置语义**：同一 (规范编号, 路径) 可以有多行，
+    只有该组表内最后一行参与比对，更早的行哈希封存、不再比对（规则②）。
+
+    两条必须钉死的边界（都是实测踩出来的）：
+      1. 归组键是 (spec_id, path) 而**不是** path —— 复合行取"+"之后的路径段，
+         于是 CONST-v3.0.1 与 ADJ-v3.0.1 都指向裁决集文件；按 path 归组会把
+         **当前生效的宪基**判成"已被后续版本行取代"而移出校验，且落在不判红的桶里。
+      2. 某组的**最后一行**若是未补登的占位，则该文件当前不受任何哈希保护
+         （旧行已封存）—— 在表尾追加一行占位即可让任意已登记文件静默退出校验。
+         必须判红，不能当作"待补登"跳过。
     """
     import hashlib
 
     rows = _registry_rows()
-    live: dict[str, list[str]] = {}
-    for spec, path_cell, _ver, status, _line in rows:
-        if "HISTORICAL-ROW" not in status and ("CURRENT" in status or "REGISTERED" in status):
-            live.setdefault(path_cell, []).append(spec)
-
     hex64 = re.compile(r"([0-9a-f]{64})")
+
+    def seg_of(path_cell: str) -> str:
+        return path_cell.split("+")[-1].strip().strip("`")
+
+    # 位置语义：每个 (spec_id, path) 组的最后一行才是活行
+    latest: dict[tuple[str, str], int] = {}
+    for i, (spec, path_cell, _ver, _status, _line) in enumerate(rows):
+        latest[(spec, seg_of(path_cell))] = i
+
     checked = 0
-    for spec, path_cell, _ver, status, row_line in rows:
-        if "HISTORICAL-ROW" in status:
-            assert live.get(path_cell), (
-                f"[{spec}] 标为 HISTORICAL-ROW 但同路径无 CURRENT/REGISTERED 继任者行 —— "
-                f"防滥用不变量被破坏（该文件将被永久豁免出哈希校验）"
-            )
-            continue
-        seg = path_cell.split("+")[-1].strip().strip("`")
+    live_specs: set[str] = set()
+    for i, (spec, path_cell, _ver, _status, row_line) in enumerate(rows):
+        seg = seg_of(path_cell)
+        if latest[(spec, seg)] != i:
+            continue  # archived：历史哈希封存，不与当前文件比对
         f = REPO_ROOT / seg
-        if not f.suffix or not f.is_file():
+        if not f.suffix:
             continue
         pins = hex64.findall(row_line)
-        if not pins:
-            continue  # 占位待补登
+        assert pins, (
+            f"[{spec} {seg}] 该组最后一行仍是占位哈希 —— 文件当前不受任何哈希保护，"
+            f"而更早的版本行已封存不再比对。请 --fill 补登或删除该占位行。"
+        )
+        if not f.is_file():
+            raise AssertionError(f"[{spec}] 已登记但文件缺失: {seg}")
         actual = hashlib.sha256(f.read_bytes()).hexdigest()
         checked += 1
+        live_specs.add(spec)
         assert actual in pins, (
             f"[{spec}] 哈希漂移：文件 {seg} 的实际哈希 {actual[:16]}… 不在登记行内。"
             f"规则②③：请追加新版本行（勿改写旧行哈希），再运行 "
@@ -2144,6 +2158,113 @@ def test_registered_documents_do_not_drift_from_their_pinned_hashes() -> None:
         )
     assert checked >= 10, f"仅校验了 {checked} 行，注册表疑似被清空或格式变更"
 
+    # 钉死第 1 条边界：当前生效的宪基必须是活行，绝不能被位置语义 archived 掉
+    assert "CONST-v3.0.1" in live_specs, (
+        "CONST-v3.0.1（唯一生效宪基）未被哈希校验 —— 它被位置语义误判为已取代的历史行。"
+        "归组键必须是 (spec_id, path)，不能是 path。"
+    )
+    assert "POLICY-RUNTIME" in live_specs and "PLAN-R4-B" in live_specs
+
+
+def test_policy_satisfies_the_retention_worker_loader_contract() -> None:
+    """政策层必须满足 retention_worker.py 的 fail-closed 载入契约。
+
+    自 M1-019 起，政策层不再只是"给人读的法律"—— src/aios_core/services/
+    retention_worker.py 的 RetentionPolicy.from_runtime_policy() 会真的读它，
+    任何键缺失直接抛 AssertionError。这改变了政策层的失效模式：
+    删掉一个键不再只是"法律少了一条"，而是**GC Worker 起不来**。
+
+    本断言逐行复刻该 loader 的判定逻辑（不 import 它，因为那需要 pydantic），
+    使政策门能在没有运行时依赖的环境下守住这个契约。
+    loader 若变更，本断言必须同步 —— 两侧都有测试，改一边就会红。
+    """
+    rp = POLICY.get("retention_policy")
+    assert isinstance(rp, dict), "缺 retention_policy 段——Worker fail-closed"
+
+    ttl_raw = rp.get("ttl_days_by_retention_class")
+    assert isinstance(ttl_raw, dict), "retention_policy.ttl_days_by_retention_class 缺失（Worker fail-closed）"
+    ttl = {k: int(v) for k, v in ttl_raw.items() if isinstance(v, int) and k != "$comment"}
+    # RetentionClass 枚举的可吊销两类必须在表内（枚举值见 contracts/enums_v3.py）
+    for klass in ("revocable_raw", "ephemeral_session"):
+        assert klass in ttl, f"TTL 表缺可吊销类 {klass}——Worker fail-closed"
+    # 永存类不得有 TTL 数值：null 才是"永不过期"，写成整数就等于给了它一个死期
+    assert ttl_raw.get("revocation_free") is None, (
+        f"revocation_free 属 ADJ-004 吊销权外永存类，不得有 TTL 数值，实得 "
+        f"{ttl_raw.get('revocation_free')!r}"
+    )
+    assert "revocation_free" not in ttl, "revocation_free 被 isinstance(int) 过滤后才安全；若它是整数就会被当成 TTL"
+
+    cooldown = rp.get("quarantine_cooldown_days")
+    retire = rp.get("speaker_cluster_retire_days")
+    retire_days = retire.get("days") if isinstance(retire, dict) else retire
+    assert isinstance(cooldown, int), "quarantine_cooldown_days 必须为整数——Worker fail-closed"
+    assert isinstance(retire_days, int), "speaker_cluster_retire_days.days 必须为整数——Worker fail-closed"
+    assert POLICY.get("policy_version"), "policy_version 为空——Worker 用它作 legal_basis"
+
+    # TTL 必须为正且不得长于隔离冷却期的合理倍数（ephemeral 必须显著短于 raw）
+    assert ttl["ephemeral_session"] < ttl["revocable_raw"], (
+        "会话级缓存的 TTL 不得长于原始可吊销副本——否则'会话级'名不副实"
+    )
+    assert all(v > 0 for v in ttl.values()), "TTL 必须为正数；0 或负数意味着立即物理删除"
+
+
+def test_stage1_quarantine_alias_cannot_drift_from_its_canonical_field() -> None:
+    """ADJ-011 §2：一物两名即漂移源 —— 别名字段必须与正字段钉死相等。
+
+    合并进来的 stage1_quarantine_days 与同域 quarantine_cooldown_days 语义相同、
+    数值相同，且全仓库无任何代码读取它（Worker 读的是 quarantine_cooldown_days）。
+    两个字段各自演进之后，"隔离冷却期到底几天"就没有唯一答案。
+
+    处置不是擅自删掉另一条工作线已提交的字段，而是**让它无法漂移**：
+    钉死相等 + 在政策层标注为待删别名。删除动作留给下一次治理作业。
+    """
+    rp = POLICY["retention_policy"]
+    canonical = rp["quarantine_cooldown_days"]
+    alias = rp["stage1_quarantine_days"]
+    assert isinstance(alias, dict) and "days" in alias, "别名字段结构变了，需同步本断言"
+    assert alias["days"] == canonical, (
+        f"stage1_quarantine_days.days={alias['days']} 与 quarantine_cooldown_days={canonical} "
+        f"已经漂移 —— 这正是 ADJ-011 预言的失效：一物两名，各自演进，法律不再有唯一答案"
+    )
+    assert "$alias_warning" in alias, (
+        "别名字段必须自带 $alias_warning 说明它是冗余的、以及为什么还没删"
+    )
+
+
+def test_speaker_cluster_window_is_referenced_not_duplicated() -> None:
+    """ADJ-009 的退休窗口：只放引用，不复制数值。
+
+    我在 ADJ-009 对齐时写了 activity_assessed_by_recent_use_window=true 却没给数值 ——
+    对一个 fail-closed 系统，没有值的窗口等于没有窗口，实现者只能自己猜。
+    另一条工作线的 speaker_cluster_retire_days.days=180 正好是这个值。
+
+    此处**引用而非复制**：复制就会有两个 180，而两个 180 迟早变成 180 和 210。
+    这与 threshold_governance 的 single_source_of_truth 是同一条纪律，
+    也是我在本轮第二次亲手实践它（第一次是 change_log 字段名）。
+    """
+    scl = POLICY["speaker_cluster_lifecycle"]
+    ref = scl.get("activity_assessed_by_recent_use_window_value_ref")
+    assert ref, "声纹退休窗口必须有数值来源引用，否则该窗口无法实现"
+    assert scl["activity_assessed_by_recent_use_window"] is True
+
+    # 解引用：路径必须真实可解析到一个正整数
+    parts = ref.split(".")
+    node: Any = POLICY
+    for part in parts:
+        assert isinstance(node, dict) and part in node, f"引用 {ref} 在 {part} 处断裂——悬空引用"
+        node = node[part]
+    assert isinstance(node, int) and node > 0, f"引用 {ref} 解析到 {node!r}，不是正整数"
+
+    # 反向守卫：生命周期域内不得出现第二个退休天数（防止有人"顺手"复制一份）
+    duplicates = [
+        k for k, v in scl.items()
+        if not k.startswith("$") and isinstance(v, int) and v == node
+        and k != "activity_assessed_by_recent_use_window_value_ref"
+    ]
+    assert not duplicates, (
+        f"speaker_cluster_lifecycle 内出现与 {ref} 同值的裸整数 {duplicates} —— "
+        f"复制数值即制造第二个真相来源"
+    )
 
 
 def test_every_threshold_baseline_assertion_names_a_real_enforcing_test() -> None:
@@ -2181,6 +2302,53 @@ def test_every_threshold_baseline_assertion_names_a_real_enforcing_test() -> Non
         "  判决门改名时必须同步更新政策层的 enforced_by —— 与回归套件的"
         "  target-existence 守卫是同一类假绿通道。"
     )
+
+
+def test_policy_version_matches_its_live_registry_row() -> None:
+    """政策层声明的版本号，必须与注册表里 POLICY-RUNTIME 的活行一致。
+
+    变异测试 CASE-236 逼出来的断言：把 policy_version 从 1.2.0 改回 1.1.0，
+    原有的 test_policy_is_versioned_and_bound_to_constitution 只检查"非空"，
+    于是**一次版本号对撞在判决门下完全隐形**。
+
+    2026-09-16 实际发生过：两条工作线在互不知情的情况下各自产出一个"1.1.0"
+    （一条把 retention_ttl 入法，一条做 ADJ-001~012 全量对齐），内容不同、版本号相同。
+    注册表存在的理由就是消灭这种指代歧义，而政策层自己声明的版本号
+    必须与注册表的活行对齐，否则两份"权威"各说各话。
+
+    三条子不变量：
+      1. 活行（同 spec_id+路径的最后一行）的版本号 == policy_version；
+      2. POLICY-RUNTIME 的版本号不得重复（一号一物）；
+      3. 版本链必须单调递增（追加序即时间序，不得插入更旧的版本）。
+    """
+    rows = [r for r in _registry_rows() if r[0] == "POLICY-RUNTIME"]
+    assert rows, "POLICY-RUNTIME 未在 registry.md 登记"
+
+    versions = [r[2].strip("*").strip() for r in rows]
+    # 2) 一号一物
+    dupes = {v for v in versions if versions.count(v) > 1}
+    assert not dupes, (
+        f"POLICY-RUNTIME 版本号重复: {sorted(dupes)} —— 一个版本号同时指代两份不同内容，"
+        f"这正是注册表要消灭的指代歧义（2026-09-16 两条工作线各出一个 1.1.0）"
+    )
+
+    # 1) 活行 = 表内最后一行（位置语义）
+    live_version = versions[-1]
+    declared = str(POLICY["policy_version"])
+    assert declared == live_version, (
+        f"政策层自称 v{declared}，但注册表的活行是 v{live_version}。"
+        f"改了政策就要追加版本行并同步 policy_version —— 两份'权威'不得各说各话。"
+    )
+
+    # 3) 版本链单调递增（语义化版本的数值序）
+    def triple(v: str) -> tuple[int, ...]:
+        parts = re.findall(r"\d+", v)
+        assert parts, f"无法解析版本号 {v!r}"
+        return tuple(int(x) for x in parts[:3])
+
+    seq = [triple(v) for v in versions]
+    assert seq == sorted(seq), f"POLICY-RUNTIME 版本链不是追加序: {versions}"
+
 
 
 # ---------------------------------------------------------------------------

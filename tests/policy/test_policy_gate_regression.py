@@ -2616,6 +2616,166 @@ def test_case_222_statement_field_removed_from_assertion_entry_is_caught() -> No
     _assert_caught(m, "test_every_threshold_baseline_assertion_names_a_real_enforcing_test")
 
 
+
+# ---------------------------------------------------------------------------
+# CASE-223~236：1.2.0 合并面 —— 政策层现在是运行时代码的 fail-closed 依赖
+#
+# 这批 case 的性质与前几批不同。此前政策层的失效模式是"法律少了一条"；
+# 自 M1-019 起，retention_worker.py 的 RetentionPolicy.from_runtime_policy()
+# 会真的读政策层，缺键直接抛 AssertionError —— 失效模式变成"GC Worker 起不来"。
+# 政策层从规范文档变成了运行时契约，守卫等级也要跟着升。
+# ---------------------------------------------------------------------------
+
+
+def test_case_223_ttl_table_removed_breaks_the_worker_loader() -> None:
+    """删掉 TTL 表，retention_worker 直接 fail-closed 抛错。"""
+    def m(p: dict[str, Any]) -> None:
+        del p["retention_policy"]["ttl_days_by_retention_class"]
+
+    _assert_caught(m, "test_policy_satisfies_the_retention_worker_loader_contract")
+
+
+def test_case_224_revocable_class_missing_from_ttl_table() -> None:
+    """TTL 表少一个可吊销类，Worker 会拒绝处置该类对象（fail-closed 拒绝私自处置）。"""
+    def m(p: dict[str, Any]) -> None:
+        p["retention_policy"]["ttl_days_by_retention_class"].pop("ephemeral_session")
+
+    _assert_caught(m, "test_policy_satisfies_the_retention_worker_loader_contract")
+
+
+def test_case_225_immortal_class_given_a_ttl_is_caught() -> None:
+    """给 revocation_free 写上整数 TTL = 给永存类判了死期。
+
+    ADJ-004 的吊销权外清单（对象版本链/被引用观测/DeletionLog）永不过期，
+    null 才是"永存"的机器表达。写成 365 看起来只是"保留一年"，
+    实际是把永存类降级成了可吊销类 —— 而且 Worker 的 isinstance(v,int) 过滤
+    会把它当成真 TTL 读进去，静默生效。
+    """
+    def m(p: dict[str, Any]) -> None:
+        p["retention_policy"]["ttl_days_by_retention_class"]["revocation_free"] = 365
+
+    _assert_caught(m, "test_policy_satisfies_the_retention_worker_loader_contract")
+
+
+def test_case_226_session_ttl_longer_than_raw_ttl_is_caught() -> None:
+    """会话级缓存活得比原始可吊销副本还久，"会话级"就名不副实了。"""
+    def m(p: dict[str, Any]) -> None:
+        t = p["retention_policy"]["ttl_days_by_retention_class"]
+        t["ephemeral_session"] = 400
+
+    _assert_caught(m, "test_policy_satisfies_the_retention_worker_loader_contract")
+
+
+def test_case_227_zero_ttl_means_immediate_physical_delete() -> None:
+    """TTL=0 等于立即物理删除 —— 绕过两阶段墓碑，正是 C1 一票否决的行为。"""
+    def m(p: dict[str, Any]) -> None:
+        p["retention_policy"]["ttl_days_by_retention_class"]["revocable_raw"] = 0
+
+    _assert_caught(m, "test_policy_satisfies_the_retention_worker_loader_contract")
+
+
+def test_case_228_cluster_retire_days_made_non_integer() -> None:
+    """Worker 要求 speaker_cluster_retire_days.days 为整数，否则 fail-closed。"""
+    def m(p: dict[str, Any]) -> None:
+        p["retention_policy"]["speaker_cluster_retire_days"]["days"] = "半年"
+
+    _assert_caught(m, "test_policy_satisfies_the_retention_worker_loader_contract")
+
+
+def test_case_229_quarantine_cooldown_made_non_integer() -> None:
+    """隔离冷却期是 Worker 的撤销权窗口，非整数即 fail-closed。"""
+    def m(p: dict[str, Any]) -> None:
+        p["retention_policy"]["quarantine_cooldown_days"] = 30.5
+
+    _assert_caught(m, "test_policy_satisfies_the_retention_worker_loader_contract")
+
+
+def test_case_230_policy_version_emptied_breaks_legal_basis() -> None:
+    """Worker 把 policy_version 写进每条处置记录的 legal_basis；空版本号 = 无法追溯依哪版法律处置。"""
+    def m(p: dict[str, Any]) -> None:
+        p["policy_version"] = ""
+
+    _assert_caught(
+        m,
+        "test_policy_satisfies_the_retention_worker_loader_contract",
+        "test_policy_is_versioned_and_bound_to_constitution",
+    )
+
+
+def test_case_231_quarantine_alias_drifts_from_canonical_field() -> None:
+    """ADJ-011：一物两名各自演进，"隔离冷却期到底几天"就没有唯一答案。
+
+    stage1_quarantine_days 与 quarantine_cooldown_days 语义相同、数值相同，
+    且全仓库无代码读取前者。不擅自删除另一条工作线的字段，改为钉死相等。
+    """
+    def m(p: dict[str, Any]) -> None:
+        p["retention_policy"]["stage1_quarantine_days"]["days"] = 45
+
+    _assert_caught(m, "test_stage1_quarantine_alias_cannot_drift_from_its_canonical_field")
+
+
+def test_case_232_alias_warning_removed_is_caught() -> None:
+    """摘掉别名警告，冗余字段就会被后人当成独立参数各自维护。"""
+    def m(p: dict[str, Any]) -> None:
+        p["retention_policy"]["stage1_quarantine_days"].pop("$alias_warning")
+
+    _assert_caught(m, "test_stage1_quarantine_alias_cannot_drift_from_its_canonical_field")
+
+
+def test_case_233_cluster_window_reference_removed_is_caught() -> None:
+    """我在 ADJ-009 对齐时只写了 window=true 却没给数值 —— 没有值的窗口等于没有窗口。"""
+    def m(p: dict[str, Any]) -> None:
+        p["speaker_cluster_lifecycle"].pop("activity_assessed_by_recent_use_window_value_ref")
+
+    _assert_caught(m, "test_speaker_cluster_window_is_referenced_not_duplicated")
+
+
+def test_case_234_cluster_window_reference_left_dangling_is_caught() -> None:
+    """引用指向不存在的路径 = 悬空引用，与没有引用同样无法实现。"""
+    def m(p: dict[str, Any]) -> None:
+        p["speaker_cluster_lifecycle"][
+            "activity_assessed_by_recent_use_window_value_ref"
+        ] = "retention_policy.speaker_cluster_retire_days.weeks"
+
+    _assert_caught(m, "test_speaker_cluster_window_is_referenced_not_duplicated")
+
+
+def test_case_235_cluster_window_value_copied_instead_of_referenced_is_caught() -> None:
+    """复制数值即制造第二个真相来源：两个 180 迟早变成 180 和 210。"""
+    def m(p: dict[str, Any]) -> None:
+        p["speaker_cluster_lifecycle"]["retirement_window_days"] = 180
+
+    _assert_caught(
+        m,
+        "test_speaker_cluster_window_is_referenced_not_duplicated",
+        allow_additive=True,
+    )
+
+
+def test_case_236_version_collision_reintroduced_is_caught() -> None:
+    """两条工作线各自产出一个"1.1.0"（内容不同、版本号相同）。
+
+    合并后必须是 1.2.0：任何一方都不"赢得"1.1.0 这个号。
+    退回去就等于让一个版本号重新指代两份不同内容 —— 注册表要消灭的正是这个。
+    """
+    def m(p: dict[str, Any]) -> None:
+        p["policy_version"] = "1.1.0"
+
+    _assert_caught(m, "test_policy_version_matches_its_live_registry_row")
+
+
+def test_case_237_policy_version_ahead_of_registry_live_row_is_caught() -> None:
+    """改了政策却没追加版本行：政策层自称的版本号比注册表活行更新。
+
+    与 CASE-236 同一条不变量的另一个方向 —— 两份"权威"各说各话，
+    谁都说不清线上跑的到底是哪一版法律。
+    """
+    def m(p: dict[str, Any]) -> None:
+        p["policy_version"] = "9.9.9"
+
+    _assert_caught(m, "test_policy_version_matches_its_live_registry_row")
+
+
 # ---------------------------------------------------------------------------
 # 独立运行入口（与 test_runtime_policy.py 保持同一种双入口约定）
 # ---------------------------------------------------------------------------

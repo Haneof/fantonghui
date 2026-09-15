@@ -83,6 +83,15 @@ class Row:
     path_cell: str
     hash_cell: str
 
+    @property
+    def raw_cells(self) -> list[str]:
+        """未经 strip 的原始单元格（parse_rows 挂在 _raw_cells 上）。
+
+        fill() 原位替换哈希格时必须用它：若改用 strip 过的 cells 重拼整行，
+        该行排版会被压扁成 |SPEC|`path`|ver|`hash`|，与表内其余行不一致。
+        """
+        return getattr(self, "_raw_cells", self.cells)
+
 
 def sha256_of(path: Path) -> str:
     h = hashlib.sha256()
@@ -233,7 +242,19 @@ def main() -> int:
             print("\n".join(drift), file=sys.stderr)
             print(f"\n{len(drift)} 行哈希漂移 —— 规则③：漂移即红检", file=sys.stderr)
             return 1
-        print(f"registry hash check green ({len(ok)} rows verified, {len(skipped)} placeholders)")
+        # skipped 现在混装两类语义完全不同的行，必须分开报：
+        #   archived  = 已被更晚版本行取代，哈希封存（正常状态，永久如此）
+        #   占位      = 尚未补登（不该出现在已提交状态里；末行占位已在上面判红，
+        #               非末行占位则说明有人提交了半截登记作业）
+        # 原本文案一律报 "placeholders"，会把 3 行正常的 archived 说成 3 个待补登，
+        # 让人去追一个不存在的问题 —— 报告说谎与守卫失效同样有害。
+        archived = [x for x in skipped if "archived" in x]
+        pending = [x for x in skipped if "archived" not in x]
+        msg = f"registry hash check green ({len(ok)} rows verified, {len(archived)} archived"
+        msg += f", {len(pending)} pending)" if pending else ")"
+        print(msg)
+        for x in pending:
+            print(f"  ! 非末行占位（已提交状态下不该存在）: {x}")
         return 0
 
     lines, filled, problems = fill(lines, rows)

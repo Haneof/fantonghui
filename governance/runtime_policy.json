@@ -16,9 +16,9 @@
     "格式：JSON 而非 YAML —— Python 标准库原生支持，不给 M0 冻结的 pyproject.toml 增加运行时依赖。",
     "强制：tests/policy/test_runtime_policy.py（判决）+ test_policy_gate_regression.py（判决的判决）。"
   ],
-  "policy_version": "1.1.0",
-  "generated_at": "2026-09-15",
-  "constitution_baseline": "CONST-v3.0.1 = AIOS核心系统宪法v3.0 (sha256:4df049fc…ce029f3a525f21bcef1) + governance/v3.0.1_规范裁决集_ADJ-001-012.md",
+  "policy_version": "1.2.0",
+  "generated_at": "2026-09-16",
+  "constitution_baseline": "CONST-v3.0.1 = AIOS核心系统宪法v3.0 (sha256:4df049fc…ce029f3a525f2) + governance/v3.0.1_规范裁决集_ADJ-001-012.md (sha256:a75a6db1…123953e18c85)；G0 已于 2026-09-15 签发",
   "upstream_authority": [
     "ADJ-v3.0.1",
     "CONST-v3.0.1",
@@ -674,7 +674,26 @@
       "$reconstruct_note": "这会改变 §43 EvidenceSet '区间证据必须可重建' 的选择器语义（稳定键 C13-interval_rebuild）—— 正是必须现在写进宪法的原因。",
       "conflicts_with_reference_lock_resolution": "法定义务优先；被 legal hold 冻结的对象在 hold 解除后立即执行 erasure，全程留审计",
       "third_party_voice_default": "不持久化声纹模板与可识别转写，除非该第三方被用户确立为核心关系人且已合理告知（详见 speaker_cluster_lifecycle）"
-    }
+    },
+    "ttl_days_by_retention_class": {
+      "$comment": "ADJ-004 吊销权分层的机器面。REVOCATION_FREE 永不过期（null）；REVOCABLE_RAW 原始副本冷却后可两阶段吊销；EPHEMERAL_SESSION 会话级硬 TTL。certificate 级对象（DeletionLog/墓碑）天然 REVOCATION_FREE。",
+      "constitution_ref": "ADJ-004, §25, §33之5",
+      "evidence": "系留 M1-019 Worker 的 GC 决策表；数值为 sim 阶段出厂值，真机校准随 M7",
+      "revocation_free": null,
+      "revocable_raw": 180,
+      "ephemeral_session": 30
+    },
+    "speaker_cluster_retire_days": {
+      "constitution_ref": "ADJ-009(半年退休→Tombstone 不破坏历史引用)",
+      "evidence": "V40 声纹冷热退役场景锚",
+      "days": 180
+    },
+    "stage1_quarantine_days": {
+      "$comment": "同 quarantine_cooldown_days，机器读取用平名字段",
+      "days": 30,
+      "$alias_warning": "【一物两名，ADJ-011 §2 所指】本字段与同域的 quarantine_cooldown_days 语义完全相同、数值相同（30），且**全仓库无任何代码或测试读取它**（Worker 读的是 quarantine_cooldown_days）。按 ADJ-011，一物两名即漂移源：两个字段各自演进之后，『隔离冷却期到底是几天』就没有唯一答案。处置：**不擅自删除另一条工作线已提交的字段**（与本报告对 baseline ADV-008 笔误的处置同理），改为用判决门把两者钉死相等 —— test_stage1_quarantine_alias_cannot_drift_from_its_canonical_field。下一次治理作业应删除本别名，只保留 quarantine_cooldown_days。"
+    },
+    "$merge_note_1_2_0": "【1.2.0 合并】ttl_days_by_retention_class / speaker_cluster_retire_days / stage1_quarantine_days 三个字段来自另一条工作线的 v1.1.0（M1-019 Retention & Tombstone Worker）。它们与本域的 ADJ-004 结构是**互补而非冲突**：我写的是『什么可以删、按什么条件删、删完留什么』（永存清单 / 引用锁 / 两阶段 / 出土兼容），他们写的是『多久之后删』（TTL 数值表）。合并前实测：两边在 retention_policy 里的叶子键**零重叠**，因此是干净的并集。这三个字段现在是 src/aios_core/services/retention_worker.py 的 fail-closed 载入契约 —— 缺任一个，Worker 直接抛 AssertionError。故判决门新增 test_policy_satisfies_the_retention_worker_loader_contract 逐键守卫。"
   },
   "speaker_cluster_lifecycle": {
     "$comment": "ADJ-009 新增。v1.0.0 我只有一句『第三方声纹默认不持久化』，完全没有生命周期 —— 而『声纹退休后历史引用断链』正是 ADJ-009 要堵的风险。",
@@ -713,7 +732,9 @@
     "revocable_parts": [
       "raw_audio_waveform"
     ],
-    "$split_note": "ADJ-009 §3：原始波形属 ADJ-004 可吊销对象；簇特征向量与来源归因属吊销权外清单 —— 必须永存以保留归因能力。"
+    "$split_note": "ADJ-009 §3：原始波形属 ADJ-004 可吊销对象；簇特征向量与来源归因属吊销权外清单 —— 必须永存以保留归因能力。",
+    "activity_assessed_by_recent_use_window_value_ref": "retention_policy.speaker_cluster_retire_days.days",
+    "$window_value_note": "【1.2.0 补全】我在 ADJ-009 对齐时写了 activity_assessed_by_recent_use_window=true，但**没有给这个窗口任何数值** —— 对一个 fail-closed 系统来说，一个没有值的窗口等于没有窗口，实现者只能自己猜。另一条工作线的 speaker_cluster_retire_days.days=180（引 ADJ-009 半年退休）正好是这个值。此处**只放引用、不复制数值**：复制就会有两个 180，而两个 180 迟早变成 180 和 210。判决门 test_speaker_cluster_window_is_referenced_not_duplicated 守卫这一点。"
   },
   "threshold_governance": {
     "$comment": "ADJ-008 新增。触发阈值（心率波动线、运动突变线、心跳间隔等）属二级治理参数。这一段独立印证了本政策层的存在理由：ADJ-008(b) 要求阈值『在 governance/thresholds/ 中以参数文件形态冻结出厂基线』—— 与本文件 governance/runtime_policy.json 是同一个设计模式，两条独立路径走到了同一处。【2026-09-16 更新】THRESH-BASE 已由 M0-031 落地并登记（hash_registry 校验通过）。本段随之改变身份：**从『定义阈值治理规则』降为『消费已落地的基线契约』**。理由见 single_source_of_truth 字段 —— 我在 v1.1.0 初版里自行声明了一套 change_log 字段名，与已落地的 baseline_v1.json 语义相同、命名不同，正是 ADJ-011 要消灭的『一物两名』。已改为引用而非重定义。",
@@ -2058,5 +2079,6 @@
       "total": 12
     },
     "$honest_note": "12 条里没有一条是『我对 ADJ 错』。这不是客套：ADJ 裁决集是在完整读过 v3.0 全文并做了条款级冲突分析后签发的，而我的 v1.0.0 是在断层审计的基础上做的工程推导 —— 在『条款语义的精确边界』这件事上，前者的信息位置本来就优于后者。我的优势在别处：可执行的判决门、实测数字、以及给判决门写回归测试。两者合流才对。"
-  }
+  },
+  "$version_collision_note": "【为什么是 1.2.0 而不是 1.1.0】2026-09-16，两条工作线在互不知情的情况下各自产出了一个 v1.1.0：一条把 retention_ttl 入法（M1-019 参数表，已提交，registry 钉哈希 1bcf22f1…），一条做 ADJ-001~012 全量对齐（未提交）。**同一个版本号指代两份不同内容**，这正是注册表要消灭的东西。合并后的工件升为 1.2.0：任何一方都不『赢得』1.1.0 这个号，已提交的那条按规则②原样封存，未提交的那条不占版本号（内容已并入 1.2.0）。我在政策层里写了 id_namespace_registry 专门防止编号漂移，然后在同一周里两次成为它的案例（第一次是设计书 C15/C16 模块编号对撞，第二次就是这个版本号对撞）。"
 }
