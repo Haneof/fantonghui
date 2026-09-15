@@ -12,13 +12,22 @@
   "schema_version": "1.0.0",
   "file_id": "THRESH-BASE",
   "generated_at": "2026-09-16",
-  "constitution_baseline": "AIOS核心系统宪法v3.0 (sha256=4df049fc…) + governance/v3.0.1_规范裁决集_ADJ-001-012.md",
+  "constitution_baseline": "AIOS核心系统宪法v3.0 (sha256=4df049fc…) + docs/constitution/v3.0.1_规范裁决集_ADJ-001-012.md",
   "adjudication_ref": "ADJ-008",
   "constitution_ref": "§83（出厂基线+自主进化），§76（阈值是可测试参数），§11（安全禁死规则）",
   "change_protocol": {
     "$comment": "ADJ-008(c) 的机器形态。任何阈值偏离本基线的动作，无论 AI 学习还是人工治理，必须先写日志再改值。",
     "log_object": "threshold_change_log",
-    "required_fields": ["param_id", "prev_value", "next_value", "input_window", "learner_hash", "rationale", "applied_at", "reversible"],
+    "required_fields": [
+      "param_id",
+      "prev_value",
+      "next_value",
+      "input_window",
+      "learner_hash",
+      "rationale",
+      "applied_at",
+      "reversible"
+    ],
     "rules": [
       "写日志先于改值（无日志的改值视为篡改，§93之1）",
       "日志可回放：从本基线顺序重放日志必须精确复现当前值",
@@ -33,72 +42,110 @@
       "meaning": "血氧下限报警线：低于此值产生安全级 Wake（Step-0 优先级）",
       "value": 92,
       "unit": "percent",
-      "bounds": {"hard_min": 85, "hard_max": 100},
+      "bounds": {
+        "hard_min": 85,
+        "hard_max": 100
+      },
       "safety_lane": true,
       "safer_direction": "raise",
       "learn_channel": "STRICTER_ONLY",
       "constitution_ref": "§83, §76, §11",
       "evidence": "sim 出厂基线；V41 安全旁路场景锚；真机校准留 M7",
-      "learning": {"cycle_days": 30, "max_delta_per_cycle_pct": 2.0, "window_min_samples": 200}
+      "learning": {
+        "cycle_days": 30,
+        "max_delta_per_cycle_pct": 2.0,
+        "window_min_samples": 200
+      }
     },
     {
       "param_id": "thr.vital.fall_impact_g",
       "meaning": "撞击加速度触发线：超过即进入疑似摔倒确认序列",
       "value": 3.5,
       "unit": "g",
-      "bounds": {"hard_min": 2.0, "hard_max": 8.0},
+      "bounds": {
+        "hard_min": 2.0,
+        "hard_max": 8.0
+      },
       "safety_lane": true,
       "safer_direction": "lower",
       "learn_channel": "STRICTER_ONLY",
       "constitution_ref": "§83, §76, §11",
       "evidence": "ADJ-008(d) 点名的摔倒/撞击人身硬信号；V41 安全旁路演练锚",
-      "learning": {"cycle_days": 30, "max_delta_per_cycle_pct": 5.0, "window_min_samples": 50}
+      "learning": {
+        "cycle_days": 30,
+        "max_delta_per_cycle_pct": 5.0,
+        "window_min_samples": 50
+      }
     },
     {
       "param_id": "thr.vital.hr_resting_dev_bpm",
       "meaning": "静息心率偏移报警线：偏离个体基线超过该值触发关注",
       "value": 20,
       "unit": "bpm",
-      "bounds": {"hard_min": 10, "hard_max": 40},
+      "bounds": {
+        "hard_min": 10,
+        "hard_max": 40
+      },
       "safety_lane": true,
       "safer_direction": "lower",
       "learn_channel": "STRICTER_ONLY",
       "constitution_ref": "§83, §76",
       "evidence": "ADJ-008 点名的'心率波动线'；个体基线本身是可学习量，本线只管偏移幅度",
-      "learning": {"cycle_days": 30, "max_delta_per_cycle_pct": 5.0, "window_min_samples": 300}
+      "learning": {
+        "cycle_days": 30,
+        "max_delta_per_cycle_pct": 5.0,
+        "window_min_samples": 300
+      }
     },
     {
       "param_id": "thr.motion.inactivity_alert_hours",
       "meaning": "久坐/长静止提醒线：非安全型生活便利阈值",
       "value": 6,
       "unit": "hour",
-      "bounds": {"hard_min": 1, "hard_max": 12},
+      "bounds": {
+        "hard_min": 1,
+        "hard_max": 12
+      },
       "safety_lane": false,
       "safer_direction": null,
       "learn_channel": "DUAL",
       "constitution_ref": "§83, §76",
       "evidence": "ADV-008 允许双向学习的生活型参数；受 V41 情境抑制节制（工作/驾驶/睡眠静默优先于提醒）",
-      "learning": {"cycle_days": 14, "max_delta_per_cycle_pct": 10.0, "window_min_samples": 60}
+      "learning": {
+        "cycle_days": 14,
+        "max_delta_per_cycle_pct": 10.0,
+        "window_min_samples": 60
+      }
     },
     {
       "param_id": "thr.system.heartbeat_interval_s",
       "meaning": "主动心跳的基准间隔：机械闸门评估一轮'是否需要说话'的节率",
       "value": 10800,
       "unit": "second",
-      "bounds": {"hard_min": 900, "hard_max": 21600},
+      "bounds": {
+        "hard_min": 900,
+        "hard_max": 21600
+      },
       "safety_lane": false,
       "safer_direction": null,
       "learn_channel": "DUAL",
       "constitution_ref": "§83, §76, §86（条件驱动零浪费）",
       "evidence": "runtime_policy.heartbeat 月封套 240 次的对标参数；V41 长平稳心跳场景（稳定 24h 不产生 3~5h 轰炸）是本线的主考场：学习只许拉长不许乱缩；安全旁路不受本线节制（Step-0 优先）",
-      "learning": {"cycle_days": 7, "max_delta_per_cycle_pct": 10.0, "window_min_samples": 40}
+      "learning": {
+        "cycle_days": 7,
+        "max_delta_per_cycle_pct": 10.0,
+        "window_min_samples": 40
+      }
     },
     {
       "param_id": "thr.prediction.check_window_default_days",
       "meaning": "Prediction 默认验收窗：无显式窗口时的评估期限锚",
       "value": 30,
       "unit": "day",
-      "bounds": {"hard_min": 7, "hard_max": 180},
+      "bounds": {
+        "hard_min": 7,
+        "hard_max": 180
+      },
       "safety_lane": false,
       "safer_direction": null,
       "learn_channel": "NONE",
@@ -106,5 +153,6 @@
       "evidence": "M0-024 Prediction 契约的 check_window 缺省锚；窗口长度影响校准统计口径，治理版本化，不进学习通道",
       "learning": null
     }
-  ]
+  ],
+  "$path_migration_note": "v1.1：仅迁移 constitution_baseline 中裁决集的引用路径 —— 主线 e7ba42e/19ab6a8 「法统目录归一化」把 governance/v3.0.1_规范裁决集_ADJ-001-012.md 移到 docs/constitution/ 下，使本文件原有的引用成为悬空路径（ADJ-011 §2 所指）。**参数值、硬边界、change_protocol 一字未动**，故这不是语义变更，是完成主线自己的迁移。按 registry 规则② 追加 v1.1 版本行，v1 行哈希原样封存。"
 }

@@ -15,9 +15,11 @@ from pydantic_core import PydanticSerializationError
 
 from aios_core.contracts.base import WorldObject
 from aios_core.contracts.enums import ObjectType
+from aios_core.contracts.enums_v3 import ObjectTypeV3
 from aios_core.contracts.operations import OperationRequest
 from aios_core.contracts.refs import ObjectRef, SourceRef
 from aios_core.contracts.registry import canonical_model_for_object_type
+from aios_core.contracts.registry_v3 import canonical_model_for_object_type_v3
 
 TWorldObject = TypeVar("TWorldObject", bound=WorldObject)
 _JSON_ADAPTER: TypeAdapter[Any] = TypeAdapter(Any)
@@ -338,10 +340,25 @@ def normalize_operation_for_persistence(operation: OperationRequest) -> Operatio
 
 
 def normalize_world_object_for_persistence(obj: TWorldObject) -> WorldObject:
-    """Validate through the canonical frozen model selected by durable object_type."""
+    """Validate through the canonical frozen model selected by durable object_type.
+
+    V3.0.1 extension: r2 的 19 类走冻结 r2 registry（行为一字不变）；
+    查无此类的 ObjectTypeV3 值落 V3 canonical registry——存储的 object_type 列
+    本就 TEXT 无 CHECK，这是 M0' 契约补丁声明的弹性兼容口。
+    """
+    from pydantic import ValidationError
 
     snapshot = _persistence_snapshot(obj)
-    object_type = _OBJECT_TYPE_ADAPTER.validate_python(obj.object_type)
+    try:
+        object_type = _OBJECT_TYPE_ADAPTER.validate_python(obj.object_type)
+    except ValidationError as original_error:
+        # V3.0.1 extension: 仅当该值是已登记的 ObjectTypeV3 时放行；
+        # 其余垃圾类型重抛原 r2 协议拒绝（行为与 M0 冻结一字不差）。
+        try:
+            v3_type = ObjectTypeV3(obj.object_type)
+        except ValueError:
+            raise original_error from None
+        return canonical_model_for_object_type_v3(v3_type).model_validate(snapshot)
     canonical_model = canonical_model_for_object_type(object_type)
     return canonical_model.model_validate(snapshot)
 
