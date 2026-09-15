@@ -411,3 +411,43 @@ def test_index_many_validates_each_item(index: CJKTopologicalInvertedIndex) -> N
         index.index_many([("ent_ok", "妈妈", NOW_NS), ("  ", "生日", NOW_NS)])
     with pytest.raises(ValueError, match="timestamp_ns must be >= 0"):
         index.index_many([("ent_ok", "妈妈", -5)])
+
+
+# ---------------------------------------------------------------------------
+# Agent-02 复核加固补丁：边隔离精准性 + 输出确定序
+# ---------------------------------------------------------------------------
+
+def test_precision_isolated_from_co_occurrence_edges() -> None:
+    """共现边把两家连成邻居时，严格求交绝不因此误召回。
+
+    对应任务书 §4「绝对不可误召回爸爸实体」的最坏变体：两家显式共现于
+    同一上下文、边已建立——命中集仍严格由 HAVING 交集决定。
+    """
+    conn = sqlite3.connect(":memory:")
+    index = CJKTopologicalInvertedIndex(conn)
+    index.index_entity_text("ent_mom", "给妈妈买生日礼物，妈妈非常喜欢这个礼物", NOW_NS)
+    index.index_entity_text("ent_dad", "爸爸喜欢钓鱼，送爸爸一个渔具", NOW_NS + 1)
+    assert index.record_co_occurrence(["ent_mom", "ent_dad"], NOW_NS + 2) == 1
+    edge = index.top_co_occurrence("ent_mom", limit=1)[0]
+    assert edge.neighbor("ent_mom") == "ent_dad"
+    for _ in range(3):
+        assert index.co_search(["妈妈", "生日", "礼物"]) == ["ent_mom"]
+        assert index.co_search(["喜欢", "钓鱼"]) == ["ent_dad"]
+        assert index.co_search(["妈妈", "钓鱼"]) == []
+    conn.close()
+
+
+def test_co_search_output_order_is_deterministic() -> None:
+    """多实体命中时输出按 entity_id 字典序确定（跨调用一致）。
+
+    下游 diff 评审与上下文缓存需要一个不随页状态漂移的结果序。
+    """
+    conn = sqlite3.connect(":memory:")
+    index = CJKTopologicalInvertedIndex(conn)
+    for eid in ("ent_z", "ent_a", "ent_m"):
+        index.index_entity_text(eid, "雨后山路云雾缭绕", NOW_NS)
+    baseline = index.co_search(["山路"])
+    assert baseline == ["ent_a", "ent_m", "ent_z"]
+    for _ in range(3):
+        assert index.co_search(["山路"]) == baseline
+    conn.close()

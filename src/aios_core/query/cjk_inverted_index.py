@@ -87,7 +87,7 @@ def tokenize_cjk_overlapping(text: str) -> set[str]:
        拉丁词元可直接命中，而不必退化成字符级碎片。
 
     >>> sorted(tokenize_cjk_overlapping("妈妈生日"))
-    ['妈妈', '妈生', '妈妈', '生日', '日']
+    ['妈', '妈妈', '妈生', '日', '生', '生日']
     """
     if not text:
         return set()
@@ -379,7 +379,8 @@ class CJKTopologicalInvertedIndex:
             "SELECT entity_id FROM topological_cjk_terms "
             f"WHERE term IN ({placeholders}) "
             "GROUP BY entity_id "
-            "HAVING COUNT(DISTINCT term) = ?"
+            "HAVING COUNT(DISTINCT term) = ? "
+            "ORDER BY entity_id"
         )
         cursor = self._conn.execute(sql, (*required, len(required)))
         return [row[0] for row in cursor.fetchall()]
