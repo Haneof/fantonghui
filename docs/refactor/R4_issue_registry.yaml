@@ -1,0 +1,223 @@
+# R4 独立首席架构师版 · Issue 注册表（机器可读）
+# 生成依据：AIOS_Core_全盘工程重构方案_R4_独立首席架构师版.md
+# 用途：总工派单工具 / CI 校验 / 机制证书台账
+# 约定：
+#   action: new | rewrite | abolish | extend | split | advance
+#   chain:  该 Issue 关联的机制证书 ID（无则为 null）
+#   gate:   该 Issue 产出的检查点证据（GP-*）
+schema_version: 1
+source_document: "AIOS_Core_全盘工程重构方案_R4_独立首席架构师版.md"
+registry_version: "MODULE-REGISTRY-v2"
+constitution: "AIOS核心系统宪法v3.0"
+
+milestones:
+  M0:
+    theme: "契约冻结 + 契约补丁窗口（GP-M0.5）"
+    new:
+      - {id: M0-023, name: 契约补丁程序与分片快照再冻结, deps: [M0-022], evidence: "CP台账+迁移演练", chain: null, gate: GP-M0.5, refs: ["§115"]}
+      - {id: M0-024, name: Prediction一等对象契约, deps: [M0-023], evidence: "Schema+拒绝用例", chain: MECH-PREDICTION-LOOP, gate: GP-M0.5, refs: ["§50","§53"]}
+      - {id: M0-025, name: LifeChapter一等对象契约, deps: [M0-023], evidence: "Schema+旧章节不可重算", chain: MECH-LIFECHAPTER, gate: GP-M0.5, refs: ["§29"]}
+      - {id: M0-026, name: CommunicationExperience一等对象, deps: [M0-023], evidence: "Schema+反应枚举", chain: MECH-COMM-EXP, gate: GP-M0.5, refs: ["§12","§69"]}
+      - {id: M0-027, name: SpeechPlan/TactContext/ChannelPolicy契约, deps: [M0-023], evidence: "计划先于生成的状态机", chain: MECH-EXPRESSION, gate: GP-M0.5, refs: ["§11","§14-1"]}
+      - {id: M0-028, name: Observation保留分级与钉扎墓碑契约, deps: [M0-017, M0-023], evidence: "DDL迁移+同事务钉扎", chain: MECH-HYGIENE, gate: GP-M0.5, refs: ["§33.5","§15-14","§93"]}
+      - {id: M0-029, name: 认知层导数约束与world_scope字段, deps: [M0-023], evidence: "架构测试Observation无导数", chain: null, gate: GP-M0.5, refs: ["§23","§30"]}
+      - {id: M0-030, name: ContextBudget/ContextManifest契约, deps: [M0-023], evidence: "Schema+CL-06", chain: MECH-CONTEXT-COMPILER, gate: GP-M0.5, refs: ["§85"]}
+      - {id: M0-031, name: RevalidationTask扩展与传播预算契约, deps: [M0-023], evidence: "Schema+超限聚合", chain: MECH-BOUNDED-PROPAGATION, gate: GP-M0.5, refs: ["§64","§93.3"]}
+      - {id: M0-032, name: ThresholdProfile与safety_floor契约, deps: [M0-023], evidence: "Schema+单调性测试", chain: MECH-THRESHOLD-EVOLUTION, gate: GP-M0.5, refs: ["§83"]}
+      - {id: M0-033, name: DeviceShadow/HapticFSM契约, deps: [M0-023], evidence: "Schema+FSM不变量", chain: MECH-HAPTIC-FSM, gate: GP-M0.5, refs: ["§98-1"]}
+      - {id: M0-034, name: 模块注册表v2与架构测试, deps: [M0-001], evidence: "架构测试+编号仲裁公告", chain: null, gate: GP-M0.5, refs: ["§108"]}
+      - {id: M0-035, name: 违宪扫描器CL-01~CL-12接入CI, deps: [M0-023], evidence: "CI job+12规则用例", chain: null, gate: GP-M0.5, refs: ["§116"]}
+    touched:
+      - {id: M0-017, action: rewrite, name: SQLite追加式世界存储schema, reason: "单层payload无法承载剪枝/永存/不可改三律(F4)", to: "两层存储+pin_index+tombstone"}
+      - {id: M0-022, action: rewrite, name: M0契约总测试与冻结快照, reason: "一元快照使契约不可演进(F1)", to: "分片快照+CP台账"}
+      - {id: M0-014, action: extend, name: Task/Wake/Session/Action/Outcome, reason: "Action缺表达意图、Outcome缺用户反应(F3)", to: "+speech_plan_ref/channel/user_reaction"}
+      - {id: M0-016, action: extend, name: OperationRequest与幂等, reason: "无预算字段(F8)", to: "+budget/cost_report"}
+      - {id: M0-009, action: extend, name: EvidenceSet契约, reason: "缺来源多样性与pin关系(F4)", to: "+source_diversity+pin钩子"}
+
+  M1:
+    theme: "共同世界内核 + 检索引擎 + 钉扎索引 + 当时已知视图"
+    new:
+      - {id: M1-017, name: 钉扎反查索引与同事务钉扎写入, deps: [M0-028], evidence: "事务性测试", chain: MECH-HYGIENE, gate: GP-M1A, refs: ["§42","§27"]}
+      - {id: M1-018, name: 多关键词共现检索引擎world.co_search, deps: [M1-012, M1-014], evidence: "复合意图召回测试", chain: MECH-CO-SEARCH, gate: GP-M1B, refs: ["§89"]}
+      - {id: M1-019, name: 5D时间镜头引擎, deps: [M1-010, M1-011], evidence: "10年直达某夜", chain: MECH-TIME-LENS, gate: GP-M1B, refs: ["§87"]}
+      - {id: M1-020, name: 图谱拓扑穿透导航world.navigate, deps: [M1-013], evidence: "运动会→奖品→遗失链路", chain: MECH-GRAPH-NAV, gate: GP-M1A, refs: ["§90"]}
+      - {id: M1-021, name: 当时已知世界双绑定, deps: [M0-020], evidence: "未来信息不可见反例", chain: null, gate: GP-M1A, refs: ["§43","§93"]}
+      - {id: M1-022, name: 证据可重建性证明器, deps: [M1-006, M0-009], evidence: "R2-04零漂移自动化", chain: MECH-EVIDENCE-REBUILD, gate: GP-M1A, refs: ["§43"]}
+      - {id: M1-023, name: 种子维度装载器与解耦校验, deps: [M1-004], evidence: "解耦校验测试", chain: null, gate: GP-M1A, refs: ["§19"]}
+      - {id: M1-024, name: 派生维度一键穿透API, deps: [M1-008, M1-013], evidence: "学习能力下钻链路", chain: MECH-DERIVATION-TRACE, gate: GP-M1A, refs: ["§24","§65"]}
+      - {id: M1-025, name: 来源多样性与置信上限规则, deps: [M0-008, M1-001], evidence: "单源未来结果不得高置信", chain: null, gate: GP-M1A, refs: ["§19.1","§40"]}
+      - {id: M1-026, name: 读操作成本计量与查询金标准, deps: [M1-018, M1-019], evidence: "成本基线报告", chain: null, gate: GP-M1B, refs: ["§85","§91"]}
+    touched:
+      - {id: M1-011, action: split, name: 多维对齐比较与机械变化检测, reason: "机械量与语义耦合，未禁止底层语义标签", to: "M1-011A机械变化检测 / M1-011B对齐比较"}
+      - {id: M1-012, action: rewrite, name: 世界搜索与关键词超链, reason: "不满足多关键词共现", to: "M1-018 co_search"}
+      - {id: M1-013, action: extend, name: 证据下钻与事件展开, reason: "缺双向穿透与因果链", to: "M1-020 navigate"}
+      - {id: M1-015, action: extend, name: 开发者控制台最小版, reason: "缺7向归因与时间滑条", to: "对齐§86控制台六视图"}
+      - {id: M1-016, action: extend, name: M1贯穿案例运动会→体育测试, reason: "缺三态证据/迟到数据/身份修正", to: "三态证据版本"}
+
+  M2:
+    theme: "共生闭环（双世界最小切片 + 上下文编译 + 表达层 + 隐式纠偏）"
+    new:
+      - {id: M2-016, name: Cockpit Manifest单次看板聚合器, deps: [M2-009], evidence: "单次调用完成唤醒准备", chain: MECH-COCKPIT, gate: GP-M2A, refs: ["§84.1"]}
+      - {id: M2-017, name: 心智启动四步序执行器与偏离检测, deps: [M1-023, M2-016], evidence: "乱序抛CONTEXT_ORDER_VIOLATION", chain: MECH-FOUR-STEP, gate: GP-M2A, refs: ["§84.2"]}
+      - {id: M2-018, name: 上下文编译器与四层装配预算降级, deps: [M0-030, M2-016], evidence: "分层差异+降级用例", chain: MECH-CONTEXT-COMPILER, gate: GP-M2A, refs: ["§85.3"]}
+      - {id: M2-019, name: 主动联想召回器, deps: [M1-018, M2-018], evidence: "跨时空记忆贯通场景", chain: MECH-RECALL, gate: GP-M2A, refs: ["§85.2"]}
+      - {id: M2-020, name: 活跃滑动窗口与增量流式萃取, deps: [M2-011, M0-008], evidence: "50轮后前台≤1500tokens", chain: MECH-STREAM-EXTRACT, gate: GP-M2A, refs: ["§85.2"]}
+      - {id: M2-021, name: 长会话防溢出指针化策略, deps: [M2-020], evidence: "溢出后仍可下钻原话", chain: null, gate: GP-M2A, refs: ["§25","§27"]}
+      - {id: M2-022, name: 隐式纠偏写路径含supersede, deps: [M0-024, M0-031], evidence: "三次随口纠正静默自愈", chain: MECH-IMPLICIT-CORRECTION, gate: GP-M2B, refs: ["§7","§15-13"]}
+      - {id: M2-023, name: 打扰许可与情景方便度研判, deps: [M0-034, M2-016], evidence: "不该出声场景0次出声", chain: MECH-INTERRUPTIBILITY, gate: GP-M2C, refs: ["§80.2"]}
+      - {id: M2-024, name: 长平稳心跳, deps: [M2-002], evidence: "全天平稳产生心跳且非必出声", chain: MECH-HEARTBEAT, gate: GP-M2C, refs: ["§80.1"]}
+      - {id: M2-025, name: 用户反馈驱动的主动频率自适应, deps: [M2-003, M0-032], evidence: "别烦我后频率下降且巡检不停", chain: MECH-ADAPTIVE-FREQ, gate: GP-M2C, refs: ["§80.3"]}
+      - {id: M2-026, name: 条件驱动任务执行与就绪清单, deps: [M2-005, M0-031], evidence: "未就绪任务不进看板", chain: MECH-CONDITIONAL-TASK, gate: GP-M2A, refs: ["§86.2","§15-18"]}
+      - {id: M2-027, name: 表达层最小闭环plan-generate-audit, deps: [M0-027, M2-028], evidence: "长文违规0+字节级未改写", chain: MECH-EXPRESSION, gate: GP-M2C, refs: ["§14-1","§9","§10"]}
+      - {id: M2-028, name: 通道策略与手环渲染预算, deps: [M0-033, M2-027], evidence: "通道预算表+升级或降级", chain: MECH-CHANNEL, gate: GP-M2C, refs: ["§98-1","§104-1"]}
+      - {id: M2-029, name: 会话运行日志与零增量不写占位, deps: [M2-011], evidence: "空会话写入量为零", chain: null, gate: GP-M2A, refs: ["R1-02"]}
+      - {id: M2-030, name: 真值优先的一天生成器, deps: [M0-035], evidence: "truth hash早于观测hash", chain: MECH-TRUTH-FIRST, gate: GP-M2A, refs: ["§111"]}
+      - {id: M2-031, name: M2端到端主动闭环与沉默正确性, deps: [M2-016, M2-017, M2-018, M2-022, M2-027, M2-030], evidence: "GP-M2A/B/C全证据", chain: null, gate: GP-M2C, refs: ["§112"]}
+    touched:
+      - {id: M2-009, action: abolish, name: workspace.open唤醒初始工作包, reason: "字段并列诱导多轮喂料，AI自身状态排第9位(F2)", to: "M2-016 Cockpit Manifest + M2-017 四步序"}
+      - {id: M2-010, action: rewrite, name: AI世界操作工具集, reason: "未对齐§91原子清单，无跳过/终止证明", to: "操作注册表§2.2.1"}
+      - {id: M2-002, action: rewrite, name: 机械触发引擎, reason: "缺长平稳心跳/打扰许可/阈值进化", to: "M2-023+M2-024+M2-025+M0-032"}
+      - {id: M2-003, action: rewrite, name: Wake去重合并冷却与升级, reason: "缺抑制期限/重激活/策略递归/安全不受抑制", to: "三条不变量+suppress_counter"}
+      - {id: M2-004, action: extend, name: Wake队列优先级抢占与饿死保护, reason: "无预算令牌桶与心跳优先级", to: "优先级表+令牌桶"}
+      - {id: M2-006, action: extend, name: 定时截止周期待办跟进语义, reason: "缺TriggerCriteria导致无条件下发待办", to: "M2-026四类条件"}
+      - {id: M2-013, action: rewrite, name: 主动帮助决策记录, reason: "不记打扰许可与表达计划，§97无数据", to: "三字段绑定"}
+      - {id: M2-014, action: abolish, name: 一天虚拟人和观测生成器, reason: "违反§111真值顺序，自证式验收(F6)", to: "M2-030真值优先版"}
+      - {id: M2-015, action: rewrite, name: M2端到端无提问主动闭环, reason: "不测沉默与表达合规，会绿灯放行违宪系统", to: "M2-031三条件并列"}
+      - {id: M2-011, action: extend, name: Session快照与跨会话接续, reason: "缺预算熔断后的接续语义", to: "熔断即checkpoint+接续任务"}
+      - {id: M2-001, action: extend, name: 离散事件虚拟时钟, reason: "未绑定真值可见性时间线", to: "联动truth.visible_after与cutoff"}
+
+  M3:
+    theme: "纠错/证据/总结/派生维度 + 剪枝三律 + 预测闭环 + 沟通经验"
+    new:
+      - {id: M3-012, name: 记忆卫生执行器剪枝墓碑隔离窗, deps: [M1-017, M0-028], evidence: "剪枝后零断裂+自动回滚", chain: MECH-HYGIENE, gate: GP-M3A, refs: ["§33.5","§15-14","§93"]}
+      - {id: M3-013, name: 懒失效传播引擎移除生产transitive, deps: [M0-031, M3-001], evidence: "老张案例有界传播", chain: MECH-BOUNDED-PROPAGATION, gate: GP-M3B, refs: ["§93.3","§64"]}
+      - {id: M3-014, name: 历史不重算读取语义, deps: [M3-004, M3-005], evidence: "旧总结正文零变化", chain: null, gate: GP-M3A, refs: ["§93"]}
+      - {id: M3-015, name: 认知层导数计算, deps: [M0-029, M3-008], evidence: "Burnout示例+底层禁止测试", chain: null, gate: GP-M3C, refs: ["§23"]}
+      - {id: M3-016, name: 假说-演绎闭环运行, deps: [M0-024, M2-026], evidence: "三态+自校正", chain: MECH-PREDICTION-LOOP, gate: GP-M3C, refs: ["§51","R3-03"]}
+      - {id: M3-017, name: 预测滥用门槛与配额, deps: [M0-024, M3-016], evidence: "六类拒绝原因统计", chain: MECH-PREDICTION-ABUSE-GATE, gate: GP-M3C, refs: ["§53"]}
+      - {id: M3-018, name: 人生章节相变与封存, deps: [M0-025, M3-005], evidence: "相变场景+旧章节不可重算", chain: MECH-LIFECHAPTER, gate: GP-M3C, refs: ["§29","R3-05"]}
+      - {id: M3-019, name: 沟通经验闭环, deps: [M0-026, M2-027], evidence: "双风格反应差异影响后续", chain: MECH-COMM-EXP, gate: GP-M3C, refs: ["§12","§69","V3-01"]}
+      - {id: M3-020, name: AI世界完整闭环五维, deps: [M0-026], evidence: "人格三支柱可回放证据", chain: MECH-AI-WORLD, gate: GP-M3C, refs: ["§8","§19.2","§32"]}
+      - {id: M3-021, name: 表达审计评分器独立于被测模型, deps: [M2-027], evidence: "与人类盲审一致性报告", chain: MECH-EXPRESSION-AUDIT, gate: GP-M3C, refs: ["§14-1","测试规范§15"]}
+      - {id: M3-022, name: 事件修正链路重写版, deps: [M0-031, M3-003], evidence: "已执行行动只追加", chain: null, gate: GP-M3B, refs: ["§49"]}
+      - {id: M3-023, name: M3贯穿测试纠错剪枝派生双世界, deps: [M3-012, M3-013, M3-018, M3-020], evidence: "单案例重放+7向归因", chain: null, gate: GP-M3A, refs: ["§86"]}
+    touched:
+      - {id: M3-001, action: rewrite, name: 依赖失效与纠错传播引擎, reason: "默认transitive与§93.3相反，算力雪崩+历史重算(F5)", to: "M3-013懒传播1跳+预算+指纹"}
+      - {id: M3-002, action: rewrite, name: EvidenceSet stale/rebuild, reason: "未区分标记与重建，未禁止区间漂移", to: "两动作分离+member diff"}
+      - {id: M3-004, action: rewrite, name: 日总结生成机制, reason: "缺缺口显式与跨尺度一致性", to: "缺口枚举+一致性检查器"}
+      - {id: M3-005, action: rewrite, name: 周月总结与跨层下钻, reason: "只到月，未覆盖多年尺度与封存只读", to: "多年骨架+跨级跳转+封存只读"}
+      - {id: M3-010, action: advance, name: AI自身世界最小闭环, reason: "排序致命：AI世界缺席会放行无自我M2闭环(F2)", to: "最小切片提前M2；完整五维=M3-020"}
+      - {id: M3-006, action: extend, name: 动态维度生命周期, reason: "缺§73候选十项与TRIAL→ACTIVE收益硬门", to: "十项必填+收益证据"}
+      - {id: M3-007, action: extend, name: 维度合并拆分休眠重激活, reason: "同上", to: "同上"}
+      - {id: M3-008, action: extend, name: DimensionDerivation高层认知服务, reason: "缺一键穿透与导数落位", to: "M1-024+M3-015"}
+      - {id: M3-009, action: extend, name: Goal进度评估与状态历史, reason: "缺§57帮助与Goal关联", to: "+help_goal_link"}
+      - {id: M3-011, action: extend, name: M3贯穿测试, reason: "缺剪枝与预测", to: "M3-023"}
+
+  M4:
+    theme: "一个月虚拟人生 + 真值优先 + 双预算闸 + 沉默评分"
+    new:
+      - {id: M4-005, name: 真值优先生成管线与哈希链, deps: [M2-030], evidence: "改数据即断链CI红", chain: MECH-TRUTH-FIRST, gate: GP-M4A, refs: ["§111"]}
+      - {id: M4-006, name: 双预算闸与熔断, deps: [M2-018, M1-026], evidence: "预算报告+熔断续办", chain: MECH-BUDGET-GATE, gate: GP-M4B, refs: ["§85"]}
+      - {id: M4-007, name: 主动帮助效用与打扰率评分升级, deps: [M2-013, M0-026], evidence: "接受率矩阵+打扰率分场景", chain: MECH-HELP-EFFECT, gate: GP-M4B, refs: ["§97"]}
+      - {id: M4-008, name: 沉默正确性评分, deps: [M2-031, M2-023], evidence: "沉默四项分解", chain: MECH-SILENCE-SCORING, gate: GP-M4B, refs: ["§5","§80.2"]}
+      - {id: M4-009, name: 双世界镜像实验, deps: [M3-020, M4-001], evidence: "双向因果链可回放", chain: MECH-AI-WORLD, gate: GP-M4A, refs: ["§31-1"]}
+    touched:
+      - {id: M4-001, action: rewrite, name: 连续30天虚拟人生生成器, reason: "真值后置；缺人格压力事件", to: "真相先行+5类压力事件"}
+      - {id: M4-002, action: rewrite, name: 评价指标实现, reason: "全为认知类指标，无表达/沉默/成本/预测", to: "新增20+指标"}
+      - {id: M4-003, action: extend, name: B0/B1/B2/O强基线, reason: "缺B3，无法消融人格是否来自AI世界", to: "新增B3强人格提示词基线"}
+      - {id: M4-004, action: extend, name: 30天闭环实验与固定回放, reason: "缺沉默与表达合规的独立报告节", to: "报告分节：认知/表达/沉默/成本"}
+
+  M5:
+    theme: "AI操作经验 + 沟通经验 + 检索经验"
+    new:
+      - {id: M5-004, name: 沟通经验独立收益AB, deps: [M3-019, M4-003], evidence: "配对结论+置信区间", chain: MECH-COMM-EXP, gate: GP-M5A, refs: ["§12"]}
+      - {id: M5-005, name: 检索路径经验与co_search路径优选AB, deps: [M1-018, M5-001], evidence: "成本下降且召回不下降", chain: MECH-RETRIEVAL-EXP, gate: GP-M5A, refs: ["§67"]}
+      - {id: M5-006, name: 经验过期反例与漂移检测, deps: [M5-002], evidence: "过期经验降权回放", chain: null, gate: GP-M5A, refs: ["§68"]}
+    touched:
+      - {id: M5-003, action: split, name: 操作经验AB与恋爱经历查询实验, reason: "单一实验无法覆盖三类经验", to: "M5-004/005/006"}
+
+  M6:
+    theme: "教育App + 设备影子FSM + 插件人格统一"
+    new:
+      - {id: M6-005, name: 手环设备影子与触觉FSM仿真器, deps: [M0-033, M2-028], evidence: "1000次误触注入零触发", chain: MECH-HAPTIC-FSM, gate: GP-M6A, refs: ["§98-1"]}
+      - {id: M6-006, name: 技能插件挂载协议与人格统一验证, deps: [M6-001, M0-034], evidence: "架构测试+跨插件复用", chain: MECH-SKILL-PLUGIN, gate: GP-M6B, refs: ["§104-1","§99"]}
+      - {id: M6-007, name: 长格式通道升级与中断, deps: [M2-028, M2-027], evidence: "教学长文不触发违宪告警", chain: MECH-EXPRESSION, gate: GP-M6B, refs: ["§14-1","§102"]}
+    touched:
+      - {id: M6-002, action: extend, name: Education Adapter, reason: "缺今天该否缩短课程的负向能力", to: "负向能力用例+通道切换"}
+      - {id: M6-003, action: rewrite, name: 跨维度状态适配教学, reason: "用数值阈值调教学强度同时踩数值化与死板规则两条底线", to: "状态作上下文注入，由模型裁定"}
+
+  M7:
+    theme: "一年运行 + 剪枝净收益 + 阈值进化 + 报告边界"
+    new:
+      - {id: M7-005, name: 报告边界十年导航≠十年生活, deps: [M7-001], evidence: "报告两类实验分节", chain: null, gate: GP-M7A, refs: ["§112.3"]}
+      - {id: M7-006, name: 阈值自主进化与安全地板回归, deps: [M0-032, M2-025], evidence: "1000次进化安全项不下调", chain: MECH-THRESHOLD-EVOLUTION, gate: GP-M7B, refs: ["§83.2"]}
+      - {id: M7-007, name: 穿戴端迁移可行性裁决, deps: [M6-005], evidence: "硬件耦合度审计+迁移清单", chain: null, gate: GP-M7B, refs: ["§98-1","§104-1"]}
+    touched:
+      - {id: M7-002, action: rewrite, name: 规模索引存储增长基准, reason: "只看增长不看剪枝净收益与检索质量", to: "双曲线+检索质量回归"}
+      - {id: M7-004, action: rewrite, name: 年度强基线与成本效果曲线, reason: "未约束报告边界与盲测纪律", to: "分节报告+纪律声明"}
+
+  M8:
+    theme: "消融 + 机制裁决 + 违宪回归 + 迁移门禁"
+    new:
+      - {id: M8-004, name: 机制证书审计, deps: [M3-023, M5-005], evidence: "机制台账CERTIFIED/PROVISIONAL/REJECTED", chain: MECH-CERT-AUDIT, gate: GP-M8A, refs: ["§112.2","§112.3"]}
+      - {id: M8-005, name: 违宪回归套件, deps: [M0-035, M4-008], evidence: "违宪回归全绿+违规注入必失败", chain: null, gate: GP-M8A, refs: ["§116"]}
+      - {id: M8-006, name: 契约v2到真实设备用户的门禁, deps: [M7-007, M8-003], evidence: "门禁决议书+未决风险清单", chain: null, gate: GP-M8B, refs: ["§107","§112"]}
+    touched:
+      - {id: M8-001, action: rewrite, name: 机制消融实验, reason: "只逐项移除，无证书与独立收益/成本联合裁决", to: "三联裁决+区分机制收益与提示词收益"}
+      - {id: M8-003, action: extend, name: 是否进入真实设备原型Gate, reason: "缺硬件耦合度与数据兼容裁决", to: "并入M7-007/M8-006"}
+
+governance_abolished:
+  - {
+      id: GOV-01,
+      name: "低能力编码模型治理假设（旧任务书 §0.1/§0.5/§0.6）",
+      reason: "该假设把产能投向变更风险控制，真实风险是机制未验证(F9)",
+      to: "三级治理(Tier-G/M/F)+机制证书",
+    }
+  - {
+      id: GOV-02,
+      name: "旧任务书 §0.2 关闭条件第8~10条",
+      reason: "缺机制证书与违宪扫描两项",
+      to: "加入证书与CL规则全绿",
+    }
+  - {
+      id: GOV-03,
+      name: "旧规划 §10 的 M0~M6 阶段表",
+      reason: "同文档内与宪法§109的M0~M8序列冲突，派单必乱",
+      to: "以§109 + 本方案GP检查点为准",
+    }
+
+certificates:
+  MECH-PREDICTION-LOOP: {status: pending, milestone: M3, refs: ["§50","§51","§53"]}
+  MECH-PREDICTION-ABUSE-GATE: {status: pending, milestone: M3, refs: ["§53"]}
+  MECH-LIFECHAPTER: {status: pending, milestone: M3, refs: ["§29"]}
+  MECH-COMM-EXP: {status: pending, milestone: M3, refs: ["§12","§69"]}
+  MECH-EXPRESSION: {status: pending, milestone: M2, refs: ["§9","§10","§11","§14-1"]}
+  MECH-EXPRESSION-AUDIT: {status: pending, milestone: M3, refs: ["§14-1"]}
+  MECH-CHANNEL: {status: pending, milestone: M2, refs: ["§98-1","§104-1"]}
+  MECH-HAPTIC-FSM: {status: pending, milestone: M6, refs: ["§98-1"]}
+  MECH-HYGIENE: {status: pending, milestone: M3, refs: ["§33.5","§15-14"]}
+  MECH-CONTEXT-COMPILER: {status: pending, milestone: M2, refs: ["§85"]}
+  MECH-COCKPIT: {status: pending, milestone: M2, refs: ["§84.1"]}
+  MECH-FOUR-STEP: {status: pending, milestone: M2, refs: ["§84.2"]}
+  MECH-RECALL: {status: pending, milestone: M2, refs: ["§85.2"]}
+  MECH-STREAM-EXTRACT: {status: pending, milestone: M2, refs: ["§85.2"]}
+  MECH-IMPLICIT-CORRECTION: {status: pending, milestone: M2, refs: ["§7"]}
+  MECH-BOUNDED-PROPAGATION: {status: pending, milestone: M3, refs: ["§64","§93.3"]}
+  MECH-INTERRUPTIBILITY: {status: pending, milestone: M2, refs: ["§80.2"]}
+  MECH-HEARTBEAT: {status: pending, milestone: M2, refs: ["§80.1"]}
+  MECH-ADAPTIVE-FREQ: {status: pending, milestone: M2, refs: ["§80.3"]}
+  MECH-CONDITIONAL-TASK: {status: pending, milestone: M2, refs: ["§86.2"]}
+  MECH-TRUTH-FIRST: {status: pending, milestone: M2, refs: ["§111"]}
+  MECH-BUDGET-GATE: {status: pending, milestone: M4, refs: ["§85"]}
+  MECH-HELP-EFFECT: {status: pending, milestone: M4, refs: ["§97"]}
+  MECH-SILENCE-SCORING: {status: pending, milestone: M4, refs: ["§5"]}
+  MECH-AI-WORLD: {status: pending, milestone: M3, refs: ["§8","§32"]}
+  MECH-THRESHOLD-EVOLUTION: {status: pending, milestone: M7, refs: ["§83"]}
+  MECH-CO-SEARCH: {status: pending, milestone: M1, refs: ["§89"]}
+  MECH-TIME-LENS: {status: pending, milestone: M1, refs: ["§87"]}
+  MECH-GRAPH-NAV: {status: pending, milestone: M1, refs: ["§90"]}
+  MECH-EVIDENCE-REBUILD: {status: pending, milestone: M1, refs: ["§43"]}
+  MECH-DERIVATION-TRACE: {status: pending, milestone: M1, refs: ["§24","§65"]}
+  MECH-RETRIEVAL-EXP: {status: pending, milestone: M5, refs: ["§67"]}
+  MECH-SKILL-PLUGIN: {status: pending, milestone: M6, refs: ["§104-1"]}
+  MECH-CERT-AUDIT: {status: pending, milestone: M8, refs: ["§112.2"]}
