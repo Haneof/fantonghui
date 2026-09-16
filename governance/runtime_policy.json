@@ -1,0 +1,44 @@
+{
+  "policy_id": "aios_core_runtime_policy_v1",
+  "version": "1.0.0",
+  "written_at_utc": "2026-09-16T00:00:00Z",
+  "written_by": "SIM-001 无界面人生仿真器治理基线（工单门禁 4）",
+  "authority": "《AIOS 核心系统宪法 v3.0》第八十六条（零浪费执行法则）",
+  "note": "本文件是运行期资源配额的单一事实来源。仿真器与任何长周期推演必须从这里读取预算，禁止在代码里硬编码配额数字。修改本文件必须同步更新 governance/ci 门禁基线。",
+  "token_budget": {
+    "monthly_total_tokens": 2554000,
+    "currency": "utf8_byte_token",
+    "counting_rule": "aios_core.cockpit.pipeline.Utf8ByteTokenCounter.count（按 UTF-8 字节数计）",
+    "breakdown": {
+      "cockpit_manifest_assembly": 1800000,
+      "semantic_condition_evaluation": 300000,
+      "retrospective_annotation": 154000,
+      "dimension_introspection": 150000,
+      "contingency_reserve": 150000
+    },
+    "on_exceed": "HARD_STOP",
+    "enforcement": "runtime hard stop plus CI gate; exceeding this number is a governance incident, not a warning"
+  },
+  "compute_budget": {
+    "peak_rss_megabytes": 128,
+    "deadlock_count": 0,
+    "raw_binary_image_retention_bytes": 0
+  },
+  "wake_policy": {
+    "merge_window_seconds": 5.0,
+    "cooldown_floor_minutes": 15,
+    "cooldown_ceiling_minutes": 30,
+    "deep_sleep_motor_vibration_count": 0
+  },
+  "dimension_policy": {
+    "max_active_derived_dimensions": 32,
+    "min_trial_days": 30,
+    "min_prediction_accuracy": 0.7,
+    "max_introspections_per_day": 1,
+    "max_reflection_recursion_depth": 2
+  },
+  "dormancy_policy": {
+    "dormant_task_prompt_token_count": 0,
+    "dormant_task_llm_calls": 0
+  }
+}
