@@ -1,0 +1,312 @@
+{
+  "profile": "full",
+  "seed": 20260916,
+  "stages_requested": [
+    "1",
+    "2"
+  ],
+  "stages_completed": [
+    "S1",
+    "S2"
+  ],
+  "aborted": null,
+  "total_elapsed_ms": 326772.805,
+  "stage_rows": [
+    {
+      "stage": "S1",
+      "label": "海量原始摄入 · 端侧提纯 · 证据永存",
+      "elapsed_ms": 303122.559,
+      "rss_peak_delta_kb": 615920,
+      "tokens": 2766396,
+      "llm_calls": 0,
+      "counters": {
+        "raw_samples": 4579518,
+        "durable_observations": 461066,
+        "evidence_retention": 1.0,
+        "noise_purge": 1.0,
+        "raw_scan_violations": 2,
+        "raw_scan_violation_samples": [
+          "obs_impact_waveform_64e782ff8d5e759e:waveform_samples",
+          "obs_impact_waveform_81121fd3ed1b71ed:waveform_samples"
+        ],
+        "durable_by_kind": {
+          "imu_burst": 430031,
+          "gps_ping": 2,
+          "image_capture": 17520,
+          "heart_rate": 13483,
+          "audio_utterance": 12,
+          "sms": 1,
+          "chat_message": 17
+        }
+      },
+      "latencies": {
+        "S1.ingest_batch_ms": {
+          "count": 16,
+          "total_ms": 266434.813,
+          "p50_ms": 16915.1869,
+          "p95_ms": 19825.635,
+          "p99_ms": 19825.635,
+          "max_ms": 19825.635,
+          "mean_ms": 16652.1758
+        },
+        "S1.commit_batch_ms": {
+          "count": 127,
+          "total_ms": 151289.505,
+          "p50_ms": 1272.9577,
+          "p95_ms": 1611.0975,
+          "p99_ms": 1640.3486,
+          "max_ms": 1703.3726,
+          "mean_ms": 1191.2559
+        }
+      }
+    },
+    {
+      "stage": "S2",
+      "label": "时间金字塔逐级结晶 · 无损穿透",
+      "elapsed_ms": 23619.575,
+      "rss_peak_delta_kb": 93172,
+      "tokens": 2775156,
+      "llm_calls": 0,
+      "counters": {
+        "digests": 1095,
+        "evidence_chain_break_ratio": 0.0,
+        "union_conserved": true,
+        "crystals": 21
+      },
+      "latencies": {
+        "S1.ingest_batch_ms": {
+          "count": 16,
+          "total_ms": 266434.813,
+          "p50_ms": 16915.1869,
+          "p95_ms": 19825.635,
+          "p99_ms": 19825.635,
+          "max_ms": 19825.635,
+          "mean_ms": 16652.1758
+        },
+        "S1.commit_batch_ms": {
+          "count": 127,
+          "total_ms": 151289.505,
+          "p50_ms": 1272.9577,
+          "p95_ms": 1611.0975,
+          "p99_ms": 1640.3486,
+          "max_ms": 1703.3726,
+          "mean_ms": 1191.2559
+        },
+        "S2.pyramid_rollup_ms": {
+          "count": 3,
+          "total_ms": 13.2,
+          "p50_ms": 4.3396,
+          "p95_ms": 4.5558,
+          "p99_ms": 4.5558,
+          "max_ms": 4.5558,
+          "mean_ms": 4.3998
+        },
+        "S2.drill_down_ms": {
+          "count": 5,
+          "total_ms": 1.862,
+          "p50_ms": 0.0532,
+          "p95_ms": 1.3132,
+          "p99_ms": 1.3132,
+          "max_ms": 1.3132,
+          "mean_ms": 0.3724
+        },
+        "S2.crystal_rollup_ms": {
+          "count": 3,
+          "total_ms": 19.092,
+          "p50_ms": 6.2935,
+          "p95_ms": 6.5514,
+          "p99_ms": 6.5514,
+          "max_ms": 6.5514,
+          "mean_ms": 6.364
+        },
+        "S2.crystal_drill_ms": {
+          "count": 4,
+          "total_ms": 14.161,
+          "p50_ms": 1.6134,
+          "p95_ms": 6.298,
+          "p99_ms": 6.298,
+          "max_ms": 6.298,
+          "mean_ms": 3.5404
+        }
+      }
+    }
+  ],
+  "latency_summary": {
+    "S1.ingest_batch_ms": {
+      "count": 16,
+      "total_ms": 266434.813,
+      "p50_ms": 16915.1869,
+      "p95_ms": 19825.635,
+      "p99_ms": 19825.635,
+      "max_ms": 19825.635,
+      "mean_ms": 16652.1758
+    },
+    "S1.commit_batch_ms": {
+      "count": 127,
+      "total_ms": 151289.505,
+      "p50_ms": 1272.9577,
+      "p95_ms": 1611.0975,
+      "p99_ms": 1640.3486,
+      "max_ms": 1703.3726,
+      "mean_ms": 1191.2559
+    },
+    "S2.pyramid_rollup_ms": {
+      "count": 3,
+      "total_ms": 13.2,
+      "p50_ms": 4.3396,
+      "p95_ms": 4.5558,
+      "p99_ms": 4.5558,
+      "max_ms": 4.5558,
+      "mean_ms": 4.3998
+    },
+    "S2.drill_down_ms": {
+      "count": 5,
+      "total_ms": 1.862,
+      "p50_ms": 0.0532,
+      "p95_ms": 1.3132,
+      "p99_ms": 1.3132,
+      "max_ms": 1.3132,
+      "mean_ms": 0.3724
+    },
+    "S2.crystal_rollup_ms": {
+      "count": 3,
+      "total_ms": 19.092,
+      "p50_ms": 6.2935,
+      "p95_ms": 6.5514,
+      "p99_ms": 6.5514,
+      "max_ms": 6.5514,
+      "mean_ms": 6.364
+    },
+    "S2.crystal_drill_ms": {
+      "count": 4,
+      "total_ms": 14.161,
+      "p50_ms": 1.6134,
+      "p95_ms": 6.298,
+      "p99_ms": 6.298,
+      "max_ms": 6.298,
+      "mean_ms": 3.5404
+    }
+  },
+  "memory": {
+    "baseline_kb": 35096,
+    "peak_kb": 744188,
+    "peak_delta_kb": 709092,
+    "sample_count": 638433
+  },
+  "token_ledger": {
+    "S1.edge_purifier": {
+      "tokens": 2766396,
+      "calls": 461066
+    },
+    "S2.pyramid": {
+      "tokens": 8760,
+      "calls": 1095
+    }
+  },
+  "model_calls": {},
+  "iron_laws": {
+    "IRON_LAW_1_OUTPUT_QUALITY": {
+      "holds": false,
+      "evidence": {
+        "S6_pointers": null,
+        "S6_boilerplate_hits": null,
+        "S7_adversarial_blocked": null,
+        "S8_dialogue_sentences": null,
+        "S8_dialogue_max_tokens": null
+      },
+      "checks": [
+        "S6 建议带证据指针且零客服八股",
+        "S7 谄媚/教师爷对抗样本被机械拦截",
+        "S8 每轮回复 1~3 句且 1500 Token 内"
+      ]
+    },
+    "IRON_LAW_2_HISTORY_IMMUTABLE": {
+      "holds": false,
+      "evidence": {
+        "S5_immutable_facts": null,
+        "S5_violations": null,
+        "S5_cascade_naive_vs_isolated": null,
+        "S5_llm_recompute_calls": null
+      },
+      "checks": [
+        "S5 Observation 台账 SHA-256 校验通过、UPDATE/DELETE 违例 0",
+        "S5 单跳隔离：210 节点级联被压到 10，LLM 重算 0 次",
+        "S5 双镜视图 base 指纹恒等、一致性 1.0"
+      ]
+    },
+    "IRON_LAW_3_P0_HARD_BYPASS": {
+      "holds": false,
+      "evidence": {
+        "S8_p0_p99_ms": null,
+        "S8_p0_max_ms": null,
+        "S8_p0_llm_calls": null,
+        "S8_p0_cockpit_assemblies": null
+      },
+      "checks": [
+        "S8 首行硬旁路 p99 ≤ 50ms",
+        "S8 世界模型组装 0 次、LLM 调用严格 0",
+        "S8 畸形载荷降级仍必须发出硬件动作"
+      ]
+    },
+    "IRON_LAW_4_AUTONOMOUS_DELETION": {
+      "holds": false,
+      "evidence": {
+        "S1_evidence_retention": 1.0,
+        "S1_noise_purge": 1.0,
+        "S1_raw_bytes_retained": 0,
+        "S1_scan_violations": [
+          "obs_impact_waveform_64e782ff8d5e759e:waveform_samples",
+          "obs_impact_waveform_81121fd3ed1b71ed:waveform_samples"
+        ],
+        "S1_noise_text_residue": [],
+        "S1_voiceprint_slice_purity": 1.0
+      },
+      "checks": [
+        "S1 证据保留率 1.0、噪声清除率 1.0",
+        "S1 原始字节残留 0、波形直写违例 0",
+        "S1 语音print 180 天淘汰后切片零残留"
+      ]
+    },
+    "IRON_LAW_5_DIMENSION_GATES": {
+      "holds": false,
+      "evidence": {
+        "S4_gate1_rejections": null,
+        "S4_quota_rejections": null,
+        "S4_gate2_rejection": null,
+        "S4_gate2_promotion": null,
+        "S4_recursion_cut": null
+      },
+      "checks": [
+        "S4 三闸拒绝零域/直觉/额度超限申请 100%",
+        "S4 30 天试用期 70% 命中率门限生效",
+        "S4 每日反思配额 1 次，递归自省被切断"
+      ]
+    }
+  },
+  "tool_catalog": {
+    "count": 8,
+    "tool_ids": [
+      "adaptive_temporal_compressor",
+      "multiscale_crystal_index",
+      "dual_lens_projection_index",
+      "lightweight_condition_evaluator",
+      "resonance_synthesizer",
+      "cooccurrence_recall_bus",
+      "persona_guard",
+      "mind_sequence_guard"
+    ],
+    "statuses": [
+      "submitted"
+    ],
+    "interface_keys": [
+      "class",
+      "error",
+      "fields",
+      "methods",
+      "note",
+      "signature",
+      "violation_kinds"
+    ],
+    "object_type": "tool_proposal"
+  }
+}

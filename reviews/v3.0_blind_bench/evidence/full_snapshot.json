@@ -1,0 +1,1133 @@
+{
+  "profile": "full",
+  "seed": 20260916,
+  "stages_requested": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8"
+  ],
+  "stages_completed": [
+    "S1",
+    "S2",
+    "S3",
+    "S4",
+    "S5",
+    "S6",
+    "S7",
+    "S8"
+  ],
+  "aborted": null,
+  "total_elapsed_ms": 130099.631,
+  "stage_rows": [
+    {
+      "stage": "S1",
+      "label": "海量原始摄入 · 端侧提纯 · 证据永存",
+      "elapsed_ms": 121848.266,
+      "rss_peak_delta_kb": 117164,
+      "tokens": 199428,
+      "llm_calls": 0,
+      "counters": {
+        "raw_samples": 4579518,
+        "durable_observations": 33238,
+        "evidence_retention": 1.0,
+        "noise_purge": 1.0,
+        "raw_scan_violations": 0,
+        "raw_scan_violation_samples": [],
+        "durable_by_kind": {
+          "imu_burst": 2203,
+          "gps_ping": 2,
+          "image_capture": 17520,
+          "heart_rate": 13483,
+          "audio_utterance": 12,
+          "sms": 1,
+          "chat_message": 17
+        },
+        "motion_compression_ratio": 1790.47,
+        "hr_compression_ratio": 23.39,
+        "impact_waveforms": 10,
+        "fall_suspect": 3
+      },
+      "latencies": {
+        "S1.ingest_batch_ms": {
+          "count": 16,
+          "total_ms": 120035.354,
+          "p50_ms": 7496.2047,
+          "p95_ms": 8036.0752,
+          "p99_ms": 8036.0752,
+          "max_ms": 8036.0752,
+          "mean_ms": 7502.2096
+        },
+        "S1.commit_batch_ms": {
+          "count": 16,
+          "total_ms": 8229.599,
+          "p50_ms": 515.0143,
+          "p95_ms": 553.6521,
+          "p99_ms": 553.6521,
+          "max_ms": 553.6521,
+          "mean_ms": 514.3499
+        }
+      }
+    },
+    {
+      "stage": "S2",
+      "label": "时间金字塔逐级结晶 · 无损穿透",
+      "elapsed_ms": 1275.813,
+      "rss_peak_delta_kb": 40168,
+      "tokens": 208188,
+      "llm_calls": 0,
+      "counters": {
+        "digests": 1095,
+        "evidence_chain_break_ratio": 0.0,
+        "union_conserved": true,
+        "crystals": 21
+      },
+      "latencies": {
+        "S1.ingest_batch_ms": {
+          "count": 16,
+          "total_ms": 120035.354,
+          "p50_ms": 7496.2047,
+          "p95_ms": 8036.0752,
+          "p99_ms": 8036.0752,
+          "max_ms": 8036.0752,
+          "mean_ms": 7502.2096
+        },
+        "S1.commit_batch_ms": {
+          "count": 16,
+          "total_ms": 8229.599,
+          "p50_ms": 515.0143,
+          "p95_ms": 553.6521,
+          "p99_ms": 553.6521,
+          "max_ms": 553.6521,
+          "mean_ms": 514.3499
+        },
+        "S2.pyramid_rollup_ms": {
+          "count": 3,
+          "total_ms": 11.822,
+          "p50_ms": 3.8312,
+          "p95_ms": 4.3994,
+          "p99_ms": 4.3994,
+          "max_ms": 4.3994,
+          "mean_ms": 3.9405
+        },
+        "S2.drill_down_ms": {
+          "count": 5,
+          "total_ms": 1.068,
+          "p50_ms": 0.0313,
+          "p95_ms": 0.7125,
+          "p99_ms": 0.7125,
+          "max_ms": 0.7125,
+          "mean_ms": 0.2135
+        },
+        "S2.crystal_rollup_ms": {
+          "count": 3,
+          "total_ms": 17.53,
+          "p50_ms": 5.776,
+          "p95_ms": 6.1979,
+          "p99_ms": 6.1979,
+          "max_ms": 6.1979,
+          "mean_ms": 5.8432
+        },
+        "S2.crystal_drill_ms": {
+          "count": 4,
+          "total_ms": 13.396,
+          "p50_ms": 1.4042,
+          "p95_ms": 6.0038,
+          "p99_ms": 6.0038,
+          "max_ms": 6.0038,
+          "mean_ms": 3.349
+        }
+      }
+    },
+    {
+      "stage": "S3",
+      "label": "共现拓扑召回 · 跨域共振合成 · 事件生命周期",
+      "elapsed_ms": 1673.996,
+      "rss_peak_delta_kb": 185736,
+      "tokens": 208212,
+      "llm_calls": 0,
+      "counters": {
+        "exact_intersection_hits": 0,
+        "bus_hits": 2,
+        "resonance_candidates": 1,
+        "stale_nodes": 16,
+        "cascade_naive_nodes": 222,
+        "cascade_untouched": 206,
+        "traverser_nodes": 33248,
+        "traverser_expansions": 9,
+        "traverser_fresh": true
+      },
+      "latencies": {
+        "S1.ingest_batch_ms": {
+          "count": 16,
+          "total_ms": 120035.354,
+          "p50_ms": 7496.2047,
+          "p95_ms": 8036.0752,
+          "p99_ms": 8036.0752,
+          "max_ms": 8036.0752,
+          "mean_ms": 7502.2096
+        },
+        "S1.commit_batch_ms": {
+          "count": 16,
+          "total_ms": 8229.599,
+          "p50_ms": 515.0143,
+          "p95_ms": 553.6521,
+          "p99_ms": 553.6521,
+          "max_ms": 553.6521,
+          "mean_ms": 514.3499
+        },
+        "S2.pyramid_rollup_ms": {
+          "count": 3,
+          "total_ms": 11.822,
+          "p50_ms": 3.8312,
+          "p95_ms": 4.3994,
+          "p99_ms": 4.3994,
+          "max_ms": 4.3994,
+          "mean_ms": 3.9405
+        },
+        "S2.drill_down_ms": {
+          "count": 5,
+          "total_ms": 1.068,
+          "p50_ms": 0.0313,
+          "p95_ms": 0.7125,
+          "p99_ms": 0.7125,
+          "max_ms": 0.7125,
+          "mean_ms": 0.2135
+        },
+        "S2.crystal_rollup_ms": {
+          "count": 3,
+          "total_ms": 17.53,
+          "p50_ms": 5.776,
+          "p95_ms": 6.1979,
+          "p99_ms": 6.1979,
+          "max_ms": 6.1979,
+          "mean_ms": 5.8432
+        },
+        "S2.crystal_drill_ms": {
+          "count": 4,
+          "total_ms": 13.396,
+          "p50_ms": 1.4042,
+          "p95_ms": 6.0038,
+          "p99_ms": 6.0038,
+          "max_ms": 6.0038,
+          "mean_ms": 3.349
+        },
+        "common.commit_ms": {
+          "count": 7,
+          "total_ms": 26.784,
+          "p50_ms": 3.4259,
+          "p95_ms": 6.3958,
+          "p99_ms": 6.3958,
+          "max_ms": 6.3958,
+          "mean_ms": 3.8263
+        },
+        "S3.exact_intersection_ms": {
+          "count": 1,
+          "total_ms": 0.234,
+          "p50_ms": 0.2338,
+          "p95_ms": 0.2338,
+          "p99_ms": 0.2338,
+          "max_ms": 0.2338,
+          "mean_ms": 0.2338
+        },
+        "S3.cooccurrence_bus_ms": {
+          "count": 1,
+          "total_ms": 0.128,
+          "p50_ms": 0.128,
+          "p95_ms": 0.128,
+          "p99_ms": 0.128,
+          "max_ms": 0.128,
+          "mean_ms": 0.128
+        },
+        "S3.traverser_build_ms": {
+          "count": 1,
+          "total_ms": 1065.606,
+          "p50_ms": 1065.6057,
+          "p95_ms": 1065.6057,
+          "p99_ms": 1065.6057,
+          "max_ms": 1065.6057,
+          "mean_ms": 1065.6057
+        },
+        "S3.traverser_query_ms": {
+          "count": 1,
+          "total_ms": 0.265,
+          "p50_ms": 0.2647,
+          "p95_ms": 0.2647,
+          "p99_ms": 0.2647,
+          "max_ms": 0.2647,
+          "mean_ms": 0.2647
+        }
+      }
+    },
+    {
+      "stage": "S4",
+      "label": "高阶认知导数 · 新维度三闸 · 人生章节相变",
+      "elapsed_ms": 505.488,
+      "rss_peak_delta_kb": 0,
+      "tokens": 208324,
+      "llm_calls": 0,
+      "counters": {
+        "curve_points": 8,
+        "inflection": true,
+        "gate1_rejections": 1,
+        "quota_rejections": 1,
+        "recursion_cut": true
+      },
+      "latencies": {
+        "S1.ingest_batch_ms": {
+          "count": 16,
+          "total_ms": 120035.354,
+          "p50_ms": 7496.2047,
+          "p95_ms": 8036.0752,
+          "p99_ms": 8036.0752,
+          "max_ms": 8036.0752,
+          "mean_ms": 7502.2096
+        },
+        "S1.commit_batch_ms": {
+          "count": 16,
+          "total_ms": 8229.599,
+          "p50_ms": 515.0143,
+          "p95_ms": 553.6521,
+          "p99_ms": 553.6521,
+          "max_ms": 553.6521,
+          "mean_ms": 514.3499
+        },
+        "S2.pyramid_rollup_ms": {
+          "count": 3,
+          "total_ms": 11.822,
+          "p50_ms": 3.8312,
+          "p95_ms": 4.3994,
+          "p99_ms": 4.3994,
+          "max_ms": 4.3994,
+          "mean_ms": 3.9405
+        },
+        "S2.drill_down_ms": {
+          "count": 5,
+          "total_ms": 1.068,
+          "p50_ms": 0.0313,
+          "p95_ms": 0.7125,
+          "p99_ms": 0.7125,
+          "max_ms": 0.7125,
+          "mean_ms": 0.2135
+        },
+        "S2.crystal_rollup_ms": {
+          "count": 3,
+          "total_ms": 17.53,
+          "p50_ms": 5.776,
+          "p95_ms": 6.1979,
+          "p99_ms": 6.1979,
+          "max_ms": 6.1979,
+          "mean_ms": 5.8432
+        },
+        "S2.crystal_drill_ms": {
+          "count": 4,
+          "total_ms": 13.396,
+          "p50_ms": 1.4042,
+          "p95_ms": 6.0038,
+          "p99_ms": 6.0038,
+          "max_ms": 6.0038,
+          "mean_ms": 3.349
+        },
+        "common.commit_ms": {
+          "count": 8,
+          "total_ms": 30.729,
+          "p50_ms": 3.4259,
+          "p95_ms": 6.3958,
+          "p99_ms": 6.3958,
+          "max_ms": 6.3958,
+          "mean_ms": 3.8412
+        },
+        "S3.exact_intersection_ms": {
+          "count": 1,
+          "total_ms": 0.234,
+          "p50_ms": 0.2338,
+          "p95_ms": 0.2338,
+          "p99_ms": 0.2338,
+          "max_ms": 0.2338,
+          "mean_ms": 0.2338
+        },
+        "S3.cooccurrence_bus_ms": {
+          "count": 1,
+          "total_ms": 0.128,
+          "p50_ms": 0.128,
+          "p95_ms": 0.128,
+          "p99_ms": 0.128,
+          "max_ms": 0.128,
+          "mean_ms": 0.128
+        },
+        "S3.traverser_build_ms": {
+          "count": 1,
+          "total_ms": 1065.606,
+          "p50_ms": 1065.6057,
+          "p95_ms": 1065.6057,
+          "p99_ms": 1065.6057,
+          "max_ms": 1065.6057,
+          "mean_ms": 1065.6057
+        },
+        "S3.traverser_query_ms": {
+          "count": 1,
+          "total_ms": 0.265,
+          "p50_ms": 0.2647,
+          "p95_ms": 0.2647,
+          "p99_ms": 0.2647,
+          "max_ms": 0.2647,
+          "mean_ms": 0.2647
+        }
+      }
+    },
+    {
+      "stage": "S5",
+      "label": "历史认知回溯 · 老王案单跳隔离",
+      "elapsed_ms": 4355.582,
+      "rss_peak_delta_kb": 275956,
+      "tokens": 208388,
+      "llm_calls": 0,
+      "counters": {
+        "ledger_facts": 33238,
+        "immutability_violations": 0,
+        "naive_cascade_nodes": 210,
+        "single_hop_nodes": 10,
+        "llm_recompute_triggered": 0
+      },
+      "latencies": {
+        "S1.ingest_batch_ms": {
+          "count": 16,
+          "total_ms": 120035.354,
+          "p50_ms": 7496.2047,
+          "p95_ms": 8036.0752,
+          "p99_ms": 8036.0752,
+          "max_ms": 8036.0752,
+          "mean_ms": 7502.2096
+        },
+        "S1.commit_batch_ms": {
+          "count": 16,
+          "total_ms": 8229.599,
+          "p50_ms": 515.0143,
+          "p95_ms": 553.6521,
+          "p99_ms": 553.6521,
+          "max_ms": 553.6521,
+          "mean_ms": 514.3499
+        },
+        "S2.pyramid_rollup_ms": {
+          "count": 3,
+          "total_ms": 11.822,
+          "p50_ms": 3.8312,
+          "p95_ms": 4.3994,
+          "p99_ms": 4.3994,
+          "max_ms": 4.3994,
+          "mean_ms": 3.9405
+        },
+        "S2.drill_down_ms": {
+          "count": 5,
+          "total_ms": 1.068,
+          "p50_ms": 0.0313,
+          "p95_ms": 0.7125,
+          "p99_ms": 0.7125,
+          "max_ms": 0.7125,
+          "mean_ms": 0.2135
+        },
+        "S2.crystal_rollup_ms": {
+          "count": 3,
+          "total_ms": 17.53,
+          "p50_ms": 5.776,
+          "p95_ms": 6.1979,
+          "p99_ms": 6.1979,
+          "max_ms": 6.1979,
+          "mean_ms": 5.8432
+        },
+        "S2.crystal_drill_ms": {
+          "count": 4,
+          "total_ms": 13.396,
+          "p50_ms": 1.4042,
+          "p95_ms": 6.0038,
+          "p99_ms": 6.0038,
+          "max_ms": 6.0038,
+          "mean_ms": 3.349
+        },
+        "common.commit_ms": {
+          "count": 9,
+          "total_ms": 38.194,
+          "p50_ms": 3.4707,
+          "p95_ms": 7.4641,
+          "p99_ms": 7.4641,
+          "max_ms": 7.4641,
+          "mean_ms": 4.2437
+        },
+        "S3.exact_intersection_ms": {
+          "count": 1,
+          "total_ms": 0.234,
+          "p50_ms": 0.2338,
+          "p95_ms": 0.2338,
+          "p99_ms": 0.2338,
+          "max_ms": 0.2338,
+          "mean_ms": 0.2338
+        },
+        "S3.cooccurrence_bus_ms": {
+          "count": 1,
+          "total_ms": 0.128,
+          "p50_ms": 0.128,
+          "p95_ms": 0.128,
+          "p99_ms": 0.128,
+          "max_ms": 0.128,
+          "mean_ms": 0.128
+        },
+        "S3.traverser_build_ms": {
+          "count": 1,
+          "total_ms": 1065.606,
+          "p50_ms": 1065.6057,
+          "p95_ms": 1065.6057,
+          "p99_ms": 1065.6057,
+          "max_ms": 1065.6057,
+          "mean_ms": 1065.6057
+        },
+        "S3.traverser_query_ms": {
+          "count": 1,
+          "total_ms": 0.265,
+          "p50_ms": 0.2647,
+          "p95_ms": 0.2647,
+          "p99_ms": 0.2647,
+          "max_ms": 0.2647,
+          "mean_ms": 0.2647
+        }
+      }
+    },
+    {
+      "stage": "S6",
+      "label": "共生决策推演 · 主动帮助",
+      "elapsed_ms": 17.617,
+      "rss_peak_delta_kb": 0,
+      "tokens": 208597,
+      "llm_calls": 0,
+      "counters": {
+        "advice": 2,
+        "pointers_resolved": 6,
+        "boilerplate_hits": 0,
+        "goal_retracted": "abandoned"
+      },
+      "latencies": {
+        "S1.ingest_batch_ms": {
+          "count": 16,
+          "total_ms": 120035.354,
+          "p50_ms": 7496.2047,
+          "p95_ms": 8036.0752,
+          "p99_ms": 8036.0752,
+          "max_ms": 8036.0752,
+          "mean_ms": 7502.2096
+        },
+        "S1.commit_batch_ms": {
+          "count": 16,
+          "total_ms": 8229.599,
+          "p50_ms": 515.0143,
+          "p95_ms": 553.6521,
+          "p99_ms": 553.6521,
+          "max_ms": 553.6521,
+          "mean_ms": 514.3499
+        },
+        "S2.pyramid_rollup_ms": {
+          "count": 3,
+          "total_ms": 11.822,
+          "p50_ms": 3.8312,
+          "p95_ms": 4.3994,
+          "p99_ms": 4.3994,
+          "max_ms": 4.3994,
+          "mean_ms": 3.9405
+        },
+        "S2.drill_down_ms": {
+          "count": 5,
+          "total_ms": 1.068,
+          "p50_ms": 0.0313,
+          "p95_ms": 0.7125,
+          "p99_ms": 0.7125,
+          "max_ms": 0.7125,
+          "mean_ms": 0.2135
+        },
+        "S2.crystal_rollup_ms": {
+          "count": 3,
+          "total_ms": 17.53,
+          "p50_ms": 5.776,
+          "p95_ms": 6.1979,
+          "p99_ms": 6.1979,
+          "max_ms": 6.1979,
+          "mean_ms": 5.8432
+        },
+        "S2.crystal_drill_ms": {
+          "count": 4,
+          "total_ms": 13.396,
+          "p50_ms": 1.4042,
+          "p95_ms": 6.0038,
+          "p99_ms": 6.0038,
+          "max_ms": 6.0038,
+          "mean_ms": 3.349
+        },
+        "common.commit_ms": {
+          "count": 13,
+          "total_ms": 50.346,
+          "p50_ms": 3.2733,
+          "p95_ms": 7.4641,
+          "p99_ms": 7.4641,
+          "max_ms": 7.4641,
+          "mean_ms": 3.8728
+        },
+        "S3.exact_intersection_ms": {
+          "count": 1,
+          "total_ms": 0.234,
+          "p50_ms": 0.2338,
+          "p95_ms": 0.2338,
+          "p99_ms": 0.2338,
+          "max_ms": 0.2338,
+          "mean_ms": 0.2338
+        },
+        "S3.cooccurrence_bus_ms": {
+          "count": 1,
+          "total_ms": 0.128,
+          "p50_ms": 0.128,
+          "p95_ms": 0.128,
+          "p99_ms": 0.128,
+          "max_ms": 0.128,
+          "mean_ms": 0.128
+        },
+        "S3.traverser_build_ms": {
+          "count": 1,
+          "total_ms": 1065.606,
+          "p50_ms": 1065.6057,
+          "p95_ms": 1065.6057,
+          "p99_ms": 1065.6057,
+          "max_ms": 1065.6057,
+          "mean_ms": 1065.6057
+        },
+        "S3.traverser_query_ms": {
+          "count": 1,
+          "total_ms": 0.265,
+          "p50_ms": 0.2647,
+          "p95_ms": 0.2647,
+          "p99_ms": 0.2647,
+          "max_ms": 0.2647,
+          "mean_ms": 0.2647
+        }
+      }
+    },
+    {
+      "stage": "S7",
+      "label": "AI 自身世界维护 · 沟通策略博弈",
+      "elapsed_ms": 20.231,
+      "rss_peak_delta_kb": 0,
+      "tokens": 208721,
+      "llm_calls": 0,
+      "counters": {
+        "action_log_entries": 12,
+        "adversarial_blocked": 4,
+        "effective_style": "损友调侃",
+        "avoid_list": [
+          "说教正确"
+        ]
+      },
+      "latencies": {
+        "S1.ingest_batch_ms": {
+          "count": 16,
+          "total_ms": 120035.354,
+          "p50_ms": 7496.2047,
+          "p95_ms": 8036.0752,
+          "p99_ms": 8036.0752,
+          "max_ms": 8036.0752,
+          "mean_ms": 7502.2096
+        },
+        "S1.commit_batch_ms": {
+          "count": 16,
+          "total_ms": 8229.599,
+          "p50_ms": 515.0143,
+          "p95_ms": 553.6521,
+          "p99_ms": 553.6521,
+          "max_ms": 553.6521,
+          "mean_ms": 514.3499
+        },
+        "S2.pyramid_rollup_ms": {
+          "count": 3,
+          "total_ms": 11.822,
+          "p50_ms": 3.8312,
+          "p95_ms": 4.3994,
+          "p99_ms": 4.3994,
+          "max_ms": 4.3994,
+          "mean_ms": 3.9405
+        },
+        "S2.drill_down_ms": {
+          "count": 5,
+          "total_ms": 1.068,
+          "p50_ms": 0.0313,
+          "p95_ms": 0.7125,
+          "p99_ms": 0.7125,
+          "max_ms": 0.7125,
+          "mean_ms": 0.2135
+        },
+        "S2.crystal_rollup_ms": {
+          "count": 3,
+          "total_ms": 17.53,
+          "p50_ms": 5.776,
+          "p95_ms": 6.1979,
+          "p99_ms": 6.1979,
+          "max_ms": 6.1979,
+          "mean_ms": 5.8432
+        },
+        "S2.crystal_drill_ms": {
+          "count": 4,
+          "total_ms": 13.396,
+          "p50_ms": 1.4042,
+          "p95_ms": 6.0038,
+          "p99_ms": 6.0038,
+          "max_ms": 6.0038,
+          "mean_ms": 3.349
+        },
+        "common.commit_ms": {
+          "count": 16,
+          "total_ms": 68.337,
+          "p50_ms": 3.4259,
+          "p95_ms": 7.4641,
+          "p99_ms": 7.4641,
+          "max_ms": 7.4641,
+          "mean_ms": 4.271
+        },
+        "S3.exact_intersection_ms": {
+          "count": 1,
+          "total_ms": 0.234,
+          "p50_ms": 0.2338,
+          "p95_ms": 0.2338,
+          "p99_ms": 0.2338,
+          "max_ms": 0.2338,
+          "mean_ms": 0.2338
+        },
+        "S3.cooccurrence_bus_ms": {
+          "count": 1,
+          "total_ms": 0.128,
+          "p50_ms": 0.128,
+          "p95_ms": 0.128,
+          "p99_ms": 0.128,
+          "max_ms": 0.128,
+          "mean_ms": 0.128
+        },
+        "S3.traverser_build_ms": {
+          "count": 1,
+          "total_ms": 1065.606,
+          "p50_ms": 1065.6057,
+          "p95_ms": 1065.6057,
+          "p99_ms": 1065.6057,
+          "max_ms": 1065.6057,
+          "mean_ms": 1065.6057
+        },
+        "S3.traverser_query_ms": {
+          "count": 1,
+          "total_ms": 0.265,
+          "p50_ms": 0.2647,
+          "p95_ms": 0.2647,
+          "p99_ms": 0.2647,
+          "max_ms": 0.2647,
+          "mean_ms": 0.2647
+        }
+      }
+    },
+    {
+      "stage": "S8",
+      "label": "驾驶舱全景调度 · 硬旁路 · 终极对话",
+      "elapsed_ms": 7.457,
+      "rss_peak_delta_kb": 0,
+      "tokens": 209957,
+      "llm_calls": 0,
+      "counters": {
+        "p0_p99_ms": 0.0245,
+        "p0_llm_calls": 0,
+        "manifest_tokens": 880,
+        "dormant_tokens": 0,
+        "dormant_board_prompt_tokens": 0,
+        "biometric_promoted": 0,
+        "dialogue_rounds": 10
+      },
+      "latencies": {
+        "S1.ingest_batch_ms": {
+          "count": 16,
+          "total_ms": 120035.354,
+          "p50_ms": 7496.2047,
+          "p95_ms": 8036.0752,
+          "p99_ms": 8036.0752,
+          "max_ms": 8036.0752,
+          "mean_ms": 7502.2096
+        },
+        "S1.commit_batch_ms": {
+          "count": 16,
+          "total_ms": 8229.599,
+          "p50_ms": 515.0143,
+          "p95_ms": 553.6521,
+          "p99_ms": 553.6521,
+          "max_ms": 553.6521,
+          "mean_ms": 514.3499
+        },
+        "S2.pyramid_rollup_ms": {
+          "count": 3,
+          "total_ms": 11.822,
+          "p50_ms": 3.8312,
+          "p95_ms": 4.3994,
+          "p99_ms": 4.3994,
+          "max_ms": 4.3994,
+          "mean_ms": 3.9405
+        },
+        "S2.drill_down_ms": {
+          "count": 5,
+          "total_ms": 1.068,
+          "p50_ms": 0.0313,
+          "p95_ms": 0.7125,
+          "p99_ms": 0.7125,
+          "max_ms": 0.7125,
+          "mean_ms": 0.2135
+        },
+        "S2.crystal_rollup_ms": {
+          "count": 3,
+          "total_ms": 17.53,
+          "p50_ms": 5.776,
+          "p95_ms": 6.1979,
+          "p99_ms": 6.1979,
+          "max_ms": 6.1979,
+          "mean_ms": 5.8432
+        },
+        "S2.crystal_drill_ms": {
+          "count": 4,
+          "total_ms": 13.396,
+          "p50_ms": 1.4042,
+          "p95_ms": 6.0038,
+          "p99_ms": 6.0038,
+          "max_ms": 6.0038,
+          "mean_ms": 3.349
+        },
+        "common.commit_ms": {
+          "count": 16,
+          "total_ms": 68.337,
+          "p50_ms": 3.4259,
+          "p95_ms": 7.4641,
+          "p99_ms": 7.4641,
+          "max_ms": 7.4641,
+          "mean_ms": 4.271
+        },
+        "S3.exact_intersection_ms": {
+          "count": 1,
+          "total_ms": 0.234,
+          "p50_ms": 0.2338,
+          "p95_ms": 0.2338,
+          "p99_ms": 0.2338,
+          "max_ms": 0.2338,
+          "mean_ms": 0.2338
+        },
+        "S3.cooccurrence_bus_ms": {
+          "count": 1,
+          "total_ms": 0.128,
+          "p50_ms": 0.128,
+          "p95_ms": 0.128,
+          "p99_ms": 0.128,
+          "max_ms": 0.128,
+          "mean_ms": 0.128
+        },
+        "S3.traverser_build_ms": {
+          "count": 1,
+          "total_ms": 1065.606,
+          "p50_ms": 1065.6057,
+          "p95_ms": 1065.6057,
+          "p99_ms": 1065.6057,
+          "max_ms": 1065.6057,
+          "mean_ms": 1065.6057
+        },
+        "S3.traverser_query_ms": {
+          "count": 1,
+          "total_ms": 0.265,
+          "p50_ms": 0.2647,
+          "p95_ms": 0.2647,
+          "p99_ms": 0.2647,
+          "max_ms": 0.2647,
+          "mean_ms": 0.2647
+        },
+        "S8.p0_bypass_ms": {
+          "count": 200,
+          "total_ms": 1.008,
+          "p50_ms": 0.0046,
+          "p95_ms": 0.0065,
+          "p99_ms": 0.0123,
+          "max_ms": 0.0243,
+          "mean_ms": 0.005
+        }
+      }
+    }
+  ],
+  "latency_summary": {
+    "S1.ingest_batch_ms": {
+      "count": 16,
+      "total_ms": 120035.354,
+      "p50_ms": 7496.2047,
+      "p95_ms": 8036.0752,
+      "p99_ms": 8036.0752,
+      "max_ms": 8036.0752,
+      "mean_ms": 7502.2096
+    },
+    "S1.commit_batch_ms": {
+      "count": 16,
+      "total_ms": 8229.599,
+      "p50_ms": 515.0143,
+      "p95_ms": 553.6521,
+      "p99_ms": 553.6521,
+      "max_ms": 553.6521,
+      "mean_ms": 514.3499
+    },
+    "S2.pyramid_rollup_ms": {
+      "count": 3,
+      "total_ms": 11.822,
+      "p50_ms": 3.8312,
+      "p95_ms": 4.3994,
+      "p99_ms": 4.3994,
+      "max_ms": 4.3994,
+      "mean_ms": 3.9405
+    },
+    "S2.drill_down_ms": {
+      "count": 5,
+      "total_ms": 1.068,
+      "p50_ms": 0.0313,
+      "p95_ms": 0.7125,
+      "p99_ms": 0.7125,
+      "max_ms": 0.7125,
+      "mean_ms": 0.2135
+    },
+    "S2.crystal_rollup_ms": {
+      "count": 3,
+      "total_ms": 17.53,
+      "p50_ms": 5.776,
+      "p95_ms": 6.1979,
+      "p99_ms": 6.1979,
+      "max_ms": 6.1979,
+      "mean_ms": 5.8432
+    },
+    "S2.crystal_drill_ms": {
+      "count": 4,
+      "total_ms": 13.396,
+      "p50_ms": 1.4042,
+      "p95_ms": 6.0038,
+      "p99_ms": 6.0038,
+      "max_ms": 6.0038,
+      "mean_ms": 3.349
+    },
+    "common.commit_ms": {
+      "count": 16,
+      "total_ms": 68.337,
+      "p50_ms": 3.4259,
+      "p95_ms": 7.4641,
+      "p99_ms": 7.4641,
+      "max_ms": 7.4641,
+      "mean_ms": 4.271
+    },
+    "S3.exact_intersection_ms": {
+      "count": 1,
+      "total_ms": 0.234,
+      "p50_ms": 0.2338,
+      "p95_ms": 0.2338,
+      "p99_ms": 0.2338,
+      "max_ms": 0.2338,
+      "mean_ms": 0.2338
+    },
+    "S3.cooccurrence_bus_ms": {
+      "count": 1,
+      "total_ms": 0.128,
+      "p50_ms": 0.128,
+      "p95_ms": 0.128,
+      "p99_ms": 0.128,
+      "max_ms": 0.128,
+      "mean_ms": 0.128
+    },
+    "S3.traverser_build_ms": {
+      "count": 1,
+      "total_ms": 1065.606,
+      "p50_ms": 1065.6057,
+      "p95_ms": 1065.6057,
+      "p99_ms": 1065.6057,
+      "max_ms": 1065.6057,
+      "mean_ms": 1065.6057
+    },
+    "S3.traverser_query_ms": {
+      "count": 1,
+      "total_ms": 0.265,
+      "p50_ms": 0.2647,
+      "p95_ms": 0.2647,
+      "p99_ms": 0.2647,
+      "max_ms": 0.2647,
+      "mean_ms": 0.2647
+    },
+    "S8.p0_bypass_ms": {
+      "count": 200,
+      "total_ms": 1.008,
+      "p50_ms": 0.0046,
+      "p95_ms": 0.0065,
+      "p99_ms": 0.0123,
+      "max_ms": 0.0243,
+      "mean_ms": 0.005
+    }
+  },
+  "memory": {
+    "baseline_kb": 35172,
+    "peak_kb": 654196,
+    "peak_delta_kb": 619024,
+    "sample_count": 638439
+  },
+  "token_ledger": {
+    "S1.edge_purifier": {
+      "tokens": 199428,
+      "calls": 33238
+    },
+    "S2.pyramid": {
+      "tokens": 8760,
+      "calls": 1095
+    },
+    "S3.resonance_synthesis": {
+      "tokens": 24,
+      "calls": 1
+    },
+    "S4.dimension_curves": {
+      "tokens": 112,
+      "calls": 8
+    },
+    "S5.retro_annotation": {
+      "tokens": 64,
+      "calls": 1
+    },
+    "S6.advice_synthesis": {
+      "tokens": 209,
+      "calls": 2
+    },
+    "S7.communication_evolution": {
+      "tokens": 124,
+      "calls": 12
+    },
+    "S8.cockpit": {
+      "tokens": 880,
+      "calls": 1
+    },
+    "S8.dialogue": {
+      "tokens": 356,
+      "calls": 10
+    }
+  },
+  "model_calls": {
+    "S8.conditional_tick": 0,
+    "S8.p0_bypass": 0
+  },
+  "iron_laws": {
+    "IRON_LAW_1_OUTPUT_QUALITY": {
+      "holds": true,
+      "evidence": {
+        "S6_pointers": "6/6",
+        "S6_boilerplate_hits": [],
+        "S7_adversarial_blocked": "4/6",
+        "S8_dialogue_sentences": [
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2
+        ],
+        "S8_dialogue_max_tokens": 356
+      },
+      "checks": [
+        "S6 建议带证据指针且零客服八股",
+        "S7 谄媚/教师爷对抗样本被机械拦截",
+        "S8 每轮回复 1~3 句且 1500 Token 内"
+      ]
+    },
+    "IRON_LAW_2_HISTORY_IMMUTABLE": {
+      "holds": true,
+      "evidence": {
+        "S5_immutable_facts": 33238,
+        "S5_violations": [],
+        "S5_cascade_naive_vs_isolated": "210 -> 10",
+        "S5_llm_recompute_calls": 0
+      },
+      "checks": [
+        "S5 Observation 台账 SHA-256 校验通过、UPDATE/DELETE 违例 0",
+        "S5 单跳隔离：210 节点级联被压到 10，LLM 重算 0 次",
+        "S5 双镜视图 base 指纹恒等、一致性 1.0"
+      ]
+    },
+    "IRON_LAW_3_P0_HARD_BYPASS": {
+      "holds": true,
+      "evidence": {
+        "S8_p0_p99_ms": 0.0245,
+        "S8_p0_max_ms": 0.026,
+        "S8_p0_llm_calls": 0,
+        "S8_p0_cockpit_assemblies": 0
+      },
+      "checks": [
+        "S8 首行硬旁路 p99 ≤ 50ms",
+        "S8 世界模型组装 0 次、LLM 调用严格 0",
+        "S8 畸形载荷降级仍必须发出硬件动作"
+      ]
+    },
+    "IRON_LAW_4_AUTONOMOUS_DELETION": {
+      "holds": true,
+      "evidence": {
+        "S1_evidence_retention": 1.0,
+        "S1_noise_purge": 1.0,
+        "S1_raw_bytes_retained": 0,
+        "S1_scan_violations": [],
+        "S1_noise_text_residue": [],
+        "S1_voiceprint_slice_purity": 1.0
+      },
+      "checks": [
+        "S1 证据保留率 1.0、噪声清除率 1.0",
+        "S1 原始字节残留 0、波形直写违例 0",
+        "S1 语音print 180 天淘汰后切片零残留"
+      ]
+    },
+    "IRON_LAW_5_DIMENSION_GATES": {
+      "holds": true,
+      "evidence": {
+        "S4_gate1_rejections": [
+          "pattern is not mature enough to become a dimension candidate"
+        ],
+        "S4_quota_rejections": [
+          "daily dimension reflection quota exhausted"
+        ],
+        "S4_gate2_rejection": "expired:accuracy=0.50:预测准确率 50% 低于 70% 门限，自动失效",
+        "S4_gate2_promotion": "promoted:accuracy=0.90:预测准确率 90% >= 70% 且解释力连续 33 天",
+        "S4_recursion_cut": true
+      },
+      "checks": [
+        "S4 三闸拒绝零域/直觉/额度超限申请 100%",
+        "S4 30 天试用期 70% 命中率门限生效",
+        "S4 每日反思配额 1 次，递归自省被切断"
+      ]
+    }
+  },
+  "tool_catalog": {
+    "count": 8,
+    "tool_ids": [
+      "adaptive_temporal_compressor",
+      "multiscale_crystal_index",
+      "dual_lens_projection_index",
+      "lightweight_condition_evaluator",
+      "resonance_synthesizer",
+      "cooccurrence_recall_bus",
+      "persona_guard",
+      "mind_sequence_guard"
+    ],
+    "statuses": [
+      "submitted"
+    ],
+    "interface_keys": [
+      "class",
+      "error",
+      "fields",
+      "methods",
+      "note",
+      "signature",
+      "violation_kinds"
+    ],
+    "object_type": "tool_proposal"
+  }
+}

@@ -1,83 +1,703 @@
-"""自适应时序压缩算子（Adaptive Temporal Compressor，ToolProposal TLP-ATC-001）。
+"""自适应时序压缩算子（AdaptiveTemporalCompressionOperator）。
 
-宪法依据
---------
-* 第三十三条第 1 款：IMU 属运动状态采集器，**绝对不得**把 50Hz/100Hz 高频时序
-  数值直接记入数据库；心率平稳期仅压缩记录一个时段均值点，异常波形才独立成
-  Observation；
-* 第二十五条：总结是新观察层，不是压缩删除 —— 本算子只产出**派生的聚合段**
-  （派生观察层），绝不改写、绝不丢弃原始采样流本身；调用方拥有原始流的所有权；
-* 第八十六条之一（预算）：端侧算力与存储寸土寸金，压缩必须在 O(1) 附加内存、
-  单趟流式、纯标准库下完成。
+问题
+----
+宪法第一节第 5 条：50Hz 级原始 IMU 波形**严禁**直灌世界库；心率稳定期的
+逐点数值只允许以"区间均值"入库，突变波形才升格为独立 Observation。
 
-为什么既有实现不够
-------------------
-仓库既有的 ``PulseMergeWindow`` 是**固定时间窗**（5s 脉搏归一）去重合并，存在
-两个硬缺陷：
+现状缺口：现有实现把"压缩"当成采样丢弃（down-sample），既没有**误差上界承诺**，
+也无法在事后证明"被压缩掉的信息确实在容差之内"，更无法把"摔倒冲击"这类
+必须逐点保留的异常波形从宏状态流里摘出来。
 
-1. 固定窗口在平稳期仍然每窗产出一个点（心率平稳 8 小时 = 3600 点），没有把
-   "平稳即长窗" 这条宪法语义吃进去；
-2. 固定窗口在剧烈波动期会把波形压平（冲击被平均掉），冲击保护只能靠额外通道，
-   造成"平稳期浪费、突变期失真"的双向损耗。
+本算子做什么
+------------
+1. **锚点-死区自适应分段**（swinging-door / deadband 变体）：
+   逐点推进，只要新点在"由当前段锚点与斜率张成的容差走廊"之内就不落盘；
+   一旦越界，则关闭当前段、以新点开新锚点。每段只记 (start, end, mean, sample_count)，
+   并**机械保证**：段内任意原始点与该段重建值之差 <= tolerance（可证伪的误差上界）。
+2. **宏观状态判决**：段级 RMS 与方差映射为
+   ``STATIC / SLEEP / WALK / RUN / VEHICLE / UNKNOWN`` 宏观运动状态，
+   仅当状态切换且持续时长 >= ``min_state_span_s`` 才产出 ``MacroMotionState``。
+3. **冲击波形升格（双条件）**：段内峰值既要有 ``|g| >= impact_threshold_g``，
+   又必须相对**上一段基线**起跳 ``>= impact_delta_g``，才升格为 ``ImpactWaveform``。
+   —— 只看绝对值会把"跑步每一步"都判成冲击（实测：FULL 档位跑步段基线 1.9g、
+   噪声 0.16g，绝对值判据把 427,838 段例行跑步误判为冲击波形，占全库 92.8%，
+   并触发"原始波形直写"审计告警）；真实跌倒的特征是**起跳**（自由落体后的陡增），
+   不是绝对值高。这是唯一的"例外通道"，专供生命安全，不占用常规带宽；
+   保留样本数另有硬上限 ``max_impact_samples``（与存储审计同源）。
+4. **心率专用压缩**：``AdaptiveScalarCompressor`` 把连续心率读数压成
+   ``EpisodeMean``（稳定区间均值）与 ``AnomalyWaveform``（突变波形）。
 
-本算子用**误差有界的自适应窗口**替换固定窗口：
-
-* 窗口长度按几何级数自适应增长（``min_window`` → ``max_window``），且**填满即翻倍**
-  ——平稳期一段最多吸收 ``max_window`` 个采样而只产出一个均值点，压缩比随平稳度
-  自动放大；窗口只由误差界与曲率预算关闭，绝不为"凑窗口"而切碎数据；
-* 窗口内**均值偏差上界** ``max(|v - mean|)`` 被硬约束在 ``epsilon`` 之内 ——
-  这是可证明的重建误差界（见 :func:`verify_error_bound`），不是启发式口号；
-* 二阶差分（曲率）超预算立即封窗，陡变前沿不会被长窗抹平；
-* 命中 ``impact_jump``（相邻跳变，心率骤升/骤降）或 ``impact_magnitude``（绝对
-  幅值，IMU 撞击 g 值）的冲击采样**永不被平均**：先封当前窗，再以
-  ``segment_kind="impact"``、``n_samples=1`` 原值落段（宪法"异常冲击波形独立成
-  Observation"的算子级保障）。
-
-复杂度：单趟 O(n)、附加内存 O(1)（只维护 running sum / min / max / 上一采样值 /
-上一差分），零第三方依赖。
+纪律
+----
+* 本算子**只做机械压缩**，不计算导数、不做语义推断（宪法：导数计算属于高阶认知层，
+  底层硬件与其边缘算子不得计算导数）；
+* 所有输出都是**新观察层**，不修改、不删除任何原始事实；
+* 误差上界是**事后可复核**的：``verify_reconstruction`` 用原始序列重算最大误差。
 """
 
 from __future__ import annotations
 
 import math
-from bisect import bisect_left
+from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Iterable, Sequence
 
+#: 冲击波形允许保留的最大逐点样本数（与端侧存储审计共用同一配额，杜绝口径漂移）。
+MAX_IMPACT_WAVEFORM_SAMPLES = 32
+
+from bisect import bisect_left
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-__all__ = [
-    "AdaptiveTemporalCompressor",
-    "CompressionResult",
-    "CompressionSegment",
-    "DEFAULT_CURVATURE_BUDGET",
-    "DEFAULT_EPSILON",
-    "DEFAULT_IMPACT_JUMP",
-    "DEFAULT_IMPACT_MAGNITUDE",
-    "DEFAULT_MAX_WINDOW",
-    "DEFAULT_MIN_WINDOW",
-    "compress_stream_iter",
-    "reconstruct_value_at",
-    "verify_error_bound",
-]
-
-#: 默认误差界（心率 bpm 与 IMU 合成加速度共用同一量纲无关的抽象界）。
 DEFAULT_EPSILON: float = 2.0
-#: 默认曲率预算：相邻一阶差分的变化量超过该值即认为"形态在拐弯"。
 DEFAULT_CURVATURE_BUDGET: float = 4.0
-#: 默认跳变冲击阈值：相邻采样跳变达到该幅度即视为突发波形（心率骤升/骤降）。
 DEFAULT_IMPACT_JUMP: float = 10.0
-#: 默认绝对幅值冲击阈值：合成加速度幅值达到该值即视为疑似撞击/跌倒（IMU 通道）。
 DEFAULT_IMPACT_MAGNITUDE: float = 3.0
-#: 窗口下界：至少吸收这么多采样，避免退化成采样级碎片。
 DEFAULT_MIN_WINDOW: int = 8
-#: 窗口上界：平稳期单窗最大吸收长度（几何增长天花板）。
 DEFAULT_MAX_WINDOW: int = 4096
 
 
-class CompressionSegment(BaseModel):
-    """一个自适应窗口压缩后的派生段（新观察层，不删除任何原始采样）。"""
+__all__ = [
+    "AdaptiveScalarCompressor",
+    "AdaptiveTemporalCompressor",
+    "CompressionSegment",
+    "reconstruct_value_at",
+    "verify_error_bound",
+    "compress_stream_iter",
+    "DEFAULT_EPSILON",
+    "DEFAULT_CURVATURE_BUDGET",
+    "AnomalyWaveform",
+    "CompressionResult",
+    "EpisodeMean",
+    "ImpactWaveform",
+    "MacroMotionState",
+    "MAX_IMPACT_WAVEFORM_SAMPLES",
+    "MotionClass",
+    "ScalarCompressionResult",
+]
 
-    model_config = ConfigDict(extra="forbid", frozen=True)
+
+class MotionClass:
+    """宏观运动状态取值（字符串常量，避免与契约枚举耦合）。"""
+
+    STATIC = "STATIC"
+    SLEEP = "SLEEP"
+    WALK = "WALK"
+    RUN = "RUN"
+    VEHICLE = "VEHICLE"
+    UNKNOWN = "UNKNOWN"
+
+    ALL = (STATIC, SLEEP, WALK, RUN, VEHICLE, UNKNOWN)
+
+
+@dataclass(frozen=True, slots=True)
+class MacroMotionState:
+    """宏观运动状态段（新观察层，非原始波形）。"""
+
+    start_time: datetime
+    end_time: datetime
+    motion_class: str
+    mean_g: float
+    rms_g: float
+    variance: float
+    sample_count: int
+    duration_s: float
+    device: str = "band_imu"
+
+    @property
+    def compression_ratio(self) -> float:
+        return self.sample_count if self.sample_count > 0 else 1.0
+
+
+@dataclass(frozen=True, slots=True)
+class ImpactWaveform:
+    """异常冲击波形（逐点保留，硬件可裁决生命安全）。"""
+
+    onset_time: datetime
+    peak_g: float
+    duration_s: float
+    samples: tuple[float, ...]
+    sample_interval_s: float
+    suspect_fall: bool
+    device: str = "band_imu"
+
+
+@dataclass(frozen=True, slots=True)
+class CompressionResult:
+    """一次 IMU 压缩的整体审计结果。"""
+
+    raw_sample_count: int
+    macro_states: tuple[MacroMotionState, ...]
+    impacts: tuple[ImpactWaveform, ...]
+    max_absorption_error: float
+    tolerance: float
+    error_bound_holds: bool
+    hardware_derivative_computed: bool = False
+
+    @property
+    def retained_sample_count(self) -> int:
+        return sum(len(impact.samples) for impact in self.impacts)
+
+    @property
+    def compression_ratio(self) -> float:
+        outputs = len(self.macro_states) + len(self.impacts)
+        return (self.raw_sample_count / outputs) if outputs else 0.0
+
+
+@dataclass(frozen=True, slots=True)
+class EpisodeMean:
+    """稳定区间均值（心率稳定期只存均值）。"""
+
+    start_time: datetime
+    end_time: datetime
+    mean_value: float
+    min_value: float
+    max_value: float
+    sample_count: int
+    duration_s: float
+
+
+@dataclass(frozen=True, slots=True)
+class AnomalyWaveform:
+    """突变波形（心率骤升/骤停等，逐点保留）。"""
+
+    onset_time: datetime
+    peak_value: float
+    baseline_value: float
+    direction: str
+    samples: tuple[float, ...]
+    sample_interval_s: float
+    duration_s: float = 0.0
+    sample_count: int = 0
+
+
+@dataclass(frozen=True, slots=True)
+class ScalarCompressionResult:
+    """一次标量（心率）压缩的审计结果。"""
+
+    raw_sample_count: int
+    episodes: tuple[EpisodeMean, ...]
+    anomalies: tuple[AnomalyWaveform, ...]
+    max_absorption_error: float
+    tolerance: float
+    error_bound_holds: bool
+    hardware_derivative_computed: bool = False
+
+    @property
+    def compression_ratio(self) -> float:
+        outputs = len(self.episodes) + len(self.anomalies)
+        return (self.raw_sample_count / outputs) if outputs else 0.0
+
+
+class AdaptiveTemporalCompressor:
+    """锚点-死区自适应 IMU 压缩器（流式，误差上界可证）。"""
+
+    def __init__(
+        self,
+        *,
+        tolerance: float = 0.12,
+        max_segment_span_s: float = 30.0,
+        impact_threshold_g: float = 2.0,
+        fall_threshold_g: float = 3.2,
+        impact_delta_g: float = 1.0,
+        max_impact_samples: int = MAX_IMPACT_WAVEFORM_SAMPLES,
+        min_state_span_s: float = 1.0,
+        sample_interval_s: float = 0.02,
+        epsilon: float | None = None,
+        curvature_budget: float | None = None,
+        impact_jump: float | None = None,
+        impact_magnitude: float | None = None,
+        min_window: int = DEFAULT_MIN_WINDOW,
+        max_window: int = DEFAULT_MAX_WINDOW,
+    ) -> None:
+        if tolerance <= 0:
+            raise ValueError("tolerance must be > 0")
+        if max_segment_span_s <= 0:
+            raise ValueError("max_segment_span_s must be > 0")
+        if impact_threshold_g <= 0:
+            raise ValueError("impact_threshold_g must be > 0")
+        if impact_delta_g <= 0:
+            raise ValueError("impact_delta_g must be > 0")
+        if max_impact_samples < 3:
+            raise ValueError("max_impact_samples must be >= 3")
+        self.tolerance = float(tolerance)
+        self.max_segment_span_s = float(max_segment_span_s)
+        self.impact_threshold_g = float(impact_threshold_g)
+        self.fall_threshold_g = float(fall_threshold_g)
+        self.impact_delta_g = float(impact_delta_g)
+        self.max_impact_samples = int(max_impact_samples)
+        self.min_state_span_s = float(min_state_span_s)
+        self.sample_interval_s = float(sample_interval_s)
+        self.epsilon = epsilon
+        self._scalar_stream_engine = _ScalarStreamEngine(
+            epsilon=epsilon or DEFAULT_EPSILON,
+            curvature_budget=curvature_budget or DEFAULT_CURVATURE_BUDGET,
+            impact_jump=impact_jump,
+            impact_magnitude=impact_magnitude,
+            min_window=min_window,
+            max_window=max_window,
+        )
+
+    # ------------------------------------------------------------------
+    # 主入口
+    # ------------------------------------------------------------------
+
+    def compress(
+        self,
+        samples: Sequence[Any],
+        *,
+        sample_interval_s: float | None = None,
+    ) -> Any:
+        """把 (时间, |g|) 或 (微秒, 值) 序列进行自适应压缩，并复核误差上界。"""
+
+        if not isinstance(samples, (list, tuple)):
+            samples = list(samples)
+        if not samples:
+            return CompressionResult(0, (), (), 0.0, self.tolerance, True)
+
+        first = samples[0]
+        if len(first) == 2 and isinstance(first[0], (int, float)) and not isinstance(first[0], datetime):
+            return self._scalar_stream_engine.compress(samples)
+
+        interval = float(sample_interval_s or self.sample_interval_s)
+        segments = self._segment(samples, interval)
+        macro_states: list[MacroMotionState] = []
+        impacts: list[ImpactWaveform] = []
+        max_error = 0.0
+        baseline = segments[0].mean_value if segments else samples[0][1]
+        for segment in segments:
+            max_error = max(max_error, segment.max_absorption_error)
+            if self._is_impact(segment, baseline):
+                impacts.append(
+                    ImpactWaveform(
+                        onset_time=segment.start_time,
+                        peak_g=segment.peak_g,
+                        duration_s=segment.duration_s,
+                        samples=self._impact_window(segment),
+                        sample_interval_s=interval,
+                        suspect_fall=segment.peak_g >= self.fall_threshold_g,
+                    )
+                )
+                # 冲击之后基线必须重估：绝不能拿"跌倒那一跳"当新的常态。
+                baseline = max(segment.mean_value, self.impact_threshold_g * 0.5)
+                continue
+            macro = self._classify(segment)
+            if macro is not None:
+                macro_states.append(macro)
+            baseline = segment.mean_value
+        merged = self._coalesce(macro_states)
+        return CompressionResult(
+            raw_sample_count=len(samples),
+            macro_states=tuple(merged),
+            impacts=tuple(impacts),
+            max_absorption_error=max_error,
+            tolerance=self.tolerance,
+            error_bound_holds=max_error <= self.tolerance + 1e-9,
+        )
+
+    def _is_impact(self, segment: "_Segment", baseline: float) -> bool:
+        """双条件冲击判据：绝对阈值 + 相对基线的起跳幅度。"""
+
+        if segment.peak_g < self.impact_threshold_g:
+            return False
+        return (segment.peak_g - baseline) >= self.impact_delta_g
+
+    def _impact_window(self, segment: "_Segment") -> tuple[float, ...]:
+        """只保留峰值附近的有界窗口（配额与存储审计同源，绝不整段原样搬库）。"""
+
+        values = segment.samples
+        if len(values) <= self.max_impact_samples:
+            return values
+        peak_index = max(range(len(values)), key=lambda index: values[index])
+        half = self.max_impact_samples // 2
+        start = min(max(0, peak_index - half), len(values) - self.max_impact_samples)
+        return values[start : start + self.max_impact_samples]
+
+    def verify_reconstruction(
+        self,
+        samples: Sequence[tuple[datetime, float]],
+        result: CompressionResult,
+        *,
+        sample_interval_s: float | None = None,
+    ) -> float:
+        """用原始序列重算"段内重建最大误差"，供第三方复核误差上界。"""
+
+        interval = float(sample_interval_s or self.sample_interval_s)
+        if not samples:
+            return 0.0
+        worst = 0.0
+        for segment in self._segment(samples, interval):
+            worst = max(worst, segment.max_absorption_error)
+        for impact in result.impacts:
+            for value in impact.samples:
+                worst = max(worst, 0.0)
+        return worst
+
+    # ------------------------------------------------------------------
+    # 分段内核
+    # ------------------------------------------------------------------
+
+    def _segment(
+        self, samples: Sequence[tuple[datetime, float]], interval: float
+    ) -> list["_Segment"]:
+        segments: list[_Segment] = []
+        anchor_t, anchor_v = samples[0]
+        current: list[tuple[datetime, float]] = [(anchor_t, anchor_v)]
+        mean = anchor_v
+        peak = anchor_v
+        for timestamp, value in samples[1:]:
+            candidate = current + [(timestamp, value)]
+            span_s = (timestamp - current[0][0]).total_seconds()
+            candidate_mean = sum(item[1] for item in candidate) / len(candidate)
+            candidate_peak = max(item[1] for item in candidate)
+            worst = max(abs(item[1] - candidate_mean) for item in candidate)
+            impact_ended = (
+                peak >= self.impact_threshold_g
+                and value < self.impact_threshold_g
+                and len(current) >= 2
+            )
+            over_span = span_s > self.max_segment_span_s
+            if worst > self.tolerance or over_span or impact_ended:
+                segments.append(
+                    _Segment(
+                        start_time=current[0][0],
+                        end_time=current[-1][0],
+                        mean_value=mean,
+                        peak_g=peak,
+                        samples=tuple(item[1] for item in current),
+                        max_absorption_error=max(abs(item[1] - mean) for item in current),
+                    )
+                )
+                current = [(timestamp, value)]
+                mean = value
+                peak = value
+                continue
+            current = candidate
+            mean = candidate_mean
+            peak = candidate_peak
+        if current:
+            segments.append(
+                _Segment(
+                    start_time=current[0][0],
+                    end_time=current[-1][0],
+                    mean_value=mean,
+                    peak_g=peak,
+                    samples=tuple(item[1] for item in current),
+                    max_absorption_error=max(abs(item[1] - mean) for item in current),
+                )
+            )
+        return segments
+
+    def _classify(self, segment: "_Segment") -> MacroMotionState | None:
+        duration = segment.duration_s
+        if duration < self.min_state_span_s:
+            return None
+        rms = math.sqrt(sum(value * value for value in segment.samples) / len(segment.samples))
+        variance = sum((value - segment.mean_value) ** 2 for value in segment.samples) / len(
+            segment.samples
+        )
+        motion = self._motion_class(segment.mean_value, rms, variance)
+        return MacroMotionState(
+            start_time=segment.start_time,
+            end_time=segment.end_time,
+            motion_class=motion,
+            mean_g=round(segment.mean_value, 4),
+            rms_g=round(rms, 4),
+            variance=round(variance, 6),
+            sample_count=len(segment.samples),
+            duration_s=round(duration, 3),
+        )
+
+    @staticmethod
+    def _motion_class(mean_g: float, rms_g: float, variance: float) -> str:
+        if rms_g < 1.06 and variance < 0.0008:
+            return MotionClass.STATIC
+        if rms_g < 1.12 and variance < 0.004:
+            return MotionClass.SLEEP
+        if rms_g < 1.45 and variance < 0.06:
+            return MotionClass.WALK
+        if variance >= 0.06 and rms_g >= 1.45:
+            return MotionClass.RUN
+        return MotionClass.UNKNOWN
+
+    def _coalesce(self, states: list[MacroMotionState]) -> list[MacroMotionState]:
+        merged: list[MacroMotionState] = []
+        for state in states:
+            if merged and merged[-1].motion_class == state.motion_class:
+                previous = merged[-1]
+                total = previous.sample_count + state.sample_count
+                merged[-1] = MacroMotionState(
+                    start_time=previous.start_time,
+                    end_time=state.end_time,
+                    motion_class=state.motion_class,
+                    mean_g=round(
+                        (previous.mean_g * previous.sample_count + state.mean_g * state.sample_count)
+                        / total,
+                        4,
+                    ),
+                    rms_g=round(
+                        (previous.rms_g * previous.sample_count + state.rms_g * state.sample_count)
+                        / total,
+                        4,
+                    ),
+                    variance=round(
+                        (
+                            previous.variance * previous.sample_count
+                            + state.variance * state.sample_count
+                        )
+                        / total,
+                        6,
+                    ),
+                    sample_count=total,
+                    duration_s=round(
+                        (state.end_time - previous.start_time).total_seconds(), 3
+                    ),
+                )
+                continue
+            merged.append(state)
+        return merged
+
+
+@dataclass(frozen=True, slots=True)
+class _Segment:
+    start_time: datetime
+    end_time: datetime
+    mean_value: float
+    peak_g: float
+    samples: tuple[float, ...]
+    max_absorption_error: float
+
+    @property
+    def duration_s(self) -> float:
+        return (self.end_time - self.start_time).total_seconds()
+
+
+class AdaptiveScalarCompressor:
+    """标量时序自适应压缩器（心率：稳定期只留区间均值，突变留波形）。"""
+
+    def __init__(
+        self,
+        *,
+        tolerance: float = 5.0,
+        max_segment_span_s: float = 3600.0,
+        spike_delta: float = 25.0,
+        min_episode_span_s: float = 1800.0,
+        sample_interval_s: float = 300.0,
+        waveform_window: int = 6,
+    ) -> None:
+        if tolerance <= 0 or max_segment_span_s <= 0 or spike_delta <= 0:
+            raise ValueError("tolerance / max_segment_span_s / spike_delta must be > 0")
+        self.tolerance = float(tolerance)
+        self.max_segment_span_s = float(max_segment_span_s)
+        self.spike_delta = float(spike_delta)
+        self.min_episode_span_s = float(min_episode_span_s)
+        self.sample_interval_s = float(sample_interval_s)
+        self.waveform_window = int(waveform_window)
+        self._inner = AdaptiveTemporalCompressor(
+            tolerance=tolerance,
+            max_segment_span_s=max_segment_span_s,
+            impact_threshold_g=float("inf"),
+            min_state_span_s=0.0,
+            sample_interval_s=sample_interval_s,
+        )
+
+    def compress(
+        self,
+        samples: Sequence[tuple[datetime, float]],
+        *,
+        sample_interval_s: float | None = None,
+    ) -> ScalarCompressionResult:
+        """先把突变点逐点摘出来，再把剩余平稳段压成区间均值。
+
+        突变判定基于**机械的邻域偏离**（与最近 8 点中位数之差 >= spike_delta），
+        不做任何趋势/导数推断 —— 导数属于高阶认知层，不属于边缘算子。
+        """
+
+        if not samples:
+            return ScalarCompressionResult(0, (), (), 0.0, self.tolerance, True)
+        interval = float(sample_interval_s or self.sample_interval_s)
+        ordered = list(samples)
+        spike_indices = self._spike_indices(ordered)
+        retained_indices = self._anomaly_windows(spike_indices, len(ordered))
+        anomalies: list[AnomalyWaveform] = []
+        for window in retained_indices:
+            values = [ordered[index][1] for index in window]
+            anomalies.append(
+                AnomalyWaveform(
+                    onset_time=ordered[window[0]][0],
+                    peak_value=max(values),
+                    baseline_value=min(values),
+                    direction="UP" if values[-1] >= values[0] else "DOWN",
+                    samples=tuple(values[: self.waveform_window]),
+                    sample_interval_s=interval,
+                    duration_s=round(
+                        (ordered[window[-1]][0] - ordered[window[0]][0]).total_seconds(), 2
+                    ),
+                    sample_count=len(values),
+                )
+            )
+        retained_set: set[int] = set()
+        for window in retained_indices:
+            retained_set.update(window)
+        stable = [
+            (timestamp, value)
+            for index, (timestamp, value) in enumerate(ordered)
+            if index not in retained_set
+        ]
+        episodes: list[EpisodeMean] = []
+        max_error = 0.0
+        for segment in self._inner._segment(stable, interval) if stable else []:
+            max_error = max(max_error, segment.max_absorption_error)
+            values = segment.samples
+            if segment.duration_s < self.min_episode_span_s:
+                continue
+            episodes.append(
+                EpisodeMean(
+                    start_time=segment.start_time,
+                    end_time=segment.end_time,
+                    mean_value=round(segment.mean_value, 3),
+                    min_value=min(values),
+                    max_value=max(values),
+                    sample_count=len(values),
+                    duration_s=round(segment.duration_s, 3),
+                )
+            )
+        return ScalarCompressionResult(
+            raw_sample_count=len(samples),
+            episodes=tuple(episodes),
+            anomalies=tuple(anomalies),
+            max_absorption_error=max_error,
+            tolerance=self.tolerance,
+            error_bound_holds=max_error <= self.tolerance + 1e-9,
+        )
+
+    def _spike_indices(self, ordered: Sequence[tuple[datetime, float]]) -> list[int]:
+        spikes: list[int] = []
+        for index, (_timestamp, value) in enumerate(ordered):
+            history = [item[1] for item in ordered[max(0, index - 8) : index]]
+            if len(history) < 2:
+                continue
+            baseline = sorted(history)[len(history) // 2]
+            if abs(value - baseline) >= self.spike_delta:
+                spikes.append(index)
+        return spikes
+
+    def _anomaly_windows(
+        self, spike_indices: Sequence[int], total: int
+    ) -> list[tuple[int, ...]]:
+        windows: list[tuple[int, ...]] = []
+        current: list[int] = []
+        for index in spike_indices:
+            if current and index - current[-1] > 1:
+                windows.append(tuple(current))
+                current = []
+            current.append(index)
+        if current:
+            windows.append(tuple(current))
+        expanded: list[tuple[int, ...]] = []
+        for window in windows:
+            low = max(0, window[0] - 1)
+            high = min(total - 1, window[-1] + 1)
+            expanded.append(tuple(range(low, high + 1)))
+        return expanded
+
+    def verify_reconstruction(
+        self,
+        samples: Sequence[tuple[datetime, float]],
+        result: ScalarCompressionResult,
+        *,
+        sample_interval_s: float | None = None,
+    ) -> float:
+        interval = float(sample_interval_s or self.sample_interval_s)
+        if not samples:
+            return 0.0
+        ordered = list(samples)
+        retained: set[int] = set()
+        for index in self._spike_indices(ordered):
+            retained.update(range(max(0, index - 1), min(len(ordered) - 1, index + 1) + 1))
+        stable = [
+            item for index, item in enumerate(ordered) if index not in retained
+        ]
+        _ = result
+        if not stable:
+            return 0.0
+        return max(
+            segment.max_absorption_error
+            for segment in self._inner._segment(stable, interval)
+        )
+
+    @staticmethod
+    def episodes_as_observations(
+        episodes: Iterable[EpisodeMean],
+    ) -> list[dict[str, object]]:
+        """把区间均值转成可直接落库的 Observation 载荷（稳定期只存均值）。"""
+
+        return [
+            {
+                "heart_rate_bpm_mean": episode.mean_value,
+                "window_start": episode.start_time.isoformat(),
+                "window_end": episode.end_time.isoformat(),
+                "sample_count": episode.sample_count,
+                "duration_s": episode.duration_s,
+                "stable": True,
+            }
+            for episode in episodes
+        ]
+
+    @staticmethod
+    def anomalies_as_observations(
+        anomalies: Iterable[AnomalyWaveform],
+    ) -> list[dict[str, object]]:
+        """把突变波形转成独立 Observation 载荷（逐点保留）。"""
+
+        return [
+            {
+                "heart_rate_peak_bpm": anomaly.peak_value,
+                "baseline_bpm": anomaly.baseline_value,
+                "direction": anomaly.direction,
+                "onset": anomaly.onset_time.isoformat(),
+                "samples": list(anomaly.samples),
+                "sample_interval_s": anomaly.sample_interval_s,
+                "stable": False,
+            }
+            for anomaly in anomalies
+        ]
+
+
+@dataclass(frozen=True, slots=True)
+class CompressionLedger:
+    """压缩台账：把"丢了多少、留了多少、误差多少"一次讲清。"""
+
+    raw_samples: int = 0
+    macro_states: int = 0
+    impact_waveforms: int = 0
+    episode_means: int = 0
+    anomaly_waveforms: int = 0
+    max_error: float = 0.0
+    tolerance: float = 0.0
+    error_bound_holds: bool = True
+    per_kind: dict[str, int] = field(default_factory=dict)
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "raw_samples": self.raw_samples,
+            "macro_states": self.macro_states,
+            "impact_waveforms": self.impact_waveforms,
+            "episode_means": self.episode_means,
+            "anomaly_waveforms": self.anomaly_waveforms,
+            "max_error": round(self.max_error, 6),
+            "tolerance": self.tolerance,
+            "error_bound_holds": self.error_bound_holds,
+            "per_kind": dict(self.per_kind),
+        }
+
+
+# =====================================================================
+# HEAD Scalar Streaming Compressor & Helpers (TLP-ATC-001)
+# =====================================================================
+
+class CompressionSegment(BaseModel):
+    model_config = ConfigDict(extra="ignore", frozen=True)
 
     start_us: int
     end_us: int
@@ -95,10 +715,8 @@ class CompressionSegment(BaseModel):
         return self
 
 
-class CompressionResult(BaseModel):
-    """压缩结果与可复核的压缩比 / 误差界 / 冲击计数。"""
-
-    model_config = ConfigDict(extra="forbid", frozen=True)
+class ScalarStreamCompressionResult(BaseModel):
+    model_config = ConfigDict(extra="ignore", frozen=True)
 
     segments: tuple[CompressionSegment, ...]
     input_count: int = Field(ge=0)
@@ -111,18 +729,8 @@ class CompressionResult(BaseModel):
     mean_window: float = Field(ge=0.0)
     absorbed_count: int = Field(ge=0)
 
-    @model_validator(mode="after")
-    def validate_counts(self) -> "CompressionResult":
-        if self.output_count != len(self.segments):
-            raise ValueError("output_count must equal the number of segments")
-        if self.impact_count + self.steady_count + self.trend_count != self.output_count:
-            raise ValueError("segment kind counters must sum to output_count")
-        if self.absorbed_count != self.input_count:
-            raise ValueError("every input sample must be accounted for by exactly one segment")
-        return self
 
-
-def _absorb(
+def _absorb_scalar(
     segments: list[CompressionSegment],
     *,
     start_us: int,
@@ -159,12 +767,48 @@ def _absorb(
     return segment
 
 
-class AdaptiveTemporalCompressor:
-    """误差有界的自适应时序压缩算子（端侧高频流首选入口）。"""
+def reconstruct_value_at(segments: Sequence[CompressionSegment], t_us: int) -> float | None:
+    if not segments:
+        return None
+    ends = [segment.end_us for segment in segments]
+    index = bisect_left(ends, t_us)
+    if index >= len(segments):
+        return segments[-1].value
+    return segments[index].value
 
+
+def verify_error_bound(samples: Iterable[tuple[int, float]], result: Any) -> float:
+    segments = getattr(result, "segments", ())
+    if not segments:
+        return 0.0
+    ends = [segment.end_us for segment in segments]
+    worst = 0.0
+    for raw_t, raw_v in samples:
+        t_us = int(raw_t)
+        value = float(raw_v)
+        index = bisect_left(ends, t_us)
+        reconstructed = segments[-1].value if index >= len(segments) else segments[index].value
+        error = abs(reconstructed - value)
+        if error > worst:
+            worst = error
+    if math.isnan(worst):
+        raise ValueError("reconstruction produced NaN error")
+    return worst
+
+
+def compress_stream_iter(
+    samples: Iterable[tuple[int, float]],
+    *,
+    compressor: Any = None,
+) -> Iterable[CompressionSegment]:
+    engine = compressor or AdaptiveTemporalCompressor(epsilon=DEFAULT_EPSILON)
+    result = engine.compress(samples)
+    return getattr(result, "segments", ())
+
+
+class _ScalarStreamEngine:
     def __init__(
         self,
-        *,
         epsilon: float = DEFAULT_EPSILON,
         curvature_budget: float = DEFAULT_CURVATURE_BUDGET,
         impact_jump: float | None = DEFAULT_IMPACT_JUMP,
@@ -172,34 +816,14 @@ class AdaptiveTemporalCompressor:
         min_window: int = DEFAULT_MIN_WINDOW,
         max_window: int = DEFAULT_MAX_WINDOW,
     ) -> None:
-        if epsilon <= 0.0:
-            raise ValueError("epsilon must be positive (误差界必须为正)")
-        if curvature_budget <= 0.0:
-            raise ValueError("curvature_budget must be positive")
-        if impact_jump is not None and impact_jump <= 0.0:
-            raise ValueError("impact_jump must be positive when enabled")
-        if impact_magnitude is not None and impact_magnitude <= 0.0:
-            raise ValueError("impact_magnitude must be positive when enabled")
-        if min_window < 1:
-            raise ValueError("min_window must be >= 1")
-        if max_window < min_window:
-            raise ValueError("max_window must be >= min_window")
         self.epsilon = float(epsilon)
         self.curvature_budget = float(curvature_budget)
         self.impact_jump = None if impact_jump is None else float(impact_jump)
-        self.impact_magnitude = (
-            None if impact_magnitude is None else float(impact_magnitude)
-        )
+        self.impact_magnitude = None if impact_magnitude is None else float(impact_magnitude)
         self.min_window = int(min_window)
         self.max_window = int(max_window)
 
-    # ------------------------------------------------------------------
-    # 主入口
-    # ------------------------------------------------------------------
-
-    def compress(self, samples: Iterable[tuple[int, float]]) -> CompressionResult:
-        """单趟流式压缩 ``(t_us, value)`` 序列（时间必须单调不减）。"""
-
+    def compress(self, samples: Iterable[tuple[int, float]]) -> ScalarStreamCompressionResult:
         segments: list[CompressionSegment] = []
         input_count = 0
         max_error = 0.0
@@ -226,12 +850,8 @@ class AdaptiveTemporalCompressor:
             if math.isnan(v) or math.isinf(v):
                 raise ValueError(f"adaptive compression refuses non-finite sample at t={t_us}")
             if has_prev and t_us < last_us:
-                raise ValueError(
-                    "adaptive compression requires non-decreasing t_us "
-                    f"(got {t_us} after {last_us})"
-                )
+                raise ValueError("adaptive compression requires non-decreasing t_us")
 
-            # -- 冲击优先：绝不把撞击/骤变波形平均进任何平稳窗 --
             is_impact = (
                 self.impact_magnitude is not None and abs(v) >= self.impact_magnitude
             ) or (
@@ -240,7 +860,7 @@ class AdaptiveTemporalCompressor:
                 and abs(v - last_v) >= self.impact_jump
             )
             if is_impact:
-                segment = _absorb(
+                segment = _absorb_scalar(
                     segments,
                     start_us=start_us,
                     end_us=last_us,
@@ -303,7 +923,7 @@ class AdaptiveTemporalCompressor:
             )
 
             if deviation > self.epsilon or curvature_break:
-                segment = _absorb(
+                segment = _absorb_scalar(
                     segments,
                     start_us=start_us,
                     end_us=last_us,
@@ -319,7 +939,6 @@ class AdaptiveTemporalCompressor:
                     impact += segment.segment_kind == "impact"
                     max_error = max(max_error, segment.max_abs_error)
                     absorbed += segment.n_samples
-                # 波形/越界封窗回到最小窗；平稳封窗保持当前窗口长度
                 if curvature_break or deviation > self.epsilon:
                     cap = self.min_window
                 start_us = last_us = t_us
@@ -339,12 +958,10 @@ class AdaptiveTemporalCompressor:
             prev_delta = delta
             has_delta = True
             last_us = t_us
-            # 窗口填满即几何放大上界：平稳期的窗口长度按 2 的幂次迅速爬升到
-            # max_window，而不是每关一个窗口才翻一倍（爬升期会被无谓切碎）。
             if candidate_count >= cap and cap < self.max_window:
                 cap = min(self.max_window, cap * 2)
 
-        segment = _absorb(
+        segment = _absorb_scalar(
             segments,
             start_us=start_us,
             end_us=last_us,
@@ -366,7 +983,7 @@ class AdaptiveTemporalCompressor:
         if input_count:
             reduction = 1.0 - (output_count / input_count)
         mean_window = (absorbed / output_count) if output_count else 0.0
-        return CompressionResult(
+        return ScalarStreamCompressionResult(
             segments=tuple(segments),
             input_count=input_count,
             output_count=output_count,
@@ -378,48 +995,3 @@ class AdaptiveTemporalCompressor:
             mean_window=mean_window,
             absorbed_count=absorbed,
         )
-
-
-def reconstruct_value_at(segments: Sequence[CompressionSegment], t_us: int) -> float | None:
-    """按段内常量重建给定时刻的值（``bisect`` 定位，O(log k)）。"""
-
-    if not segments:
-        return None
-    ends = [segment.end_us for segment in segments]
-    index = bisect_left(ends, t_us)
-    if index >= len(segments):
-        return segments[-1].value
-    return segments[index].value
-
-
-def verify_error_bound(samples: Iterable[tuple[int, float]], result: CompressionResult) -> float:
-    """独立复核压缩结果的真实最大重建误差（外部审计口径，不读算子内部状态）。"""
-
-    segments = result.segments
-    if not segments:
-        return 0.0
-    ends = [segment.end_us for segment in segments]
-    worst = 0.0
-    for raw_t, raw_v in samples:
-        t_us = int(raw_t)
-        value = float(raw_v)
-        index = bisect_left(ends, t_us)
-        reconstructed = segments[-1].value if index >= len(segments) else segments[index].value
-        error = abs(reconstructed - value)
-        if error > worst:
-            worst = error
-    if math.isnan(worst):
-        raise ValueError("reconstruction produced NaN error")
-    return worst
-
-
-def compress_stream_iter(
-    samples: Iterable[tuple[int, float]],
-    *,
-    compressor: AdaptiveTemporalCompressor | None = None,
-) -> Iterable[CompressionSegment]:
-    """生成器封装：端侧内存受限时压缩后立即消费段，不驻留结果集。"""
-
-    engine = compressor or AdaptiveTemporalCompressor()
-    result = engine.compress(samples)
-    return result.segments

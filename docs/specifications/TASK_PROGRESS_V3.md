@@ -3,9 +3,9 @@
 > **基准宪法**：`docs/constitution/AIOS核心系统宪法v3.0.md`  
 > **核心仓库**：`aios-2.0` / `aios-3.0`  
 > **总指挥部**：首席架构总工  
-> **最后更新**：2026-09-16（八阶段海量盲测总攻落地）  
-> **当前状态**：**1277 passed, 0 xfailed, 0 failed (100% 满堂绿)**  
-> **本轮攻坚落地**：新增「八阶段全流程海量盲测台 + 外部 I/O 诊断仪 + 三个新工具提案」，全库通过数从 1153 跃升至 **1277 项全绿**（新增 124 项，其中 59 项为端到端盲测验收）。
+> **最后更新**：2026-09-16（八阶段海量盲测总攻落地与 PR #24 熔铸合流）  
+> **当前状态**：**1327 passed, 0 xfailed, 0 failed (100% 满堂绿)**  
+> **本轮攻坚落地**：熔铸合流 PR #24（`01a0a8c2` 战队），正式落地「457 万条全流程海量盲测 + 8 大纯代码新工具算子 + 五大铁律自动核账套件 + P0 级跑步基线误判为跌倒缺陷修复」，全库通过数从 1277 跃升至 **1327 项全绿**（新增 50 项，AST 扫描 238 文件 0 报警）。
 
 ---
 
@@ -154,3 +154,34 @@
 
 **门禁**：`python -m pytest -q` → **1277 passed**；`governance/ci/lint_assert_msg_ast.py` → 216 文件 / 0 命中 / PASS；
 全库无 `# TODO` 与占位实现。
+
+
+---
+
+## 六、AIOS 3.0 PR #24 熔铸合流与 8 大纯代码新工具算子正式入库（1327 满堂绿）
+
+> **合流分支**：`origin/pr/24`（`arena/01a0a8c2-fantonghui` 战队）  
+> **核心战果**：457 万条全流程海量对抗盲测 + 8 件纯代码新工具与优化器算子 + 五大铁律自动核账套件 + 1 个 P0 级缺陷修复。
+
+### 1. 本轮盲测撞出的 P0 致命缺陷与根本性根治
+- **缺陷现象**：原先 `AdaptiveTemporalCompressor` 冲击判据仅看绝对幅值（`peak_g >= 2.0`），而日常跑步段基线本身即达 1.9g，导致 427,838 段例行跑步被误判为"跌倒冲击"（占落库对象 92.8%，吃掉 92.8% 存储与 Token，并导致建图 OOM）。
+- **根治方案**：判据重构为 **`绝对阈值 (peak_g >= 2.0) 且 相对基线起跳 (delta_g >= 1.0g)`** + 局部中位数基线重估 + 波形保留上限。
+- **实测成果**：落库对象从 461,066 降至 33,238（压缩 92.8%）；S1 耗时 303.1s → 121.8s；DB 从 571.7 MB 降至 34.8 MB；3 条真实跌倒（3.45g）仍 100% 准确捕获为 `FALL_SUSPECT`。
+
+### 2. 8 大纯代码新工具与优化器算子全量入库
+| 编号 | 工具/优化器名称 | 模块路径 | 解决痛点与实测效果 |
+|---|---|---|---|
+| `TLP-01` | `AdaptiveTemporalCompressor` | `src/aios_core/tools/adaptive_temporal_compressor.py` | 修复版双通道自适应压缩算子，跑步不误判，真实冲击 100% 保真，误差 ≤ ε。 |
+| `TLP-02` | `DualLensProjectionIndex` | `src/aios_core/tools/dual_lens_projection_index.py` | 双透镜虚拟投影索引，老王案事实零覆写，只读注记挂载，节省 99.88% 空间。 |
+| `TLP-03` | `LightweightConditionEvaluator` | `src/aios_core/tools/lightweight_condition_evaluator.py` | 轻量级条件求值器，窄相位命中 0.84%，休眠任务 0 次求值 / 0 Token 空转。 |
+| `TLP-04` | `MultiScaleCrystalIndex` | `src/aios_core/tools/multiscale_crystal_index.py` | 多尺度结晶索引，金字塔摘要无损穿透，从日/周/月/年多尺度毫秒下钻。 |
+| `TLP-05` | `CrossDomainResonanceSynthesizer` | `src/aios_core/tools/resonance_synthesizer.py` | 跨维度共振合成器，将 GPS/心率/原话横向对齐合成一条新事件锚点。 |
+| `TLP-06` | `CoOccurrenceRecallBus` | `src/aios_core/query/cooccurrence_recall_bus.py` | 多关键词拓扑召回总线，避免孤立全表扫，词元级种子扩展 + 覆盖率排序。 |
+| `TLP-07` | `PersonaGuard` | `src/aios_core/communication/persona_guard.py` | 反谄媚、反教师爷、黑盒零 UI 机械拦截护栏，违例自动回退诚实极简兜底。 |
+| `TLP-08` | `MindSequenceRunner` | `src/aios_core/cognition/mind_sequence.py` | 心智四步序不可逆状态机（镜面→羁绊→姿态→现场），防越权读取与乱序。 |
+
+### 3. 全量门禁与合规断言
+- **全库单元与集成测试**：`python -m pytest -q` → **1327 passed, 0 failed (100% 满堂绿)**。
+- **五大铁律自动核账套件**：`tests/bench/test_iron_laws_gate.py`（50 项盲测断言全绿通过）。
+- **静态 AST 防线**：`governance/ci/lint_assert_msg_ast.py` → 扫描 238 个 .py 文件，0 报警，PASS。
+- **全库零占位符**：全库无 `# TODO`、`FIXME` 与 stub 占位代码。
