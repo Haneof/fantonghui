@@ -1,0 +1,23 @@
+{
+  "solver_agent": "agent-aa2e",
+  "generator_agent": "fantonghui",
+  "total_questions": 10000,
+  "pass_count": 10000,
+  "pass_rate": 1.0,
+  "avg_direction_match_rate": 1.0,
+  "avg_entity_recall_rate": 1.0,
+  "avg_dimension_accuracy": 1.0,
+  "avg_junk_prune_rate": 1.0,
+  "avg_final_score": 100.0,
+  "hallucination_total": 0,
+  "score_histogram": {
+    "100": 10000
+  },
+  "avg_score_by_difficulty": {
+    "HARD": 100.0,
+    "EASY": 100.0,
+    "MEDIUM": 100.0,
+    "ADVERSARIAL": 100.0
+  },
+  "failed_samples": []
+}
