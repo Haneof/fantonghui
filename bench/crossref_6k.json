@@ -1,0 +1,37 @@
+{
+  "world": {
+    "revisions": 6000,
+    "objects": 5663,
+    "generate_seconds": 10.5,
+    "note": "同一合成世界喂两核；口径=延迟与足迹可比，召回语义不可比（实体级 vs 文档修订级）"
+  },
+  "trunk_cjk": {
+    "build_seconds": 0.1,
+    "posting_rows": 14749,
+    "query_ms": {
+      "p50": 0.01,
+      "p95": 0.04,
+      "n": 80
+    }
+  },
+  "r4_search": {
+    "build_seconds": 0.52,
+    "posting_rows": 57226,
+    "query_ms": {
+      "p50": 15.11,
+      "p95": 28.29,
+      "n": 80
+    }
+  },
+  "parity_mode": {
+    "build_seconds": 27.37,
+    "posting_rows": 1653381,
+    "query_ms": {
+      "p50": 3.05,
+      "p95": 4.52,
+      "n": 80
+    },
+    "note": "主干核按 1文档=1实体 重建索引后的同规模延迟；召回仍为 id 集合，无语义等价性主张"
+  },
+  "capability_matrix_note": "水位/严格新鲜度、别名消歧不自动合并、时间透镜、双视图：仅 R4 核；实体共现边表：仅主干核"
+}
