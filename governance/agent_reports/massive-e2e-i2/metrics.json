@@ -1,0 +1,12 @@
+{
+  "full_small_min_s": 3.172,
+  "full_small_p50_s": 3.212,
+  "full_small_p95_s": 3.296,
+  "full_small_p99_s": 3.301,
+  "pace_p50_s": 0.00358,
+  "pace_p95_s": 0.00396,
+  "pace_p99_s": 0.00408,
+  "pace_batches": 40,
+  "peak_rss_mb": 187.8,
+  "headroom_1m_linear_x_s": 105.7
+}

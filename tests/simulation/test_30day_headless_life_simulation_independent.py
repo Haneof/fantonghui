@@ -177,8 +177,19 @@ def test_gate3_zero_deadlocks(thirty_day: SimulationReport) -> None:
 
 def test_gate3_peak_rss_within_128mb(thirty_day: SimulationReport) -> None:
     assert thirty_day.peak_rss_megabytes <= 128.0
-    # 留出可核对的余量，而不是贴着上限通过
-    assert thirty_day.peak_rss_megabytes < 64.0
+
+
+def test_gate3_rss_growth_is_module_attributable(thirty_day: SimulationReport) -> None:
+    """V3G-012 修正后的门禁：只考核**归因于本次推演**的内存增量。
+
+    旧写法直接断言进程级 ``ru_maxrss`` 高水位 < 64MB，而该值单调不减、
+    包含同进程此前所有测试的峰值 —— 于是本测试单跑通过、全量跑失败。
+    现在改读 ``/proc/self/statm`` 的当前驻留页，峰值与增量都是模块级的。
+    """
+    assert thirty_day.rss_baseline_megabytes > 0
+    assert thirty_day.peak_rss_megabytes >= thirty_day.rss_baseline_megabytes
+    # 30 天推演自身的内存占用必须很小
+    assert thirty_day.rss_growth_megabytes < 32.0
 
 
 def test_gate3_no_memory_leacross_two_consecutive_runs(
@@ -188,10 +199,14 @@ def test_gate3_no_memory_leacross_two_consecutive_runs(
     first, _ = _run(30, tmp_path / "run1")
     second, _ = _run(30, tmp_path / "run2")
 
+    # 现在 peak 取的是**当前** RSS 峰值（会随释放回落），
+    # 所以这个差值才真正有"泄漏"语义；旧写法下单调高水位永远只增不减，
+    # 该断言实际上恒成立、什么也没验证。
     growth = second.peak_rss_megabytes - first.peak_rss_megabytes
     assert growth <= 16.0, (
         f"第二遍峰值 RSS 比第一遍高 {growth:.2f}MB，疑似泄漏"
     )
+    assert second.rss_growth_megabytes < 32.0
 
 
 def test_gate3_raw_binary_image_retention_is_strictly_zero(
@@ -257,6 +272,7 @@ def test_180_day_run_holds_every_gate(one_eighty_day: SimulationReport) -> None:
     assert one_eighty_day.deadlock_count == 0
     assert one_eighty_day.raw_image_bytes_retained == 0
     assert one_eighty_day.peak_rss_megabytes <= 128.0
+    assert one_eighty_day.rss_growth_megabytes < 32.0
     assert one_eighty_day.chain_complete is True
     # 180 天 ≈ 6 个月，Token 仍按"月度预算"口径衡量单月强度
     per_month = one_eighty_day.total_tokens_used / 6
