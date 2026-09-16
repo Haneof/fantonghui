@@ -294,6 +294,22 @@ class HighEntropyLifeScript:
             )
 
 
+def _current_rss_megabytes() -> float:
+    """本进程**当前**常驻内存（MB），会随释放而下降。
+
+    V3G-012 修正：``resource.getrusage(...).ru_maxrss`` 是**进程生命周期
+    单调高水位**，只增不减，把它当模块预算门禁会把同进程里此前所有测试的
+    峰值都算进来（同一测试单跑通过、全量跑失败即由此而来）。
+    模块级预算必须读 ``/proc/self/statm`` 的当前驻留页数。
+    """
+    try:
+        with open("/proc/self/statm", encoding="ascii") as handle:
+            resident_pages = int(handle.read().split()[1])
+        return resident_pages * resource.getpagesize() / (1024.0 * 1024.0)
+    except (OSError, IndexError, ValueError):  # 非 Linux 回退
+        return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0
+
+
 # ---------------------------------------------------------------------------
 # 死锁看门狗
 # ---------------------------------------------------------------------------
@@ -364,6 +380,8 @@ class SimulationReport(BaseModel):
     total_tokens_used: int
     monthly_token_budget: int
     peak_rss_megabytes: float
+    rss_baseline_megabytes: float
+    rss_growth_megabytes: float
     deadlock_count: int
     raw_image_bytes_retained: int
     raw_image_frames_purged: int
@@ -465,7 +483,9 @@ class HeadlessLifeDriver:
 
         self._now = config.start_at
         self._state = _RunState()
-        self._rss_peak_kb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        # V3G-012：基线与峰值都取**当前** RSS，而非进程级单调高水位
+        self._rss_baseline_mb = _current_rss_megabytes()
+        self._rss_peak_mb = self._rss_baseline_mb
 
     # --------------------------------------------------------- 条件任务种子
 
@@ -530,6 +550,10 @@ class HeadlessLifeDriver:
                 continue  # 死锁计数已在看门狗里累加
             try:
                 self._step(frame)
+                # 每 2000 tick 采一次当前 RSS，否则峰值只在收尾采到一次，
+                # 中途的内存尖峰会被完全漏掉
+                if self._state.ticks % 2000 == 0:
+                    self._sample_rss()
             finally:
                 self.watchdog.release()
 
@@ -936,12 +960,21 @@ class HeadlessLifeDriver:
     # ------------------------------------------------------------- RSS
 
     def _sample_rss(self) -> None:
-        current = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-        self._rss_peak_kb = max(self._rss_peak_kb, current)
+        self._rss_peak_mb = max(self._rss_peak_mb, _current_rss_megabytes())
 
     @property
     def peak_rss_megabytes(self) -> float:
-        return self._rss_peak_kb / 1024.0
+        """推演期间观测到的**当前** RSS 峰值（模块级，会随释放回落）。"""
+        return self._rss_peak_mb
+
+    @property
+    def rss_baseline_megabytes(self) -> float:
+        return self._rss_baseline_mb
+
+    @property
+    def rss_growth_megabytes(self) -> float:
+        """归因于本次推演的内存增量 = 峰值 - 基线。"""
+        return max(0.0, self._rss_peak_mb - self._rss_baseline_mb)
 
     # ---------------------------------------------------------- 报告
 
@@ -961,6 +994,8 @@ class HeadlessLifeDriver:
             total_tokens_used=state.tokens,
             monthly_token_budget=self.policy.monthly_total_tokens,
             peak_rss_megabytes=round(self.peak_rss_megabytes, 2),
+            rss_baseline_megabytes=round(self.rss_baseline_megabytes, 2),
+            rss_growth_megabytes=round(self.rss_growth_megabytes, 2),
             deadlock_count=self.watchdog.deadlock_count,
             raw_image_bytes_retained=self.raw_sink.retained_byte_count,
             raw_image_frames_purged=self.raw_sink.purged_frame_count,
