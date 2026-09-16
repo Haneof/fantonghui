@@ -21,7 +21,7 @@ import ast
 import random
 import threading
 from dataclasses import dataclass, fields
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -30,6 +30,7 @@ from aios_core.simulation import envelope_verdict_gate as evg
 from aios_core.simulation import headless_life_driver as driver
 from aios_core.simulation.envelope_verdict_gate import (
     PROPOSED_SIM_SUBSYSTEM_MAPPING,
+    UNATTRIBUTABLE_DRIVER_POOLS,
     PROPOSED_TREND_SEMANTICS,
     SMOOTHING_DAYS,
     VIRTUAL_DAYS_REQUIRED,
@@ -49,7 +50,7 @@ from aios_core.simulation.envelope_verdict_gate import (
     measure_thread_delta,
     validate_policy_section,
 )
-from aios_core.simulation.headless_life_driver import SimReport, TokenMeter
+from aios_core.simulation.headless_life_driver import RunReport
 
 MODULE_SOURCE = Path(evg.__file__).read_text(encoding="utf-8")
 DRIVER_SOURCE = Path(driver.__file__).read_text(encoding="utf-8")
@@ -147,7 +148,7 @@ class TestPolicyBinding:
             DeterminismGate(degradation_policy=drifted)
 
     def test_every_invariant_is_complete_and_uses_a_registered_trend(self):
-        assert len(DG["invariants"]) == 25
+        assert len(DG["invariants"]) == 26
         for spec in DG["invariants"]:
             assert set(spec) >= {"metric_id", "trend", "tolerance", "severity"}
             assert spec["trend"] in PROPOSED_TREND_SEMANTICS
@@ -234,31 +235,113 @@ class TestTokenEnvelopeGate:
         with pytest.raises(SimVerdictGateError, match="未知子系统"):
             gate.record(day=0, subsystem="make_up_a_name", tokens=1)
 
-    def test_every_token_meter_bucket_maps_to_a_legal_subsystem(self):
-        """本模块的映射提案必须覆盖并行线 ``TokenMeter`` 的**全部**记账桶。
+    def test_every_attributable_driver_pool_maps_to_a_legal_subsystem(self):
+        """映射提案的每个目标都必须是法定子系统，且**声明为无法归因的池不得偷偷出现在映射里**。
 
-        少一个桶，那部分花费就永远进不了封套判决 —— 而这恰好是最容易发生的遗漏，
-        因为漏掉的桶不会报错，只会安静地不计费。
+        少一个可归因池，那部分花费就永远进不了封套判决 —— 而这恰好是最容易发生的遗漏，
+        因为漏掉的池不会报错，只会安静地不计费。反过来更危险：把一个跨子系统的聚合池
+        硬摊派给某个子系统，会让判决门拿到一个"看起来完整"的输入，从而把"测不到"
+        伪装成"测到了没超"。所以两个集合必须互斥且都被显式声明。
         """
-        buckets = {f.name for f in fields(TokenMeter)}
-        assert set(PROPOSED_SIM_SUBSYSTEM_MAPPING) == buckets
         gate = TokenEnvelopeGate()
         for target in PROPOSED_SIM_SUBSYSTEM_MAPPING.values():
-            assert target in gate.subsystem_caps
-
-    def test_a_token_meter_can_be_paid_into_the_envelope(self):
-        meter = TokenMeter(
-            manifest_tokens=4000, caption_tokens=2000, claim_tokens=3000, retro_tokens=1000
+            assert target in gate.subsystem_caps, f"{target} 不是法定子系统"
+        assert not (set(PROPOSED_SIM_SUBSYSTEM_MAPPING) & UNATTRIBUTABLE_DRIVER_POOLS), (
+            "同一个池既被归因又被声明为无法归因 —— 两处口径互相矛盾"
         )
+        # 报告字段必须真实存在，否则映射指向空气
+        for pool in set(PROPOSED_SIM_SUBSYSTEM_MAPPING) | set(UNATTRIBUTABLE_DRIVER_POOLS):
+            if pool == "llm_tokens":          # 住在 report.extra 里，不是 dataclass 字段
+                assert pool in {f.name for f in fields(RunReport)} | {"llm_tokens"}
+                continue
+            assert pool in {f.name for f in fields(RunReport)}, f"{pool} 不是 RunReport 字段"
+
+    def test_evidence_the_driver_has_no_per_subsystem_accounting(self):
+        """**取证（不代改他人文件）**：驱动器全模块 0 次提及 ``subsystem``。
+
+        这不是吹毛求疵：法定封套是**十二个子系统各自一个上限**，而驱动器只有三个聚合池。
+        没有按子系统记账，子系统上限就无法判定 —— 判不了就必须声明判不了，
+        不能用总量合规冒充分项合规。
+        """
+        assert "subsystem" not in DRIVER_BODY, (
+            "驱动器已开始按子系统记账，映射提案应扩充覆盖，本取证需重新评估"
+        )
+        assert UNATTRIBUTABLE_DRIVER_POOLS, "无法归因池不得为空：那等于声称全都能归因"
+
+    def test_an_attributable_pool_can_be_paid_into_the_envelope(self):
         gate = TokenEnvelopeGate()
-        for bucket in fields(TokenMeter):
-            gate.record(
-                day=0,
-                subsystem=PROPOSED_SIM_SUBSYSTEM_MAPPING[bucket.name],
-                tokens=getattr(meter, bucket.name),
-            )
-        assert gate.spent() == meter.total == 10000
+        gate.record(
+            day=0,
+            subsystem=PROPOSED_SIM_SUBSYSTEM_MAPPING["dormant_prompt_tokens"],
+            tokens=3000,
+        )
+        assert gate.spent() == 3000
         assert gate.verdict() is True
+
+    def test_evidence_the_driver_total_prompt_tokens_undercounts(self):
+        """**取证（行为级，用主干自己的公开 API）**：``prompt_token_total`` 名为 total，
+        实为**最后一次渲染的快照** —— 它由 ``self.prompt_token_total = _approx_tokens(prompt)``
+        赋值而非累加。驱动器却把它与累加量 ``llm.tokens`` 相加，得到
+        ``report.prompt_tokens_total``，于是"总 prompt token"系统性少报。
+
+        少报只会朝一个方向骗人：骗的是预算守卫。喂进封套判决门后，月帽检查偏松 ——
+        虚拟人可能已经超支，而报告显示仍在封套内。这条取证不修改任何他人文件，
+        只调用 ``register_task`` / ``tick`` / ``render_llm_prompt_context`` 三个公开方法。
+        """
+        from aios_core.scheduler.conditional_engine import (
+            ConditionalSchedulerEngine, TimeArrivalCondition,
+        )
+
+        now = datetime(2026, 9, 16, tzinfo=timezone.utc)
+        engine = ConditionalSchedulerEngine()
+        condition = TimeArrivalCondition(due_at=now - timedelta(hours=1))
+        engine.register_task(task_id="T1", title="第一个任务标题", conditions=[condition])
+        engine.tick(now)
+        engine.render_llm_prompt_context(now)
+        first = engine.prompt_token_total
+        assert first > 0, "第一次渲染应产生非零 token，否则本取证无意义"
+
+        engine.register_task(task_id="T2", title="第二个任务标题" * 20, conditions=[condition])
+        engine.tick(now)
+        engine.render_llm_prompt_context(now)
+        second = engine.prompt_token_total
+
+        # 快照语义：字段值只反映最后一次渲染，第一次的花费被整段丢弃。
+        # 若它改成累加，第二次读数必然 ≥ 两次之和，本断言即红（那是好消息）。
+        assert first > 0 and second > first, f"渲染未产生可比较的读数：{first} / {second}"
+        assert second < first + second, (
+            f"prompt_token_total 已从快照改为累加（{first} -> {second}），本取证需重新评估"
+        )
+        # AST 侧同一条结论：该字段只有赋值、没有自增（字符串匹配会命中注释，故用语法树）
+        from aios_core.scheduler import conditional_engine as ce_mod
+
+        ce_tree = ast.parse(Path(ce_mod.__file__).read_text(encoding="utf-8"))
+        assigns = [
+            n for n in ast.walk(ce_tree)
+            if isinstance(n, ast.Assign) and any(
+                isinstance(tg, ast.Attribute) and tg.attr == "prompt_token_total" for tg in n.targets)
+        ]
+        augs = [
+            n for n in ast.walk(ce_tree)
+            if isinstance(n, ast.AugAssign)
+            and isinstance(n.target, ast.Attribute) and n.target.attr == "prompt_token_total"
+        ]
+        assert assigns and not augs, (
+            f"prompt_token_total 已出现自增（assign={len(assigns)} aug={len(augs)}），缺陷已修复"
+        )
+
+    def test_evidence_monthly_budget_has_two_mouths_and_they_must_agree(self):
+        """**双口径钉死**：顶层 ``monthly_token_budget`` 与 ``token_budget.monthly_total_cap``
+        是同一部法的两处表述。主干驱动器读前者，法定封套写后者；两处并存即可漂移，
+        而漂移不会报错，只会让两拨代码各自守着不同的月帽。
+        """
+        assert ROOT["monthly_token_budget"] == ROOT["token_budget"]["monthly_total_cap"], (
+            "两处月帽口径已漂移 —— 判决门与驱动器将各守一个上限"
+        )
+        assert ROOT["monthly_token_budget"] == MONTHLY_CAP
+        # 驱动器读的正是前一个键，判决门读的正是后一个键；两者必须是同一部法
+        assert "monthly_token_budget" in DRIVER_BODY
+        assert TB["monthly_total_cap"] == MONTHLY_CAP
 
     @pytest.mark.parametrize("subsystem", sorted(SUBSYSTEMS))
     def test_every_subsystem_cap_is_within_the_monthly_envelope(self, subsystem):
@@ -428,7 +511,7 @@ class TestTokenEnvelopeGate:
 class TestDegradationGuard:
     def test_all_twenty_five_legal_invariants_are_registered(self):
         guard = DegradationGuard()
-        assert len(guard.metric_ids) == 25
+        assert len(guard.metric_ids) == 26
         assert set(guard.metric_ids) == set(INVARIANTS)
 
     def test_the_five_degradations_named_by_the_policy_are_all_measurable(self):
@@ -450,7 +533,7 @@ class TestDegradationGuard:
     def test_a_healthy_thirty_day_life_passes_every_invariant(self):
         guard = healthy_guard()
         verdicts = guard.render()
-        assert len(verdicts) == 25
+        assert len(verdicts) == 26
         assert all(v.passed for v in verdicts)
         assert guard.blockers() == ()
         assert guard.audit()["blockers"] == 0
@@ -618,8 +701,8 @@ class TestDegradationGuard:
         import json
 
         payload = json.loads(json.dumps(healthy_guard().audit(), ensure_ascii=False))
-        assert payload["invariants_total"] == 25
-        assert payload["passed"] == 25
+        assert payload["invariants_total"] == 26
+        assert payload["passed"] == 26
         assert payload["measurement"] == "compressed_30_virtual_days"
 
 
@@ -650,17 +733,27 @@ class TestRuntimeAndDeterminism:
         with pytest.raises(SimVerdictGateError, match="法定上限"):
             gate.enforce(1000.0)
 
-    def test_the_driver_own_wall_clock_bound_is_within_the_ci_ceiling(self):
-        """并行线测试自设的墙钟上界（120s）必须落在法定 15 分钟之内。
+    def test_the_ci_runtime_ceiling_is_a_mechanism_not_a_hope(self):
+        """法定 ``ci_runtime_minutes_max_mock_adapter = 15`` 必须由机制承载。
 
-        两个数字来自不同地方（他们的测试 vs 政策），一致性不是自动的：若有人把仿真
-        放大到 40 天，120s 的自设界仍可能通过，而法定界已经被冲破。
+        这里换过一次判据，原因记在案：原先本测试去读兄弟测试文件，断言它自设的墙钟上界
+        ``wall_seconds < 120.0`` 落在法定 15 分钟之内。主干重写后**那条自设界已经不存在**
+        （兄弟测试改为 ``days=180``，不再断言墙钟），本测试随之变红 —— 拿别人的自设界
+        当自己的判据，别人一改我就红，而且红得像是法定上限失守。改为直接测本模块的门。
+
+        顺带记一处口径差：兄弟测试跑 180 虚拟日，而法定测量窗口是
+        ``compressed_30_virtual_days``。跑更长不违规，但**判决必须按法定 30 日窗口**做 ——
+        180 日的趋势会把某个 30 日窗口内的退化摊平。这与 :meth:`DegradationGuard.render`
+        在窗口不足时抛错是同一条纪律的两面。
         """
         sibling = Path(__file__).parent / "test_30day_headless_life_simulation.py"
         assert sibling.exists()
-        assert "wall_seconds < 120.0" in sibling.read_text(encoding="utf-8")
-        assert RuntimeBudgetGate().check(120.0) is True
-        assert RuntimeBudgetGate().seconds_max == 900.0
+        gate = RuntimeBudgetGate()
+        assert gate.seconds_max == 900.0 == 15 * 60
+        assert gate.check(900.0) is True          # 恰好在上限：合法
+        assert gate.check(900.1) is False         # 超出一瞬：不合法
+        assert DG["measurement"] == "compressed_30_virtual_days"
+        assert VIRTUAL_DAYS_REQUIRED == 30
 
     def test_determinism_passes_for_a_seeded_run(self):
         def run_once():
@@ -690,11 +783,33 @@ class TestRuntimeAndDeterminism:
         with pytest.raises(SimVerdictGateError, match="两次"):
             DeterminismGate().verify(lambda: {}, runs=1)
 
-    def test_the_driver_is_seeded_by_default(self):
-        """并行线驱动器默认带 seed（``deterministic_seed_required`` 已满足）。"""
-        assert driver.HeadlessLifeDriver()._rng.getstate() == random.Random(
-            20260916
-        ).getstate()
+    def test_the_driver_is_seeded_by_a_literal_not_by_the_clock(self):
+        """法定 ``deterministic_seed_required = true`` 必须由机制承载。
+
+        判据换过一次：原先断言 ``HeadlessLifeDriver()._rng`` 的状态等于固定种子。
+        主干重写后驱动器构造函数改签名（需 ``cfg`` 与 ``db_path``），``_rng`` 也移进了
+        ``CircadianPersona`` —— 旧判据随之失效。改写后测的是**同一条法律的更强形式**：
+        种子必须是源码里的字面量，不能由墙钟派生（AST 判据），且节律发生器的 rng
+        确实由它派生（行为判据）。
+        """
+        assert DG["deterministic_seed_required"] is True
+        cfg = driver.SimConfig()
+        assert cfg.seed == 20260916
+        # AST：seed 的默认值必须是字面量常量，不得是 time()/urandom 之类的派生
+        tree = ast.parse(DRIVER_SOURCE)
+        cfg_cls = next(n for n in tree.body
+                       if isinstance(n, ast.ClassDef) and n.name == "SimConfig")
+        seed_default = next(
+            st.value for st in cfg_cls.body
+            if isinstance(st, ast.AnnAssign) and isinstance(st.target, ast.Name)
+            and st.target.id == "seed"
+        )
+        assert isinstance(seed_default, ast.Constant) and isinstance(seed_default.value, int), (
+            f"种子默认值不再是整型字面量：{ast.unparse(seed_default)}"
+        )
+        # 行为：节律发生器的随机流确实由该种子派生 → 同种子必同序列
+        persona = driver.CircadianPersona(cfg)
+        assert persona._rng.getstate() == random.Random(cfg.seed).getstate()
 
     def test_digest_is_stable_across_key_order(self):
         gate = DeterminismGate()
@@ -707,43 +822,79 @@ class TestRuntimeAndDeterminism:
 
 
 class TestMeasurementsThatCanFail:
-    def test_evidence_the_driver_self_certifies_its_hygiene_constants(self):
-        """**取证（AST，不代改他人文件）**：驱动器把 ``raw_bytes_resident`` 与
-        ``deadlocks`` 直接赋值为字面量 0。
+    def test_evidence_deadlock_counting_is_fixed_and_residency_moved_not_fixed(self):
+        """**取证（AST，不代改他人文件；主干重写后复核，一条已修、一条只是搬了家）**。
 
-        于是 ``assert report.raw_bytes_resident == 0`` 与 ``assert report.deadlocks == 0``
-        **永远为真**：若原始字节真的驻留、真的死锁，报告照样写 0。这是最危险的一类
-        假绿 —— 它披着"结构性自证"的外衣，却对现实零敏感度。
+        原取证：驱动器把 ``raw_bytes_resident = 0`` 写在主循环里、``deadlocks = 0`` 写在
+        结尾，测试断言二者 ``== 0``，因此永远为真。主干重写后：
+
+        * **死锁一条已真修好**：``report.deadlock_cycles += 1`` 在检出环时累加，
+          这条断言现在**可以失败**了。如实记为主干的改进。
+        * **驻留一条只是搬了家**：报告端改成真管道
+          ``report.raw_binary_retained_bytes = self.cleaner.raw_binary_retained_bytes``，
+          但**喂入端**仍是 ``self.raw_binary_retained_bytes += 0``，旁边注释自己写明
+          "原始字节从不入账（构造性为 0）"。字段仍不可能非零，而外观上多了管道，
+          比原来更容易被误读成"已经测了"。
+
+        两条都用 AST 判据（字符串匹配会命中 docstring 与注释里的正当提及）。
         """
         tree = ast.parse(DRIVER_SOURCE)
-        hardcoded = [
-            (node.targets[0].attr, node.lineno)
-            for node in ast.walk(tree)
-            if isinstance(node, ast.Assign)
-            and len(node.targets) == 1
-            and isinstance(node.targets[0], ast.Attribute)
-            and node.targets[0].attr in ("raw_bytes_resident", "deadlocks")
-            and isinstance(node.value, ast.Constant)
-            and node.value.value == 0
+        aug = [
+            (n.target.attr, n.lineno) for n in ast.walk(tree)
+            if isinstance(n, ast.AugAssign) and isinstance(n.target, ast.Attribute)
+            and n.target.attr == "deadlock_cycles"
         ]
-        assert len(hardcoded) == 2, (
-            f"并行线已改为真实测量（找到 {hardcoded}），本取证需重新评估"
+        assert aug, "死锁计数已不再是累加 —— 主干的修复被回退了，本取证需重新评估"
+
+        # 驻留字段的喂入端：找 += 0 这种"加了个零"的自增
+        zero_feed = [
+            n.lineno for n in ast.walk(tree)
+            if isinstance(n, ast.AugAssign) and isinstance(n.target, ast.Attribute)
+            and n.target.attr == "raw_binary_retained_bytes"
+            and isinstance(n.value, ast.Constant) and n.value.value == 0
+        ]
+        assert zero_feed, (
+            "驻留字段的喂入端已改为真实计量 —— 缺陷已修复，本取证应改写为回归守卫"
         )
-        # 且这两处赋值发生在 run() 内部，即每一步都被覆写成 0
-        assert any(lineno > 200 for _, lineno in hardcoded)
+        # 且报告端确实是管道（不是字面量 0），据此才能说"搬了家"而不是"原样未动"。
+        # 判据必须限定到 ``report.<field>``：清洗器 __init__ 里的零初始化是正当的，
+        # 不限定就会把它误判成"报告端写死 0"（第一版正是这么误判的）。
+        report_side = [
+            (ast.unparse(n.value), n.lineno) for n in ast.walk(tree)
+            if isinstance(n, ast.Assign) and len(n.targets) == 1
+            and isinstance(n.targets[0], ast.Attribute)
+            and n.targets[0].attr == "raw_binary_retained_bytes"
+            and isinstance(n.targets[0].value, ast.Name)
+            and n.targets[0].value.id == "report"
+        ]
+        assert report_side, "报告端不再回传该字段 —— 管道被拆了，本取证需重新评估"
+        assert not any(isinstance(n, ast.Constant) for _ in report_side
+                       for n in [ast.parse(v, mode="eval").body for v, _ in report_side]), (
+            f"报告端又变回字面量常量了 —— 比搬家更糟：{report_side}"
+        )
 
-    def test_evidence_the_driver_never_reads_the_policy(self):
-        """**取证**：驱动器源码去掉模块 docstring 之后，对 ``token_budget`` /
-        ``monthly_total_cap`` / ``runtime_policy`` 的引用数为 **0**。
+    def test_evidence_the_driver_reads_the_monthly_budget_but_nothing_else(self):
+        """**取证（主干重写后复核：缺口收窄，但没闭合）**。
 
-        docstring 承诺"月度总量对 governance/runtime_policy.json 的
-        monthly_total_cap=2,554,000 可复算"，但代码不读政策 —— 承诺写在文档里而
-        机制不在代码里，换个测试就没了。
+        原取证是"驱动器对政策零引用"。主干重写后有了 :func:`load_token_policy`，
+        真读 ``monthly_token_budget`` 与 ``hard_rules.raw_binary_image_retention_bytes_max``
+        —— 这是实质改进，如实记下，本测试也据此改写：不再断言"零引用"，
+        而是断言**哪些读了、哪些仍然没读**，并把"仍然没读"的那五项钉住。
+
+        仍然为 0 的五项，每一项都是一条没有机制承载的法律：
+        ``daily_total_cap``（日上限）、``monthly_total_cap``（法定封套的月帽键路径 ——
+        驱动器读的是另一个同值键，见双口径测试）、``degradation_invariants``（26 条不变量）、
+        ``ci_runtime_minutes``（15 分钟天花板）、``deterministic_seed``（确定性种子要求）。
         """
-        for token in ("runtime_policy", "monthly_total_cap", "governance/", "token_budget"):
-            assert token not in DRIVER_BODY, f"{token} 出现在 docstring 之外的代码里"
-        assert "monthly_total_cap" in DRIVER_SOURCE  # 只在 docstring 里
-        assert "token_budget" not in DRIVER_SOURCE   # 连 docstring 都没提
+        # 已读：这两项必须继续读，回退即红
+        for token in ("runtime_policy", "monthly_token_budget"):
+            assert token in DRIVER_BODY, f"{token} 的读取被移除了 —— 主干的改进被回退"
+        # 仍未读：五项法律无机制承载
+        for token in ("daily_total_cap", "monthly_total_cap", "degradation_invariants",
+                      "ci_runtime_minutes", "deterministic_seed"):
+            assert token not in DRIVER_BODY, (
+                f"{token} 已被驱动器读取 —— 缺口收窄，本取证需重新评估（这是好消息）"
+            )
 
     def test_residency_probe_reports_zero_for_a_clean_product(self):
         probe = ResidencyProbe(min_bytes=1024)
@@ -810,13 +961,15 @@ class TestMeasurementsThatCanFail:
         assert measurement.result.delta >= 1
 
     def test_a_slots_dataclass_payload_is_still_detected(self):
-        """并行线 ``SimReport`` 是 ``slots=True`` 的 dataclass，**没有 ``__dict__``**。
+        """主干 ``RunReport`` 是 ``slots=True`` 的 dataclass，**没有 ``__dict__``**。
 
         只靠 ``vars()`` 遍历会静默漏掉它的全部字段 —— 探针必须自己避免犯它要抓的错。
         """
-        assert not hasattr(SimReport(), "__dict__")
+        assert not hasattr(RunReport(), "__dict__")
         probe = ResidencyProbe(min_bytes=1024)
-        assert probe.scan(SimReport(token_meter=TokenMeter(caption_tokens=10))) == 0
+        assert probe.scan(RunReport()) == 0
+        # slots dataclass 的字段也必须被遍历到：extra 是 dict，塞进载荷就得报出来
+        assert probe.scan(RunReport(extra={"raw": bytes(4096)})) == 1
 
         @dataclass(slots=True, frozen=True)
         class Slotted:
@@ -866,11 +1019,11 @@ class TestMeasurementsThatCanFail:
         assert probe.scan(containers[shape], label=shape) == 1, f"{shape} 形态漏报"
 
     def test_a_driver_report_can_be_probed_instead_of_trusted(self):
-        """与 ``assert report.raw_bytes_resident == 0`` 的区别在于：这条断言**可以**失败。"""
-        report = SimReport(token_meter=TokenMeter(caption_tokens=10))
+        """与自证常量的区别在于：这条断言**可以**失败。"""
+        report = RunReport()
         probe = ResidencyProbe(min_bytes=1024)
-        assert probe.scan(report, label="SimReport") == 0
-        probe.assert_clean(report, label="SimReport")  # 不抛
+        assert probe.scan(report, label="RunReport") == 0
+        probe.assert_clean(report, label="RunReport")  # 不抛
 
 
 # ---------------------------------------------------------------------------
@@ -896,7 +1049,7 @@ class TestSimVerdict:
     def test_all_four_gates_green_yields_pass(self):
         verdict = self._all_green()
         assert verdict.passed is True
-        assert verdict.invariants_total == 25
+        assert verdict.invariants_total == 26
         assert verdict.to_audit()["verdict"] == "PASS"
 
     def test_an_envelope_violation_fails_the_verdict(self):
@@ -996,7 +1149,7 @@ class TestSimVerdict:
         import json
 
         payload = json.loads(json.dumps(self._all_green().to_audit(), ensure_ascii=False))
-        assert payload["invariants_total"] == 25
+        assert payload["invariants_total"] == 26
         assert payload["envelope_violations"] == []
         assert payload["determinism_digest"] == "a" * 64
 

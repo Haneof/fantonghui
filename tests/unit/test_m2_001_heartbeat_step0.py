@@ -27,6 +27,7 @@
 
 from __future__ import annotations
 
+import ast
 import inspect
 import json
 import typing
@@ -44,7 +45,7 @@ from aios_core.contracts.safety_bypass import (
     WakePriority,
 )
 from aios_core.scheduler import conditional_engine as ce
-from aios_core.scheduler.conditional_engine import ModelCallMeter
+from aios_core.wake.heartbeat_step0_gate import ModelCallMeter
 from aios_core.wake import heartbeat_step0_gate as cq
 from aios_core.wake import dispatcher as wake_dispatcher
 from aios_core.wake.heartbeat_step0_gate import (
@@ -315,10 +316,23 @@ class TestPolicyBinding:
         with pytest.raises(WakeError, match="非空列表"):
             load_step0_policy({"step0_safety_gate": drifted})
 
-    def test_unknown_trigger_kind_name_is_refused(self):
-        """拒绝自拟第七种触发器名 —— 编号漂移的真实成因就是各写各的名字。"""
+    @pytest.mark.parametrize("invented", [
+        "SOMETHING_THE_POLICY_NEVER_SAID",
+        "LONG_STABLE_HEART",          # 差一个后缀也不认：近似名最容易蒙混过关
+        "RELATION_RHYTHM",           # 法定**枚举成员名**同样不是政策名，不得混用
+        "",
+    ])
+    def test_unknown_trigger_kind_name_is_refused(self, invented):
+        """拒绝自拟第七种触发器名 —— 编号漂移的真实成因就是各写各的名字。
+
+        判据换过一次，原因记在这里：本测试原先拿 ``LONG_STABLE_HEARTBEAT`` 当"必须拒绝的
+        作废旧名"（依本线 ADJ-002/ADJ-003 的改名裁决）。主干压平谱系从未收到该裁决，
+        仍以它为现行法定名并由其政策测试钉死；政策 v1.4.0 并集取了主干值，于是这个名字
+        **变成了合法输入**。若照旧断言它被拒，测试就会去锁一个治理尚未裁决的立场。
+        现在改用一个任何谱系都没主张过的名字，并把守卫的真正判据（未登记即拒）测准。
+        """
         drifted = dict(HB)
-        drifted["trigger_kind_name"] = "LONG_STABLE_HEARTBEAT"  # 政策 $name_note 明文的作废旧名
+        drifted["trigger_kind_name"] = invented
         with pytest.raises(WakeError, match="编号漂移"):
             HeartbeatScheduler(heartbeat_policy=drifted)
 
@@ -338,7 +352,32 @@ class TestPolicyBinding:
         assert legal_name not in {m.value for m in WakeSourceV3}
         assert legal_name not in {m.value for m in WakeSource}
         assert legal_name not in {m.name for m in WakeSourceV3}
-        assert len(TRIGGER_KIND_LEGAL_NAME) == 1
+        # 两种拼写来自两条政策谱系（详见模块常量注释与政策 $name_collision_note）。
+        # 条数不是重点，重点是**它们必须指向同一个法定载体**：只要映射恒等，
+        # 别名就不可能悄悄变成第七种触发器；一旦有人给某个拼写指向别的成员，本断言即红。
+        assert len(TRIGGER_KIND_LEGAL_NAME) == 2
+        assert len(set(TRIGGER_KIND_LEGAL_NAME.values())) == 1, (
+            "两种拼写映射到了不同法定成员 —— 那等于凭空多出一个触发器种类"
+        )
+        assert set(TRIGGER_KIND_LEGAL_NAME.values()) == {WakeSourceV3.RELATION_RHYTHM}
+        for spelling in TRIGGER_KIND_LEGAL_NAME:
+            assert spelling not in {m.value for m in WakeSourceV3}
+            assert spelling not in {m.name for m in WakeSourceV3}
+            assert spelling not in {m.value for m in WakeSource}
+
+    def test_both_policy_spellings_map_to_the_same_legal_member(self):
+        """**别名恒等**：政策名换拼写不得改变运行时行为。
+
+        两条谱系对"哪个名是旧名"判定相反，治理尚未裁决。本测试把裁决悬置期间唯一能保证的
+        事情钉死：无论政策写哪一个，``sched.trigger_kind`` 都是同一个法定成员。
+        这样治理将来选定任一拼写，都不需要改本模块一行代码。
+        """
+        kinds = set()
+        for spelling in ("LONG_STABLE_HEARTBEAT", "RELATIONSHIP_RHYTHM_CANDIDATE"):
+            policy = dict(HB)
+            policy["trigger_kind_name"] = spelling
+            kinds.add(HeartbeatScheduler(heartbeat_policy=policy).trigger_kind)
+        assert kinds == {WakeSourceV3.RELATION_RHYTHM}, f"两种拼写产生了不同行为：{kinds}"
 
     def test_absolute_floor_constant_matches_policy(self):
         assert ABSOLUTE_FLOOR_CHANNELS == frozenset(
@@ -546,9 +585,28 @@ class TestGate2Step0IsMechanicalAndPrecedesEveryModelCall:
             ]
 
         assert charge_sites(cq.__file__) == [], "Step-0 必须零模型调用"
-        # 反向自检：确认这个判据在 M2-005R（恰好一个 charge 点）上会数出 1，
-        # 否则"数出 0"可能只是判据本身失效。
-        assert len(charge_sites(ce.__file__)) == 1, "判据失效：M2-005R 应有且仅有一个 charge 点"
+
+        # 反向自检：判据本身必须被证明有效，否则"数出 0"可能只是判据失效。
+        #
+        # 这里换过一次校准靶子，代价记在案：原先的靶子是 M2-005R 的 conditional_engine
+        # （恰好一个 charge 点）。主干在压平提交里换掉那份实现后靶子消失，本测试随之变红 ——
+        # 那不是被测模块出问题，是**拿别人的文件当自己判据的标尺**这个选择出了问题：
+        # 别人一改，我就红，而且红得像是我的门禁失效。改用受控合成样本后，
+        # 判据有效性只取决于本测试自己。
+        probe = (
+            '"""docstring 里正当提及 meter.charge( 不该被数成调用点。"""\n'
+            "def f(meter):\n"
+            "    meter.charge(lane='a', tokens=1, reason='r')\n"
+            "    return meter.snapshot()\n"
+        )
+        # 字符串匹配会数出 2（1 个真调用点 + 1 处 docstring 提及）—— 这正是当年改用 AST 的原因
+        assert probe.count("meter.charge(") == 2, "合成样本失效：应为 1 真调用点 + 1 处 docstring 提及"
+        probe_sites = [
+            node for node in ast.walk(ast.parse(probe))
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+            and node.func.attr == "charge"
+        ]
+        assert len(probe_sites) == 1, "判据失效：合成样本里明明有一个 charge 调用点"
 
     def test_thirty_virtual_days_consume_zero_model_calls(self, sched, meter, ledger):
         """政策 ``degradation_invariants.measurement = compressed_30_virtual_days``。"""
@@ -1285,8 +1343,31 @@ class TestCooldownQueue:
 
 
 class TestReuseNotReimplementation:
-    def test_reuses_the_meter_from_m2_005r(self):
-        assert cq.ModelCallMeter is ce.ModelCallMeter
+    def test_the_meter_is_owned_locally_since_mainline_dropped_it(self):
+        """计量器归属：本模块自持，不再依赖 ``scheduler.conditional_engine``。
+
+        原先这里是 ``assert cq.ModelCallMeter is ce.ModelCallMeter``（复用 M2-005R 的计量器，
+        不新造）。主干在 M5 之前的压平提交里换上了另一套 ``conditional_engine``，其中不再有
+        ``ModelCallMeter``，本模块因此 import 即崩 —— 门禁 2 的**证据出口随别人的文件改名而
+        消失**。收回自持后，本测试改钉三件事：本模块自己定义该类；不再从那个争议文件导入
+        任何东西（AST 判据）；``charge()`` 仍是唯一记账出口且拒绝负数。
+        """
+        tree = ast.parse(Path(cq.__file__).read_text(encoding="utf-8"))
+        defined = {n.name for n in tree.body if isinstance(n, ast.ClassDef)}
+        assert "ModelCallMeter" in defined, "计量器必须在本模块内定义"
+        rebound = [
+            n.module for n in ast.walk(tree)
+            if isinstance(n, ast.ImportFrom) and (n.module or "").endswith("conditional_engine")
+        ]
+        assert rebound == [], f"又绑回争议文件：{rebound}"
+
+        meter = cq.ModelCallMeter()
+        meter.charge(lane="probe", tokens=5, reason="自检")
+        assert meter.snapshot() == {
+            "model_calls": 1, "tokens": 5, "call_log": [("probe", 5, "自检")],
+        }
+        with pytest.raises(WakeError):
+            meter.charge(lane="probe", tokens=-1, reason="负数必须拒")
 
     def test_reuses_the_existing_dispatcher(self):
         assert cq.dispatch_wake_event is wake_dispatcher.dispatch_wake_event
@@ -1326,14 +1407,21 @@ class TestReuseNotReimplementation:
         defined = self._classes_defined_here()
         assert not (defined & {"WakePriority", "WakeState", "WakeSource", "WakeSourceV3"})
 
-    def test_the_legal_wake_priority_is_used_not_the_sibling_shadow_enum(self):
-        """钉住"用法定四级优先级"这个选择。
+    def test_the_legal_wake_priority_is_used_and_the_sibling_shadow_enum_is_gone(self):
+        """钉住"用法定四级优先级"，并把一个**已被主干修掉的缺陷**转成回归守卫。
 
-        并行线 ``wake/cooldown_queue.py`` 在模块内自定义了 ``WakePriority``，成员为
-        ``P0_CRITICAL_SAFETY`` / ``NORMAL`` —— 与法定 ``contracts.safety_bypass.
-        WakePriority`` 同名而不同物，且 ``NORMAL`` 在法定枚举里没有对应成员。
-        本仓库的 ObjectType / ObjectTypeV3 双枚举曾导致 v3 扩展类型完全无法落盘，
-        属已付学费的缺陷类。此处不代改他人文件，只把本模块的选择钉死并留证。
+        取证历史（保留，别丢）：并行线 ``wake/cooldown_queue.py`` 曾在模块内自定义
+        ``WakePriority``，成员 ``P0_CRITICAL_SAFETY`` / ``NORMAL`` —— 与法定
+        ``contracts.safety_bypass.WakePriority`` 同名而不同物，且 ``NORMAL`` 在法定枚举里
+        没有对应成员。本仓库 ObjectType / ObjectTypeV3 双枚举曾致 v3 扩展类型完全无法落盘，
+        属已付学费的缺陷类。
+
+        主干重写后该缺陷**已消失**：``cooldown_queue.py`` 改为
+        ``from aios_core.contracts.safety_bypass import WakePriority``，不再自定义同名枚举，
+        并按法定四级建了 ``_PRIORITY_ORDER``。于是本测试从"留证他人缺陷"改写为
+        "缺陷不得回归"：用 AST 断言兄弟模块内不存在 ``WakePriority`` 类定义
+        （字符串匹配会命中 import 行与 docstring，故必须用语法树），
+        并断言它引用的就是法定本体。旧影子成员名 ``NORMAL`` 不得复活。
         """
         from aios_core.contracts.safety_bypass import WakePriority as LegalPriority
         from aios_core.wake import cooldown_queue as sibling
@@ -1343,14 +1431,20 @@ class TestReuseNotReimplementation:
         assert "WakePriority" not in cq.__all__, "不得把枚举再导出一次，避免第二处命名权威"
         hints = typing.get_type_hints(CandidateWake)
         assert hints["priority"] is LegalPriority
-        # 证据留存：并行线确实存在同名影子枚举，且 NORMAL 非法定成员
-        assert hasattr(sibling, "WakePriority")
-        assert sibling.WakePriority is not LegalPriority
-        assert hasattr(sibling.WakePriority, "NORMAL")
-        assert not hasattr(LegalPriority, "NORMAL")
+
+        # 兄弟模块的影子枚举已消失，且不得回归
+        assert sibling.WakePriority is LegalPriority, "兄弟模块又开始用影子枚举"
+        shadow = [
+            n.name for n in ast.walk(ast.parse(Path(sibling.__file__).read_text(encoding="utf-8")))
+            if isinstance(n, ast.ClassDef) and n.name == "WakePriority"
+        ]
+        assert shadow == [], f"影子枚举回归：{shadow}"
+
+        # 法定四级仍是四级；旧影子成员名 NORMAL 不是法定成员，不得复活
         assert {m.value for m in LegalPriority} == {
             "P0_CRITICAL_SAFETY", "P1_URGENT_TASK", "P2_NORMAL_INTERACT", "P3_BACKGROUND_TICK"
         }
+        assert not hasattr(LegalPriority, "NORMAL")
 
     def test_non_positive_interval_rejected_at_construction(self):
         with pytest.raises(WakeError):

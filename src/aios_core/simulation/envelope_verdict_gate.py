@@ -9,27 +9,48 @@ CJKTopologicalInvertedIndex / SQLiteWorldStore / ManifestDataPlaneBuilderV0）�
 之所以要单独一层，是因为取证发现三处缺口，每一处都会让"30 天仿真全绿"这句话
 失去意义：
 
-**缺口一：驱动器对政策零引用。** ``headless_life_driver.py`` 里 ``token_budget`` /
-``daily_total_cap`` / ``degradation_invariants`` / ``ci_runtime_minutes`` /
-``deterministic_seed`` 的命中数**全是 0**，唯一一次 ``monthly_total_cap`` 出现在
-docstring 的"可复算"承诺里。承诺写在文档里而代码不读政策，等于封套合规只在
-某个测试的某一行成立，换个测试就没了。:class:`TokenEnvelopeGate` 把
-``token_budget`` 的**十二个子系统上限 + 日上限 + 月上限**变成机制本体。
+**缺口一：驱动器对政策几乎零引用（主干重写后已收窄，但没闭合）。**
+原取证是"零引用"。主干重写后的驱动器有了 :func:`load_token_policy`，真读政策文件的
+``monthly_token_budget`` 与 ``hard_rules.raw_binary_image_retention_bytes_max`` ——
+这是实质改进，如实记下。但以下五项在驱动器里的命中数**仍全是 0**：
+``daily_total_cap``、``monthly_total_cap``、``degradation_invariants``、
+``ci_runtime_minutes``、``deterministic_seed``。也就是说：日上限、十二个子系统上限、
+25+1 条退化不变量、CI 运行时天花板、确定性种子要求，全部没有机制承载。
+另有一处口径重复：驱动器读的是**顶层** ``monthly_token_budget``，而法定封套写在
+``token_budget.monthly_total_cap``；两值当前都是 2,554,000，但两处并存即可漂移
+（本模块的测试把二者恒等钉住）。:class:`TokenEnvelopeGate` 把 ``token_budget`` 的
+**十二个子系统上限 + 日上限 + 月上限**变成机制本体。
 
-**缺口二：两条"卫生证明"是构造性空转。** 驱动器把 ``report.raw_bytes_resident = 0``
-写在主循环里（每一步都赋值 0），``report.deadlocks = 0`` 写在结尾；而测试断言
-``report.raw_bytes_resident == 0`` / ``report.deadlocks == 0``。这两条断言
-**永远为真** —— 若原始字节真的驻留、真的死锁，报告照样写 0。一个只会返回期望值的
-"测量"不是测量，是最危险的一类假绿：它披着自证的外衣，却对现实无任何敏感度。
-:mod:`ResidencyProbe` 与 :func:`measure_thread_delta` 给出**可以失败**的测量。
+**缺口二：两条"卫生证明"曾是构造性空转（主干修掉一条，另一条只是搬了家）。**
+原取证：驱动器把 ``report.raw_bytes_resident = 0`` 写在主循环里、``report.deadlocks = 0``
+写在结尾，测试断言二者 ``== 0``，因此**永远为真**。一个只会返回期望值的"测量"不是测量，
+是最危险的一类假绿：它披着自证的外衣，却对现实无任何敏感度。主干重写后：
 
-**缺口三：25 条法定退化不变量一条都没产出。** ``degradation_invariants.invariants``
-有 25 项、四种趋势语义（non_decreasing / non_increasing / bounded / flat）、
-两级严重度（warning / blocker）。政策 ``$comment`` 的方法论要点是：五种退化
-「在快照式测试下全部表现为'这一轮指标还行'，**只在趋势上可见**」。而 ``SimReport``
-恰是快照 —— 它测的是函数值，产品承诺的是导数。:class:`DegradationGuard` 按法定
-``sampling=daily`` + ``smoothing=7_day_moving_average`` + ``measurement=
-compressed_30_virtual_days`` 把 25 项逐条判出来。
+* **死锁一条已真修好。** 字段改名 ``deadlock_cycles``，且由 ``report.deadlock_cycles += 1``
+  在检测到环时累加 —— 这条断言现在**可以失败**了。如实记为主干的改进。
+* **驻留一条只是搬了家。** 字段改名 ``raw_binary_retained_bytes``，报告端确实改为
+  ``report.raw_binary_retained_bytes = self.cleaner.raw_binary_retained_bytes``（真管道），
+  但**喂入端**仍是 ``self.raw_binary_retained_bytes += 0``，且旁边注释自己写明
+  "原始字节从不入账（构造性为 0）"。于是这个字段仍然**不可能非零** —— 空转从报告端
+  移到了清洗器端，还多了管道的外观，比原来更容易被误读成"已经测了"。
+
+因此 :mod:`ResidencyProbe` 与 :func:`measure_thread_delta` 仍然是必要的：它们给出
+**可以失败**的测量（塞进 4KB 载荷必须报 1、起一条后台线程必须报 ≥1，各有敏感度证明测试）。
+
+**缺口三：法定退化不变量一条都没产出（主干重写后仍未闭合）。**
+``degradation_invariants.invariants`` 现有 **26** 项（政策 v1.4.0 并集：arena 线 25 项
++ 主干谱系独有的 ``latency.fast_lane_first_token_p95_ms``）、四种趋势语义
+（non_decreasing / non_increasing / bounded / flat）、两级严重度（warning / blocker）。
+政策 ``$comment`` 的方法论要点是：五种退化「在快照式测试下全部表现为'这一轮指标还行'，
+**只在趋势上可见**」。而驱动器的 ``RunReport``（重写前叫 ``SimReport``）**仍然恰是快照**：
+三十来个计数字段，没有一条按日序列、没有一个趋势判定。它测的是函数值，产品承诺的是导数。
+:class:`DegradationGuard` 按法定 ``sampling=daily`` + ``smoothing=7_day_moving_average``
++ ``measurement=compressed_30_virtual_days`` 把 26 项逐条判出来。
+
+顺带记一处：主干的兄弟测试已改为 ``days=180``（原先 30），而法定测量窗口是
+``compressed_30_virtual_days``。跑更长不是问题，但**判决仍必须按法定 30 日窗口**做，
+否则 180 日的趋势会把某 30 日窗口内的退化摊平 —— 这正是本模块 :meth:`DegradationGuard.render`
+在窗口不足时抛错、绝不给宽容判决的同一条理由的镜像。
 
 尚未入法 / 推导而来的解释
 ------------------------
@@ -51,8 +72,9 @@ tolerance=0 且基线=0 的计数型指标（``intrusion.fixed_rhythm_bomb_count
 复用的既有法定构件
 ------------------
 ``governance/runtime_policy.json`` 的 ``token_budget`` / ``degradation_invariants``
-两段（唯一权威）、并行线 ``simulation/headless_life_driver.py`` 的 ``SimReport`` /
-``TokenMeter``（本模块接受它们作为输入，不另造报告格式）。
+两段（唯一权威）、主干 ``simulation/headless_life_driver.py`` 的 ``RunReport``
+（本模块接受它作为输入，不另造报告格式；重写前叫 ``SimReport``，其 ``TokenMeter``
+子类已不存在，记账改为三个聚合池，见 :data:`UNATTRIBUTABLE_DRIVER_POOLS`）。
 """
 
 from __future__ import annotations
@@ -68,6 +90,7 @@ from typing import Any, Callable, Dict, Final, Iterable, Mapping, Sequence
 
 __all__ = [
     "PROPOSED_SIM_SUBSYSTEM_MAPPING",
+    "UNATTRIBUTABLE_DRIVER_POOLS",
     "PROPOSED_TREND_SEMANTICS",
     "SMOOTHING_DAYS",
     "VIRTUAL_DAYS_REQUIRED",
@@ -211,22 +234,40 @@ PROPOSED_TREND_SEMANTICS: Final[frozenset[str]] = frozenset(
     {"non_decreasing", "non_increasing", "bounded", "flat"}
 )
 
-#: **提案，尚未入法**：并行线 ``TokenMeter`` 的四个记账桶 → 法定十二子系统的映射。
+#: **提案，尚未入法**：主干驱动器**能诚实归因**的记账池 → 法定十二子系统。
 #:
-#: 没有这层映射，封套判决门就用不到既有驱动器上（``manifest_tokens`` /
-#: ``caption_tokens`` / ``claim_tokens`` / ``retro_tokens`` 都不是法定子系统名）。
-#: 依据逐条写明，便于治理评审；映射错了会把花费记到别的子系统头上，从而让某一项
-#: 的上限形同虚设 —— 所以它必须是提案而不能是随手一比。
+#: 这里换过一次内容，原因记在案：原先映射的是并行线 ``TokenMeter`` 的四个桶
+#: （``manifest_tokens`` / ``caption_tokens`` / ``claim_tokens`` / ``retro_tokens``）。
+#: 主干重写驱动器后 ``TokenMeter`` 已不存在，记账改为三个**聚合池**。而驱动器全模块
+#: **0 次提及 subsystem** —— 它根本没有按子系统记账。因此能诚实归因的只剩休眠池一个：
+#: DORMANT 时段的 token 花在复盘上，对应 ``reflection``（政策 basis：30 次/月 × 3000）。
+#: 其余两池是跨子系统聚合，归因不了 —— 见 :data:`UNATTRIBUTABLE_DRIVER_POOLS`。
+#:
+#: 映射错了会把花费记到别的子系统头上，从而让某一项上限形同虚设；所以它必须是提案
+#: 而不能是随手一比。**归因不了的部分宁可声明归因不了，也不要摊派** —— 摊派会给
+#: 判决门一个看起来完整的输入，从而把"测不到"伪装成"测到了没超"。
 PROPOSED_SIM_SUBSYSTEM_MAPPING: Final[Dict[str, str]] = {
-    # 单看板装配是会话路径的一部分（L0 切片 + 槽位），故记 conversation.fast
-    "manifest_tokens": "conversation.fast",
-    # 端侧多模态摄入后的字幕/描述抽取，属 extract 子系统
-    "caption_tokens": "extract",
-    # 会议纪要落 Claim 也是"观测抽取入世界"，同属 extract
-    "claim_tokens": "extract",
-    # 回溯注记是复盘行为，对应 reflection（30 次/月 × 3000）
-    "retro_tokens": "reflection",
+    # 休眠时段的 token 花在复盘/反思上（政策 reflection basis：30 次/月 × 3000）
+    "dormant_prompt_tokens": "reflection",
 }
+
+#: 主干驱动器的**无法归因**记账池：只能用于日/月**总量**上限判定，
+#: 用不到十二个子系统上限上。
+#:
+#: ⚠️ ``prompt_tokens_total`` 另有一处记账缺陷（本模块只取证、不代改他人文件）：
+#: 它来自 ``scheduler.conditional_engine.render_llm_prompt_context`` 里的
+#: ``self.prompt_token_total = _approx_tokens(prompt)`` —— **赋值而非累加**。
+#: 字段名叫 total，实际只保留最后一次渲染的快照；驱动器却把它与累加量
+#: ``llm.tokens`` 相加得到 ``report.prompt_tokens_total``。于是"总 prompt token"
+#: = 全部 LLM token + 最后一次 prompt 的大小，**系统性少报**。少报的花费喂进封套
+#: 判决门，月帽检查就会偏松：虚拟人可能已经超支，而报告显示仍在封套内。
+#: 这属"看起来在计量、其实没计量"的同一类缺陷，且它只朝一个方向骗人 —— 骗的是预算守卫。
+#: 对比之下，同文件的 DORMANT 零贡献是**合法**设计：它有可失败的泄漏守卫
+#: （DORMANT 标题混入渲染即 ``raise AssertionError``，是显式 raise，``-O`` 不剥除），
+#: 因此"恒 0"是被证明的，不是被假定的。两者的区别就是本模块全部立场所在。
+UNATTRIBUTABLE_DRIVER_POOLS: Final[frozenset[str]] = frozenset(
+    {"prompt_tokens_total", "llm_tokens"}
+)
 
 #: 法定窗口长度：``compressed_30_virtual_days``。
 VIRTUAL_DAYS_REQUIRED: Final[int] = 30
@@ -403,14 +444,14 @@ class InvariantVerdict:
 
 
 class DegradationGuard:
-    """按法定采样与平滑，对 25 条退化不变量逐条判决。
+    """按法定采样与平滑，对全部法定退化不变量（政策 v1.4.0：26 条）逐条判决。
 
     两条与"少测一点也没关系"正相反的纪律：
 
     * **窗口不足不判决。** ``measurement = compressed_30_virtual_days``：少于 30 个
       虚拟日的数据根本不构成法定测量，此时返回 PASS 等于用 10 天的趋势冒充 30 天的
       结论。故 :meth:`render` 在数据不足时**抛错**，而不是给出一个宽容的判决。
-    * **缺指标即失败，不静默跳过。** 25 条里少一条数据，不是"少一行输出"，而是
+    * **缺指标即失败，不静默跳过。** 26 条里少一条数据，不是"少一行输出"，而是
       "少一个判决"。静默跳过会让退化恰好发生在没人测的那一项上 —— 而政策
       ``$comment`` 已经点明退化只在趋势上可见，趋势缺一段就等于没有。
     """
@@ -625,10 +666,11 @@ class DeterminismGate:
 class ResidencyProbe:
     """**可以失败**的原始字节驻留测量，替代自证常量。
 
-    驱动器把 ``report.raw_bytes_resident = 0`` 写在主循环里，于是"原始大图不驻留"
-    这条 C01 铁律变成了一句永真的断言。本探针真的去数：遍历给定容器，统计
-    ``bytes`` / ``bytearray`` 且长度 ≥ 阈值的载荷。返回值**可以非零** —— 这正是
-    它与自证常量的全部区别。
+    主干重写后，"原始大图不驻留"这条 C01 铁律的报告端改成了真管道
+    （``report.raw_binary_retained_bytes = self.cleaner.raw_binary_retained_bytes``），
+    但喂入端仍是 ``+= 0`` 并自注"构造性为 0" —— 字段仍不可能非零，空转只是搬了家，
+    还多了管道的外观。本探针真的去数：遍历给定容器，统计 ``bytes`` / ``bytearray``
+    且长度 ≥ 阈值的载荷。返回值**可以非零** —— 这正是它与自证常量的全部区别。
     """
 
     def __init__(self, *, min_bytes: int = 1024) -> None:
@@ -706,9 +748,11 @@ class ThreadMeasurement:
 class measure_thread_delta:
     """上下文管理器：测量一段代码是否新起了线程。
 
-    驱动器把 ``report.deadlocks = 0`` 写在结尾并声称"单线程无锁，deadlock 没有物理
-    载体"。这个论证本身成立，但把它写成常量赋值就让断言失去敏感度；本测量给出
-    真实的线程数增量 —— 若某天有人加了一条后台线程，这里会立刻变红。
+    主干已把 ``report.deadlocks = 0`` 改为 ``report.deadlock_cycles += 1``（可失败），
+    这一条缺陷**已被主干修好**，如实记下。本测量保留的理由变了但依然成立：驱动器的
+    计数只在它自己识别出环时才 +1，而"识别不出环"与"没有环"在报告上无法区分；
+    本测量给出真实的线程数增量 —— 若某天有人加了一条后台线程（死锁的物理前提），
+    这里会立刻变红，与驱动器的识别能力无关。
     """
 
     def __init__(self) -> None:

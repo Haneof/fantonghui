@@ -957,62 +957,151 @@ class TestReuseAndEvidence:
         assert not hasattr(ErrorCode, "ILLEGAL_STATE")
         assert IllegalLifecycleTransitionError("x").code is ErrorCode.INVALID_ARGUMENT
 
-    def test_evidence_the_parallel_state_enum_cannot_be_persisted(self):
-        """**取证，不代改他人文件**：并行线 ``dimensions/evolution_guard.py`` 自定义的
-        ``DimensionState`` 四个成员**全部**无法写进法定 ``DimensionDefinition.lifecycle``
-        —— 因为它的值是大写（``"CANDIDATE"``），而法定 ``DimensionLifecycle`` 是小写
-        （``"candidate"``），且 ``EXPIRED`` / ``ARCHIVED`` 在法定枚举里根本不存在。
+    def test_evidence_the_sibling_state_enum_still_cannot_be_persisted(self):
+        """**取证（主干重写后复核：缺陷没有消失，只是改了名）**。
 
-        这是本仓库已付过学费的缺陷类（``ObjectType`` / ``ObjectTypeV3`` 双枚举曾致
-        v3 扩展类型完全无法落盘），而且此处是 0/4 全灭，不是部分漂移：并行线的整个
-        状态模型都无法持久化。修正方向须治理择一：迁移到法定 ``DimensionLifecycle``，
-        或把缺失成员提升为法定成员（一级治理变更）。
-        """
-        from aios_core.dimensions.evolution_guard import DimensionState as SiblingState
+        原取证：并行线 ``dimensions/evolution_guard.py`` 自定义 ``DimensionState``，四个成员
+        值全为大写（``"CANDIDATE"``），而法定 ``DimensionLifecycle`` 是小写（``"candidate"``），
+        且 ``EXPIRED`` / ``ARCHIVED`` 在法定枚举里根本不存在 —— 0/4 全灭，整个状态模型
+        无法落盘。这是本仓库已付过学费的缺陷类（``ObjectType`` / ``ObjectTypeV3`` 双枚举
+        曾致 v3 扩展类型完全无法落盘）。
 
-        assert SiblingState is not DimensionLifecycle
-        persisted, failed = [], []
-        for state in SiblingState:
-            try:
-                dim("probe", lifecycle=state.value)  # type: ignore[arg-type]
-                persisted.append(state.value)
-            except Exception:
-                failed.append(state.value)
-        assert persisted == [], f"预期全部无法落盘，实际有 {persisted} 可落盘"
-        assert set(failed) == {"CANDIDATE", "ACTIVE", "EXPIRED", "ARCHIVED"}
-        # 法定枚举的小写值可以落盘，证明失败源于值域而非契约本身
-        assert dim("probe", lifecycle=DimensionLifecycle.CANDIDATE).lifecycle.value == "candidate"
-
-    def test_evidence_the_parallel_recursion_fuse_trusts_the_caller(self):
-        """**取证**：并行线的 ``enter_reflection(depth)`` 由调用方自报深度，而
-        ``self._current_reflection_depth`` 在 ``__init__`` 之后再未被引用（死字段）。
-        调用方永远传 0，熔断就永远不响 —— 那不是熔断，是建议。
+        主干把那份实现整体重写后，``DimensionState`` 这个名字**确实消失了**。若据此判"已修复"
+        就会漏掉真缺陷：新的 ``CandidateStatus`` 原样继承了同样四个大写值，落盘能力一个都没变。
+        更值得注意的是同一个文件里出现了**两种值域约定** —— ``CandidateStatus`` 用大写值，
+        ``ReviewOutcome`` 用小写值（``still_on_trial`` / ``promoted`` / ``expired``），
+        而法定 ``DimensionLifecycle`` 是小写。约定不统一本身就是下一次漂移的温床。
         """
         from aios_core.dimensions import evolution_guard as sibling
 
-        source = Path(sibling.__file__).read_text(encoding="utf-8")
-        assert source.count("_current_reflection_depth") == 1, (
-            "并行线已开始内部跟踪递归深度，本取证需重新评估"
+        tree = ast.parse(Path(sibling.__file__).read_text(encoding="utf-8"))
+        classes = {n.name: n for n in tree.body if isinstance(n, ast.ClassDef)}
+
+        # 旧名已消失（这正是"看起来修好了"的陷阱），锚点必须重新定位而不是断言旧名存在
+        assert "DimensionState" not in classes
+        assert "CandidateStatus" in classes, "取证锚点消失：需重新定位兄弟模块的状态枚举"
+
+        def enum_values(node):
+            return [
+                st.value.value for st in node.body
+                if isinstance(st, ast.Assign) and isinstance(st.value, ast.Constant)
+                for tgt in st.targets if isinstance(tgt, ast.Name)
+            ]
+
+        values = enum_values(classes["CandidateStatus"])
+        assert values == ["CANDIDATE", "ACTIVE", "EXPIRED", "ARCHIVED"], (
+            f"兄弟模块状态值域已变，本取证需重新评估：{values}"
         )
-        guard = sibling.DimensionEvolutionGuard()
-        guard.enter_reflection(0)  # 调用方自报 0，无论真实递归多深都不会响
-        assert guard._current_reflection_depth == 0
-        with pytest.raises(sibling.RecursionFuseError):
-            guard.enter_reflection(2)
+        legal = {m.value for m in DimensionLifecycle}
+        assert [v for v in values if v in legal] == [], (
+            f"有大写值意外落进法定值域，说明法定枚举被改过：{legal}"
+        )
+        # 逐个实测落盘：0/4 仍然全灭
+        failed = []
+        for value in values:
+            with pytest.raises(Exception):
+                dim("probe", lifecycle=value)  # type: ignore[arg-type]
+            failed.append(value)
+        assert failed == values, f"预期 0/4 全灭，实际 {len(failed)}/{len(values)}"
+        # 法定小写值可以落盘 → 失败源于值域，不是契约本身
+        assert dim("probe", lifecycle=DimensionLifecycle.CANDIDATE).lifecycle.value == "candidate"
+        # EXPIRED / ARCHIVED 在法定枚举里连对应概念都没有（大写小写都找不到）
+        assert "EXPIRED" not in legal and "expired" not in legal
+        assert "ARCHIVED" not in legal and "archived" not in legal
+        # 同一文件两种值域约定：CandidateStatus 全大写，ReviewOutcome 全小写
+        review = enum_values(classes["ReviewOutcome"])
+        assert review and all(v.isupper() for v in values) and all(v.islower() for v in review), (
+            f"值域约定已统一或已变化，本取证需重新评估：{values} / {review}"
+        )
 
-    def test_evidence_the_parallel_hard_cap_uses_a_bare_assert(self):
-        """**取证**：并行线把 ACTIVE ≤ 32 的"硬顶不变量"实现为 ``assert``。
-        ``assert`` 在 ``python -O`` 下被整体剥除 —— 自称"不是告警"的不变量会在
-        优化模式下静默消失。本模块的守恒式用显式 raise 实现，不受 -O 影响。
+    def test_evidence_the_sibling_recursion_fuse_still_trusts_the_caller(self):
+        """**取证（主干重写后复核：形式变好了，核心缺陷未变）**。
+
+        原取证：``enter_reflection(depth)`` 由调用方自报深度，而 ``_current_reflection_depth``
+        在 ``__init__`` 之后再未被引用（死字段）；调用方永远传 0，熔断就永远不响 ——
+        那不是熔断，是建议。
+
+        主干重写后有了 ``ReflectionRecursionGuard``：会校验 ``depth`` 是正整数、会累加
+        ``cut_count`` / ``admitted_count``、超限抛 ``RecursiveReflectionCutError``。
+        但**深度仍然由调用方自报** —— ``enter(self, depth)`` 的 depth 是入参，类内没有任何
+        自持深度栈（没有 enter 时 +1、退出时 -1 的状态），因此一个永远报 1 的调用方
+        调用一千次也不会触发熔断。计数器记的是"多少次自称合规"，不是"实际递归多深"。
         """
         from aios_core.dimensions import evolution_guard as sibling
 
-        source = Path(sibling.__file__).read_text(encoding="utf-8")
-        assert "assert len(self._active) <= ACTIVE_CAP" in source
-        assert "ACTIVE 硬顶不变量破裂" in source
+        guard_cls = sibling.ReflectionRecursionGuard
+        assert "depth" in inspect.signature(guard_cls.enter).parameters, (
+            "取证锚点消失：enter 不再接收调用方自报的 depth"
+        )
+        cls_node = next(
+            n for n in ast.walk(ast.parse(Path(sibling.__file__).read_text(encoding="utf-8")))
+            if isinstance(n, ast.ClassDef) and n.name == "ReflectionRecursionGuard"
+        )
+        touched = {
+            tgt.attr for n in ast.walk(cls_node) if isinstance(n, ast.Assign)
+            for tgt in n.targets if isinstance(tgt, ast.Attribute)
+        } | {
+            n.target.attr for n in ast.walk(cls_node)
+            if isinstance(n, ast.AugAssign) and isinstance(n.target, ast.Attribute)
+        }
+        depth_state = {a for a in touched if "depth" in a.lower()}
+        assert depth_state <= {"_max_depth"}, (
+            f"守卫已开始自持深度状态 {sorted(depth_state)}，本取证需重新评估"
+        )
+        # 行为证明：永远自报 1，一千次也不熔断（真实递归多深与它无关）
+        guard = guard_cls(max_depth=1)
+        for _ in range(1000):
+            assert guard.enter(1) == 1
+        assert guard.cut_count == 0
+        assert guard.admitted_count == 1000
+        # 而自报 2 立刻熔断 → 熔断只取决于调用方说什么
+        with pytest.raises(sibling.RecursiveReflectionCutError):
+            guard.enter(2)
+        assert guard.cut_count == 1
+        # 非正整数会被拒（这是重写后新增的真改进，如实记下来）
+        for bad in (0, -1):
+            with pytest.raises(Exception):
+                guard.enter(bad)
+
+    def test_evidence_the_sibling_cap_enforcement_still_uses_a_bare_assert(self):
+        """**取证（主干重写后复核：常量没了，bare assert 还在承重）**。
+
+        原取证：并行线把 ACTIVE ≤ 32 的"硬顶不变量"实现为 ``assert len(self._active) <=
+        ACTIVE_CAP``，而 ``assert`` 在 ``python -O`` 下被整体剥除 —— 自称"不是告警"的
+        不变量会在优化模式下静默消失。
+
+        主干重写后 ``ACTIVE_CAP`` 常量确实没了（改为实例级 ``_max_active``），但硬顶分支里
+        仍留着一句 ``assert victim is not None``：它承重的是"到达上限时必须能算出该归档谁"。
+        ``-O`` 下这句被剥除后，``victim`` 为 ``None`` 会被当合法值继续用（随后取
+        ``victim.candidate_id`` 抛 AttributeError，或更糟 —— 若那行也变了就静默错误归档）。
+        本模块的守恒式一律用显式 raise 实现，不受 ``-O`` 影响，另有测试钉住。
+        """
+        from aios_core.dimensions import evolution_guard as sibling
+
+        sibling_tree = ast.parse(Path(sibling.__file__).read_text(encoding="utf-8"))
+        asserts = [n for n in ast.walk(sibling_tree) if isinstance(n, ast.Assert)]
+        assert asserts, "兄弟模块已不再使用 bare assert —— 本取证应改写为回归守卫"
+
+        # 定位：断言至少有一个 assert 位于硬顶分支（if len(self._active) >= self._max_active）之内
+        parent = {c: p for p in ast.walk(sibling_tree) for c in ast.iter_child_nodes(p)}
+        def under_cap_branch(node):
+            cur = parent.get(node)
+            while cur is not None:
+                if isinstance(cur, ast.If):
+                    test_src = ast.get_source_segment(
+                        Path(sibling.__file__).read_text(encoding="utf-8"), cur.test) or ""
+                    if "_max_active" in test_src:
+                        return True
+                cur = parent.get(cur)
+            return False
+
+        cap_asserts = [n for n in asserts if under_cap_branch(n)]
+        assert cap_asserts, (
+            f"bare assert 已移出硬顶分支（现存 assert 行号 {[n.lineno for n in asserts]}），"
+            "本取证需重新评估"
+        )
         # 本模块的承重不变量不得是 assert
-        tree = ast.parse(MODULE_SOURCE)
-        bare_asserts = [n for n in ast.walk(tree) if isinstance(n, ast.Assert)]
+        bare_asserts = [n for n in ast.walk(ast.parse(MODULE_SOURCE)) if isinstance(n, ast.Assert)]
         assert bare_asserts == [], "承重不变量用 assert 实现，-O 下会被剥除"
 
 

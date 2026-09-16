@@ -63,8 +63,7 @@ v3 扩展类型完全无法落盘，是已经付过学费的缺陷类。``NORMAL
 **门禁 2 · Step-0 在任何模型调用之前执行，``model_calls == 0``**
 :class:`Step0SafetyGate` 全模块**没有任何模型/LLM 适配器参数**，因此"叫模型"在
 结构上不可能发生，而不只是"当前实现没叫"。它接收外部传入的
-:class:`~aios_core.scheduler.conditional_engine.ModelCallMeter`（复用 M2-005R 的
-计量器，不新造），只读不写；测试断言跑完 30 个虚拟日后 ``meter.model_calls == 0``，
+:class:`ModelCallMeter`（本模块自持，见下方"计量器归属"说明），只读不写；测试断言跑完 30 个虚拟日后 ``meter.model_calls == 0``，
 并用源码 grep 断言本模块内 ``meter.charge(`` 调用点数为 **0**。
 
 **门禁 3 · 便利闸门有最终否决权，QUIET 降级为静默巡检并留痕**
@@ -116,7 +115,7 @@ pydantic 拒绝。这比"记得不要承诺"强一个数量级：违宪状态根
 ``ManifestInstance.step0_safety`` 是必填字段，没有它看板根本无法装配）、
 ``contracts.enums.WakeState``（NEW/QUEUED/MERGED/SUPPRESSED）、
 ``contracts.safety_bypass.WakePriority``、``contracts.enums.ErrorCode.
-BUDGET_EXHAUSTED``、``scheduler.conditional_engine.ModelCallMeter``、
+BUDGET_EXHAUSTED``、
 ``wake.dispatcher.dispatch_wake_event``（P0 生命安全 0 延迟硬件穿透，本模块不
 另造第二条投递路径）。
 """
@@ -136,7 +135,6 @@ from aios_core.contracts.enums_v3 import SafetyVerdict, TriState, WakeSourceV3
 from aios_core.contracts.models_v3 import SafetyGateVerdict
 from aios_core.contracts.safety_bypass import SafetyBypassPayload, WakePriority
 from aios_core.errors import AIOSProtocolError
-from aios_core.scheduler.conditional_engine import ModelCallMeter
 from aios_core.wake.dispatcher import dispatch_wake_event
 
 __all__ = [
@@ -154,6 +152,7 @@ __all__ = [
     "GateSignals",
     "HeartbeatScheduler",
     "MissingCandidateTriggerError",
+    "ModelCallMeter",
     "PromiseToSpeakError",
     "QueueDecision",
     "SilentPatrolRecord",
@@ -172,7 +171,20 @@ _POLICY_PATH: Final[Path] = _REPO_ROOT / "governance" / "runtime_policy.json"
 
 #: 政策 ``heartbeat.trigger_kind_name`` → 法定枚举成员的**单一**映射。
 #: 写在常量里而不是散落在各处字符串比较中，是为了让"第七种触发器"只有一个法定名。
+#:
+#: **为什么这里有两条而不是一条**：两条政策谱系对同一个触发器各写了一个名，且对"哪个是
+#: 旧名"的判定完全相反 —— 本线 v1.1.0 依 ADJ-002/ADJ-003 把 ``LONG_STABLE_HEARTBEAT``
+#: 记为已作废的自拟名并改用 ``RELATIONSHIP_RHYTHM_CANDIDATE``；主干压平提交 582e187 的
+#: 谱系从未收到该裁决，仍用 ``LONG_STABLE_HEARTBEAT``，并由其政策测试 L655 钉死。
+#: 政策 v1.4.0 并集取了主干值（详见政策 ``heartbeat.$name_collision_note``），本模块同时
+#: 登记两种拼写，**且都映射到同一个法定成员** ``RELATION_RHYTHM``。
+#:
+#: 这不是放宽守卫：守卫的目的是禁止自拟**第七种触发器**，而两种拼写指向的是同一个法定
+#: 载体，运行时行为逐位相同 —— 有测试钉住二者映射恒等，别名不可能悄悄变成新触发器。
+#: 未登记的名字仍然一律拒绝（fail-closed），:meth:`HeartbeatScheduler.__init__` 会抛
+#: :class:`WakeError` 而不是猜一个枚举成员。
 TRIGGER_KIND_LEGAL_NAME: Final[Dict[str, WakeSourceV3]] = {
+    "LONG_STABLE_HEARTBEAT": WakeSourceV3.RELATION_RHYTHM,
     "RELATIONSHIP_RHYTHM_CANDIDATE": WakeSourceV3.RELATION_RHYTHM,
 }
 
@@ -230,6 +242,45 @@ class BudgetExhaustedError(WakeError):
 
     def __init__(self, message: str, *, context: Dict[str, Any] | None = None) -> None:
         super().__init__(message, code=ErrorCode.BUDGET_EXHAUSTED, context=context)
+
+
+@dataclass(slots=True)
+class ModelCallMeter:
+    """模型调用与 token 计量器 —— "叫没叫模型"这条门禁的**唯一**可观测证据。
+
+    **计量器归属（一次被迫的变更，记录在案）**：本类原先复用
+    ``scheduler.conditional_engine.ModelCallMeter``（M2-005R 的产物），不新造。主干在
+    M5 之前的压平提交里换上了另一套 ``conditional_engine`` 实现，其中**不再有**这个
+    符号，导致本模块 import 即崩。这里把计量器收回本模块自持，理由有三：
+
+    1. 门禁 2 的判据是 ``model_calls == 0``，它的证据出口必须存在且唯一；出口随别人
+       的文件改名而消失，等于门禁失效。
+    2. 本模块与 ``conditional_engine`` 并无逻辑耦合 —— 只用它当一个计数器。为一个计数器
+       绑定一条争议中的实现线，是把自己交给不确定的上游。
+    3. 全仓检索确认除本模块与其测试外无第二处使用 ``ModelCallMeter``，因此就地定义
+       不产生第二份口径。
+
+    若主干将来重新提供同名计量器，应以主干为准并把本类改为转调，不要两份并存。
+    """
+
+    model_calls: int = 0
+    tokens: int = 0
+    call_log: list = field(default_factory=list)
+
+    def charge(self, *, lane: str, tokens: int, reason: str) -> None:
+        """记一次模型调用。**本模块从不调用它**（门禁 2），调用点数为 0 有测试钉住。"""
+        if tokens < 0:
+            raise WakeError(f"token 计量不得为负：{tokens}")
+        self.model_calls += 1
+        self.tokens += tokens
+        self.call_log.append((lane, tokens, reason))
+
+    def snapshot(self) -> Dict[str, Any]:
+        return {
+            "model_calls": self.model_calls,
+            "tokens": self.tokens,
+            "call_log": list(self.call_log),
+        }
 
 
 def load_runtime_policy() -> Dict[str, Any]:
