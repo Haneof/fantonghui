@@ -1,0 +1,53 @@
+{
+  "generator_agent": "agent-a9f6",
+  "seed": "0x1a0a9f6",
+  "total_questions": 10000,
+  "category_distribution": {
+    "mic": 3000,
+    "sensor": 3000,
+    "voiceprint": 2000,
+    "app": 1500,
+    "dialogue": 500
+  },
+  "difficulty_distribution": {
+    "ADVERSARIAL": 997,
+    "MEDIUM": 3967,
+    "HARD": 2508,
+    "EASY": 2528
+  },
+  "semantic_intent_distribution": {
+    "FAMILY_ENTRUSTMENT": 715,
+    "RESTING_TACHYCARDIA": 788,
+    "VOICEPRINT_IDENTITY_BINDING": 2000,
+    "KEY_CONVERSATION_WITH_CONTACT": 2000,
+    "CONTRACT_SIGNING_SCHEDULE": 360,
+    "DEBT_BORROWING": 812,
+    "FAINT_DISTRESS_CALL": 730,
+    "BANK_LARGE_TRANSFER": 386,
+    "LAB_CRITICAL_VALUE": 387,
+    "BARO_STORM_DROP": 688,
+    "EMOTIONAL_VENT": 94,
+    "RESIGNATION_DECISION": 102,
+    "FALL_IMPACT": 780,
+    "BUSINESS_CONFIDENTIALITY": 743,
+    "COURT_SUMMONS": 367,
+    "REAL_MEDICAL_REQUEST": 99,
+    "PVC_BURST": 699,
+    "HIDDEN_CARDIAC_CRISIS": 108,
+    "DRUNK_BOASTING": 97,
+    "OFF_WRIST_FALSE_ALARM": 45
+  },
+  "total_junk_fragments": 144424,
+  "total_ground_truth_facts": 12000,
+  "junk_to_fact_ratio": 12.04,
+  "files": {
+    "benchmarks/data_cleaning/questions/questions_agent_a9f6.jsonl": {
+      "sha256": "e564aa914e63786a22ad0627041de88933e68e0a63cb42fe0b86df974b96a815"
+    },
+    "benchmarks/data_cleaning/ground_truth/gt_agent_a9f6.jsonl": {
+      "sha256": "e17fb1616d4eb5212d788c87432d0dd768f822c5aacdb14bee9c92b38f8491ed"
+    }
+  },
+  "protocol": "src/aios_core/simulation/cleaning_arena_protocol.py::CleaningQuestion",
+  "note": "盲卷不含标答；做题请勿读取 ground_truth/ 目录（自出自做/偷看标答一票否决）。"
+}

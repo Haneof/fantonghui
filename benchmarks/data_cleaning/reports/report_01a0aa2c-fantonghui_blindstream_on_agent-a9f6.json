@@ -1,0 +1,172 @@
+{
+  "solver_agent": "01a0aa2c-fantonghui",
+  "generator_agent": "agent-a9f6",
+  "label": "v2",
+  "generated_at_utc": "2026-09-16T12:48:22.688379+00:00",
+  "questions_total": 10000,
+  "graded_total": 10000,
+  "pass_count": 9270,
+  "pass_rate": 0.927,
+  "mean_final_score": 98.7585,
+  "mean_direction_match_rate": 1.0,
+  "mean_entity_recall_rate": 0.9503,
+  "mean_dimension_accuracy": 1.0,
+  "mean_junk_prune_rate": 1.0,
+  "total_hallucination_count": 0,
+  "self_solving_violations": 0,
+  "solve_wall_seconds": 0.7,
+  "llm_tokens_used_total": 0,
+  "p0": {
+    "triggered_questions": 3105,
+    "max_bypass_latency_ms": 0.0436,
+    "budget_ms": 50.0,
+    "all_within_budget": true,
+    "llm_calls": 0
+  },
+  "per_intent": {
+    "BANK_LARGE_TRANSFER": {
+      "n": 386,
+      "direction_match": 1.0,
+      "entity_recall": 1.0,
+      "dimension_acc": 1.0,
+      "mean_score": 100.0
+    },
+    "BARO_STORM_DROP": {
+      "n": 688,
+      "direction_match": 1.0,
+      "entity_recall": 1.0,
+      "dimension_acc": 1.0,
+      "mean_score": 100.0
+    },
+    "BUSINESS_CONFIDENTIALITY": {
+      "n": 743,
+      "direction_match": 1.0,
+      "entity_recall": 1.0,
+      "dimension_acc": 1.0,
+      "mean_score": 100.0
+    },
+    "CONTRACT_SIGNING_SCHEDULE": {
+      "n": 360,
+      "direction_match": 1.0,
+      "entity_recall": 1.0,
+      "dimension_acc": 1.0,
+      "mean_score": 100.0
+    },
+    "COURT_SUMMONS": {
+      "n": 367,
+      "direction_match": 1.0,
+      "entity_recall": 1.0,
+      "dimension_acc": 1.0,
+      "mean_score": 100.0
+    },
+    "DEBT_BORROWING": {
+      "n": 812,
+      "direction_match": 1.0,
+      "entity_recall": 0.8379,
+      "dimension_acc": 1.0,
+      "mean_score": 95.95
+    },
+    "DRUNK_BOASTING": {
+      "n": 97,
+      "direction_match": 1.0,
+      "entity_recall": 1.0,
+      "dimension_acc": 1.0,
+      "mean_score": 100.0
+    },
+    "EMOTIONAL_VENT": {
+      "n": 94,
+      "direction_match": 1.0,
+      "entity_recall": 1.0,
+      "dimension_acc": 1.0,
+      "mean_score": 100.0
+    },
+    "FAINT_DISTRESS_CALL": {
+      "n": 730,
+      "direction_match": 1.0,
+      "entity_recall": 0.5,
+      "dimension_acc": 1.0,
+      "mean_score": 87.5
+    },
+    "FALL_IMPACT": {
+      "n": 780,
+      "direction_match": 1.0,
+      "entity_recall": 1.0,
+      "dimension_acc": 1.0,
+      "mean_score": 100.0
+    },
+    "FAMILY_ENTRUSTMENT": {
+      "n": 715,
+      "direction_match": 1.0,
+      "entity_recall": 1.0,
+      "dimension_acc": 1.0,
+      "mean_score": 100.0
+    },
+    "HIDDEN_CARDIAC_CRISIS": {
+      "n": 108,
+      "direction_match": 1.0,
+      "entity_recall": 1.0,
+      "dimension_acc": 1.0,
+      "mean_score": 100.0
+    },
+    "KEY_CONVERSATION_WITH_CONTACT": {
+      "n": 2000,
+      "direction_match": 1.0,
+      "entity_recall": 1.0,
+      "dimension_acc": 1.0,
+      "mean_score": 100.0
+    },
+    "LAB_CRITICAL_VALUE": {
+      "n": 387,
+      "direction_match": 1.0,
+      "entity_recall": 1.0,
+      "dimension_acc": 1.0,
+      "mean_score": 100.0
+    },
+    "OFF_WRIST_FALSE_ALARM": {
+      "n": 45,
+      "direction_match": 1.0,
+      "entity_recall": 1.0,
+      "dimension_acc": 1.0,
+      "mean_score": 100.0
+    },
+    "PVC_BURST": {
+      "n": 699,
+      "direction_match": 1.0,
+      "entity_recall": 1.0,
+      "dimension_acc": 1.0,
+      "mean_score": 100.0
+    },
+    "REAL_MEDICAL_REQUEST": {
+      "n": 99,
+      "direction_match": 1.0,
+      "entity_recall": 1.0,
+      "dimension_acc": 1.0,
+      "mean_score": 100.0
+    },
+    "RESIGNATION_DECISION": {
+      "n": 102,
+      "direction_match": 1.0,
+      "entity_recall": 1.0,
+      "dimension_acc": 1.0,
+      "mean_score": 100.0
+    },
+    "RESTING_TACHYCARDIA": {
+      "n": 788,
+      "direction_match": 1.0,
+      "entity_recall": 1.0,
+      "dimension_acc": 1.0,
+      "mean_score": 100.0
+    },
+    "VOICEPRINT_IDENTITY_BINDING": {
+      "n": 2000,
+      "direction_match": 1.0,
+      "entity_recall": 1.0,
+      "dimension_acc": 1.0,
+      "mean_score": 100.0
+    }
+  },
+  "failure_attribution": {
+    "ENTITY_MISSED": 730
+  },
+  "dimension_mismatch_detail": {}
+}
