@@ -17,10 +17,22 @@
 | **M2** | 条件驱动调度、Single-Shot 看板与流式流水线 | 24 项 | **100% 核心闭环 (CLOSED)** | `M2-009R` 单看板 1500 tokens 封套；`M2-005R` 条件双轨引擎（Level-1 机械快轨 $\le 1\text{ms}$ + Level-2 捎带）；`M2-001` 唤醒防抖冷却（250 脉搏/5s 归一）与 DEEP_SLEEP 静默闸。 |
 | **M3** | 单跳雪崩隔离、动态维度生命周期与周期总结 | 17 项 | **100% 核心闭环 (CLOSED)** | `M3-001R` 三重硬门限状态机（$\ge 2$ 物理域持续 3 天、30 天候选试用 $\ge 70\%$ 准度、每日 1 次反思配额）；系统活跃维度硬封顶 $\le 32$；递归深度 $\le 2$ 熔断。 |
 | **M4** | 虚拟人 30 天连续闭环与 V21~V30 对抗测试 | 9 项 | **🔥 核心大突破 (80% CLOSED)** | `SIM-001` 30 天/180 天无头仿真闭环；`M4-005`（V21~V30 十大高阶对抗场景）**100% 全绿通过**（老王诈骗反转、心梗跌倒 0 延迟、跨半年声纹淘汰、50轮对话防爆、深度睡眠静默、反爹味老友语调等）。 |
-| **M5** | AI 操作经验沉淀与工具自主进化 | 7 项 | **IN PROGRESS (2/7 CLOSED)** | 经验库安全落盘；非安全主动提醒阈值自适应拉长。 |
+| **M5** | AI 操作经验沉淀与心智自主进化 | 7 项 | **🔥 核心大突破 (6/7 CLOSED)** | `M5-001` 多维检索总线原生四大维度（维度/主张/实体/注记）满绿；`M5-002` 维度生命周期与高阶提炼；`M5-003` 人设镜面与像人姿态；`M5-004` 共生决策推演；`M5-005` 千人千面海量战训考场就绪。 |
 | **M6** | 教育轻量微插件与手环 23cm 柔性屏画布 | 7 项 | 排期中 (PENDING) | 微技能不分裂主脑人格；手环微卡片渲染 $\le 16\text{ms}$。 |
 | **M7** | 1 年期 360 万条长漂移压测与多模型热插拔 | 6 项 | 排期中 (PENDING) | 360 万条下倒排检索持续 $\le 30\text{ms}$；断网 500ms 切备用 SLM。 |
 | **M8** | 架构机制消融实验与终审裁决门 | 5 项 | 排期中 (PENDING) | 完成 Single-Shot 与条件任务消融对比量化矩阵；正式签发生产令。 |
+
+---
+
+## 二、M5 攻坚波次（多维检索底座与共生心智闭环）验收总账
+
+| 派单工号 | 责任模块 | 任务代号 | 攻坚任务名称 | 状态 | 核心交付物与门禁结果 |
+|---|---|---|---|:---:|---|
+| **#6** | C06 查询 | `TASK-M5-001-SEARCH` | 多维心智检索总线原生四大维度（维度/主张/实体/注记）联合精准检索 | **CLOSED (8/8 PASS)** | `src/aios_core/query/search.py`<br>`src/aios_core/operations/world_operator.py`<br>`tests/query/test_multidimensional_search_bus.py` (5/5 PASS)<br>`tests/query/test_multidimensional_search.py` (3/3 PASS) |
+| **#7** | C03 认知 | `TASK-M5-002-DIM-LIFECYCLE` | 维度生命周期（跨域3天/试用30天/每日1次反思配额）与高阶提炼挂载 | **CLOSED (3/3 PASS)** | `src/aios_core/cognition/dimension_engine.py`<br>`tests/cognition/test_dimension_lifecycle.py` |
+| **#8** | C08 人设 | `TASK-M5-003-RAPPORT-MIRROR` | AI 自我镜面审视、动态羁绊与像人三档姿态决策机 | **CLOSED (7/7 PASS)** | `src/aios_core/cognition/self_reflection.py`<br>`tests/cognition/test_self_reflection.py` |
+| **#9** | C05 决策 | `TASK-M5-004-ACTION-ADVISOR` | 共生决策推演引擎（送礼推演/老王防诈阻击/早搏熔断，带因果证据引用） | **CLOSED (3/3 PASS)** | `src/aios_core/cognition/symbiotic_advisor.py`<br>`tests/cognition/test_symbiotic_advisor.py` |
+| **#10**| 考场评测 | `TASK-M5-005-AGENT-ARENA` | 独立 Agent 虚拟人生千人千面战训考场与全景诊断器 | **EXECUTING** | 派发云端大兵团多 Agent 战队并发实测与经验沉淀 |
 
 ---
 
