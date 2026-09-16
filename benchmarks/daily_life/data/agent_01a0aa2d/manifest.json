@@ -1,0 +1,52 @@
+{
+  "author_agent": "agent-examiner-01a0aa2d",
+  "version": "1.0.0",
+  "seed": 27306541,
+  "generated_at_utc": "2026-09-16T14:53:57.967635+00:00",
+  "fictional": true,
+  "dataset_date": "2026-09-16",
+  "timezone": "Asia/Shanghai",
+  "question_count": 10000,
+  "complete_format": "XZ-compressed UTF-8 STANDARD JSON ARRAY (exactly 10000 objects)",
+  "blind_format": "XZ-compressed UTF-8 JSON Lines, no directional_ground_truth field",
+  "ground_truth_format": "XZ-compressed UTF-8 JSON Lines, joined only by question_id",
+  "generation_method": "Seeded compositional simulation from author-written scenario inventory; no external API or real personal records",
+  "elapsed_seconds": 324.933,
+  "python": "3.11.2",
+  "source_sha256": {
+    "__init__.py": "84ba0d237f4aba41d0ed53a374918ce3d054a4483dedcb311cc3fada6c451f89",
+    "__main__.py": "a75048cb361291e71183eee1dd0d526bfda956782fb8f0250a270e0eb7c4eb6a",
+    "build.py": "77f230b7560896269c61603e95fe28cf7235cb84dab74333439869e462dfb26c",
+    "catalog.py": "690d9141b4776c045112a2d9cbf976a330c7872144b02c5801f12a424f007ba9",
+    "validate.py": "bc40dbf6ef236c5d79063c4fe2d86a9b140c29bf91d42576ba818bac4d92f1bf"
+  },
+  "uncompressed_bytes": {
+    "complete": 957152315,
+    "blind": 775430858,
+    "ground_truth": 182081454
+  },
+  "artifacts": {
+    "blind_questions.jsonl.xz": {
+      "bytes": 32705356,
+      "sha256": "d2fa173d25168cfca1b20738ff5bb0b4bb2caa84f116516214dfd2e99a00de3b"
+    },
+    "daily_life_10000.json.xz": {
+      "bytes": 36848820,
+      "sha256": "c29126d5e35775e09ff348fec22387402b0d054a30d8fe46a4f2006feb8f6841"
+    },
+    "directional_ground_truth.jsonl.xz": {
+      "bytes": 2806564,
+      "sha256": "55d7498b5659755e502a3fef72ee0d7b137cb79ef2492d99e1e5eeb1952a166a"
+    },
+    "sample_day_00001.json": {
+      "bytes": 128363,
+      "sha256": "15fd4ee0c56ce41f6ce983dd71efba2d94e00232f2cc45ee8fe2f0b0d17209c5"
+    },
+    "validation_report.json": {
+      "bytes": 1409,
+      "sha256": "cecab369a98afcb7fd4a4a75538ac989828047456747548842c07f78d78fcd2b"
+    }
+  },
+  "cross_team_policy": "Author team must not count solving this bank as opponent evaluation; only the blind file goes to independent solvers.",
+  "validation_scope": "All 10000 rows independently reparsed, blind/GT splits compared, temporal coverage, account arithmetic and evidence references checked; not independent semantic model scoring."
+}

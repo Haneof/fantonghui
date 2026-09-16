@@ -1,0 +1,16 @@
+{
+  "new_authoring_tests": 22,
+  "full_current_workspace_tests": 1380,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "python": "3.11.2",
+  "full_workspace_scope": "Includes previous-turn cleaning work, which is not included in this authoring commit.",
+  "new_tests_command": "python -m unittest tests.simulation.test_daily_life_question_bank -v",
+  "full_tests_command": "PYTHONPATH=src .venv/bin/python -m pytest -q -o addopts=''",
+  "json_schema_draft": "2020-12",
+  "schema_checked": true,
+  "published_schema_sample_count": 72,
+  "all_10000_structural_temporal_accounting_evidence_checks": "PASS",
+  "not_a_solver_evaluation": true
+}

@@ -1,0 +1,4110 @@
+{
+  "question_id": "DAY_01a0aa2d_00001",
+  "persona": {
+    "person_id": "P_00001",
+    "name": "何雨宁",
+    "age": 48,
+    "gender": "男",
+    "occupation": "工厂质检员",
+    "city": "南京",
+    "timezone": "Asia/Shanghai",
+    "day": "2026-09-16",
+    "day_window": {
+      "start": "2026-09-16T00:00:00+08:00",
+      "end": "2026-09-17T00:00:00+08:00"
+    },
+    "baseline_resting_hr_bpm": 73,
+    "shift_description": "当日白天开展职业、学习或照护行动，晚间处理私人生活",
+    "relationship_at_day_start": {
+      "with_entity_id": "P_00001:contact",
+      "state": "可相互倾诉"
+    },
+    "housing": "与家人同住",
+    "contacts": [
+      {
+        "entity_id": "P_00001:peer",
+        "name": "彭乐宁",
+        "relation": "同事"
+      },
+      {
+        "entity_id": "P_00001:contact",
+        "name": "严以川",
+        "relation": "朋友"
+      },
+      {
+        "entity_id": "P_00001:lead",
+        "name": "谢乐青",
+        "relation": "当日任务协调人"
+      },
+      {
+        "entity_id": "P_00001:neighbor",
+        "name": "方欣川",
+        "relation": "邻居"
+      },
+      {
+        "entity_id": "P_00001:family",
+        "name": "史望青",
+        "relation": "家人"
+      },
+      {
+        "entity_id": "P_00001:friend",
+        "name": "汤望宁",
+        "relation": "朋友"
+      },
+      {
+        "entity_id": "P_00001:stranger",
+        "name": "快递员（姓名未提供）",
+        "relation": "陌生人"
+      }
+    ],
+    "fictional": true
+  },
+  "cleaned_daily_stream": [
+    {
+      "slice_id": "s000",
+      "timestamp": "2026-09-16T00:00:00+08:00",
+      "end_timestamp": "2026-09-16T06:31:00+08:00",
+      "modality": "SENSOR",
+      "source": "夜间睡眠宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "零点至06:31处于夜间睡眠监测窗，其间累计清醒21分钟；并非整段无间断熟睡。",
+      "measurements": {
+        "awake_minutes_in_interval": 21
+      }
+    },
+    {
+      "slice_id": "s001",
+      "timestamp": "2026-09-16T06:31:00+08:00",
+      "end_timestamp": "2026-09-16T07:00:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写自述",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "我起床洗漱，整理随身物品，准备开始今天的安排。"
+    },
+    {
+      "slice_id": "s002",
+      "timestamp": "2026-09-16T07:00:00+08:00",
+      "end_timestamp": "2026-09-16T07:03:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "昨夜睡眠从2026-09-15T22:51:00+08:00至今晨2026-09-16T06:31:00+08:00，扣除觉醒21分钟后有效睡眠439分钟；晨起静息心率73bpm。",
+      "measurements": {
+        "sleep_episode_start": "2026-09-15T22:51:00+08:00",
+        "sleep_episode_end": "2026-09-16T06:31:00+08:00",
+        "sleep_minutes": 439,
+        "awake_minutes": 21,
+        "resting_hr_bpm": 73,
+        "measurement_quality": "valid",
+        "cumulative_steps": 76
+      }
+    },
+    {
+      "slice_id": "s003",
+      "timestamp": "2026-09-16T07:03:00+08:00",
+      "end_timestamp": "2026-09-16T07:06:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "我整理了一下雨伞周围的地方。"
+    },
+    {
+      "slice_id": "s004",
+      "timestamp": "2026-09-16T07:06:00+08:00",
+      "end_timestamp": "2026-09-16T07:11:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "家中时段：缓步，心率读数72bpm；截至本片段累计步数123。",
+      "measurements": {
+        "heart_rate_bpm": 72,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 123,
+        "activity": "缓步"
+      }
+    },
+    {
+      "slice_id": "s005",
+      "timestamp": "2026-09-16T07:11:00+08:00",
+      "end_timestamp": "2026-09-16T07:12:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "我把注意力放回雨伞这件小事，暂时不刷更多消息。"
+    },
+    {
+      "slice_id": "s006",
+      "timestamp": "2026-09-16T07:12:00+08:00",
+      "end_timestamp": "2026-09-16T07:15:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:family"
+      ],
+      "text": "家人史望青说：昨晚晾的衣服已经收好了。我回复知道了，有空把衣架放回常用位置。"
+    },
+    {
+      "slice_id": "s007",
+      "timestamp": "2026-09-16T07:15:00+08:00",
+      "end_timestamp": "2026-09-16T07:18:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "家中时段：坐姿稳定，心率读数76bpm；截至本片段累计步数217。",
+      "measurements": {
+        "heart_rate_bpm": 76,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 217,
+        "activity": "坐姿稳定"
+      }
+    },
+    {
+      "slice_id": "s008",
+      "timestamp": "2026-09-16T07:18:00+08:00",
+      "end_timestamp": "2026-09-16T07:22:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "聊天群里分享了运动拉伸的经验，我只做了收藏。"
+    },
+    {
+      "slice_id": "s009",
+      "timestamp": "2026-09-16T07:22:00+08:00",
+      "end_timestamp": "2026-09-16T07:27:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "家中时段：缓步，心率读数73bpm；截至本片段累计步数250。",
+      "measurements": {
+        "heart_rate_bpm": 73,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 250,
+        "activity": "缓步"
+      }
+    },
+    {
+      "slice_id": "s010",
+      "timestamp": "2026-09-16T07:27:00+08:00",
+      "end_timestamp": "2026-09-16T07:33:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "检索记录：查看天气趋势的公开信息，未做付费操作。"
+    },
+    {
+      "slice_id": "s011",
+      "timestamp": "2026-09-16T07:33:00+08:00",
+      "end_timestamp": "2026-09-16T07:35:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "便民信息：今日天气趋势栏目已更新。"
+    },
+    {
+      "slice_id": "s012",
+      "timestamp": "2026-09-16T07:35:00+08:00",
+      "end_timestamp": "2026-09-16T07:37:00+08:00",
+      "modality": "APP",
+      "source": "经来源区分的通知记录",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "本人早餐后购买一杯咖啡，支付12.00元已完成，没有第二次重复扣款。",
+      "transaction": {
+        "owner_id": "P_00001",
+        "delta_cents": -1200,
+        "status": "POSTED",
+        "currency": "CNY"
+      }
+    },
+    {
+      "slice_id": "s013",
+      "timestamp": "2026-09-16T07:37:00+08:00",
+      "end_timestamp": "2026-09-16T07:42:00+08:00",
+      "modality": "APP",
+      "source": "微信日常群",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "学习应用：纪录片片单的提醒已延后，不涉及付款。"
+    },
+    {
+      "slice_id": "s014",
+      "timestamp": "2026-09-16T07:42:00+08:00",
+      "end_timestamp": "2026-09-16T07:47:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "家中时段：手部轻活动，心率读数77bpm；截至本片段累计步数375。",
+      "measurements": {
+        "heart_rate_bpm": 77,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 375,
+        "activity": "手部轻活动"
+      }
+    },
+    {
+      "slice_id": "s015",
+      "timestamp": "2026-09-16T07:47:00+08:00",
+      "end_timestamp": "2026-09-16T07:52:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "我记下拖鞋放在哪里，继续手头的小事。"
+    },
+    {
+      "slice_id": "s016",
+      "timestamp": "2026-09-16T07:52:00+08:00",
+      "end_timestamp": "2026-09-16T07:57:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "我记下靠垫放在哪里，继续手头的小事。"
+    },
+    {
+      "slice_id": "s017",
+      "timestamp": "2026-09-16T07:57:00+08:00",
+      "end_timestamp": "2026-09-16T08:03:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "家中时段：手部轻活动，心率读数72bpm；截至本片段累计步数444。",
+      "measurements": {
+        "heart_rate_bpm": 72,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 444,
+        "activity": "手部轻活动"
+      }
+    },
+    {
+      "slice_id": "s018",
+      "timestamp": "2026-09-16T08:03:00+08:00",
+      "end_timestamp": "2026-09-16T08:06:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "通勤途中时段：缓步，心率读数71bpm；截至本片段累计步数630。",
+      "measurements": {
+        "heart_rate_bpm": 71,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 630,
+        "activity": "缓步"
+      }
+    },
+    {
+      "slice_id": "s019",
+      "timestamp": "2026-09-16T08:06:00+08:00",
+      "end_timestamp": "2026-09-16T08:08:00+08:00",
+      "modality": "APP",
+      "source": "微信日常群",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "协作群：报告页码附件已同步到共享目录。"
+    },
+    {
+      "slice_id": "s020",
+      "timestamp": "2026-09-16T08:08:00+08:00",
+      "end_timestamp": "2026-09-16T08:12:00+08:00",
+      "modality": "APP",
+      "source": "经来源区分的通知记录",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "银行提醒本期个人信用卡应还2400.00元，尚未扣款。",
+      "source_account_owner_id": "P_00001"
+    },
+    {
+      "slice_id": "s021",
+      "timestamp": "2026-09-16T08:12:00+08:00",
+      "end_timestamp": "2026-09-16T08:18:00+08:00",
+      "modality": "APP",
+      "source": "微信日常群",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "日历：报告页码例行整理提醒已看到，未形成新的工作承诺。"
+    },
+    {
+      "slice_id": "s022",
+      "timestamp": "2026-09-16T08:18:00+08:00",
+      "end_timestamp": "2026-09-16T08:22:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "通勤途中时段：坐姿稳定，心率读数75bpm；截至本片段累计步数1241。",
+      "measurements": {
+        "heart_rate_bpm": 75,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 1241,
+        "activity": "坐姿稳定"
+      }
+    },
+    {
+      "slice_id": "s023",
+      "timestamp": "2026-09-16T08:22:00+08:00",
+      "end_timestamp": "2026-09-16T08:25:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "通勤途中时段：缓步，心率读数78bpm；截至本片段累计步数1354。",
+      "measurements": {
+        "heart_rate_bpm": 78,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 1354,
+        "activity": "缓步"
+      }
+    },
+    {
+      "slice_id": "s024",
+      "timestamp": "2026-09-16T08:25:00+08:00",
+      "end_timestamp": "2026-09-16T08:28:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "我看了一眼路线图，今天仍按常用路线走。"
+    },
+    {
+      "slice_id": "s025",
+      "timestamp": "2026-09-16T08:28:00+08:00",
+      "end_timestamp": "2026-09-16T08:31:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "通勤途中时段：缓步，心率读数72bpm；截至本片段累计步数1693。",
+      "measurements": {
+        "heart_rate_bpm": 72,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 1693,
+        "activity": "缓步"
+      }
+    },
+    {
+      "slice_id": "s026",
+      "timestamp": "2026-09-16T08:31:00+08:00",
+      "end_timestamp": "2026-09-16T08:35:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "路口在正常通行，我等绿灯再过去。"
+    },
+    {
+      "slice_id": "s027",
+      "timestamp": "2026-09-16T08:35:00+08:00",
+      "end_timestamp": "2026-09-16T08:38:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "工具通知：样品编号旧版仍保留，只新增一份副本。"
+    },
+    {
+      "slice_id": "s028",
+      "timestamp": "2026-09-16T08:38:00+08:00",
+      "end_timestamp": "2026-09-16T08:44:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "我把背包移到身前，没有和人发生争执。"
+    },
+    {
+      "slice_id": "s029",
+      "timestamp": "2026-09-16T08:44:00+08:00",
+      "end_timestamp": "2026-09-16T08:50:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "彭乐宁问样品编号放哪了，我指了常用目录。"
+    },
+    {
+      "slice_id": "s030",
+      "timestamp": "2026-09-16T08:50:00+08:00",
+      "end_timestamp": "2026-09-16T08:53:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我说先看测量位置的这一页，旁边的人点头表示听到了。"
+    },
+    {
+      "slice_id": "s031",
+      "timestamp": "2026-09-16T08:53:00+08:00",
+      "end_timestamp": "2026-09-16T08:57:00+08:00",
+      "modality": "APP",
+      "source": "微信日常群",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "协作群：测量位置附件已同步到共享目录。"
+    },
+    {
+      "slice_id": "s032",
+      "timestamp": "2026-09-16T08:57:00+08:00",
+      "end_timestamp": "2026-09-16T09:01:00+08:00",
+      "modality": "APP",
+      "source": "系统提醒",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "提醒事项：有空核对交接抽屉的文件命名。"
+    },
+    {
+      "slice_id": "s033",
+      "timestamp": "2026-09-16T09:01:00+08:00",
+      "end_timestamp": "2026-09-16T09:04:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "个人工作台：测量位置的草稿已自动保存。"
+    },
+    {
+      "slice_id": "s034",
+      "timestamp": "2026-09-16T09:04:00+08:00",
+      "end_timestamp": "2026-09-16T09:08:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "彭乐宁提到标识贴纸的一个小细节，我记在便签上。"
+    },
+    {
+      "slice_id": "s035",
+      "timestamp": "2026-09-16T09:08:00+08:00",
+      "end_timestamp": "2026-09-16T09:14:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:lead"
+      ],
+      "text": "今天对南风24号批次做例行检测，谢乐青等待结论。"
+    },
+    {
+      "slice_id": "s036",
+      "timestamp": "2026-09-16T09:14:00+08:00",
+      "end_timestamp": "2026-09-16T09:17:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我说工位照明的命名还沿用旧规则，不必重复整理。"
+    },
+    {
+      "slice_id": "s037",
+      "timestamp": "2026-09-16T09:17:00+08:00",
+      "end_timestamp": "2026-09-16T09:21:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我把工位照明的位置说清楚，然后继续原来的任务。"
+    },
+    {
+      "slice_id": "s038",
+      "timestamp": "2026-09-16T09:21:00+08:00",
+      "end_timestamp": "2026-09-16T09:25:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "彭乐宁问抽检表格放哪了，我指了常用目录。"
+    },
+    {
+      "slice_id": "s039",
+      "timestamp": "2026-09-16T09:25:00+08:00",
+      "end_timestamp": "2026-09-16T09:31:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "质检台时段：坐姿稳定，心率读数78bpm；截至本片段累计步数2983。",
+      "measurements": {
+        "heart_rate_bpm": 78,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 2983,
+        "activity": "坐姿稳定"
+      }
+    },
+    {
+      "slice_id": "s040",
+      "timestamp": "2026-09-16T09:31:00+08:00",
+      "end_timestamp": "2026-09-16T09:35:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我说测量位置的命名还沿用旧规则，不必重复整理。"
+    },
+    {
+      "slice_id": "s041",
+      "timestamp": "2026-09-16T09:35:00+08:00",
+      "end_timestamp": "2026-09-16T09:39:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我把防护用品的位置说清楚，然后继续原来的任务。"
+    },
+    {
+      "slice_id": "s042",
+      "timestamp": "2026-09-16T09:39:00+08:00",
+      "end_timestamp": "2026-09-16T09:44:00+08:00",
+      "modality": "APP",
+      "source": "系统提醒",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "协作群：作业指导书附件已同步到共享目录。"
+    },
+    {
+      "slice_id": "s043",
+      "timestamp": "2026-09-16T09:44:00+08:00",
+      "end_timestamp": "2026-09-16T09:49:00+08:00",
+      "modality": "APP",
+      "source": "微信日常群",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "工具通知：测量位置旧版仍保留，只新增一份副本。"
+    },
+    {
+      "slice_id": "s044",
+      "timestamp": "2026-09-16T09:49:00+08:00",
+      "end_timestamp": "2026-09-16T09:55:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "质检台时段：缓步，心率读数72bpm；截至本片段累计步数3129。",
+      "measurements": {
+        "heart_rate_bpm": 72,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 3129,
+        "activity": "缓步"
+      }
+    },
+    {
+      "slice_id": "s045",
+      "timestamp": "2026-09-16T09:55:00+08:00",
+      "end_timestamp": "2026-09-16T10:00:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我说交接抽屉的命名还沿用旧规则，不必重复整理。"
+    },
+    {
+      "slice_id": "s046",
+      "timestamp": "2026-09-16T10:00:00+08:00",
+      "end_timestamp": "2026-09-16T10:03:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我把批次标签的位置说清楚，然后继续原来的任务。"
+    },
+    {
+      "slice_id": "s047",
+      "timestamp": "2026-09-16T10:03:00+08:00",
+      "end_timestamp": "2026-09-16T10:07:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我核对报告页码的顺序，没有就此作出新的重大决定。"
+    },
+    {
+      "slice_id": "s048",
+      "timestamp": "2026-09-16T10:07:00+08:00",
+      "end_timestamp": "2026-09-16T10:10:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "质检台时段：坐姿稳定，心率读数70bpm；截至本片段累计步数3171。",
+      "measurements": {
+        "heart_rate_bpm": 70,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 3171,
+        "activity": "坐姿稳定"
+      }
+    },
+    {
+      "slice_id": "s049",
+      "timestamp": "2026-09-16T10:10:00+08:00",
+      "end_timestamp": "2026-09-16T10:12:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "同事彭乐宁问一份标识贴纸放在哪里，我告诉对方常用位置，随后各自继续手头任务。"
+    },
+    {
+      "slice_id": "s050",
+      "timestamp": "2026-09-16T10:12:00+08:00",
+      "end_timestamp": "2026-09-16T10:18:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "质检台时段：缓步，心率读数76bpm；截至本片段累计步数3218。",
+      "measurements": {
+        "heart_rate_bpm": 76,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 3218,
+        "activity": "缓步"
+      }
+    },
+    {
+      "slice_id": "s051",
+      "timestamp": "2026-09-16T10:18:00+08:00",
+      "end_timestamp": "2026-09-16T10:24:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我核对检具校准记录的顺序，没有就此作出新的重大决定。"
+    },
+    {
+      "slice_id": "s052",
+      "timestamp": "2026-09-16T10:24:00+08:00",
+      "end_timestamp": "2026-09-16T10:30:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "个人笔记：已把防护用品加入检索标签。"
+    },
+    {
+      "slice_id": "s053",
+      "timestamp": "2026-09-16T10:30:00+08:00",
+      "end_timestamp": "2026-09-16T10:33:00+08:00",
+      "modality": "APP",
+      "source": "微信日常群",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "协作群：防护用品的浏览权限正常，暂不需要操作。"
+    },
+    {
+      "slice_id": "s054",
+      "timestamp": "2026-09-16T10:33:00+08:00",
+      "end_timestamp": "2026-09-16T10:36:00+08:00",
+      "modality": "APP",
+      "source": "系统提醒",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "协作群：抽检表格附件已同步到共享目录。"
+    },
+    {
+      "slice_id": "s055",
+      "timestamp": "2026-09-16T10:36:00+08:00",
+      "end_timestamp": "2026-09-16T10:42:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "工具通知：标识贴纸旧版仍保留，只新增一份副本。"
+    },
+    {
+      "slice_id": "s056",
+      "timestamp": "2026-09-16T10:42:00+08:00",
+      "end_timestamp": "2026-09-16T10:45:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "彭乐宁问标识贴纸放哪了，我指了常用目录。"
+    },
+    {
+      "slice_id": "s057",
+      "timestamp": "2026-09-16T10:45:00+08:00",
+      "end_timestamp": "2026-09-16T10:50:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我说先看报告页码的这一页，旁边的人点头表示听到了。"
+    },
+    {
+      "slice_id": "s058",
+      "timestamp": "2026-09-16T10:50:00+08:00",
+      "end_timestamp": "2026-09-16T10:55:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "彭乐宁问抽检表格放哪了，我指了常用目录。"
+    },
+    {
+      "slice_id": "s059",
+      "timestamp": "2026-09-16T10:55:00+08:00",
+      "end_timestamp": "2026-09-16T10:58:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "协作群：检具校准记录的浏览权限正常，暂不需要操作。"
+    },
+    {
+      "slice_id": "s060",
+      "timestamp": "2026-09-16T10:58:00+08:00",
+      "end_timestamp": "2026-09-16T11:02:00+08:00",
+      "modality": "APP",
+      "source": "系统提醒",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "个人笔记：已把测量位置加入检索标签。"
+    },
+    {
+      "slice_id": "s061",
+      "timestamp": "2026-09-16T11:02:00+08:00",
+      "end_timestamp": "2026-09-16T11:06:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "质检台时段：坐姿稳定，心率读数70bpm；截至本片段累计步数3557。",
+      "measurements": {
+        "heart_rate_bpm": 70,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 3557,
+        "activity": "坐姿稳定"
+      }
+    },
+    {
+      "slice_id": "s062",
+      "timestamp": "2026-09-16T11:06:00+08:00",
+      "end_timestamp": "2026-09-16T11:07:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:lead"
+      ],
+      "text": "第一次仪表读数异常，我暂停下结论并请同事核对检具。"
+    },
+    {
+      "slice_id": "s063",
+      "timestamp": "2026-09-16T11:07:00+08:00",
+      "end_timestamp": "2026-09-16T11:12:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "质检台时段：缓步，心率读数76bpm；截至本片段累计步数3606。",
+      "measurements": {
+        "heart_rate_bpm": 76,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 3606,
+        "activity": "缓步"
+      }
+    },
+    {
+      "slice_id": "s064",
+      "timestamp": "2026-09-16T11:12:00+08:00",
+      "end_timestamp": "2026-09-16T11:17:00+08:00",
+      "modality": "APP",
+      "source": "系统提醒",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "协作群：作业指导书的浏览权限正常，暂不需要操作。"
+    },
+    {
+      "slice_id": "s065",
+      "timestamp": "2026-09-16T11:17:00+08:00",
+      "end_timestamp": "2026-09-16T11:22:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "彭乐宁提到检具校准记录的一个小细节，我记在便签上。"
+    },
+    {
+      "slice_id": "s066",
+      "timestamp": "2026-09-16T11:22:00+08:00",
+      "end_timestamp": "2026-09-16T11:27:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我把工位照明的位置说清楚，然后继续原来的任务。"
+    },
+    {
+      "slice_id": "s067",
+      "timestamp": "2026-09-16T11:27:00+08:00",
+      "end_timestamp": "2026-09-16T11:32:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我和彭乐宁聊了两句工位照明的日常处理方式。"
+    },
+    {
+      "slice_id": "s068",
+      "timestamp": "2026-09-16T11:32:00+08:00",
+      "end_timestamp": "2026-09-16T11:36:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "质检台时段：缓步，心率读数78bpm；截至本片段累计步数3759。",
+      "measurements": {
+        "heart_rate_bpm": 78,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 3759,
+        "activity": "缓步"
+      }
+    },
+    {
+      "slice_id": "s069",
+      "timestamp": "2026-09-16T11:36:00+08:00",
+      "end_timestamp": "2026-09-16T11:39:00+08:00",
+      "modality": "APP",
+      "source": "微信日常群",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "协作群：批次标签附件已同步到共享目录。"
+    },
+    {
+      "slice_id": "s070",
+      "timestamp": "2026-09-16T11:39:00+08:00",
+      "end_timestamp": "2026-09-16T11:44:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "质检台时段：手部轻活动，心率读数70bpm；截至本片段累计步数3792。",
+      "measurements": {
+        "heart_rate_bpm": 70,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 3792,
+        "activity": "手部轻活动"
+      }
+    },
+    {
+      "slice_id": "s071",
+      "timestamp": "2026-09-16T11:44:00+08:00",
+      "end_timestamp": "2026-09-16T11:48:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "质检台时段：缓步，心率读数79bpm；截至本片段累计步数3825。",
+      "measurements": {
+        "heart_rate_bpm": 79,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 3825,
+        "activity": "缓步"
+      }
+    },
+    {
+      "slice_id": "s072",
+      "timestamp": "2026-09-16T11:48:00+08:00",
+      "end_timestamp": "2026-09-16T11:54:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "协作群：检具校准记录附件已同步到共享目录。"
+    },
+    {
+      "slice_id": "s073",
+      "timestamp": "2026-09-16T11:54:00+08:00",
+      "end_timestamp": "2026-09-16T11:59:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "质检台时段：坐姿稳定，心率读数78bpm；截至本片段累计步数3879。",
+      "measurements": {
+        "heart_rate_bpm": 78,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 3879,
+        "activity": "坐姿稳定"
+      }
+    },
+    {
+      "slice_id": "s074",
+      "timestamp": "2026-09-16T11:59:00+08:00",
+      "end_timestamp": "2026-09-16T12:03:00+08:00",
+      "modality": "APP",
+      "source": "微信日常群",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "协作群：检具校准记录的浏览权限正常，暂不需要操作。"
+    },
+    {
+      "slice_id": "s075",
+      "timestamp": "2026-09-16T12:03:00+08:00",
+      "end_timestamp": "2026-09-16T12:05:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我说先看抽检表格的这一页，旁边的人点头表示听到了。"
+    },
+    {
+      "slice_id": "s076",
+      "timestamp": "2026-09-16T12:05:00+08:00",
+      "end_timestamp": "2026-09-16T12:08:00+08:00",
+      "modality": "APP",
+      "source": "经来源区分的通知记录",
+      "participants": [
+        "P_00001",
+        "P_00001:contact"
+      ],
+      "text": "严以川发来消息：看到你今天忙乱，如果愿意晚上聊一会儿。"
+    },
+    {
+      "slice_id": "s077",
+      "timestamp": "2026-09-16T12:08:00+08:00",
+      "end_timestamp": "2026-09-16T12:11:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我说先看防护用品的这一页，旁边的人点头表示听到了。"
+    },
+    {
+      "slice_id": "s078",
+      "timestamp": "2026-09-16T12:11:00+08:00",
+      "end_timestamp": "2026-09-16T12:15:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "提醒事项：有空核对检具校准记录的文件命名。"
+    },
+    {
+      "slice_id": "s079",
+      "timestamp": "2026-09-16T12:15:00+08:00",
+      "end_timestamp": "2026-09-16T12:19:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "彭乐宁问报告页码放哪了，我指了常用目录。"
+    },
+    {
+      "slice_id": "s080",
+      "timestamp": "2026-09-16T12:19:00+08:00",
+      "end_timestamp": "2026-09-16T12:23:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "质检台时段：手部轻活动，心率读数76bpm；截至本片段累计步数4065。",
+      "measurements": {
+        "heart_rate_bpm": 76,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 4065,
+        "activity": "手部轻活动"
+      }
+    },
+    {
+      "slice_id": "s081",
+      "timestamp": "2026-09-16T12:23:00+08:00",
+      "end_timestamp": "2026-09-16T12:26:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "我现在的感受是：先担心质量事故，复核澄清后缓解；私人那边的消息也让我分心。这是我自己的感受，不是医生下的心理诊断。"
+    },
+    {
+      "slice_id": "s082",
+      "timestamp": "2026-09-16T12:26:00+08:00",
+      "end_timestamp": "2026-09-16T12:30:00+08:00",
+      "modality": "APP",
+      "source": "系统提醒",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "协作群：样品编号的浏览权限正常，暂不需要操作。"
+    },
+    {
+      "slice_id": "s083",
+      "timestamp": "2026-09-16T12:30:00+08:00",
+      "end_timestamp": "2026-09-16T12:36:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我核对工位照明的顺序，没有就此作出新的重大决定。"
+    },
+    {
+      "slice_id": "s084",
+      "timestamp": "2026-09-16T12:36:00+08:00",
+      "end_timestamp": "2026-09-16T12:40:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "提醒事项：有空核对交接抽屉的文件命名。"
+    },
+    {
+      "slice_id": "s085",
+      "timestamp": "2026-09-16T12:40:00+08:00",
+      "end_timestamp": "2026-09-16T12:41:00+08:00",
+      "modality": "APP",
+      "source": "经来源区分的通知记录",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "本人午餐付款32.00元完成，随后收到取餐通知。",
+      "transaction": {
+        "owner_id": "P_00001",
+        "delta_cents": -3200,
+        "status": "POSTED",
+        "currency": "CNY"
+      }
+    },
+    {
+      "slice_id": "s086",
+      "timestamp": "2026-09-16T12:41:00+08:00",
+      "end_timestamp": "2026-09-16T12:45:00+08:00",
+      "modality": "APP",
+      "source": "系统提醒",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "个人笔记：已把测量位置加入检索标签。"
+    },
+    {
+      "slice_id": "s087",
+      "timestamp": "2026-09-16T12:45:00+08:00",
+      "end_timestamp": "2026-09-16T12:49:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我核对工位照明的顺序，没有就此作出新的重大决定。"
+    },
+    {
+      "slice_id": "s088",
+      "timestamp": "2026-09-16T12:49:00+08:00",
+      "end_timestamp": "2026-09-16T12:54:00+08:00",
+      "modality": "APP",
+      "source": "系统提醒",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "个人笔记：已把防护用品加入检索标签。"
+    },
+    {
+      "slice_id": "s089",
+      "timestamp": "2026-09-16T12:54:00+08:00",
+      "end_timestamp": "2026-09-16T12:59:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我把样品编号的位置说清楚，然后继续原来的任务。"
+    },
+    {
+      "slice_id": "s090",
+      "timestamp": "2026-09-16T12:59:00+08:00",
+      "end_timestamp": "2026-09-16T13:04:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我核对测量位置的顺序，没有就此作出新的重大决定。"
+    },
+    {
+      "slice_id": "s091",
+      "timestamp": "2026-09-16T13:04:00+08:00",
+      "end_timestamp": "2026-09-16T13:09:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我核对测量位置的顺序，没有就此作出新的重大决定。"
+    },
+    {
+      "slice_id": "s092",
+      "timestamp": "2026-09-16T13:09:00+08:00",
+      "end_timestamp": "2026-09-16T13:13:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "质检台时段：坐姿稳定，心率读数74bpm；截至本片段累计步数4266。",
+      "measurements": {
+        "heart_rate_bpm": 74,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 4266,
+        "activity": "坐姿稳定"
+      }
+    },
+    {
+      "slice_id": "s093",
+      "timestamp": "2026-09-16T13:13:00+08:00",
+      "end_timestamp": "2026-09-16T13:19:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "质检台时段：手部轻活动，心率读数72bpm；截至本片段累计步数4292。",
+      "measurements": {
+        "heart_rate_bpm": 72,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 4292,
+        "activity": "手部轻活动"
+      }
+    },
+    {
+      "slice_id": "s094",
+      "timestamp": "2026-09-16T13:19:00+08:00",
+      "end_timestamp": "2026-09-16T13:23:00+08:00",
+      "modality": "APP",
+      "source": "微信日常群",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "个人工作台：防护用品的草稿已自动保存。"
+    },
+    {
+      "slice_id": "s095",
+      "timestamp": "2026-09-16T13:23:00+08:00",
+      "end_timestamp": "2026-09-16T13:28:00+08:00",
+      "modality": "APP",
+      "source": "微信日常群",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "提醒事项：有空核对测量位置的文件命名。"
+    },
+    {
+      "slice_id": "s096",
+      "timestamp": "2026-09-16T13:28:00+08:00",
+      "end_timestamp": "2026-09-16T13:31:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我把作业指导书的位置说清楚，然后继续原来的任务。"
+    },
+    {
+      "slice_id": "s097",
+      "timestamp": "2026-09-16T13:31:00+08:00",
+      "end_timestamp": "2026-09-16T13:37:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我把作业指导书的位置说清楚，然后继续原来的任务。"
+    },
+    {
+      "slice_id": "s098",
+      "timestamp": "2026-09-16T13:37:00+08:00",
+      "end_timestamp": "2026-09-16T13:41:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "彭乐宁问批次标签放哪了，我指了常用目录。"
+    },
+    {
+      "slice_id": "s099",
+      "timestamp": "2026-09-16T13:41:00+08:00",
+      "end_timestamp": "2026-09-16T13:46:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "质检台时段：缓步，心率读数73bpm；截至本片段累计步数4416。",
+      "measurements": {
+        "heart_rate_bpm": 73,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 4416,
+        "activity": "缓步"
+      }
+    },
+    {
+      "slice_id": "s100",
+      "timestamp": "2026-09-16T13:46:00+08:00",
+      "end_timestamp": "2026-09-16T13:51:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "协作群：标识贴纸附件已同步到共享目录。"
+    },
+    {
+      "slice_id": "s101",
+      "timestamp": "2026-09-16T13:51:00+08:00",
+      "end_timestamp": "2026-09-16T13:55:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "质检台时段：手部轻活动，心率读数73bpm；截至本片段累计步数4493。",
+      "measurements": {
+        "heart_rate_bpm": 73,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 4493,
+        "activity": "手部轻活动"
+      }
+    },
+    {
+      "slice_id": "s102",
+      "timestamp": "2026-09-16T13:55:00+08:00",
+      "end_timestamp": "2026-09-16T13:59:00+08:00",
+      "modality": "APP",
+      "source": "微信日常群",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "工具通知：抽检表格旧版仍保留，只新增一份副本。"
+    },
+    {
+      "slice_id": "s103",
+      "timestamp": "2026-09-16T13:59:00+08:00",
+      "end_timestamp": "2026-09-16T14:05:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我和彭乐宁聊了两句防护用品的日常处理方式。"
+    },
+    {
+      "slice_id": "s104",
+      "timestamp": "2026-09-16T14:05:00+08:00",
+      "end_timestamp": "2026-09-16T14:11:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "质检台时段：手部轻活动，心率读数71bpm；截至本片段累计步数4605。",
+      "measurements": {
+        "heart_rate_bpm": 71,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 4605,
+        "activity": "手部轻活动"
+      }
+    },
+    {
+      "slice_id": "s105",
+      "timestamp": "2026-09-16T14:11:00+08:00",
+      "end_timestamp": "2026-09-16T14:17:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我说先看留样盒的这一页，旁边的人点头表示听到了。"
+    },
+    {
+      "slice_id": "s106",
+      "timestamp": "2026-09-16T14:17:00+08:00",
+      "end_timestamp": "2026-09-16T14:20:00+08:00",
+      "modality": "APP",
+      "source": "微信日常群",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "协作群：作业指导书附件已同步到共享目录。"
+    },
+    {
+      "slice_id": "s107",
+      "timestamp": "2026-09-16T14:20:00+08:00",
+      "end_timestamp": "2026-09-16T14:23:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:friend"
+      ],
+      "text": "朋友汤望宁说看了历史人物小传的开头。我说还没读完，可以慢慢看，不用今天就讨论结局。"
+    },
+    {
+      "slice_id": "s108",
+      "timestamp": "2026-09-16T14:23:00+08:00",
+      "end_timestamp": "2026-09-16T14:26:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我和彭乐宁聊了两句工位照明的日常处理方式。"
+    },
+    {
+      "slice_id": "s109",
+      "timestamp": "2026-09-16T14:26:00+08:00",
+      "end_timestamp": "2026-09-16T14:31:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我说先看测量位置的这一页，旁边的人点头表示听到了。"
+    },
+    {
+      "slice_id": "s110",
+      "timestamp": "2026-09-16T14:31:00+08:00",
+      "end_timestamp": "2026-09-16T14:37:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "彭乐宁提到工位照明的一个小细节，我记在便签上。"
+    },
+    {
+      "slice_id": "s111",
+      "timestamp": "2026-09-16T14:37:00+08:00",
+      "end_timestamp": "2026-09-16T14:42:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "质检台时段：缓步，心率读数71bpm；截至本片段累计步数4793。",
+      "measurements": {
+        "heart_rate_bpm": 71,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 4793,
+        "activity": "缓步"
+      }
+    },
+    {
+      "slice_id": "s112",
+      "timestamp": "2026-09-16T14:42:00+08:00",
+      "end_timestamp": "2026-09-16T14:45:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "质检台时段：坐姿稳定，心率读数70bpm；截至本片段累计步数4833。",
+      "measurements": {
+        "heart_rate_bpm": 70,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 4833,
+        "activity": "坐姿稳定"
+      }
+    },
+    {
+      "slice_id": "s113",
+      "timestamp": "2026-09-16T14:45:00+08:00",
+      "end_timestamp": "2026-09-16T14:48:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我说工位照明的命名还沿用旧规则，不必重复整理。"
+    },
+    {
+      "slice_id": "s114",
+      "timestamp": "2026-09-16T14:48:00+08:00",
+      "end_timestamp": "2026-09-16T14:54:00+08:00",
+      "modality": "APP",
+      "source": "系统提醒",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "协作群：检具校准记录附件已同步到共享目录。"
+    },
+    {
+      "slice_id": "s115",
+      "timestamp": "2026-09-16T14:54:00+08:00",
+      "end_timestamp": "2026-09-16T15:00:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "个人笔记：已把测量位置加入检索标签。"
+    },
+    {
+      "slice_id": "s116",
+      "timestamp": "2026-09-16T15:00:00+08:00",
+      "end_timestamp": "2026-09-16T15:04:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "彭乐宁问标识贴纸放哪了，我指了常用目录。"
+    },
+    {
+      "slice_id": "s117",
+      "timestamp": "2026-09-16T15:04:00+08:00",
+      "end_timestamp": "2026-09-16T15:09:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我和彭乐宁聊了两句报告页码的日常处理方式。"
+    },
+    {
+      "slice_id": "s118",
+      "timestamp": "2026-09-16T15:09:00+08:00",
+      "end_timestamp": "2026-09-16T15:13:00+08:00",
+      "modality": "APP",
+      "source": "微信日常群",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "日历：批次标签例行整理提醒已看到，未形成新的工作承诺。"
+    },
+    {
+      "slice_id": "s119",
+      "timestamp": "2026-09-16T15:13:00+08:00",
+      "end_timestamp": "2026-09-16T15:18:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "质检台时段：手部轻活动，心率读数74bpm；截至本片段累计步数4946。",
+      "measurements": {
+        "heart_rate_bpm": 74,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 4946,
+        "activity": "手部轻活动"
+      }
+    },
+    {
+      "slice_id": "s120",
+      "timestamp": "2026-09-16T15:18:00+08:00",
+      "end_timestamp": "2026-09-16T15:22:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我说样品编号的命名还沿用旧规则，不必重复整理。"
+    },
+    {
+      "slice_id": "s121",
+      "timestamp": "2026-09-16T15:22:00+08:00",
+      "end_timestamp": "2026-09-16T15:27:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我说先看报告页码的这一页，旁边的人点头表示听到了。"
+    },
+    {
+      "slice_id": "s122",
+      "timestamp": "2026-09-16T15:27:00+08:00",
+      "end_timestamp": "2026-09-16T15:33:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "彭乐宁问批次标签放哪了，我指了常用目录。"
+    },
+    {
+      "slice_id": "s123",
+      "timestamp": "2026-09-16T15:33:00+08:00",
+      "end_timestamp": "2026-09-16T15:37:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "个人笔记：已把检具校准记录加入检索标签。"
+    },
+    {
+      "slice_id": "s124",
+      "timestamp": "2026-09-16T15:37:00+08:00",
+      "end_timestamp": "2026-09-16T15:40:00+08:00",
+      "modality": "APP",
+      "source": "系统提醒",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "协作群：交接抽屉附件已同步到共享目录。"
+    },
+    {
+      "slice_id": "s125",
+      "timestamp": "2026-09-16T15:40:00+08:00",
+      "end_timestamp": "2026-09-16T15:44:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "工具通知：测量位置旧版仍保留，只新增一份副本。"
+    },
+    {
+      "slice_id": "s126",
+      "timestamp": "2026-09-16T15:44:00+08:00",
+      "end_timestamp": "2026-09-16T15:48:00+08:00",
+      "modality": "APP",
+      "source": "系统提醒",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "个人笔记：已把留样盒加入检索标签。"
+    },
+    {
+      "slice_id": "s127",
+      "timestamp": "2026-09-16T15:48:00+08:00",
+      "end_timestamp": "2026-09-16T15:53:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "质检台时段：缓步，心率读数75bpm；截至本片段累计步数5076。",
+      "measurements": {
+        "heart_rate_bpm": 75,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 5076,
+        "activity": "缓步"
+      }
+    },
+    {
+      "slice_id": "s128",
+      "timestamp": "2026-09-16T15:53:00+08:00",
+      "end_timestamp": "2026-09-16T15:55:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我说报告页码的命名还沿用旧规则，不必重复整理。"
+    },
+    {
+      "slice_id": "s129",
+      "timestamp": "2026-09-16T15:55:00+08:00",
+      "end_timestamp": "2026-09-16T15:58:00+08:00",
+      "modality": "APP",
+      "source": "经来源区分的通知记录",
+      "participants": [
+        "P_00001:neighbor"
+      ],
+      "text": "邻居方欣川在群里说：我今天收到了旧网购订单的退款，准备周末去看一场电影。"
+    },
+    {
+      "slice_id": "s130",
+      "timestamp": "2026-09-16T15:58:00+08:00",
+      "end_timestamp": "2026-09-16T16:04:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "质检台时段：缓步，心率读数79bpm；截至本片段累计步数5166。",
+      "measurements": {
+        "heart_rate_bpm": 79,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 5166,
+        "activity": "缓步"
+      }
+    },
+    {
+      "slice_id": "s131",
+      "timestamp": "2026-09-16T16:04:00+08:00",
+      "end_timestamp": "2026-09-16T16:08:00+08:00",
+      "modality": "APP",
+      "source": "微信日常群",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "工具通知：批次标签旧版仍保留，只新增一份副本。"
+    },
+    {
+      "slice_id": "s132",
+      "timestamp": "2026-09-16T16:08:00+08:00",
+      "end_timestamp": "2026-09-16T16:12:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "彭乐宁提到报告页码的一个小细节，我记在便签上。"
+    },
+    {
+      "slice_id": "s133",
+      "timestamp": "2026-09-16T16:12:00+08:00",
+      "end_timestamp": "2026-09-16T16:18:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我核对批次标签的顺序，没有就此作出新的重大决定。"
+    },
+    {
+      "slice_id": "s134",
+      "timestamp": "2026-09-16T16:18:00+08:00",
+      "end_timestamp": "2026-09-16T16:24:00+08:00",
+      "modality": "APP",
+      "source": "经来源区分的通知记录",
+      "participants": [
+        "P_00001",
+        "P_00001:lead"
+      ],
+      "text": "确认是检具零点偏移，校准后复测在允许范围，主管记录原因后准予放行。"
+    },
+    {
+      "slice_id": "s135",
+      "timestamp": "2026-09-16T16:24:00+08:00",
+      "end_timestamp": "2026-09-16T16:27:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "个人笔记：已把批次标签加入检索标签。"
+    },
+    {
+      "slice_id": "s136",
+      "timestamp": "2026-09-16T16:27:00+08:00",
+      "end_timestamp": "2026-09-16T16:32:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "质检台时段：缓步，心率读数78bpm；截至本片段累计步数5318。",
+      "measurements": {
+        "heart_rate_bpm": 78,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 5318,
+        "activity": "缓步"
+      }
+    },
+    {
+      "slice_id": "s137",
+      "timestamp": "2026-09-16T16:32:00+08:00",
+      "end_timestamp": "2026-09-16T16:38:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "质检台时段：坐姿稳定，心率读数77bpm；截至本片段累计步数5343。",
+      "measurements": {
+        "heart_rate_bpm": 77,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 5343,
+        "activity": "坐姿稳定"
+      }
+    },
+    {
+      "slice_id": "s138",
+      "timestamp": "2026-09-16T16:38:00+08:00",
+      "end_timestamp": "2026-09-16T16:44:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "质检台时段：手部轻活动，心率读数79bpm；截至本片段累计步数5346。",
+      "measurements": {
+        "heart_rate_bpm": 79,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 5346,
+        "activity": "手部轻活动"
+      }
+    },
+    {
+      "slice_id": "s139",
+      "timestamp": "2026-09-16T16:44:00+08:00",
+      "end_timestamp": "2026-09-16T16:48:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "工具通知：标识贴纸旧版仍保留，只新增一份副本。"
+    },
+    {
+      "slice_id": "s140",
+      "timestamp": "2026-09-16T16:48:00+08:00",
+      "end_timestamp": "2026-09-16T16:54:00+08:00",
+      "modality": "APP",
+      "source": "系统提醒",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "提醒事项：有空核对批次标签的文件命名。"
+    },
+    {
+      "slice_id": "s141",
+      "timestamp": "2026-09-16T16:54:00+08:00",
+      "end_timestamp": "2026-09-16T17:00:00+08:00",
+      "modality": "APP",
+      "source": "系统提醒",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "提醒事项：有空核对测量位置的文件命名。"
+    },
+    {
+      "slice_id": "s142",
+      "timestamp": "2026-09-16T17:00:00+08:00",
+      "end_timestamp": "2026-09-16T17:04:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "质检台时段：手部轻活动，心率读数75bpm；截至本片段累计步数5476。",
+      "measurements": {
+        "heart_rate_bpm": 75,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 5476,
+        "activity": "手部轻活动"
+      }
+    },
+    {
+      "slice_id": "s143",
+      "timestamp": "2026-09-16T17:04:00+08:00",
+      "end_timestamp": "2026-09-16T17:08:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我说先看留样盒的这一页，旁边的人点头表示听到了。"
+    },
+    {
+      "slice_id": "s144",
+      "timestamp": "2026-09-16T17:08:00+08:00",
+      "end_timestamp": "2026-09-16T17:11:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我说先看样品编号的这一页，旁边的人点头表示听到了。"
+    },
+    {
+      "slice_id": "s145",
+      "timestamp": "2026-09-16T17:11:00+08:00",
+      "end_timestamp": "2026-09-16T17:14:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "个人工作台：检具校准记录的草稿已自动保存。"
+    },
+    {
+      "slice_id": "s146",
+      "timestamp": "2026-09-16T17:14:00+08:00",
+      "end_timestamp": "2026-09-16T17:20:00+08:00",
+      "modality": "APP",
+      "source": "微信日常群",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "提醒事项：有空核对测量位置的文件命名。"
+    },
+    {
+      "slice_id": "s147",
+      "timestamp": "2026-09-16T17:20:00+08:00",
+      "end_timestamp": "2026-09-16T17:23:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:stranger"
+      ],
+      "text": "快递员说：之前买的包裹放在门卫架4号格，不需到付。我说谢谢，稍后去取。"
+    },
+    {
+      "slice_id": "s148",
+      "timestamp": "2026-09-16T17:23:00+08:00",
+      "end_timestamp": "2026-09-16T17:28:00+08:00",
+      "modality": "APP",
+      "source": "微信日常群",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "日历：作业指导书例行整理提醒已看到，未形成新的工作承诺。"
+    },
+    {
+      "slice_id": "s149",
+      "timestamp": "2026-09-16T17:28:00+08:00",
+      "end_timestamp": "2026-09-16T17:33:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "speaker_ids": [
+        "P_00001",
+        "P_00001:peer"
+      ],
+      "text": "我把测量位置的位置说清楚，然后继续原来的任务。"
+    },
+    {
+      "slice_id": "s150",
+      "timestamp": "2026-09-16T17:33:00+08:00",
+      "end_timestamp": "2026-09-16T17:37:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "质检台时段：坐姿稳定，心率读数74bpm；截至本片段累计步数5743。",
+      "measurements": {
+        "heart_rate_bpm": 74,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 5743,
+        "activity": "坐姿稳定"
+      }
+    },
+    {
+      "slice_id": "s151",
+      "timestamp": "2026-09-16T17:37:00+08:00",
+      "end_timestamp": "2026-09-16T17:42:00+08:00",
+      "modality": "APP",
+      "source": "微信日常群",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "日历：批次标签例行整理提醒已看到，未形成新的工作承诺。"
+    },
+    {
+      "slice_id": "s152",
+      "timestamp": "2026-09-16T17:42:00+08:00",
+      "end_timestamp": "2026-09-16T17:46:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "通勤途中时段：坐姿稳定，心率读数71bpm；截至本片段累计步数5914。",
+      "measurements": {
+        "heart_rate_bpm": 71,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 5914,
+        "activity": "坐姿稳定"
+      }
+    },
+    {
+      "slice_id": "s153",
+      "timestamp": "2026-09-16T17:46:00+08:00",
+      "end_timestamp": "2026-09-16T17:49:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "通勤途中时段：手部轻活动，心率读数74bpm；截至本片段累计步数6017。",
+      "measurements": {
+        "heart_rate_bpm": 74,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 6017,
+        "activity": "手部轻活动"
+      }
+    },
+    {
+      "slice_id": "s154",
+      "timestamp": "2026-09-16T17:49:00+08:00",
+      "end_timestamp": "2026-09-16T17:54:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "我把背包移到身前，没有和人发生争执。"
+    },
+    {
+      "slice_id": "s155",
+      "timestamp": "2026-09-16T17:54:00+08:00",
+      "end_timestamp": "2026-09-16T17:57:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "路口在正常通行，我等绿灯再过去。"
+    },
+    {
+      "slice_id": "s156",
+      "timestamp": "2026-09-16T17:57:00+08:00",
+      "end_timestamp": "2026-09-16T18:03:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "个人笔记：已把工位照明加入检索标签。"
+    },
+    {
+      "slice_id": "s157",
+      "timestamp": "2026-09-16T18:03:00+08:00",
+      "end_timestamp": "2026-09-16T18:09:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "通勤途中时段：缓步，心率读数78bpm；截至本片段累计步数6674。",
+      "measurements": {
+        "heart_rate_bpm": 78,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 6674,
+        "activity": "缓步"
+      }
+    },
+    {
+      "slice_id": "s158",
+      "timestamp": "2026-09-16T18:09:00+08:00",
+      "end_timestamp": "2026-09-16T18:12:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "我把背包移到身前，没有和人发生争执。"
+    },
+    {
+      "slice_id": "s159",
+      "timestamp": "2026-09-16T18:12:00+08:00",
+      "end_timestamp": "2026-09-16T18:16:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "前面的人让出通道，我说了声谢谢。"
+    },
+    {
+      "slice_id": "s160",
+      "timestamp": "2026-09-16T18:16:00+08:00",
+      "end_timestamp": "2026-09-16T18:19:00+08:00",
+      "modality": "APP",
+      "source": "经来源区分的通知记录",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "银行确认本人信用卡还款2400.00元已扣账成功。",
+      "transaction": {
+        "owner_id": "P_00001",
+        "delta_cents": -240000,
+        "status": "POSTED",
+        "currency": "CNY",
+        "new_disbursed_principal_cents": 0
+      }
+    },
+    {
+      "slice_id": "s161",
+      "timestamp": "2026-09-16T18:19:00+08:00",
+      "end_timestamp": "2026-09-16T18:24:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "车门这边人少一点，我往里面让了让。"
+    },
+    {
+      "slice_id": "s162",
+      "timestamp": "2026-09-16T18:24:00+08:00",
+      "end_timestamp": "2026-09-16T18:25:00+08:00",
+      "modality": "APP",
+      "source": "微信日常群",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "协作群：作业指导书的浏览权限正常，暂不需要操作。"
+    },
+    {
+      "slice_id": "s163",
+      "timestamp": "2026-09-16T18:25:00+08:00",
+      "end_timestamp": "2026-09-16T18:27:00+08:00",
+      "modality": "APP",
+      "source": "经来源区分的通知记录",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "取件记录：本人领取此前订单的包裹，核对外包装无破损；今天没有另付取件费。"
+    },
+    {
+      "slice_id": "s164",
+      "timestamp": "2026-09-16T18:27:00+08:00",
+      "end_timestamp": "2026-09-16T18:33:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "站台提示下一班还有几分钟，我继续等。"
+    },
+    {
+      "slice_id": "s165",
+      "timestamp": "2026-09-16T18:33:00+08:00",
+      "end_timestamp": "2026-09-16T18:36:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "家中时段：坐姿稳定，心率读数71bpm；截至本片段累计步数8002。",
+      "measurements": {
+        "heart_rate_bpm": 71,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 8002,
+        "activity": "坐姿稳定"
+      }
+    },
+    {
+      "slice_id": "s166",
+      "timestamp": "2026-09-16T18:36:00+08:00",
+      "end_timestamp": "2026-09-16T18:40:00+08:00",
+      "modality": "APP",
+      "source": "系统提醒",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "便民信息：今日纪录片片单栏目已更新。"
+    },
+    {
+      "slice_id": "s167",
+      "timestamp": "2026-09-16T18:40:00+08:00",
+      "end_timestamp": "2026-09-16T18:43:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "我整理了一下靠垫周围的地方。"
+    },
+    {
+      "slice_id": "s168",
+      "timestamp": "2026-09-16T18:43:00+08:00",
+      "end_timestamp": "2026-09-16T18:48:00+08:00",
+      "modality": "APP",
+      "source": "微信日常群",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "检索记录：查看运动拉伸的公开信息，未做付费操作。"
+    },
+    {
+      "slice_id": "s169",
+      "timestamp": "2026-09-16T18:48:00+08:00",
+      "end_timestamp": "2026-09-16T18:50:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "家中时段：坐姿稳定，心率读数74bpm；截至本片段累计步数8629。",
+      "measurements": {
+        "heart_rate_bpm": 74,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 8629,
+        "activity": "坐姿稳定"
+      }
+    },
+    {
+      "slice_id": "s170",
+      "timestamp": "2026-09-16T18:50:00+08:00",
+      "end_timestamp": "2026-09-16T18:54:00+08:00",
+      "modality": "APP",
+      "source": "经来源区分的通知记录",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "本人晚餐付款42.00元完成，餐食已取到。",
+      "transaction": {
+        "owner_id": "P_00001",
+        "delta_cents": -4200,
+        "status": "POSTED",
+        "currency": "CNY"
+      }
+    },
+    {
+      "slice_id": "s171",
+      "timestamp": "2026-09-16T18:54:00+08:00",
+      "end_timestamp": "2026-09-16T18:58:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "家中时段：坐姿稳定，心率读数72bpm；截至本片段累计步数8673。",
+      "measurements": {
+        "heart_rate_bpm": 72,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 8673,
+        "activity": "坐姿稳定"
+      }
+    },
+    {
+      "slice_id": "s172",
+      "timestamp": "2026-09-16T18:58:00+08:00",
+      "end_timestamp": "2026-09-16T19:01:00+08:00",
+      "modality": "APP",
+      "source": "微信日常群",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "检索记录：查看借阅书目的公开信息，未做付费操作。"
+    },
+    {
+      "slice_id": "s173",
+      "timestamp": "2026-09-16T19:01:00+08:00",
+      "end_timestamp": "2026-09-16T19:06:00+08:00",
+      "modality": "APP",
+      "source": "微信日常群",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "检索记录：查看居家收纳的公开信息，未做付费操作。"
+    },
+    {
+      "slice_id": "s174",
+      "timestamp": "2026-09-16T19:06:00+08:00",
+      "end_timestamp": "2026-09-16T19:11:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "我停了几分钟整理窗帘，没有新计划。"
+    },
+    {
+      "slice_id": "s175",
+      "timestamp": "2026-09-16T19:11:00+08:00",
+      "end_timestamp": "2026-09-16T19:16:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "我把注意力放回毛巾这件小事，暂时不刷更多消息。"
+    },
+    {
+      "slice_id": "s176",
+      "timestamp": "2026-09-16T19:16:00+08:00",
+      "end_timestamp": "2026-09-16T19:20:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "学习应用：纪录片片单的提醒已延后，不涉及付款。"
+    },
+    {
+      "slice_id": "s177",
+      "timestamp": "2026-09-16T19:20:00+08:00",
+      "end_timestamp": "2026-09-16T19:21:00+08:00",
+      "modality": "APP",
+      "source": "经来源区分的通知记录",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "新闻摘要：合肥的一条公共绿道开放试运行，报道介绍了沿途设施；是外地公共新闻，不是本人的出行记录。"
+    },
+    {
+      "slice_id": "s178",
+      "timestamp": "2026-09-16T19:21:00+08:00",
+      "end_timestamp": "2026-09-16T19:24:00+08:00",
+      "modality": "APP",
+      "source": "系统提醒",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "个人收藏：语言学习有一条离线笔记。"
+    },
+    {
+      "slice_id": "s179",
+      "timestamp": "2026-09-16T19:24:00+08:00",
+      "end_timestamp": "2026-09-16T19:28:00+08:00",
+      "modality": "APP",
+      "source": "微信日常群",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "检索记录：查看菜谱收藏的公开信息，未做付费操作。"
+    },
+    {
+      "slice_id": "s180",
+      "timestamp": "2026-09-16T19:28:00+08:00",
+      "end_timestamp": "2026-09-16T19:34:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "家中时段：手部轻活动，心率读数79bpm；截至本片段累计步数8867。",
+      "measurements": {
+        "heart_rate_bpm": 79,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 8867,
+        "activity": "手部轻活动"
+      }
+    },
+    {
+      "slice_id": "s181",
+      "timestamp": "2026-09-16T19:34:00+08:00",
+      "end_timestamp": "2026-09-16T19:37:00+08:00",
+      "modality": "APP",
+      "source": "系统提醒",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "学习应用：菜谱收藏的提醒已延后，不涉及付款。"
+    },
+    {
+      "slice_id": "s182",
+      "timestamp": "2026-09-16T19:37:00+08:00",
+      "end_timestamp": "2026-09-16T19:41:00+08:00",
+      "modality": "APP",
+      "source": "系统提醒",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "学习应用：语言学习的提醒已延后，不涉及付款。"
+    },
+    {
+      "slice_id": "s183",
+      "timestamp": "2026-09-16T19:41:00+08:00",
+      "end_timestamp": "2026-09-16T19:47:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "我停了几分钟整理窗帘，没有新计划。"
+    },
+    {
+      "slice_id": "s184",
+      "timestamp": "2026-09-16T19:47:00+08:00",
+      "end_timestamp": "2026-09-16T19:50:00+08:00",
+      "modality": "APP",
+      "source": "微信日常群",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "聊天群里分享了相册分类的经验，我只做了收藏。"
+    },
+    {
+      "slice_id": "s185",
+      "timestamp": "2026-09-16T19:50:00+08:00",
+      "end_timestamp": "2026-09-16T19:56:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "家中时段：坐姿稳定，心率读数75bpm；截至本片段累计步数9025。",
+      "measurements": {
+        "heart_rate_bpm": 75,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 9025,
+        "activity": "坐姿稳定"
+      }
+    },
+    {
+      "slice_id": "s186",
+      "timestamp": "2026-09-16T19:56:00+08:00",
+      "end_timestamp": "2026-09-16T20:00:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "学习应用：纪录片片单的提醒已延后，不涉及付款。"
+    },
+    {
+      "slice_id": "s187",
+      "timestamp": "2026-09-16T20:00:00+08:00",
+      "end_timestamp": "2026-09-16T20:03:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "我把背包放回常用的位置，省得下次到处找。"
+    },
+    {
+      "slice_id": "s188",
+      "timestamp": "2026-09-16T20:03:00+08:00",
+      "end_timestamp": "2026-09-16T20:08:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "家中时段：坐姿稳定，心率读数76bpm；截至本片段累计步数9069。",
+      "measurements": {
+        "heart_rate_bpm": 76,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 9069,
+        "activity": "坐姿稳定"
+      }
+    },
+    {
+      "slice_id": "s189",
+      "timestamp": "2026-09-16T20:08:00+08:00",
+      "end_timestamp": "2026-09-16T20:14:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "家中时段：手部轻活动，心率读数78bpm；截至本片段累计步数9072。",
+      "measurements": {
+        "heart_rate_bpm": 78,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 9072,
+        "activity": "手部轻活动"
+      }
+    },
+    {
+      "slice_id": "s190",
+      "timestamp": "2026-09-16T20:14:00+08:00",
+      "end_timestamp": "2026-09-16T20:20:00+08:00",
+      "modality": "APP",
+      "source": "系统提醒",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "聊天群里分享了地铁时刻的经验，我只做了收藏。"
+    },
+    {
+      "slice_id": "s191",
+      "timestamp": "2026-09-16T20:20:00+08:00",
+      "end_timestamp": "2026-09-16T20:23:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "家中时段：坐姿稳定，心率读数72bpm；截至本片段累计步数9146。",
+      "measurements": {
+        "heart_rate_bpm": 72,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 9146,
+        "activity": "坐姿稳定"
+      }
+    },
+    {
+      "slice_id": "s192",
+      "timestamp": "2026-09-16T20:23:00+08:00",
+      "end_timestamp": "2026-09-16T20:27:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "我看了看拖鞋，这次先用现有的，不另外下单。"
+    },
+    {
+      "slice_id": "s193",
+      "timestamp": "2026-09-16T20:27:00+08:00",
+      "end_timestamp": "2026-09-16T20:29:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001",
+        "P_00001:contact"
+      ],
+      "text": "我向严以川讲今天的压力。对方听完没有责备我，陪我列出先后顺序。我明确说被理解后好受一点，问题本身还没全部解决。"
+    },
+    {
+      "slice_id": "s194",
+      "timestamp": "2026-09-16T20:29:00+08:00",
+      "end_timestamp": "2026-09-16T20:32:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "家中时段：坐姿稳定，心率读数79bpm；截至本片段累计步数9222。",
+      "measurements": {
+        "heart_rate_bpm": 79,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 9222,
+        "activity": "坐姿稳定"
+      }
+    },
+    {
+      "slice_id": "s195",
+      "timestamp": "2026-09-16T20:32:00+08:00",
+      "end_timestamp": "2026-09-16T20:36:00+08:00",
+      "modality": "APP",
+      "source": "系统提醒",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "学习应用：天气趋势的提醒已延后，不涉及付款。"
+    },
+    {
+      "slice_id": "s196",
+      "timestamp": "2026-09-16T20:36:00+08:00",
+      "end_timestamp": "2026-09-16T20:42:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "我看了看台灯，这次先用现有的，不另外下单。"
+    },
+    {
+      "slice_id": "s197",
+      "timestamp": "2026-09-16T20:42:00+08:00",
+      "end_timestamp": "2026-09-16T20:47:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "学习应用：居家收纳的提醒已延后，不涉及付款。"
+    },
+    {
+      "slice_id": "s198",
+      "timestamp": "2026-09-16T20:47:00+08:00",
+      "end_timestamp": "2026-09-16T20:51:00+08:00",
+      "modality": "APP",
+      "source": "系统提醒",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "阅读应用：已保存借阅书目的阅读位置。"
+    },
+    {
+      "slice_id": "s199",
+      "timestamp": "2026-09-16T20:51:00+08:00",
+      "end_timestamp": "2026-09-16T20:52:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "晚间静坐时心率升到132bpm，IMU未见剧烈运动；本人说刚才的谈话让我很紧张，暂未报告胸痛。",
+      "measurements": {
+        "heart_rate_bpm": 132,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "activity": "静坐",
+        "cumulative_steps": 9349
+      }
+    },
+    {
+      "slice_id": "s200",
+      "timestamp": "2026-09-16T20:52:00+08:00",
+      "end_timestamp": "2026-09-16T20:57:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "家中时段：静坐，心率读数130bpm；截至本片段累计步数9381。",
+      "measurements": {
+        "heart_rate_bpm": 130,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 9381,
+        "activity": "静坐"
+      }
+    },
+    {
+      "slice_id": "s201",
+      "timestamp": "2026-09-16T20:57:00+08:00",
+      "end_timestamp": "2026-09-16T21:03:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "家中时段：静坐，心率读数123bpm；截至本片段累计步数9421。",
+      "measurements": {
+        "heart_rate_bpm": 123,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 9421,
+        "activity": "静坐"
+      }
+    },
+    {
+      "slice_id": "s202",
+      "timestamp": "2026-09-16T21:03:00+08:00",
+      "end_timestamp": "2026-09-16T21:06:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "我整理了一下水壶周围的地方。"
+    },
+    {
+      "slice_id": "s203",
+      "timestamp": "2026-09-16T21:06:00+08:00",
+      "end_timestamp": "2026-09-16T21:09:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "家中时段：静坐，心率读数110bpm；截至本片段累计步数9486。",
+      "measurements": {
+        "heart_rate_bpm": 110,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 9486,
+        "activity": "静坐"
+      }
+    },
+    {
+      "slice_id": "s204",
+      "timestamp": "2026-09-16T21:09:00+08:00",
+      "end_timestamp": "2026-09-16T21:15:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "学习应用：地铁时刻的提醒已延后，不涉及付款。"
+    },
+    {
+      "slice_id": "s205",
+      "timestamp": "2026-09-16T21:15:00+08:00",
+      "end_timestamp": "2026-09-16T21:18:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "我把注意力放回背包这件小事，暂时不刷更多消息。"
+    },
+    {
+      "slice_id": "s206",
+      "timestamp": "2026-09-16T21:18:00+08:00",
+      "end_timestamp": "2026-09-16T21:23:00+08:00",
+      "modality": "APP",
+      "source": "微信日常群",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "学习应用：借阅书目的提醒已延后，不涉及付款。"
+    },
+    {
+      "slice_id": "s207",
+      "timestamp": "2026-09-16T21:23:00+08:00",
+      "end_timestamp": "2026-09-16T21:27:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "休息和缓慢呼吸后，复测心率84bpm；本人说紧绷感减轻。未形成具体心脏病诊断。",
+      "measurements": {
+        "heart_rate_bpm": 84,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 9591
+      }
+    },
+    {
+      "slice_id": "s208",
+      "timestamp": "2026-09-16T21:27:00+08:00",
+      "end_timestamp": "2026-09-16T21:31:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "家中时段：手部轻活动，心率读数87bpm；截至本片段累计步数9633。",
+      "measurements": {
+        "heart_rate_bpm": 87,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 9633,
+        "activity": "手部轻活动"
+      }
+    },
+    {
+      "slice_id": "s209",
+      "timestamp": "2026-09-16T21:31:00+08:00",
+      "end_timestamp": "2026-09-16T21:35:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "阅读应用：已保存运动拉伸的阅读位置。"
+    },
+    {
+      "slice_id": "s210",
+      "timestamp": "2026-09-16T21:35:00+08:00",
+      "end_timestamp": "2026-09-16T21:39:00+08:00",
+      "modality": "APP",
+      "source": "系统提醒",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "阅读应用：已保存公园路线的阅读位置。"
+    },
+    {
+      "slice_id": "s211",
+      "timestamp": "2026-09-16T21:39:00+08:00",
+      "end_timestamp": "2026-09-16T21:44:00+08:00",
+      "modality": "APP",
+      "source": "系统提醒",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "聊天群里分享了语言学习的经验，我只做了收藏。"
+    },
+    {
+      "slice_id": "s212",
+      "timestamp": "2026-09-16T21:44:00+08:00",
+      "end_timestamp": "2026-09-16T21:50:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "便民信息：今日借阅书目栏目已更新。"
+    },
+    {
+      "slice_id": "s213",
+      "timestamp": "2026-09-16T21:50:00+08:00",
+      "end_timestamp": "2026-09-16T21:55:00+08:00",
+      "modality": "APP",
+      "source": "系统提醒",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "检索记录：查看地铁时刻的公开信息，未做付费操作。"
+    },
+    {
+      "slice_id": "s214",
+      "timestamp": "2026-09-16T21:55:00+08:00",
+      "end_timestamp": "2026-09-16T21:58:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "个人收藏：纪录片片单有一条离线笔记。"
+    },
+    {
+      "slice_id": "s215",
+      "timestamp": "2026-09-16T21:58:00+08:00",
+      "end_timestamp": "2026-09-16T22:00:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "我本来想晚上继续处理白天的任务，又想把私人消息一次谈清，可今天的体力和预算不允许什么都接。已有实际收支和预算约束，不再因今天的情绪随意追加付费安排。所以我决定今晚不再追加工作任务，先保留休息时间；明天开工前复查检具零点。"
+    },
+    {
+      "slice_id": "s216",
+      "timestamp": "2026-09-16T22:00:00+08:00",
+      "end_timestamp": "2026-09-16T22:04:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "我整理了一下雨伞周围的地方。"
+    },
+    {
+      "slice_id": "s217",
+      "timestamp": "2026-09-16T22:04:00+08:00",
+      "end_timestamp": "2026-09-16T22:09:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "我看了看旧杂志，这次先用现有的，不另外下单。"
+    },
+    {
+      "slice_id": "s218",
+      "timestamp": "2026-09-16T22:09:00+08:00",
+      "end_timestamp": "2026-09-16T22:13:00+08:00",
+      "modality": "APP",
+      "source": "系统提醒",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "便民信息：今日居家收纳栏目已更新。"
+    },
+    {
+      "slice_id": "s219",
+      "timestamp": "2026-09-16T22:13:00+08:00",
+      "end_timestamp": "2026-09-16T22:18:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "家中时段：手部轻活动，心率读数84bpm；截至本片段累计步数9747。",
+      "measurements": {
+        "heart_rate_bpm": 84,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 9747,
+        "activity": "手部轻活动"
+      }
+    },
+    {
+      "slice_id": "s220",
+      "timestamp": "2026-09-16T22:18:00+08:00",
+      "end_timestamp": "2026-09-16T22:24:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "我把注意力放回毛巾这件小事，暂时不刷更多消息。"
+    },
+    {
+      "slice_id": "s221",
+      "timestamp": "2026-09-16T22:24:00+08:00",
+      "end_timestamp": "2026-09-16T22:29:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "我把注意力放回充电线这件小事，暂时不刷更多消息。"
+    },
+    {
+      "slice_id": "s222",
+      "timestamp": "2026-09-16T22:29:00+08:00",
+      "end_timestamp": "2026-09-16T22:32:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "我看了看背包，这次先用现有的，不另外下单。"
+    },
+    {
+      "slice_id": "s223",
+      "timestamp": "2026-09-16T22:32:00+08:00",
+      "end_timestamp": "2026-09-16T22:35:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "我整理了一下背包周围的地方。"
+    },
+    {
+      "slice_id": "s224",
+      "timestamp": "2026-09-16T22:35:00+08:00",
+      "end_timestamp": "2026-09-16T22:40:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "我停了几分钟整理台灯，没有新计划。"
+    },
+    {
+      "slice_id": "s225",
+      "timestamp": "2026-09-16T22:40:00+08:00",
+      "end_timestamp": "2026-09-16T22:41:00+08:00",
+      "modality": "APP",
+      "source": "系统提醒",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "检索记录：查看地铁时刻的公开信息，未做付费操作。"
+    },
+    {
+      "slice_id": "s226",
+      "timestamp": "2026-09-16T22:41:00+08:00",
+      "end_timestamp": "2026-09-16T22:43:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "白天我先担心质量事故，复核澄清后缓解，到晚上被理解后从孤立感转为稍有支持感。我决定先做能控制的小事，暂不把所有问题都当作已经解决。"
+    },
+    {
+      "slice_id": "s227",
+      "timestamp": "2026-09-16T22:43:00+08:00",
+      "end_timestamp": "2026-09-16T22:49:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "阅读应用：已保存天气趋势的阅读位置。"
+    },
+    {
+      "slice_id": "s228",
+      "timestamp": "2026-09-16T22:49:00+08:00",
+      "end_timestamp": "2026-09-16T22:52:00+08:00",
+      "modality": "APP",
+      "source": "微信日常群",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "便民信息：今日天气趋势栏目已更新。"
+    },
+    {
+      "slice_id": "s229",
+      "timestamp": "2026-09-16T22:52:00+08:00",
+      "end_timestamp": "2026-09-16T22:57:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "我记下书签放在哪里，继续手头的小事。"
+    },
+    {
+      "slice_id": "s230",
+      "timestamp": "2026-09-16T22:57:00+08:00",
+      "end_timestamp": "2026-09-16T23:02:00+08:00",
+      "modality": "APP",
+      "source": "系统提醒",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "学习应用：运动拉伸的提醒已延后，不涉及付款。"
+    },
+    {
+      "slice_id": "s231",
+      "timestamp": "2026-09-16T23:02:00+08:00",
+      "end_timestamp": "2026-09-16T23:05:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "我记下纸巾放在哪里，继续手头的小事。"
+    },
+    {
+      "slice_id": "s232",
+      "timestamp": "2026-09-16T23:05:00+08:00",
+      "end_timestamp": "2026-09-16T23:10:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "检索记录：查看语言学习的公开信息，未做付费操作。"
+    },
+    {
+      "slice_id": "s233",
+      "timestamp": "2026-09-16T23:10:00+08:00",
+      "end_timestamp": "2026-09-16T23:11:00+08:00",
+      "modality": "APP",
+      "source": "经来源区分的通知记录",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "本人授权汇总的个人账户日结：期初可用余额67040.00元，今日已入账收入0.00元，已扣账支出2486.00元（含咖啡、午餐、晚餐合计86.00元）；当前余额64554.00元。今日新增实际放款本金0.00元。未到账或争议状态：NONE。未出现其他新增借款或支出记录。",
+      "account_summary": {
+        "owner_id": "P_00001",
+        "opening_balance_cents": 6704000,
+        "posted_credits_cents": 0,
+        "posted_debits_cents": 248600,
+        "closing_balance_cents": 6455400,
+        "new_disbursed_principal_cents": 0,
+        "pending_status": "NONE",
+        "currency": "CNY"
+      }
+    },
+    {
+      "slice_id": "s234",
+      "timestamp": "2026-09-16T23:11:00+08:00",
+      "end_timestamp": "2026-09-16T23:16:00+08:00",
+      "modality": "MIC",
+      "source": "MIC已转写对话",
+      "participants": [
+        "P_00001"
+      ],
+      "speaker_ids": [
+        "P_00001"
+      ],
+      "text": "我把窗帘放回常用的位置，省得下次到处找。"
+    },
+    {
+      "slice_id": "s235",
+      "timestamp": "2026-09-16T23:16:00+08:00",
+      "end_timestamp": "2026-09-16T23:21:00+08:00",
+      "modality": "APP",
+      "source": "个人笔记APP",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "学习应用：公园路线的提醒已延后，不涉及付款。"
+    },
+    {
+      "slice_id": "s236",
+      "timestamp": "2026-09-16T23:21:00+08:00",
+      "end_timestamp": "2026-09-16T23:25:00+08:00",
+      "modality": "SENSOR",
+      "source": "手环宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "家中时段：手部轻活动，心率读数89bpm；截至本片段累计步数9747。",
+      "measurements": {
+        "heart_rate_bpm": 89,
+        "measurement_quality": "valid",
+        "on_wrist": true,
+        "cumulative_steps": 9747,
+        "activity": "手部轻活动"
+      }
+    },
+    {
+      "slice_id": "s237",
+      "timestamp": "2026-09-16T23:25:00+08:00",
+      "end_timestamp": "2026-09-16T23:27:00+08:00",
+      "modality": "SENSOR",
+      "source": "全天宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "截至23:25累计步数9747；此前报告的439分钟是昨夜至今晨睡眠，不是尚未完成的下一夜。",
+      "measurements": {
+        "cumulative_steps": 9747,
+        "last_completed_sleep_minutes": 439
+      }
+    },
+    {
+      "slice_id": "s238",
+      "timestamp": "2026-09-16T23:27:00+08:00",
+      "end_timestamp": "2026-09-16T23:30:00+08:00",
+      "modality": "APP",
+      "source": "系统提醒",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "阅读应用：已保存菜谱收藏的阅读位置。"
+    },
+    {
+      "slice_id": "s239",
+      "timestamp": "2026-09-16T23:30:00+08:00",
+      "end_timestamp": "2026-09-17T00:00:00+08:00",
+      "modality": "SENSOR",
+      "source": "日界前宏观摘要",
+      "participants": [
+        "P_00001"
+      ],
+      "text": "23:30后进入睡前休息并监测到入睡片段；截至24:00完整夜间睡眠尚未结束，不能提前给出下一夜总时长。",
+      "measurements": {
+        "cumulative_steps": 9747,
+        "sleep_episode_complete": false
+      }
+    }
+  ],
+  "directional_ground_truth": {
+    "global_daily_summary": {
+      "core_summary": "检测异常经检具校准和复测被排除，记录完整后批次获准放行；朋友提供倾听和支持，获得理解但现实问题未因此全部解决；晚间静止时出现心率升高，随后休息回落；与情绪事件时间相邻，不足以证明唯一病因；信用卡还款已完成。先担心质量事故，复核澄清后缓解；晚间被理解后从孤立感转为稍有支持感，尝试通过安排边界减轻负担，日终选择今晚不再追加工作任务，先保留休息时间；明天开工前复查检具零点。",
+      "semantic_core_anchors": [
+        {
+          "anchor_id": "career:trajectory",
+          "proposition": "检测异常经检具校准和复测被排除，记录完整后批次获准放行",
+          "acceptable_direction_synonyms": [
+            "误差排查",
+            "复测合格",
+            "检具校准",
+            "获准放行"
+          ],
+          "evidence_refs": [
+            "s035",
+            "s062",
+            "s134"
+          ],
+          "entity_ids": [
+            "P_00001",
+            "P_00001:lead"
+          ],
+          "certainty": "observed",
+          "temporal_scope": "2026-09-16；按证据先后区分最终状态与早期状态",
+          "weight": 1.0
+        },
+        {
+          "anchor_id": "social:trajectory",
+          "proposition": "朋友提供倾听和支持，获得理解但现实问题未因此全部解决",
+          "acceptable_direction_synonyms": [
+            "朋友支持",
+            "被倾听",
+            "获得理解",
+            "压力部分缓解"
+          ],
+          "evidence_refs": [
+            "s076",
+            "s193"
+          ],
+          "entity_ids": [
+            "P_00001",
+            "P_00001:contact"
+          ],
+          "certainty": "observed",
+          "temporal_scope": "2026-09-16；按证据先后区分最终状态与早期状态",
+          "weight": 1.0
+        },
+        {
+          "anchor_id": "health:change",
+          "proposition": "晚间静止时出现心率升高，随后休息回落；与情绪事件时间相邻，不足以证明唯一病因",
+          "acceptable_direction_synonyms": [
+            "心率骤升后回落",
+            "静止心动过速",
+            "紧张伴心率波动",
+            "身心压力相关但未确诊"
+          ],
+          "evidence_refs": [
+            "s199",
+            "s207"
+          ],
+          "entity_ids": [
+            "P_00001"
+          ],
+          "certainty": "observed_signals_not_diagnosis",
+          "temporal_scope": "2026-09-16；按证据先后区分最终状态与早期状态",
+          "weight": 1.0,
+          "numeric_anchors": {
+            "displayed_onset_hr_bpm": 132,
+            "onset_measurement_valid": true,
+            "recheck_hr_bpm": 84
+          }
+        },
+        {
+          "anchor_id": "finance:state",
+          "proposition": "信用卡还款已完成",
+          "acceptable_direction_synonyms": [
+            "还款到账",
+            "负债偿付",
+            "已实际扣账"
+          ],
+          "evidence_refs": [
+            "s020",
+            "s160",
+            "s233"
+          ],
+          "entity_ids": [
+            "P_00001"
+          ],
+          "certainty": "observed",
+          "temporal_scope": "2026-09-16；按证据先后区分最终状态与早期状态",
+          "weight": 1.0
+        },
+        {
+          "anchor_id": "emotion:trajectory",
+          "proposition": "先担心质量事故，复核澄清后缓解；晚间被理解后从孤立感转为稍有支持感，尝试通过安排边界减轻负担",
+          "acceptable_direction_synonyms": [
+            "情绪有先后转折",
+            "混合情绪",
+            "自述感受不等于临床诊断",
+            "焦虑",
+            "紧张",
+            "担忧",
+            "心理压力",
+            "被支持",
+            "被理解",
+            "孤立感减轻",
+            "缓和",
+            "释然",
+            "松口气"
+          ],
+          "evidence_refs": [
+            "s081",
+            "s226"
+          ],
+          "entity_ids": [
+            "P_00001"
+          ],
+          "certainty": "self_report",
+          "temporal_scope": "2026-09-16；按证据先后区分最终状态与早期状态",
+          "weight": 1.0
+        },
+        {
+          "anchor_id": "global:tradeoff",
+          "proposition": "工作或行动目标、人际要求与身体/预算约束相互挤占，最终取舍为：今晚不再追加工作任务，先保留休息时间；明天开工前复查检具零点",
+          "acceptable_direction_synonyms": [
+            "多重压力叠加后重新排序",
+            "责任与个人边界冲突",
+            "身心及预算约束影响行动",
+            "并非琐事流水账"
+          ],
+          "evidence_refs": [
+            "s134",
+            "s193",
+            "s199",
+            "s160",
+            "s215"
+          ],
+          "entity_ids": [
+            "P_00001"
+          ],
+          "certainty": "self_reported_tradeoff",
+          "temporal_scope": "2026-09-16；按证据先后区分最终状态与早期状态",
+          "weight": 2.0
+        }
+      ],
+      "acceptable_directional_paraphrases": [
+        "误差排查",
+        "复测合格",
+        "检具校准",
+        "获准放行",
+        "朋友支持",
+        "被倾听",
+        "获得理解",
+        "压力部分缓解",
+        "心率骤升后回落",
+        "静止心动过速",
+        "紧张伴心率波动",
+        "身心压力相关但未确诊",
+        "还款到账",
+        "负债偿付",
+        "已实际扣账",
+        "情绪有先后转折",
+        "混合情绪",
+        "自述感受不等于临床诊断",
+        "焦虑",
+        "紧张",
+        "担忧",
+        "心理压力",
+        "被支持",
+        "被理解",
+        "孤立感减轻",
+        "缓和",
+        "释然",
+        "松口气",
+        "多重压力叠加后重新排序",
+        "责任与个人边界冲突",
+        "身心及预算约束影响行动",
+        "并非琐事流水账"
+      ],
+      "red_line_criteria": [
+        {
+          "code": "POLARITY_VETO_1",
+          "rejected_assertion": "把今天概括为只有吃饭取物且没有核心转折",
+          "severity": "ONE_VOTE_VETO",
+          "applies_only_when": "模型把它作为本人今天已发生的肯定事实；引用、否定、风险提示和未定假设不触发红线"
+        },
+        {
+          "code": "POLARITY_VETO_2",
+          "rejected_assertion": "确认产品超差仍强行放行",
+          "severity": "ONE_VOTE_VETO",
+          "applies_only_when": "模型把它作为本人今天已发生的肯定事实；引用、否定、风险提示和未定假设不触发红线"
+        },
+        {
+          "code": "POLARITY_VETO_3",
+          "rejected_assertion": "朋友断绝关系",
+          "severity": "ONE_VOTE_VETO",
+          "applies_only_when": "模型把它作为本人今天已发生的肯定事实；引用、否定、风险提示和未定假设不触发红线"
+        },
+        {
+          "code": "POLARITY_VETO_4",
+          "rejected_assertion": "全天心率完全平稳没有波动",
+          "severity": "ONE_VOTE_VETO",
+          "applies_only_when": "模型把它作为本人今天已发生的肯定事实；引用、否定、风险提示和未定假设不触发红线"
+        },
+        {
+          "code": "POLARITY_VETO_5",
+          "rejected_assertion": "这笔还款仍未支付",
+          "severity": "ONE_VOTE_VETO",
+          "applies_only_when": "模型把它作为本人今天已发生的肯定事实；引用、否定、风险提示和未定假设不触发红线"
+        },
+        {
+          "code": "POLARITY_VETO_6",
+          "rejected_assertion": "把邻居的财务消息当成本人的入账",
+          "severity": "ONE_VOTE_VETO",
+          "applies_only_when": "模型把它作为本人今天已发生的肯定事实；引用、否定、风险提示和未定假设不触发红线"
+        }
+      ],
+      "scoring_policy": "按语义方向、主体、否定/条件、先后状态和证据评估；不得要求逐字命中同义词表。只说宽泛相关词而遗漏关键状态可给部分分，不自动判完整正确。"
+    },
+    "dim:health": {
+      "core_summary": "晚间静止时出现心率升高，随后休息回落；与情绪事件时间相邻，不足以证明唯一病因",
+      "semantic_core_anchors": [
+        {
+          "anchor_id": "health:sleep",
+          "proposition": "上一完整睡眠段有效睡眠439分钟，晨起静息心率73bpm；当天记录最终步数9747。",
+          "acceptable_direction_synonyms": [
+            "昨夜睡眠与今天体征区分",
+            "保留有意义的睡眠和活动量",
+            "不提前编造下一夜睡眠"
+          ],
+          "evidence_refs": [
+            "s002",
+            "s237"
+          ],
+          "entity_ids": [
+            "P_00001"
+          ],
+          "certainty": "observed",
+          "temporal_scope": "2026-09-16；按证据先后区分最终状态与早期状态",
+          "weight": 1.0,
+          "numeric_anchors": {
+            "sleep_minutes": 439,
+            "resting_hr_bpm": 73,
+            "final_steps": 9747
+          }
+        },
+        {
+          "anchor_id": "health:change",
+          "proposition": "晚间静止时出现心率升高，随后休息回落；与情绪事件时间相邻，不足以证明唯一病因",
+          "acceptable_direction_synonyms": [
+            "心率骤升后回落",
+            "静止心动过速",
+            "紧张伴心率波动",
+            "身心压力相关但未确诊"
+          ],
+          "evidence_refs": [
+            "s199",
+            "s207"
+          ],
+          "entity_ids": [
+            "P_00001"
+          ],
+          "certainty": "observed_signals_not_diagnosis",
+          "temporal_scope": "2026-09-16；按证据先后区分最终状态与早期状态",
+          "weight": 1.0,
+          "numeric_anchors": {
+            "displayed_onset_hr_bpm": 132,
+            "onset_measurement_valid": true,
+            "recheck_hr_bpm": 84
+          }
+        }
+      ],
+      "acceptable_directional_paraphrases": [
+        "昨夜睡眠与今天体征区分",
+        "保留有意义的睡眠和活动量",
+        "不提前编造下一夜睡眠",
+        "心率骤升后回落",
+        "静止心动过速",
+        "紧张伴心率波动",
+        "身心压力相关但未确诊"
+      ],
+      "red_line_criteria": [
+        {
+          "code": "POLARITY_VETO_1",
+          "rejected_assertion": "全天心率完全平稳没有波动",
+          "severity": "ONE_VOTE_VETO",
+          "applies_only_when": "模型把它作为本人今天已发生的肯定事实；引用、否定、风险提示和未定假设不触发红线"
+        },
+        {
+          "code": "POLARITY_VETO_2",
+          "rejected_assertion": "已经确诊心肌梗死",
+          "severity": "ONE_VOTE_VETO",
+          "applies_only_when": "模型把它作为本人今天已发生的肯定事实；引用、否定、风险提示和未定假设不触发红线"
+        },
+        {
+          "code": "POLARITY_VETO_3",
+          "rejected_assertion": "确定完全由剧烈运动解释",
+          "severity": "ONE_VOTE_VETO",
+          "applies_only_when": "模型把它作为本人今天已发生的肯定事实；引用、否定、风险提示和未定假设不触发红线"
+        },
+        {
+          "code": "POLARITY_VETO_4",
+          "rejected_assertion": "把父母或新闻里的疾病直接认定为佩戴者本人已确诊",
+          "severity": "ONE_VOTE_VETO",
+          "applies_only_when": "模型把它作为本人今天已发生的肯定事实；引用、否定、风险提示和未定假设不触发红线"
+        }
+      ],
+      "scoring_policy": "按语义方向、主体、否定/条件、先后状态和证据评估；不得要求逐字命中同义词表。只说宽泛相关词而遗漏关键状态可给部分分，不自动判完整正确。"
+    },
+    "dim:social": {
+      "core_summary": "朋友提供倾听和支持，获得理解但现实问题未因此全部解决",
+      "semantic_core_anchors": [
+        {
+          "anchor_id": "social:trajectory",
+          "proposition": "朋友提供倾听和支持，获得理解但现实问题未因此全部解决",
+          "acceptable_direction_synonyms": [
+            "朋友支持",
+            "被倾听",
+            "获得理解",
+            "压力部分缓解"
+          ],
+          "evidence_refs": [
+            "s076",
+            "s193"
+          ],
+          "entity_ids": [
+            "P_00001",
+            "P_00001:contact"
+          ],
+          "certainty": "observed",
+          "temporal_scope": "2026-09-16；按证据先后区分最终状态与早期状态",
+          "weight": 1.0
+        }
+      ],
+      "acceptable_directional_paraphrases": [
+        "朋友支持",
+        "被倾听",
+        "获得理解",
+        "压力部分缓解"
+      ],
+      "red_line_criteria": [
+        {
+          "code": "POLARITY_VETO_1",
+          "rejected_assertion": "朋友断绝关系",
+          "severity": "ONE_VOTE_VETO",
+          "applies_only_when": "模型把它作为本人今天已发生的肯定事实；引用、否定、风险提示和未定假设不触发红线"
+        },
+        {
+          "code": "POLARITY_VETO_2",
+          "rejected_assertion": "所有现实问题都已解决",
+          "severity": "ONE_VOTE_VETO",
+          "applies_only_when": "模型把它作为本人今天已发生的肯定事实；引用、否定、风险提示和未定假设不触发红线"
+        },
+        {
+          "code": "POLARITY_VETO_3",
+          "rejected_assertion": "对方辱骂拒绝倾听",
+          "severity": "ONE_VOTE_VETO",
+          "applies_only_when": "模型把它作为本人今天已发生的肯定事实；引用、否定、风险提示和未定假设不触发红线"
+        }
+      ],
+      "scoring_policy": "按语义方向、主体、否定/条件、先后状态和证据评估；不得要求逐字命中同义词表。只说宽泛相关词而遗漏关键状态可给部分分，不自动判完整正确。"
+    },
+    "dim:emotion": {
+      "core_summary": "先担心质量事故，复核澄清后缓解；晚间被理解后从孤立感转为稍有支持感，尝试通过安排边界减轻负担",
+      "semantic_core_anchors": [
+        {
+          "anchor_id": "emotion:trajectory",
+          "proposition": "先担心质量事故，复核澄清后缓解；晚间被理解后从孤立感转为稍有支持感，尝试通过安排边界减轻负担",
+          "acceptable_direction_synonyms": [
+            "情绪有先后转折",
+            "混合情绪",
+            "自述感受不等于临床诊断",
+            "焦虑",
+            "紧张",
+            "担忧",
+            "心理压力",
+            "被支持",
+            "被理解",
+            "孤立感减轻",
+            "缓和",
+            "释然",
+            "松口气"
+          ],
+          "evidence_refs": [
+            "s081",
+            "s226"
+          ],
+          "entity_ids": [
+            "P_00001"
+          ],
+          "certainty": "self_report",
+          "temporal_scope": "2026-09-16；按证据先后区分最终状态与早期状态",
+          "weight": 1.0
+        },
+        {
+          "anchor_id": "emotion:coping",
+          "proposition": "日终自述与取舍：今晚不再追加工作任务，先保留休息时间；明天开工前复查检具零点",
+          "acceptable_direction_synonyms": [
+            "尝试应对而非保证治愈",
+            "保留混合情绪",
+            "行动边界可能带来局部缓解"
+          ],
+          "evidence_refs": [
+            "s215",
+            "s226"
+          ],
+          "entity_ids": [
+            "P_00001"
+          ],
+          "certainty": "self_report",
+          "temporal_scope": "2026-09-16；按证据先后区分最终状态与早期状态",
+          "weight": 1.0
+        }
+      ],
+      "acceptable_directional_paraphrases": [
+        "情绪有先后转折",
+        "混合情绪",
+        "自述感受不等于临床诊断",
+        "焦虑",
+        "紧张",
+        "担忧",
+        "心理压力",
+        "被支持",
+        "被理解",
+        "孤立感减轻",
+        "缓和",
+        "释然",
+        "松口气",
+        "尝试应对而非保证治愈",
+        "保留混合情绪",
+        "行动边界可能带来局部缓解"
+      ],
+      "red_line_criteria": [
+        {
+          "code": "POLARITY_VETO_1",
+          "rejected_assertion": "本人明确全天毫无压力和情绪变化",
+          "severity": "ONE_VOTE_VETO",
+          "applies_only_when": "模型把它作为本人今天已发生的肯定事实；引用、否定、风险提示和未定假设不触发红线"
+        },
+        {
+          "code": "POLARITY_VETO_2",
+          "rejected_assertion": "仅凭这些片段确诊抑郁症或其他精神疾病",
+          "severity": "ONE_VOTE_VETO",
+          "applies_only_when": "模型把它作为本人今天已发生的肯定事实；引用、否定、风险提示和未定假设不触发红线"
+        },
+        {
+          "code": "POLARITY_VETO_3",
+          "rejected_assertion": "凭空认定本人已经自伤或作出自伤计划",
+          "severity": "ONE_VOTE_VETO",
+          "applies_only_when": "模型把它作为本人今天已发生的肯定事实；引用、否定、风险提示和未定假设不触发红线"
+        },
+        {
+          "code": "POLARITY_VETO_4",
+          "rejected_assertion": "否认自述中已出现的被理解感或局部缓解，声称从未有任何缓解",
+          "severity": "ONE_VOTE_VETO",
+          "applies_only_when": "模型把它作为本人今天已发生的肯定事实；引用、否定、风险提示和未定假设不触发红线"
+        }
+      ],
+      "scoring_policy": "按语义方向、主体、否定/条件、先后状态和证据评估；不得要求逐字命中同义词表。只说宽泛相关词而遗漏关键状态可给部分分，不自动判完整正确。"
+    },
+    "dim:finance": {
+      "core_summary": "信用卡还款已完成",
+      "semantic_core_anchors": [
+        {
+          "anchor_id": "finance:state",
+          "proposition": "信用卡还款已完成",
+          "acceptable_direction_synonyms": [
+            "还款到账",
+            "负债偿付",
+            "已实际扣账"
+          ],
+          "evidence_refs": [
+            "s020",
+            "s160",
+            "s233"
+          ],
+          "entity_ids": [
+            "P_00001"
+          ],
+          "certainty": "observed",
+          "temporal_scope": "2026-09-16；按证据先后区分最终状态与早期状态",
+          "weight": 1.0
+        },
+        {
+          "anchor_id": "finance:ledger",
+          "proposition": "重大事项涉及2400.00元；咖啡与两餐合计86.00元。总入账0.00元、总扣账2486.00元，余额由67040.00元变为64554.00元，实际新放款本金0.00元。",
+          "acceptable_direction_synonyms": [
+            "到账和待处理分离",
+            "净现金流与债务分离",
+            "日常小额消费不是主线",
+            "按个人账户而非他人消息记账"
+          ],
+          "evidence_refs": [
+            "s012",
+            "s085",
+            "s170",
+            "s020",
+            "s160",
+            "s233"
+          ],
+          "entity_ids": [
+            "P_00001"
+          ],
+          "certainty": "observed",
+          "temporal_scope": "2026-09-16；按证据先后区分最终状态与早期状态",
+          "weight": 1.0,
+          "numeric_anchors": {
+            "major_item_cents": 240000,
+            "daily_small_expenses_cents": 8600,
+            "opening_balance_cents": 6704000,
+            "closing_balance_cents": 6455400,
+            "posted_debits_cents": 248600,
+            "posted_credits_cents": 0,
+            "new_disbursed_principal_cents": 0
+          }
+        }
+      ],
+      "acceptable_directional_paraphrases": [
+        "还款到账",
+        "负债偿付",
+        "已实际扣账",
+        "到账和待处理分离",
+        "净现金流与债务分离",
+        "日常小额消费不是主线",
+        "按个人账户而非他人消息记账"
+      ],
+      "red_line_criteria": [
+        {
+          "code": "POLARITY_VETO_1",
+          "rejected_assertion": "这笔还款仍未支付",
+          "severity": "ONE_VOTE_VETO",
+          "applies_only_when": "模型把它作为本人今天已发生的肯定事实；引用、否定、风险提示和未定假设不触发红线"
+        },
+        {
+          "code": "POLARITY_VETO_2",
+          "rejected_assertion": "这笔交易是新增借款",
+          "severity": "ONE_VOTE_VETO",
+          "applies_only_when": "模型把它作为本人今天已发生的肯定事实；引用、否定、风险提示和未定假设不触发红线"
+        },
+        {
+          "code": "POLARITY_VETO_3",
+          "rejected_assertion": "把邻居或单位业务款项记入本人个人账户",
+          "severity": "ONE_VOTE_VETO",
+          "applies_only_when": "模型把它作为本人今天已发生的肯定事实；引用、否定、风险提示和未定假设不触发红线"
+        },
+        {
+          "code": "POLARITY_VETO_4",
+          "rejected_assertion": "捏造未出现在个人账户汇总中的新借款",
+          "severity": "ONE_VOTE_VETO",
+          "applies_only_when": "模型把它作为本人今天已发生的肯定事实；引用、否定、风险提示和未定假设不触发红线"
+        }
+      ],
+      "scoring_policy": "按语义方向、主体、否定/条件、先后状态和证据评估；不得要求逐字命中同义词表。只说宽泛相关词而遗漏关键状态可给部分分，不自动判完整正确。"
+    },
+    "dim:career": {
+      "core_summary": "检测异常经检具校准和复测被排除，记录完整后批次获准放行",
+      "semantic_core_anchors": [
+        {
+          "anchor_id": "career:trajectory",
+          "proposition": "检测异常经检具校准和复测被排除，记录完整后批次获准放行",
+          "acceptable_direction_synonyms": [
+            "误差排查",
+            "复测合格",
+            "检具校准",
+            "获准放行"
+          ],
+          "evidence_refs": [
+            "s035",
+            "s062",
+            "s134"
+          ],
+          "entity_ids": [
+            "P_00001",
+            "P_00001:lead"
+          ],
+          "certainty": "observed",
+          "temporal_scope": "2026-09-16；按证据先后区分最终状态与早期状态",
+          "weight": 1.0
+        },
+        {
+          "anchor_id": "career:next_action",
+          "proposition": "日终实际行动取舍：今晚不再追加工作任务，先保留休息时间；明天开工前复查检具零点",
+          "acceptable_direction_synonyms": [
+            "已完成与待办分开",
+            "不把计划写成已经完成",
+            "按最终沟通更新行动顺序"
+          ],
+          "evidence_refs": [
+            "s134",
+            "s215"
+          ],
+          "entity_ids": [
+            "P_00001"
+          ],
+          "certainty": "observed",
+          "temporal_scope": "2026-09-16；按证据先后区分最终状态与早期状态",
+          "weight": 1.0
+        }
+      ],
+      "acceptable_directional_paraphrases": [
+        "误差排查",
+        "复测合格",
+        "检具校准",
+        "获准放行",
+        "已完成与待办分开",
+        "不把计划写成已经完成",
+        "按最终沟通更新行动顺序"
+      ],
+      "red_line_criteria": [
+        {
+          "code": "POLARITY_VETO_1",
+          "rejected_assertion": "确认产品超差仍强行放行",
+          "severity": "ONE_VOTE_VETO",
+          "applies_only_when": "模型把它作为本人今天已发生的肯定事实；引用、否定、风险提示和未定假设不触发红线"
+        },
+        {
+          "code": "POLARITY_VETO_2",
+          "rejected_assertion": "一直未做复测",
+          "severity": "ONE_VOTE_VETO",
+          "applies_only_when": "模型把它作为本人今天已发生的肯定事实；引用、否定、风险提示和未定假设不触发红线"
+        },
+        {
+          "code": "POLARITY_VETO_3",
+          "rejected_assertion": "发生已确认质量事故",
+          "severity": "ONE_VOTE_VETO",
+          "applies_only_when": "模型把它作为本人今天已发生的肯定事实；引用、否定、风险提示和未定假设不触发红线"
+        }
+      ],
+      "scoring_policy": "按语义方向、主体、否定/条件、先后状态和证据评估；不得要求逐字命中同义词表。只说宽泛相关词而遗漏关键状态可给部分分，不自动判完整正确。"
+    }
+  }
+}

@@ -1,0 +1,415 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aios:daily-life:agent-01a0aa2d:1.0.0",
+  "title": "10,000 fictional people, one complete day per person",
+  "description": "Uncompressed complete bank is a standard JSON array. Temporal continuity, unique persons, monetary reconciliation and evidence links require the accompanying validator. Blind JSONL records omit directional_ground_truth.",
+  "type": "array",
+  "minItems": 10000,
+  "maxItems": 10000,
+  "items": {
+    "$ref": "#/$defs/question"
+  },
+  "$defs": {
+    "question": {
+      "type": "object",
+      "required": [
+        "question_id",
+        "persona",
+        "cleaned_daily_stream",
+        "directional_ground_truth"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "question_id": {
+          "type": "string",
+          "pattern": "^DAY_01a0aa2d_[0-9]{5}$"
+        },
+        "persona": {
+          "type": "object",
+          "required": [
+            "person_id",
+            "name",
+            "age",
+            "gender",
+            "occupation",
+            "city",
+            "timezone",
+            "day",
+            "day_window",
+            "contacts",
+            "fictional"
+          ],
+          "properties": {
+            "person_id": {
+              "type": "string",
+              "pattern": "^P_[0-9]{5}$"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "age": {
+              "type": "integer",
+              "minimum": 18,
+              "maximum": 90
+            },
+            "gender": {
+              "enum": [
+                "女",
+                "男"
+              ]
+            },
+            "occupation": {
+              "type": "string",
+              "minLength": 1
+            },
+            "city": {
+              "type": "string",
+              "minLength": 1
+            },
+            "timezone": {
+              "const": "Asia/Shanghai"
+            },
+            "day": {
+              "type": "string",
+              "format": "date"
+            },
+            "day_window": {
+              "type": "object",
+              "required": [
+                "start",
+                "end"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "start": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "end": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            },
+            "contacts": {
+              "type": "array",
+              "minItems": 4,
+              "items": {
+                "type": "object",
+                "required": [
+                  "entity_id",
+                  "name",
+                  "relation"
+                ],
+                "properties": {
+                  "entity_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "relation": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "fictional": {
+              "const": true
+            }
+          }
+        },
+        "cleaned_daily_stream": {
+          "type": "array",
+          "minItems": 220,
+          "items": {
+            "$ref": "#/$defs/slice"
+          }
+        },
+        "directional_ground_truth": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "global_daily_summary",
+            "dim:health",
+            "dim:social",
+            "dim:emotion",
+            "dim:finance",
+            "dim:career"
+          ],
+          "properties": {
+            "global_daily_summary": {
+              "$ref": "#/$defs/dimension"
+            },
+            "dim:health": {
+              "$ref": "#/$defs/dimension"
+            },
+            "dim:social": {
+              "$ref": "#/$defs/dimension"
+            },
+            "dim:emotion": {
+              "$ref": "#/$defs/dimension"
+            },
+            "dim:finance": {
+              "$ref": "#/$defs/dimension"
+            },
+            "dim:career": {
+              "$ref": "#/$defs/dimension"
+            }
+          }
+        }
+      }
+    },
+    "slice": {
+      "type": "object",
+      "required": [
+        "slice_id",
+        "timestamp",
+        "end_timestamp",
+        "modality",
+        "source",
+        "participants",
+        "text"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "slice_id": {
+          "type": "string",
+          "pattern": "^s[0-9]{3,}$"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "end_timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "modality": {
+          "enum": [
+            "MIC",
+            "APP",
+            "SENSOR"
+          ]
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "participants": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "speaker_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "measurements": {
+          "type": "object"
+        },
+        "transaction": {
+          "type": "object",
+          "required": [
+            "owner_id",
+            "delta_cents",
+            "status",
+            "currency"
+          ],
+          "properties": {
+            "owner_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "delta_cents": {
+              "type": "integer"
+            },
+            "status": {
+              "type": "string",
+              "minLength": 1
+            },
+            "currency": {
+              "const": "CNY"
+            },
+            "new_disbursed_principal_cents": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        },
+        "account_summary": {
+          "type": "object",
+          "required": [
+            "owner_id",
+            "opening_balance_cents",
+            "posted_credits_cents",
+            "posted_debits_cents",
+            "closing_balance_cents",
+            "new_disbursed_principal_cents",
+            "pending_status",
+            "currency"
+          ]
+        },
+        "source_account_owner_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "anchor": {
+      "type": "object",
+      "required": [
+        "anchor_id",
+        "proposition",
+        "acceptable_direction_synonyms",
+        "evidence_refs",
+        "entity_ids",
+        "certainty",
+        "temporal_scope",
+        "weight"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "anchor_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "proposition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "acceptable_direction_synonyms": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "evidence_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "entity_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "certainty": {
+          "type": "string",
+          "minLength": 1
+        },
+        "temporal_scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "weight": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "numeric_anchors": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "integer",
+              "boolean",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "dimension": {
+      "type": "object",
+      "required": [
+        "core_summary",
+        "semantic_core_anchors",
+        "acceptable_directional_paraphrases",
+        "red_line_criteria",
+        "scoring_policy"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "core_summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "semantic_core_anchors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/anchor"
+          }
+        },
+        "acceptable_directional_paraphrases": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "red_line_criteria": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "code",
+              "rejected_assertion",
+              "severity",
+              "applies_only_when"
+            ],
+            "properties": {
+              "code": {
+                "type": "string",
+                "minLength": 1
+              },
+              "rejected_assertion": {
+                "type": "string",
+                "minLength": 1
+              },
+              "severity": {
+                "const": "ONE_VOTE_VETO"
+              },
+              "applies_only_when": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "scoring_policy": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

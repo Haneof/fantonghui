@@ -1,0 +1,61 @@
+{
+  "verdict": "PASS",
+  "unique_people": 10000,
+  "unique_names": 10000,
+  "totals": {
+    "slices": 2420622,
+    "anchors": 150000,
+    "ordinary_slices": 2240622,
+    "urgent": 1250,
+    "questions": 10000
+  },
+  "unique_semantic_story_combinations": 9885,
+  "slices_per_day": {
+    "min": 225,
+    "max": 257,
+    "mean": 242.0622
+  },
+  "occupations": {
+    "工厂质检员": 834,
+    "小店经营者": 834,
+    "研究生": 834,
+    "自由设计师": 834,
+    "日班护士": 834,
+    "配送骑手": 834,
+    "零售店员": 834,
+    "中学教师": 834,
+    "软件工程师": 832,
+    "居家照护者": 832,
+    "退休志愿者": 832,
+    "会计": 832
+  },
+  "cities": {
+    "南京": 838,
+    "青岛": 783,
+    "成都": 861,
+    "厦门": 822,
+    "合肥": 816,
+    "福州": 831,
+    "杭州": 847,
+    "武汉": 834,
+    "郑州": 849,
+    "苏州": 856,
+    "西安": 783,
+    "长沙": 880
+  },
+  "modalities": {
+    "SENSOR": 641929,
+    "MIC": 888186,
+    "APP": 890507
+  },
+  "finance_statuses": {
+    "NONE": 6666,
+    "INCOME_PENDING": 836,
+    "DISPUTE_OPEN": 832,
+    "SIGNED_AWAITING_DISBURSEMENT": 835,
+    "REFUND_PENDING": 831
+  },
+  "full_day_seconds_each": 86400,
+  "limitations": "Structural, temporal, attribution and accounting audit, not independent LLM semantic grading or proof of real-world generalization.",
+  "audited_at_utc": "2026-09-16T14:53:57.967302+00:00"
+}
