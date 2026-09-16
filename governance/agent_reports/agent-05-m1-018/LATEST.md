@@ -46,4 +46,17 @@ divergence_for_chief_arbitration（本 Agent 并行实现中未被采纳的差�
     实体分桶时间有序索引（万级查询与命中规模同阶）。
 
 tests_run: PYTHONPATH=src .venv/bin/python -m pytest（Python 3.11.2 / pytest 8.4.2 / pydantic 2.13.5）
-test_result: 624 passed（全仓库 100% 满堂绿；M1-018 文件 25/25 = 战友 20 + 增量硬化 5）
+test_result: 670 passed（全仓库 100% 满堂绿；M1-018 双套件 25 + 19 = 44/44）
+
+parallel_implementation_preserved（独立命名并存留存）:
+  - 应交付方「推送、不覆盖任何版本、独立起名」指令，本 Agent 的并行全量实现
+    以独立路径留存，与战友已合入基线并存共置、零覆盖零改动：
+      * src/aios_core/world/retrospective_annotation_agent05.py
+        （BiTemporalEpistemicLens / EpistemicWorldLens 别名 / SingleHopCascadeIsolator /
+        RetrospectiveAnnotation / RetrospectiveAnnotationError(AIOSProtocolError) /
+        canonical_fact_sha256；实体分桶时间有序索引，10,000 级查询压测与命中规模同阶）
+      * tests/unit/test_m1_018_retrospective_annotation_agent05.py（19 项：
+        四硬门禁 + 18,000 条哈希门禁（SQLite 端到端零写入）+ 10,000 查询压测
+        + 万级 5 层依赖网 200 次失效压测）
+  - 该模块不进入 aios_core.world.__init__ 导出面，以全路径显式引用；
+    与战友基线的技术分歧点见上文 divergence_for_chief_arbitration。
