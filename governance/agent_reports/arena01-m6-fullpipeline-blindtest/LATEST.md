@@ -4,7 +4,7 @@
 - **日期**：2026-09-16
 - **分支**：`arena/01a0a700-fantonghui`（会话固定分支；总纲所列独立分支无法在本会话创建）
 - **被测代码**：`storage/ query/ operations/ world/ dimensions/ scheduler/ wake/ cockpit/ cognition/ summaries/ curves/ narrative/ communication/ tools/`（主干 `aios-2.0@71e154d` 收敛态）
-- **执行入口**：`src/aios_core/simulation/massive_life_bench_arena01.py::EightStageHarness`
+- **执行入口**：`src/aios_core/simulation/massive_life_bench_arena01_full.py::EightStageHarness`
 - **测试套件**：`tests/simulation/test_massive_life_bench_arena01_e2e.py`（10 用例）+ `tests/tools/` 三件（12 用例），全部满绿
 
 ## 一、数据规模与剧本（独立对抗发生器，零写死 mock）

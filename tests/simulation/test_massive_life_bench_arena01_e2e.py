@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-from aios_core.simulation.massive_life_bench_arena01 import EightStageHarness, IRON_RULES
+from aios_core.simulation.massive_life_bench_arena01_full import EightStageHarness, IRON_RULES
 
 
 @pytest.fixture(scope="module")
