@@ -1,0 +1,37 @@
+{
+  "version": "3.0",
+  "description": "AIOS 3.0 运行策略：调度周期、Token 阈值、冷却参数全量配置化与外部化（工单 M2-001 / M2-005R / M3-001R / SIM-001 共用）。",
+  "monthly_token_budget": 2554000,
+  "manifest_token_budget": 1500,
+  "sample_interval_seconds": 60,
+  "geo_poll_seconds": 8,
+  "cooldown": {
+    "general_reminder_min_minutes": 15,
+    "general_reminder_max_minutes": 30,
+    "escalation_minutes": 5,
+    "quiet_reset_minutes": 90,
+    "deep_sleep_vibration_budget": 0,
+    "p0_exempt_kinds": ["safety_p0"]
+  },
+  "dimensions": {
+    "gate1_min_domains": 2,
+    "gate1_min_days": 3,
+    "trial_days": 30,
+    "gate2_min_accuracy": 0.7,
+    "daily_reflection_quota": 1,
+    "max_active_dimensions": 32,
+    "max_reflection_recursion_depth": 1
+  },
+  "scheduler": {
+    "level1_mechanical_budget_ms": 1.0,
+    "dormant_prompt_tokens": 0,
+    "piggyback_requires_user_wake": true
+  },
+  "simulation": {
+    "days_short_window": 30,
+    "days_long_window": 180,
+    "rss_budget_mb": 128,
+    "raw_binary_residue_budget_bytes": 0,
+    "deadlock_budget": 0
+  }
+}
