@@ -106,3 +106,40 @@ def test_verify_reports_problems_for_tampered_bank(tmp_path: Path):
     gt.write_text("\n".join(json.dumps(row, ensure_ascii=False) for row in rows) + "\n", encoding="utf-8")
     result = verify_bank(questions, gt)
     assert result["problem_total"] > 0
+
+
+def test_manifest_digest_matches_file_bytes(tmp_path: Path):
+    """清单摘要必须等于落盘文件的真实 sha256（历史缺陷：摘要漏算了行尾换行）。"""
+    import hashlib
+
+    questions, gt, summary = _generate(tmp_path, count=30)
+    for path, digest_key, bytes_key in (
+        (questions, "questions_sha256", "questions_bytes"),
+        (gt, "ground_truth_sha256", "ground_truth_bytes"),
+    ):
+        blob = path.read_bytes()
+        assert hashlib.sha256(blob).hexdigest() == summary[digest_key]
+        assert len(blob) == summary[bytes_key]
+
+
+def test_committed_10k_bank_matches_manifest():
+    """已交付的 1 万题成品卷：必须与清单自报的摘要、字节数、验签计数完全一致。"""
+    import hashlib
+
+    root = Path(__file__).resolve().parents[2]
+    questions = root / "benchmarks/data_cleaning/questions/questions_01a0aa2d-fantonghui.jsonl"
+    gt = root / "benchmarks/data_cleaning/ground_truth/gt_01a0aa2d-fantonghui.jsonl"
+    manifest = root / "benchmarks/data_cleaning/questions/manifest_01a0aa2d-fantonghui.json"
+    if not (questions.exists() and gt.exists() and manifest.exists()):
+        pytest.skip("成品卷不在本工作区（仅交付仓库可见）")
+    summary = json.loads(manifest.read_text(encoding="utf-8"))
+    for path, digest_key, bytes_key in (
+        (questions, "questions_sha256", "questions_bytes"),
+        (gt, "ground_truth_sha256", "ground_truth_bytes"),
+    ):
+        blob = path.read_bytes()
+        assert hashlib.sha256(blob).hexdigest() == summary[digest_key], f"{path.name} 摘要与清单不符"
+        assert len(blob) == summary[bytes_key]
+    assert sum(1 for _ in questions.open(encoding="utf-8")) == 10_000
+    assert sum(1 for _ in gt.open(encoding="utf-8")) == 10_000
+    assert summary["verify"]["problem_total"] == 0

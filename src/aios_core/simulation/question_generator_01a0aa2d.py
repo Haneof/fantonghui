@@ -1857,9 +1857,9 @@ def _dump_jsonl(rows: Iterable[Mapping[str, Any]], path: str | Path) -> Tuple[in
     count = 0
     with path.open("w", encoding="utf-8") as handle:
         for row in rows:
-            line = json.dumps(row, ensure_ascii=False, separators=(",", ":"))
-            handle.write(line + "\n")
-            digest.update(line.encode("utf-8"))
+            line = json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\n"
+            handle.write(line)
+            digest.update(line.encode("utf-8"))  # 摘要必须覆盖落盘的全部字节（含行尾换行）
             count += 1
     return count, digest.hexdigest()
 

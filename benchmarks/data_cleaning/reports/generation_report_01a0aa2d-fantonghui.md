@@ -3,8 +3,8 @@
 - 出题方：`01a0aa2d-fantonghui`（本卷由其他战队跨 Git 交叉作答；`solver == generator` 一律 0 分）
 - 题量：**10000** 道 / 标答：**10000** 条
 - 随机种子：`20260916`（确定性发生器，重跑逐字节一致）
-- questions sha256：`a9c9de7daa51da1c0539e4ef45e2053433d843a2983eadf0d05b76fafc4efc25`
-- ground_truth sha256：`104186ed17c8172cb9251449a387f6d2a4197515af4767aa3ecca21bb770121f`
+- questions sha256：`a108286235ce32616b6c95a1a107ec00b4d13be20c1e2b039531e3a91747b3df`
+- ground_truth sha256：`4dc444d36ad0e43ae759a0f87454427830a6cdd50679c7b3a795a31958b85313`
 - 文件体积：questions 71.3 MB / gt 10.5 MB
 
 ## 一、配额达成（调度书规定）
