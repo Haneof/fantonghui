@@ -83,6 +83,9 @@ def test_o01_operation_request_freezes_required_fields():
         "expected_world_revision",
         "reason",
         "idempotency_key",
+        # R4-02 (M0-023): 写入来源分类随修改案进入冻结字段集
+        "source_class",
+        "maintenance_class",
     }
     assert set(OperationAuditRecord.model_fields) == {
         "operation_id",

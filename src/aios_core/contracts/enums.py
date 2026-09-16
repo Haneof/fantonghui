@@ -23,6 +23,86 @@ class ObjectType(StrEnum):
     OUTCOME = "outcome"
     OPERATION_EXPERIENCE = "operation_experience"
     TOOL_PROPOSAL = "tool_proposal"
+    # --- R4 修改案（M0-023~028）新增一等对象（批准前为候选契约） ---
+    PREDICTION = "prediction"
+    LIFE_CHAPTER = "life_chapter"
+    REINTERPRETATION = "reinterpretation"
+    COMMUNICATION_EXPERIENCE = "communication_experience"
+    BUDGET_POLICY = "budget_policy"
+    ASSEMBLY_POLICY = "assembly_policy"
+
+
+class SourceClass(StrEnum):
+    """写入来源分类（R4-02：第 79 条之二）。
+
+    MAINTENANCE 对第 79 条机械触发评估不可见；SAFETY 由固件桥与内核调度器
+    专属持有。豁免判定只读本字段，禁止以语义识别代替（第 77/106 条）。
+    """
+
+    USER = "user"
+    SENSOR = "sensor"
+    AI_COGNITION = "ai_cognition"
+    MAINTENANCE = "maintenance"
+    SAFETY = "safety"
+
+
+class MaintenanceClass(StrEnum):
+    """MAINTENANCE 写入必须声明的维护类别（R4-02）。"""
+
+    STALE_MARK = "stale_mark"
+    SUMMARY_REBUILD = "summary_rebuild"
+    PRUNE = "prune"
+    INDEX_META = "index_meta"
+    POLICY_SYNC = "policy_sync"
+
+
+class PredictionVerificationState(StrEnum):
+    """第 50 条 Prediction 对撞状态机。"""
+
+    PENDING = "pending"
+    CORROBORATED = "corroborated"
+    FALSIFIED = "falsified"
+    EXPIRED = "expired"
+
+
+class AnnotationSlot(StrEnum):
+    """第 31 条之一（R4-01 改写）：Reinterpretation 注册制槽位。
+
+    禁止自由槽名；新语义槽必须走第 72~76 条候选维度流程，防止维度爆炸
+    （第 76 条）与标注语义泛化。
+    """
+
+    EMOTION = "emotion"
+    MEANING = "meaning"
+    IDENTITY_TAG = "identity_tag"
+
+
+class UserReaction(StrEnum):
+    """第 69 条：沟通经验记录的真实用户反应分类。"""
+
+    ACCEPTED = "accepted"
+    RESISTED = "resisted"
+    IGNORED = "ignored"
+    UNKNOWN = "unknown"
+
+
+class BudgetScope(StrEnum):
+    """第 86 条之一（R4-08）：预算作用域。"""
+
+    TURN = "turn"
+    DAY = "day"
+    BACKGROUND_DAY = "background_day"
+    MAINT_TASK = "maint_task"
+    BAND_INGEST = "band_ingest"
+
+
+class BudgetOnExceed(StrEnum):
+    """超限处置策略（第 86 条之一）。安全通道不受预算豁免逻辑屏蔽。"""
+
+    CHECKPOINT = "checkpoint"
+    DEGRADE_RULES = "degrade_rules"
+    DEFER_TO_IDLE = "defer_to_idle"
+    HARD_DENY = "hard_deny"
 
 
 class KnowledgeState(StrEnum):

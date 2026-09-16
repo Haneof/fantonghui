@@ -9,6 +9,24 @@
       "outcome_unknown",
       "cancelled"
     ],
+    "aios_core.contracts.enums.AnnotationSlot": [
+      "emotion",
+      "meaning",
+      "identity_tag"
+    ],
+    "aios_core.contracts.enums.BudgetOnExceed": [
+      "checkpoint",
+      "degrade_rules",
+      "defer_to_idle",
+      "hard_deny"
+    ],
+    "aios_core.contracts.enums.BudgetScope": [
+      "turn",
+      "day",
+      "background_day",
+      "maint_task",
+      "band_ingest"
+    ],
     "aios_core.contracts.enums.ClaimType": [
       "fact",
       "opinion",
@@ -84,6 +102,13 @@
       "unknown",
       "conflict"
     ],
+    "aios_core.contracts.enums.MaintenanceClass": [
+      "stale_mark",
+      "summary_rebuild",
+      "prune",
+      "index_meta",
+      "policy_sync"
+    ],
     "aios_core.contracts.enums.ObjectType": [
       "observation",
       "entity",
@@ -103,7 +128,26 @@
       "action",
       "outcome",
       "operation_experience",
-      "tool_proposal"
+      "tool_proposal",
+      "prediction",
+      "life_chapter",
+      "reinterpretation",
+      "communication_experience",
+      "budget_policy",
+      "assembly_policy"
+    ],
+    "aios_core.contracts.enums.PredictionVerificationState": [
+      "pending",
+      "corroborated",
+      "falsified",
+      "expired"
+    ],
+    "aios_core.contracts.enums.SourceClass": [
+      "user",
+      "sensor",
+      "ai_cognition",
+      "maintenance",
+      "safety"
     ],
     "aios_core.contracts.enums.SummaryStatus": [
       "current",
@@ -136,6 +180,12 @@
       "verification",
       "maintenance",
       "app"
+    ],
+    "aios_core.contracts.enums.UserReaction": [
+      "accepted",
+      "resisted",
+      "ignored",
+      "unknown"
     ],
     "aios_core.contracts.enums.WakeSource": [
       "mechanical_change",
@@ -203,12 +253,15 @@
     ],
     "split": []
   },
-  "gate_version": "M0-R2",
+  "gate_version": "M0-R2+R4-delta-candidate",
   "models": {
-    "aios_core.contracts.base.WorldObject": "8bc0d806e2d427415a9e1c853d7b815eee09c4e39465814f3bc3025085597c5a",
+    "aios_core.contracts.base.WorldObject": "70893920027aa4f3e65ada0106c2c4831b0f011a1d16694af31cfa47292309e3",
     "aios_core.contracts.errors.ErrorResponse": "2ea9a6af49db3192361124253bd811c1352a001ec682808c7a4e4779767014a9",
     "aios_core.contracts.models.Action": "6f8059dfb163e2955aab6c89571d849a0acbe5383439d158dce4e0718dea705b",
+    "aios_core.contracts.models.AssemblyPolicy": "e6cf9daad72af3d578be313774b54832acc95a7f29098e9f9a8ec785e2fc9a07",
+    "aios_core.contracts.models.BudgetPolicy": "43f08498cb00be49444a148367cb54f8357c397b00725941bc209763812226e7",
     "aios_core.contracts.models.Claim": "7b3f008d22cbc3ad10ccc5ac1edf788735dfbaa14fdb14b379951f5b866a40c8",
+    "aios_core.contracts.models.CommunicationExperience": "9ba7def5f71b26b0076309a75901829b1da65b0fe1bcbb3fdaaf673c2d3c460e",
     "aios_core.contracts.models.Dependency": "2787b7a598f7396bba1888343b1be7eec01dde0437a3a9fe4127b0bf344fcf86",
     "aios_core.contracts.models.DimensionDefinition": "1b91ca9528916148f623da4697713f9aef5bc5a5698a1ef74a14f47a6d07ae47",
     "aios_core.contracts.models.DimensionDerivation": "50f1ddf56a5a1c4270f2884863f185cea3259e1ff3b4c7f0cdbbdf2d771b7a4e",
@@ -219,9 +272,12 @@
     "aios_core.contracts.models.EvidenceSelector": "27cfb93f96fd725b209f1afbd4a066e4f0b8d5dd98ee3b13fd5173c4cfab5d97",
     "aios_core.contracts.models.EvidenceSet": "30758dfa624fe67642cc2994c7b851fb1513a59cca34a1d961bb37db77f8d73c",
     "aios_core.contracts.models.Goal": "d4cc974eee21690f1901b5b2126b6001e65d3bf1b026183ba837d675a233c0f2",
+    "aios_core.contracts.models.LifeChapter": "5065bfe7d2e80de74cb3bf4ff6f6911c4a2f9afbfbd4a535e4614d5392140b20",
     "aios_core.contracts.models.Observation": "b58727fbd4b7b7c3a9984d0ff1742b56b42fb22967809e961362559c2c7561fc",
     "aios_core.contracts.models.OperationExperience": "64f1c968176fa6afce4e08d9ccd10a6ab79911daf6bc0c6ee371e5f72d0a092f",
     "aios_core.contracts.models.Outcome": "6c4033e4e44031f07cc078bc99a6254722b67c5f4c7887214de30e21335b45b0",
+    "aios_core.contracts.models.Prediction": "6c7d7fa795fae0bbd8b927f3c5006a83d96aabd874c2b128c96c73845532d537",
+    "aios_core.contracts.models.Reinterpretation": "ea3f1d01ac76c7f171820f28bdb2aa69e3dfb3b2b4540382739982a9fa4e5fb0",
     "aios_core.contracts.models.Relation": "79683cad62623b65b6f47268540f7f156e629c915da19fd8f3b48dd9683be0e4",
     "aios_core.contracts.models.Session": "1a4d1d58deca8dc84bb1243f39ca28a6dc0a5ae70a93babffd35506f91d3f5d8",
     "aios_core.contracts.models.Summary": "5323db4cafe10d3bae0ec32a77104f14d56d0834d569463ffeaa90682a8a797c",
@@ -230,7 +286,7 @@
     "aios_core.contracts.models.Wake": "326408444f99c29ed9fbe9fa3a081d78b7959be6250a3e6e975280c1198408d5",
     "aios_core.contracts.operations.CommitResult": "19569e889a3cd18bdabec590b5f3dd9c5e89b741ee68bb9a8e6010bc3fcceac5",
     "aios_core.contracts.operations.OperationAuditRecord": "d039a30a23261b37d6250b301356441b3a5573d2785206d2fe484d3a4fd681cc",
-    "aios_core.contracts.operations.OperationRequest": "506aee0d2ba50eadb5a72b387e3220f2ca362d84508e62191303e13493f7ec5b",
+    "aios_core.contracts.operations.OperationRequest": "04388c761ef2b954b66d29b59149c23b0adffa0fd36d5e5f10d2a81cfc1e3ef3",
     "aios_core.contracts.refs.ObjectRef": "15aacd9d84fb2646f5c07b79e8a5b62653d88a9c849b311c747029e198ff12e9",
     "aios_core.contracts.refs.SourceRef": "10eb1e28c86e8d05d69a5f91c90de2064c301a8c7ea5d8c08e00afd08a9dd994",
     "aios_core.contracts.time.KnowledgeWindow": "503f4e050bf0781c367da7f9d563b6e3d748306cd65fc1ef14c3aa9c56dbb6d6",

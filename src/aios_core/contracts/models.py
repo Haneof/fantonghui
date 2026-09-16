@@ -8,6 +8,9 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from .base import WorldObject
 from .enums import (
     ActionStatus,
+    AnnotationSlot,
+    BudgetOnExceed,
+    BudgetScope,
     ClaimType,
     DimensionLifecycle,
     EventStatus,
@@ -15,9 +18,11 @@ from .enums import (
     GoalStatus,
     KnowledgeState,
     ObjectType,
+    PredictionVerificationState,
     SummaryStatus,
     TaskState,
     TaskType,
+    UserReaction,
     WakeSource,
     WakeState,
 )
@@ -459,3 +464,157 @@ class ToolProposal(WorldObject):
     proposed_interface: dict[str, Any]
     expected_benefit: str
     validation_plan: str
+
+
+# ---------------------------------------------------------------------------
+# R4 修改案（M0-023~028）新增一等对象。修改案批准前为候选契约；
+# 快照 gate_version 标记 "R4-delta"，批准转正式后仅改字符串、不改字段。
+# ---------------------------------------------------------------------------
+
+
+class Prediction(WorldObject):
+    """第 50~53 条：假说-演绎闭环的一等认知对象。
+
+    第 53 条封死"无病呻吟预测"：reasoning（立项理由）为空即拒绝写入；
+    对撞状态推进到 CORROBORATED/FALSIFIED 时必须携带真实观测证据引用。
+    """
+
+    object_type: Literal[ObjectType.PREDICTION] = ObjectType.PREDICTION
+    source_claim_ref: ObjectRef
+    target_dimension_id: str | None = None
+    expected_change: str = Field(min_length=1)
+    time_window: TemporalExtent
+    confidence: float = Field(ge=0.0, le=1.0)
+    verification_state: PredictionVerificationState = PredictionVerificationState.PENDING
+    actual_outcome_ref: ObjectRef | None = None
+    reasoning: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_prediction_contract(self) -> "Prediction":
+        if self.source_claim_ref.revision is None:
+            raise ValueError("source_claim_ref requires pinned ObjectRef revision")
+        if not self.reasoning.strip():
+            raise ValueError("prediction reasoning (第 53 条立项理由) must not be blank")
+        if not self.expected_change.strip():
+            raise ValueError("expected_change must be falsifiable, not blank")
+        if (
+            self.verification_state
+            in {PredictionVerificationState.CORROBORATED, PredictionVerificationState.FALSIFIED}
+            and self.actual_outcome_ref is None
+        ):
+            raise ValueError(
+                "verdict states require actual_outcome_ref pointing at reality observation"
+            )
+        return self
+
+
+class LifeChapter(WorldObject):
+    """第 29 条：人生章节相变模型。
+
+    相变判定由 AI 在唤醒会话中形成（触发器不得代判，第 77 条）；本契约只
+    保证章节可追溯：基线引用、相变证据、封章理由缺一不可。
+    """
+
+    object_type: Literal[ObjectType.LIFE_CHAPTER] = ObjectType.LIFE_CHAPTER
+    chapter_title: str | None = None
+    baseline_refs: list[ObjectRef] = Field(default_factory=list)
+    transition_evidence_set_refs: list[ObjectRef] = Field(default_factory=list)
+    supersedes_chapter_id: str | None = None
+    sealed_reason: str | None = None
+
+    @model_validator(mode="after")
+    def validate_sealed_chapter(self) -> "LifeChapter":
+        if self.status == "sealed" and not (self.sealed_reason or "").strip():
+            raise ValueError("sealed LifeChapter must carry sealed_reason (第 29 条归档封存)")
+        return self
+
+
+class Reinterpretation(WorldObject):
+    """第 23 个一等对象（R4-01）：历史节点的回溯解释层。
+
+    裁决要点（与第 93 条"历史不可篡改"同时成立）：
+    - target_ref 必须 pinned 到精确 revision；被指向对象永不改动；
+    - occurred_at/learned_at 均为标注诞生时间（T_now），valid_time 指向被
+      加注区间；AS_KNOWN / ANNOTATED 双透镜由读面（M0-020 机制）解析；
+    - slot 为注册制枚举（第 76 条防爆炸）；新语义需先走候选维度流程。
+    """
+
+    object_type: Literal[ObjectType.REINTERPRETATION] = ObjectType.REINTERPRETATION
+    target_ref: ObjectRef
+    slot: AnnotationSlot
+    statement: str = Field(min_length=1)
+    confidence: float = Field(ge=0.0, le=1.0)
+    evidence_set_ref: ObjectRef | None = None
+    supersedes_id: str | None = None
+    valid_time: TemporalExtent = Field(default_factory=TemporalExtent.unknown_time)
+
+    @model_validator(mode="after")
+    def validate_pinned_target(self) -> "Reinterpretation":
+        if self.target_ref.revision is None:
+            raise ValueError("target_ref requires pinned ObjectRef revision (第 18/93 条)")
+        if not self.statement.strip():
+            raise ValueError("reinterpretation statement must not be blank")
+        return self
+
+
+class CommunicationExperience(WorldObject):
+    """第 12/69 条：沟通风格进化——说什么、怎么说、用户如何反应，一体记录。"""
+
+    object_type: Literal[ObjectType.COMMUNICATION_EXPERIENCE] = ObjectType.COMMUNICATION_EXPERIENCE
+    scenario: str = Field(min_length=1)
+    style: str = Field(min_length=1)
+    tone: str | None = None
+    user_reaction: UserReaction
+    action_ref: ObjectRef | None = None
+    applicable_conditions: dict[str, Any] = Field(default_factory=dict)
+    counterexample_refs: list[ObjectRef] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_action_pin(self) -> "CommunicationExperience":
+        if self.action_ref is not None and self.action_ref.revision is None:
+            raise ValueError("action_ref requires pinned ObjectRef revision")
+        return self
+
+
+class BudgetPolicy(WorldObject):
+    """第 86 条之一（R4-08）：经济控制的预算对象。
+
+    预算是世界对象（可版本化、可由经验经 ToolProposal 提案修订）；执法在
+    C13 网关（不可协商）。至少声明一个封顶，否则不构成预算。
+    """
+
+    object_type: Literal[ObjectType.BUDGET_POLICY] = ObjectType.BUDGET_POLICY
+    scope: BudgetScope
+    max_model_calls: int | None = Field(default=None, ge=0)
+    max_tokens: int | None = Field(default=None, ge=0)
+    max_wakes: int | None = Field(default=None, ge=0)
+    on_exceed: BudgetOnExceed = BudgetOnExceed.CHECKPOINT
+
+    @model_validator(mode="after")
+    def validate_has_cap(self) -> "BudgetPolicy":
+        if self.max_model_calls is None and self.max_tokens is None and self.max_wakes is None:
+            raise ValueError("budget policy must declare at least one cap")
+        return self
+
+
+class AssemblyPolicy(WorldObject):
+    """第 84/85 条：看板组装策略版本化对象（谁组看板谁定义 AI 的世界——
+    策略本身必须可读、可版本、可被经验修订，但数据源白名单由内核强制，
+    经验只能改排序与裁剪参数）。
+    """
+
+    object_type: Literal[ObjectType.ASSEMBLY_POLICY] = ObjectType.ASSEMBLY_POLICY
+    wake_kind: str | None = None
+    section_order: list[str] = Field(min_length=1)
+    section_token_caps: dict[str, int] = Field(default_factory=dict)
+    max_prefill_tokens: int = Field(ge=256)
+    data_source_allowlist: list[str] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_sections(self) -> "AssemblyPolicy":
+        if len(set(self.section_order)) != len(self.section_order):
+            raise ValueError("section_order must not repeat sections")
+        unknown = [k for k in self.section_token_caps if k not in set(self.section_order)]
+        if unknown:
+            raise ValueError(f"section_token_caps references sections outside section_order: {unknown}")
+        return self
