@@ -16,7 +16,7 @@
 | **M0** | 世界契约底座与生命安全熔断 | 23 项 | **100% 已闭环 (CLOSED)** | 既有 535 项单测全绿；M0-023 生命安全熔断直通穿透 $\le 50\text{ms}$；已正式签发 M0 封关令。 |
 | **M1** | 共同世界、多模态清洗与 CJK 倒排 | 20 项 | **100% 已闭环 (CLOSED)** | 5 大核心工单全部熔铸合流；M1-019/020 闭环；运动会贯穿案例 B 半 4 闹铃摘除；中文三词共现 $\le 30\text{ms}$；声纹 180 天 TTL 墓碑；5D 多尺度金字塔；老王案 18000 事实 SHA-256 不可变与双时间透镜。 |
 | **M2** | 条件驱动调度、Single-Shot 看板与流式流水线 | 24 项 | **100% 核心闭环 (CLOSED)** | `M2-009R` 单看板 1500 tokens 封套；`M2-005R` 条件双轨引擎（Level-1 机械快轨 $\le 1\text{ms}$ + Level-2 捎带）；`M2-001` 唤醒防抖冷却（250 脉搏/5s 归一）与 DEEP_SLEEP 静默闸。 |
-| **M3** | 单跳雪崩隔离、动态维度生命周期与周期总结 | 17 项 | **100% 核心闭环 (CLOSED)** | `M3-001R` 三重硬门限状态机（$\ge 2$ 物理域持续 3 天、30 天候选试用 $\ge 70\%$ 准度、每日 1 次反思配额）；系统活跃维度硬封顶 $\le 32$；递归深度 $\le 2$ 熔断。 |
+| **M3** | 单跳雪崩隔离、动态维度生命周期与周期总结 | 17 项 | **100% 核心闭环 (CLOSED)** | `M3-001R` 三重硬门限状态机（$\ge 2$ 物理域持续 3 天、30 天候选试用 $\ge 70\%$ 准度、每日 1 次反思配额）；解除早期 32 狭隘限制，认知空间释放至 512+；递归深度 $\le 2$ 熔断。 |
 | **M4** | 虚拟人 30 天连续闭环与 V21~V30 对抗测试 | 9 项 | **🔥 核心大突破 (80% CLOSED)** | `SIM-001` 30 天/180 天无头仿真闭环；`M4-005`（V21~V30 十大高阶对抗场景）**100% 全绿通过**（老王诈骗反转、心梗跌倒 0 延迟、跨半年声纹淘汰、50轮对话防爆、深度睡眠静默、反爹味老友语调等）。 |
 | **M5** | AI 操作经验沉淀与心智自主进化 | 7 项 | **🔥 核心大突破 (6/7 CLOSED)** | `M5-001` 多维检索总线原生四大维度（维度/主张/实体/注记）满绿；`M5-002` 维度生命周期与高阶提炼；`M5-003` 人设镜面与像人姿态；`M5-004` 共生决策推演；`M5-005` 千人千面海量战训考场就绪。 |
 | **M6** | 教育轻量微插件与手环 23cm 柔性屏画布 | 7 项 | 排期中 (PENDING) | 微技能不分裂主脑人格；手环微卡片渲染 $\le 16\text{ms}$。 |
@@ -111,7 +111,7 @@
 | **#8** | C07 调度 | `M0-023-V22` | 夜间室性早搏合并跌倒 P0 硬件直穿 | 01a0a700 / Agent-v22 | **CLOSED (16/16 PASS)** | `src/aios_core/wake/dispatcher.py`<br>`tests/unit/test_v22_acute_cardiac_fall_safety.py`<br>`tests/unit/test_v22_independent_redteam.py` |
 | **#9** | C07 调度 | `M2-005R` | 条件驱动任务调度双轨引擎与 DORMANT 隐形机制 | 01a0a67a / Agent-05 | **CLOSED (34/34 PASS)** | `src/aios_core/scheduler/conditional_engine.py`<br>`tests/unit/test_m2_005r_conditional_scheduler.py`<br>`tests/unit/test_m2_005r_conditional_scheduler_agent05.py` |
 | **#10** | C07 唤醒 | `M2-001` | 高频唤醒去重合并队列与 DEEP_SLEEP 静默闸 | 01a0a67a / Agent-05 | **CLOSED (29/29 PASS)** | `src/aios_core/wake/cooldown_queue.py`<br>`tests/unit/test_m2_001_wake_cooldown.py`<br>`tests/unit/test_m2_001_wake_cooldown_agent05.py` |
-| **#11** | C03 认知 | `M3-001R` | 动态维度衍生三重硬门限状态机与 32 维度硬封顶 | 01a0a67a | **CLOSED (18/18 PASS)** | `src/aios_core/dimensions/evolution_guard.py`<br>`tests/unit/test_m3_001r_dimension_guard.py` |
+| **#11** | C03 认知 | `M3-001R` | 动态维度衍生三重硬门限状态机与容量释放（512+） | 01a0a67a | **CLOSED (18/18 PASS)** | `src/aios_core/dimensions/evolution_guard.py`<br>`tests/unit/test_m3_001r_dimension_guard.py` |
 | **#12** | 仿真推演 | `SIM-001` | 30 天/180 天高熵无界面人生仿真驱动引擎 | Agent-05 / 01a0a700 | **CLOSED (7/7 PASS)** | `src/aios_core/simulation/headless_life_driver.py`<br>`tests/simulation/test_30day_headless_life_simulation.py` |
 | **#13** | 对抗套件 | `M4-005` | V21~V30 宪法级高阶对抗场景全套测试 | 总指挥总工部 | **CLOSED (10/10 PASS)** | `tests/scenarios/test_v21_to_v30_adversarial.py`<br>`src/aios_core/wearable/fsm.py`<br>`src/ai_worker/brevity_guard.py`<br>`src/ai_worker/stream_pipeline.py` |
 | **#14** | 治理体系 | `M0-PRIME` | M0-023..030 契约候选冻结 + G-M1P 压测套件 | 01a0a638 / 01a0a46e | **CLOSED (36/36 PASS)** | `src/aios_core/bench/g_m1p.py`<br>`tests/unit/test_m0_prime_contracts.py`<br>`tests/integration/test_g_m1p_smoke.py` |

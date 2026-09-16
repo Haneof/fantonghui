@@ -15,7 +15,7 @@
 
 外加两条硬纪律：
 
-* **活跃维度全局硬顶 = 32**：满了以后必须按"活跃度 x 贡献度"淘汰末位（ARCHIVED）才能引入新维度；
+* **活跃维度全局容量扩展至 512+**：解除早期 32 维度狭隘硬编码限制，释放认知容量支持真实人生多维无界生长，满员时按"活跃度 x 贡献度"自适应淘汰末位；
 * **自问自答死循环熔断**：恶意 Prompt 诱导反思套娃时，在**第 2 层递归直接物理切断**。
 """
 
@@ -68,7 +68,7 @@ GATE1_MIN_DAYS: Final[int] = 3
 DIMENSION_TRIAL_DAYS: Final[int] = 30
 GATE2_MIN_ACCURACY: Final[float] = 0.70
 DAILY_REFLECTION_QUOTA: Final[int] = 1
-MAX_ACTIVE_DIMENSIONS: Final[int] = 32
+MAX_ACTIVE_DIMENSIONS: Final[int] = 512  # 解除早期 32 维度硬编码狭隘紧箍咒，认知空间全面释放至 512+
 MAX_REFLECTION_RECURSION_DEPTH: Final[int] = 1  # 第 2 层即熔断
 
 
@@ -401,7 +401,7 @@ class CandidateAdmission(BaseModel):
 
 
 class DimensionRegistry:
-    """活跃维度注册表：全局硬顶 32，满员即淘汰末位（ARCHIVED）。"""
+    """活跃维度注册表：全局容量 512+（解除 32 狭隘硬顶限制），满员即淘汰末位（ARCHIVED）。"""
 
     def __init__(self, *, max_active: int = MAX_ACTIVE_DIMENSIONS) -> None:
         if max_active < 1:
@@ -449,7 +449,7 @@ class DimensionRegistry:
                 archived_id = victim.candidate_id
                 self._archived[archived_id] = victim.with_updates(
                     status=CandidateStatus.ARCHIVED,
-                    status_reason="全局活跃维度硬顶 32：按活跃度 x 贡献度淘汰末位",
+                    status_reason=f"全局活跃维度容量上限 {self._max_active}：按活跃度 x 贡献度淘汰末位",
                 )
                 self._active.pop(archived_id, None)
             self._active[candidate.candidate_id] = candidate.with_updates(

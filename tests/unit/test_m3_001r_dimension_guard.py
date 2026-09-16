@@ -286,24 +286,29 @@ def test_gate1_gap_days_break_the_sustained_window() -> None:
 # ===========================================================================
 
 
-def test_gate2_active_dimensions_never_exceed_thirty_two() -> None:
-    registry = DimensionRegistry()
-    assert registry.max_active == MAX_ACTIVE_DIMENSIONS == 32
+def test_gate2_active_dimensions_respect_cap_and_default_capacity_is_512() -> None:
+    # 默认解除 32 限制，认知空间释放至 512
+    default_registry = DimensionRegistry()
+    assert default_registry.max_active == MAX_ACTIVE_DIMENSIONS == 512
+
+    # 指定容量 cap=32 时，严格保持末位淘汰
+    registry = DimensionRegistry(max_active=32)
+    assert registry.max_active == 32
 
     peak = 0
     for index in range(60):
         registry.admit(_active_candidate(index, activity=0.5 + index * 0.001, contribution=0.5))
         peak = max(peak, registry.active_count)
 
-    assert registry.active_count == MAX_ACTIVE_DIMENSIONS == 32, "全局活跃维度硬顶必须严格守住"
-    assert peak <= MAX_ACTIVE_DIMENSIONS
-    assert len(registry.archived()) == 60 - MAX_ACTIVE_DIMENSIONS
+    assert registry.active_count == 32, "活跃维度硬顶必须严格守住"
+    assert peak <= 32
+    assert len(registry.archived()) == 60 - 32
     assert all(c.status is CandidateStatus.ARCHIVED for c in registry.archived())
 
 
 def test_gate2_full_registry_evicts_the_lowest_utility_dimension() -> None:
-    registry = DimensionRegistry()
-    for index in range(MAX_ACTIVE_DIMENSIONS):
+    registry = DimensionRegistry(max_active=32)
+    for index in range(32):
         registry.admit(
             _active_candidate(index, activity=0.9 - index * 0.01, contribution=0.8 - index * 0.01)
         )
@@ -316,17 +321,17 @@ def test_gate2_full_registry_evicts_the_lowest_utility_dimension() -> None:
     archived_id = registry.admit(newcomer)
 
     assert archived_id == "dim_031"
-    assert registry.active_count == MAX_ACTIVE_DIMENSIONS, "淘汰后立即补位，硬顶不变"
+    assert registry.active_count == 32, "淘汰后立即补位，硬顶不变"
     assert registry.archived()[0].candidate_id == "dim_031"
     assert registry.archived()[0].status is CandidateStatus.ARCHIVED
-    assert "硬顶" in (registry.archived()[0].status_reason or "")
+    assert "容量上限" in (registry.archived()[0].status_reason or "")
     assert any(c.candidate_id == "dim_999" for c in registry.active())
 
 
 def test_gate2_promotion_through_the_guard_respects_the_cap() -> None:
     """走守卫正规路径晋升：硬顶已满时，晋升必须伴随一次归档（不静默超限）。"""
-    registry = DimensionRegistry()
-    for index in range(MAX_ACTIVE_DIMENSIONS):
+    registry = DimensionRegistry(max_active=32)
+    for index in range(32):
         registry.admit(
             _active_candidate(index, activity=0.9 - index * 0.01, contribution=0.9 - index * 0.01)
         )
@@ -343,13 +348,13 @@ def test_gate2_promotion_through_the_guard_respects_the_cap() -> None:
     )
     assert review.outcome is ReviewOutcome.PROMOTED
     assert review.archived_dimension_id == "dim_031"
-    assert guard.active_count == MAX_ACTIVE_DIMENSIONS
+    assert guard.active_count == 32
     assert guard.audit()["archived_dimensions"] == ["dim_031"]
 
     summary = retention_summary(guard.registry)
-    assert summary == {"active": MAX_ACTIVE_DIMENSIONS, "archived": 1, "expired": 0}
+    assert summary == {"active": 32, "archived": 1, "expired": 0}
     print(
-        f"[M3-001R 硬顶] 活跃={summary['active']}/{MAX_ACTIVE_DIMENSIONS} "
+        f"[M3-001R 容量] 活跃={summary['active']}/32 "
         f"归档={summary['archived']} 淘汰末位={review.archived_dimension_id}"
     )
 
