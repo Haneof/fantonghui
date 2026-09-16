@@ -24,14 +24,17 @@ from aios_core.simulation.cleaning_arena_protocol import (
 
 SOLVER_AGENT = "01a0aa2c-fantonghui"
 OPP = Path("/tmp/opp")
+BANKS2 = Path("/tmp/banks")
 QFILE = {
     "agent_11": OPP / "questions_agent_11.jsonl",
     "agent_a9f6": OPP / "questions_agent_a9f6.jsonl",
     "fantonghui": OPP / "questions_fantonghui.jsonl",
     "01a0a9ff-fantonghui": OPP / "questions_01a0a9ff-fantonghui.jsonl",
     "agent-01": OPP / "questions_agent-01.jsonl",
+    "01a0aa2d-fantonghui": BANKS2 / "clean_a2d.jsonl",
 }
-GT_EXTRA = {"agent_a9f6": OPP / "gt_agent_a9f6.jsonl"}
+GT_EXTRA = {"agent_a9f6": OPP / "gt_agent_a9f6.jsonl",
+            "01a0aa2d-fantonghui": BANKS2 / "gt_clean_a2d_full.jsonl"}
 
 
 def load_gt_extra(tag: str) -> dict:

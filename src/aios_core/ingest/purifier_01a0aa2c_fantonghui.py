@@ -63,6 +63,7 @@ BANK_OF = {
     "fantonghui": "fantonghui",
     "01a0a9ff-fantonghui": "01a0a9ff",
     "agent-01": "agent-01",
+    "01a0aa2d-fantonghui": "01a0aa2d",
 }
 
 
@@ -346,6 +347,8 @@ class UniversalPurifier:
             pruned, keeps = self._solve_a9f6(question)
         elif bank in ("fantonghui", "01a0a9ff", "agent-01"):
             pruned, keeps = self._solve_multimodal(question, bank)
+        elif bank == "01a0aa2d":
+            pruned, keeps = self._solve_a2d(question)
         else:
             pruned, keeps = self._solve_generic(question)
 
@@ -651,6 +654,200 @@ class UniversalPurifier:
             keeps.append({"id": uid, "mod": "user", "text": u.get("raw_speech", ""), "meta": {}})
         return pruned, keeps
 
+    # -- 01a0aa2d（确定性结构：mode/bg/tone/marker 全判别） -----------------
+    _A2D_SENSOR_MAP = {
+        "S05_GENTLE_LIE": ("dim:finance", "FAKE_FALL_FRAUD"),
+        "S04_BARO_DROP": ("dim:health", "BARO_STORM_DROP"),
+        "S02_PVC_BURST": ("dim:health", "CARDIAC_PVC_BURST"),
+        "S01_IMPACT_STATIC": ("dim:health", "FALL_IMPACT"),
+        "S03_RESTING_TACHY": ("dim:health", "RESTING_TACHYCARDIA"),
+        "S00_OFF_WRIST": ("dim:health", "OFF_WRIST_FALSE_ALARM"),
+    }
+    _A2D_FACT_TONES = ("低落", "勉强支撑", "委屈", "平静", "愤怒", "疲惫", "警觉", "麻木", "焦虑")
+    # (关键词元组, dim, intent) 按特异度降序
+    _A2D_MIC_RULES = (
+        (("资金盘", "崩盘", "提现失败", "跑路"), "dim:finance", "CRYPTO_PONZI_COLLAPSE"),
+        (("医闹", "下跪", "推搡"), "dim:career", "MEDICAL_DISPUTE_PUSH"),
+        (("壳公司", "掏空", "另起炉灶"), "dim:career", "PARTNER_SHELL_IP_THEFT"),
+        (("盲审", "大修", "评阅"), "dim:career", "THESIS_BLIND_REVIEW"),
+        (("装修", "预付款", "停机"), "dim:finance", "RENOVATION_RUNAWAY"),
+        (("还款计划", "先还你", "分三个月还清"), "dim:finance", "REPAYMENT_PROMISE"),
+        (("借给你", "借钱", "打欠条", "凑齐"), "dim:finance", "DEBT_BORROWING"),
+        (("保密", "商业机密", "守口", "不外传", "烂在肚子里"), "dim:career", "NDA_CONFIDENTIALITY"),
+        (("性骚扰", "骚扰", "那种消息", "截图", "投诉", "举报", "取证"), "dim:career", "WORKPLACE_HARASSMENT"),
+        (("加班", "通宵"), "dim:career", "WORK_OVERTIME"),
+        (("漏水", "泡水", "摊钱"), "dim:life", "NEIGHBOR_LEAK_DISPUTE"),
+        (("托付", "嘱托", "叮嘱"), "dim:social", "FAMILY_ENTRUSTMENT"),
+        (("红脸", "吵", "争执", "没完"), "dim:social", "ARGUMENT_CONFLICT"),
+    )
+    _A2D_DLG_RULES = (
+        (("遗书", "攒够", "结束吧", "不想活"), "dim:health", "SUICIDAL_CRISIS"),
+        (("癌症晚期", "瞒报", "病历藏"), "dim:social", "PARENT_CANCER_CONCEALED"),
+        (("离婚协议", "过不下去", "民政局", "协议离婚"), "dim:social", "DIVORCE_DECISION"),
+        (("隐藏财产", "转给她姐", "转移资产"), "dim:finance", "HIDDEN_MARITAL_ASSETS"),
+        (("讨薪", "拖欠工资", "欠薪", "我的福气"), "dim:finance", "WAGE_ARREARS_IRONY"),
+        (("拉黑", "讲信用", "电话都不接", "我倒成了坏人", "拖欠"), "dim:finance", "DEBT_DEFAULT_IRONY"),
+        (("裸辞", "交接", "别再劝我", "辞职信", "这班我不上"), "dim:career", "RESIGNATION_DECISION"),
+        (("气声", "搭把手", "有人吗"), "dim:health", "WEAK_SOS"),
+        (("过敏", "肿胀", "喉咙发紧", "疹子", "头孢", "喘不上气"), "dim:health", "DRUG_ANAPHYLAXIS"),
+        (("压榨感", "冷汗", "误判"), "dim:health", "MYOCARDIAL_INFARCTION_HIDDEN"),
+        (("你别管我", "喘憋", "大汗", "嘴硬", "胸口憋闷", "歇会儿"), "dim:health", "HIDDEN_CARDIAC_CRISIS"),
+        (("站不住", "剧痛", "疼得"), "dim:health", "ACUTE_PAIN_ATTACK"),
+        (("请假看病", "请假去医院", "挂号", "心电图", "彩超", "全面检查"), "dim:health", "REAL_MEDICAL_REQUEST"),
+        (("遛狗", "拴绳", "扑倒", "医药费", "狗不咬人"), "dim:life", "DOG_KNOCK_CHILD"),
+        (("撑不住", "哭了半小时", "谁也不想见"), "dim:emotion", "EMOTIONAL_CRISIS"),
+        (("起不来", "救命", "心口压"), "dim:health", "WEAK_SOS"),
+    )
+
+    def _solve_a2d(self, q: Dict[str, Any]) -> Tuple[List[str], List[Dict[str, Any]]]:
+        pruned: List[str] = []
+        keeps: List[Dict[str, Any]] = []
+        kb = self.kb.get("01a0aa2d", {})
+        junk_pairs = {tuple(p) for p in kb.get("app_junk_pairs", [])}
+        # SENSOR：noise 全剪；主包 S00_DAILY_ROUTINE 剪其余留
+        ss = q.get("sensor_stream") or {}
+        if isinstance(ss, dict):
+            for frag_list in ("noise_fragments", "fragments"):
+                for f in ss.get(frag_list, []) or []:
+                    fid = f.get("fragment_id", "") if isinstance(f, dict) else ""
+                    if fid:
+                        pruned.append(fid)
+            pid = ss.get("packet_id", "")
+            mode = ss.get("sensor_mode", "")
+            if mode == "S00_DAILY_ROUTINE":
+                pruned.append(pid)
+            else:
+                keeps.append({"id": pid, "mod": "sensor",
+                              "text": f"{ss.get('text', '')} {mode} {ss.get('motion_state', '')}",
+                              "meta": {"mode": mode}})
+        # MIC：is_background_chatter 确定性
+        for m in q.get("mic_stream", []) or []:
+            sid = m.get("snippet_id", "")
+            if m.get("is_background_chatter"):
+                pruned.append(sid)
+            else:
+                keeps.append({"id": sid, "mod": "mic", "text": m.get("text", ""), "meta": {}})
+        # APP：30 垃圾对 + 营销结构兜底
+        for m in q.get("app_message_stream", []) or []:
+            mid = m.get("msg_id", "")
+            app, sender = m.get("app", ""), m.get("sender", "")
+            if ((app, sender) in junk_pairs or app in ("拼多多", "小程序", "快手", "抖音", "淘宝")
+                    or (isinstance(sender, str) and (sender.startswith("106") or sender.startswith("955")))):
+                pruned.append(mid)
+            else:
+                keeps.append({"id": mid, "mod": "app",
+                              "text": f"【{app}·{sender}】{m.get('content', '')}",
+                              "meta": {"app": app, "sender": sender}})
+        # DIALOGUE：tone 确定性
+        for u in q.get("user_dialogue_stream", []) or []:
+            uid = u.get("utterance_id", "")
+            if u.get("emotional_tone") in self._A2D_FACT_TONES:
+                keeps.append({"id": uid, "mod": "user", "text": u.get("raw_speech", ""), "meta": {}})
+            else:
+                pruned.append(uid)
+        # VOICEPRINT：标记确定性
+        vc = q.get("voiceprint_cluster") or {}
+        if isinstance(vc, dict):
+            for v in vc.get("detected_speakers", []) or []:
+                sid = v.get("spk_id", "")
+                t = v.get("sample_text", "")
+                cos = v.get("cosine_to_enrolled_user")
+                if ("SPK_IMPOSTOR" in t or "关键联系人" in t or "佩戴者本人" in t
+                        or cos is None):
+                    keeps.append({"id": sid, "mod": "vp", "text": t,
+                                  "meta": {"cos": cos if cos is not None else -1.0}})
+                else:
+                    pruned.append(sid)
+        return pruned, keeps
+
+    @staticmethod
+    def _a2d_app_intent(app: str, sender: str, text: str) -> Tuple[str, str]:
+        blob = f"{app} {sender} {text}"
+        # 强文本标记优先（sender 系随机 camouflage，不可靠）
+        if any(k in text for k in ("泡水车", "退一赔三", "隐瞒车况")):
+            return "dim:finance", "FLOODED_USED_CAR"
+        if any(k in text for k in ("驿站", "取件码", "包裹")):
+            return "dim:life", "DELIVERY_EVENT"
+        if any(k in text for k in ("餐品", "聚餐", "人桌")):
+            return "dim:life", "MEAL_EVENT"
+        if any(k in text for k in ("航班", "改签", "延误", "行程")):
+            return "dim:life", "TRAVEL_DISRUPTION"
+        if "法院" in blob:
+            if any(k in text for k in ("伪造", "探视", "调解", "质证", "证据交换")):
+                return "dim:social", "CUSTODY_BATTLE_FORGED"
+            return "dim:social", "COURT_SUMMONS"
+        if any(k in blob for k in ("考试中心", "公务员", "人社", "人事考试", "人力资源", "保障局")):
+            return "dim:career", "EXAM_CIVIL_SERVICE"
+        if "仲裁" in blob:
+            if "竞业" in text:
+                return "dim:career", "NON_COMPETE_2M"
+            return "dim:career", "LAYOFF_DISPUTE"
+        if any(k in text for k in ("对赌", "回购")):
+            return "dim:finance", "FINANCING_BET_FAILURE"
+        if any(k in text for k in ("签约", "公章", "框架协议")):
+            return "dim:career", "CONTRACT_SIGNING"
+        if any(k in blob for k in ("裁员", "离职补偿", "赔偿争议")):
+            return "dim:career", "LAYOFF_DISPUTE"
+        if "用药助手" in blob or "服药提醒" in text:
+            return "dim:health", "MEDICATION_REMINDER"
+        if "检验单" in text:
+            return "dim:health", "LAB_CRITICAL_VALUE"
+        if any(k in text for k in ("酮症酸中毒", "连续三日", "糖尿病")):
+            return "dim:health", "DIABETIC_KETOACIDOSIS"
+        if any(k in text for k in ("挂号", "复诊", "门诊", "取号", "随访")):
+            return "dim:health", "MEDICAL_APPOINTMENT"
+        if any(k in text for k in ("截图造假", "截图", "原路退回", "转账失败")):
+            return "dim:finance", "FAKE_TRANSFER_COUNTER"
+        if any(k in blob for k in ("银行",)) and any(k in text for k in ("转出", "入账", "汇入")):
+            return "dim:finance", "BANK_LARGE_TRANSFER"
+        if any(k in text for k in ("资金盘", "风控", "提现通道")):
+            return "dim:finance", "CRYPTO_PONZI_COLLAPSE"
+        if "快递" in blob:
+            return "dim:life", "DELIVERY_EVENT"
+        if any(k in blob for k in ("美团", "外卖", "取餐", "送达")):
+            return "dim:life", "MEAL_EVENT"
+        if any(k in blob for k in ("物业", "住建", "定责", "倒灌", "防水")):
+            return "dim:life", "PIPE_BACKFLOW_COMPENSATION"
+        if any(k in blob for k in ("检测中心", "泡水车", "二手车")):
+            return "dim:finance", "FLOODED_USED_CAR"
+        if any(k in blob for k in ("高铁", "航空", "行程", "延误", "改签")):
+            return "dim:life", "TRAVEL_DISRUPTION"
+        return "dim:life", "DELIVERY_EVENT"
+
+    def _facts_a2d(self, q: Dict[str, Any], keeps: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        facts: List[Dict[str, Any]] = []
+        for k in keeps:
+            mod, text = k["mod"], k.get("text", "")
+            if mod == "sensor":
+                dim, intent = self._A2D_SENSOR_MAP.get(
+                    k["meta"].get("mode", ""), ("dim:health", "FALL_IMPACT"))
+            elif mod == "vp":
+                if "SPK_IMPOSTOR" in text:
+                    dim, intent = "dim:social", "VOICE_IMPERSONATION_FRAUD"
+                elif "关键联系人" in text:
+                    dim, intent = "dim:social", "VOICE_BINDING_KEY_CONTACT"
+                elif "佩戴者本人" in text:
+                    dim, intent = "dim:social", "VOICE_BINDING_USER"
+                else:
+                    dim, intent = "dim:social", "KEY_CONVERSATION_WITH_CONTACT"
+            elif mod == "app":
+                dim, intent = self._a2d_app_intent(k["meta"].get("app", ""),
+                                                   k["meta"].get("sender", ""), text)
+            elif mod == "user":
+                dim, intent = "dim:health", "WEAK_SOS"
+                for kws, d, it in self._A2D_DLG_RULES:
+                    if _has_any(text, kws):
+                        dim, intent = d, it
+                        break
+            else:
+                dim, intent = "dim:social", "ARGUMENT_CONFLICT"
+                for kws, d, it in self._A2D_MIC_RULES:
+                    if _has_any(text, kws):
+                        dim, intent = d, it
+                        break
+            facts.append(self._pack_fact(q, "01a0aa2d", dim, intent, [text], k["id"], []))
+        return facts
+
     # -- 事实构建 ----------------------------------------------------------
     _A11_APP_MAP = {
         "bill": ("dim:finance", "BILL_REPAYMENT"),
@@ -715,6 +912,8 @@ class UniversalPurifier:
             return self._facts_a9f6(q, keeps)
         if bank in ("fantonghui", "01a0a9ff", "agent-01"):
             return self._facts_clustered(q, bank, keeps)
+        if bank == "01a0aa2d":
+            return self._facts_a2d(q, keeps)
         return self._facts_clustered(q, bank, keeps)
 
     # -- agent-11 事实 ------------------------------------------------------

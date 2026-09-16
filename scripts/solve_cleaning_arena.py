@@ -20,7 +20,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from aios_core.ingest.purifier_01a0aa2c_fantonghui import SOLVER_AGENT, UniversalPurifier
 
-STRIP_KEYS = ("ground_truth_facts", "ground_truth_junk_ids")
+STRIP_KEYS = ("ground_truth_facts", "ground_truth_junk_ids",
+              # a2d 清洗卷内嵌的跨任务产物：daily 六维标答 + 含标答级 beats/剪枝标注的
+              # cleaned_daily_stream（timeline beat 即 GT 改写、“铁律四剪枝”字样即垃圾
+              # 标签），属泄漏，必须剥离，仅用 5 条原始流盲做。
+              "directional_ground_truth", "cleaned_daily_stream")
 STRIP_ITEM_KEYS = ("is_junk", "junk_tag", "note")
 
 
@@ -32,20 +36,19 @@ def blind_question(q: dict) -> dict:
         if isinstance(items, list):
             q[stream] = [{k: v for k, v in (it.items() if isinstance(it, dict) else []) if k not in STRIP_ITEM_KEYS}
                          if isinstance(it, dict) else it for it in items]
+    def _strip_dict_list(d: dict) -> dict:
+        d = {k: v for k, v in d.items() if k not in STRIP_ITEM_KEYS}
+        for k, v in list(d.items()):
+            if isinstance(v, list) and v and isinstance(v[0], dict):
+                d[k] = [{kk: vv for kk, vv in it.items() if kk not in STRIP_ITEM_KEYS} for it in v]
+        return d
+
     ss = q.get("sensor_stream")
     if isinstance(ss, dict):
-        ss = dict(ss)
-        if isinstance(ss.get("fragments"), list):
-            ss["fragments"] = [{k: v for k, v in f.items() if k not in STRIP_ITEM_KEYS} if isinstance(f, dict) else f
-                                for f in ss["fragments"]]
-        q["sensor_stream"] = ss
+        q["sensor_stream"] = _strip_dict_list(ss)
     vc = q.get("voiceprint_cluster")
     if isinstance(vc, dict):
-        vc = dict(vc)
-        if isinstance(vc.get("speakers"), list):
-            vc["speakers"] = [{k: v for k, v in s.items() if k not in STRIP_ITEM_KEYS} if isinstance(s, dict) else s
-                               for s in vc["speakers"]]
-        q["voiceprint_cluster"] = vc
+        q["voiceprint_cluster"] = _strip_dict_list(vc)
     return q
 
 

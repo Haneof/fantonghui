@@ -1,0 +1,35 @@
+{
+  "solver_agent": "01a0aa2c-fantonghui",
+  "generator_tag": "daily_agent-aa2e",
+  "count": 10000,
+  "avg_overall": 100.0,
+  "pass_rate": 1.0,
+  "verdicts": {
+    "PASS": 10000
+  },
+  "redline_veto_papers": 0,
+  "veto_rate": 0.0,
+  "per_dim_avg": {
+    "global_daily_summary": 100.0,
+    "dim:health": 100.0,
+    "dim:social": 100.0,
+    "dim:emotion": 100.0,
+    "dim:finance": 100.0,
+    "dim:career": 100.0
+  },
+  "per_dim_direction": {
+    "global_daily_summary": 1.0,
+    "dim:health": 1.0,
+    "dim:social": 1.0,
+    "dim:emotion": 1.0,
+    "dim:finance": 1.0,
+    "dim:career": 1.0
+  },
+  "histogram": {
+    "0-60": 0,
+    "60-80": 0,
+    "80-90": 0,
+    "90-100": 10000
+  },
+  "worst_cases": []
+}
