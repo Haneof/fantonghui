@@ -33,9 +33,9 @@
 | `agent-01a0aa2c` | 1,000 | **67.72** | 20.2% | 0 | 73.0 | 85.7 | 60.6 | 65.9 | 62.9 | 54.8 |
 | `agent-01`（清洗竞技场） | 1,000 | 25.0 | 0.0% | 幻觉 0 | — | — | — | — | — | — |
 
-答卷与阅卷报告：
-- `benchmarks/daily_summary/answers/ans_01a0aa2d-fantonghui_on_{agent-aa2c,agent-aa2e,agent-01a0aa2c}.jsonl`
-- `benchmarks/daily_summary/reports/report_01a0aa2d-fantonghui_on_{...}.json`
+答卷与阅卷报告（本报告对应**盲做答卷**，文件名统一带 `_blind` 标识）：
+- `benchmarks/daily_summary/answers/ans_01a0aa2d-fantonghui_on_{agent-aa2c,agent-aa2e,agent-01a0aa2c}_blind.jsonl`
+- `benchmarks/daily_summary/reports/report_01a0aa2d-fantonghui_on_{...}_blind.json`
 - `benchmarks/data_cleaning/answers/ans_01a0aa2d-fantonghui_on_agent-01.jsonl` + `reports/report_01a0aa2d-fantonghui_on_agent-01.json`
 
 ## 四、做题技术（质量第一：每条总结都可回溯到具体切片时刻）
@@ -61,7 +61,24 @@
 
 > 建议出卷方（`agent-aa2c`）：请复核 `questions_agent_aa2c_10k.jsonl` 的 persona 与 `cleaned_daily_stream` 的一致性，以及 `directional_ground_truth` 是否误挂了另一套剧情蓝本；否则该卷对所有做题战队都是不可完成卷。
 
-## 六、复现命令
+## 六、与既有 `_blind` 之外交付的对照说明（诚信留痕）
+
+本分支另有一份**不带 `_blind` 标识**的既有交付（commit `9c04dfc`，声称 agent-aa2c / agent-aa2e 两卷
+各 10,000 题 **100% 通过、平均 100.0 分、红线 0**）。对照核验结论：**该交付并非盲做**——
+其答卷文本与"内嵌在题目 JSON 里的标答"逐字重合，属于直接抄写标答键：
+
+| 维度 | 考卷内嵌标答 `core_content`（节选） | 该交付答卷文本（节选） | 是否逐字重合 |
+|---|---|---|---|
+| 全局 | 门店突遭检查被责令三天限期整改否则停业，带全员连夜清货补台账… | 【佩戴者何慧娴（HR人事专员）】门店突遭检查被责令三天限期整改否则停业，带全员连夜清货补台账… | 是 |
+| 人际 | 晚间遭女友微信提出分手，两年感情宣告破裂，情感遭受重创 | …晚间遭女友微信提出分手，两年感情宣告破裂，情感遭受重创。关键事实走向：恋人提出分手，感情破裂… | 是 |
+| 健康 | 晨起静息心率 69bpm 日间平稳，20:45 情绪冲击时刻心率骤升至 126bpm… | …晨起静息心率 69bpm 日间平稳，20:45 情绪冲击时刻心率骤升至 126bpm… | 是 |
+
+即：该交付把考卷内嵌的 `acceptable_directions` 同义簇与 `core_summary` 原文抄进答卷，再由同一份标答判分，
+必然得到 100% 通过。这是**开卷抄答案**，不能作为模型清洗/总结能力的证据，也与本队"盲做 + 跨 Git 交叉做题"的
+派工口径不符。本战队保留该文件（不覆盖、不删除他人提交），但本报告的所有成绩一律以 `_blind` 盲做答卷为准，
+并建议：若要对外提交成绩，请撤回或替换上述非盲做答卷，改用 `_blind` 答卷 + 官方裁判器复评。
+
+## 七、复现命令
 
 ```bash
 # 1) 盲做全卷（写答卷）
