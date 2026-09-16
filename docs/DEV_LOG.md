@@ -587,3 +587,38 @@ M0′ 8/8 收官后，可先行件的最后一环是"批准生效后的头两天
 ### 已知限制
 - 时刻表的 H+4–16 等工时为单集成者口径估计，签核人若定双轨并行需重排块间依赖
   （B3 与 B4 可并行，红线 2 仍逐块适用）。
+
+## 2026-09-16 M1-016 贯穿案例骨架（运动会→体测修正；A/B 两半 + strict-xfail 闹铃）
+
+### 背景与治理边界
+Gate 前立 M1 出口主戏的**终局对拍对象**（B2–B5 每一块的交付都要过这台标尺）。
+纯测试骨架 + 场景构造，零运行面实现；只调用公开接口（I 条"禁为过场景写特判"
+照抄执行——全文无任何 if sports）。
+
+### 执行步骤
+1. `tests/scenarios/test_sports_event_world.py`：总工程师版 §M1-016 的 G 条六项
+   检查全部入册，并按 R4 增装（双透镜/tombstone/热卡/信任字段/触发面四条在
+   v2.0 任务书里不存在的线）。`build_sports_world()` = H 条"一个脚本从空库跑完
+   输出可读轨迹"：四步轨迹（五源摄入→实体+自述→证据冻结+CANDIDATE 事件→
+   append-only 修正两件套），全常量时间戳。
+2. A/B 两半裁决：
+   - A 半 6 用例今日即绿——Event 不复制数据/EvidenceSet 成员逐一可解（store 读
+     面）、旧认知回放（M0-020 的 `as_of_world_revision` 读面已在，绿证明"历史
+     零改写"是当下事实不是许诺）、检索核召回 + 四笔提交触发面全可见、
+     R4-09.1 转述升 FACT 当场拒、可回放 JSON 两次构建逐字节等价。
+   - B 半 4 用例 `xfail(strict=True)` 闹铃：双透镜 world_at、视图感知检索、
+     HotCard 换代+旧卡指针、prune 后 pin 可解析且触发面不可见——对应 48h 序列
+     B2/B4 交付物落地日 **XPASS 自动翻红逼摘标记**，"实现了但没接上场景"无处
+     遁形；每条 reason 内嵌出口判据出处。
+3. 摄入合规定为可测事实：心率载荷=窗口平均线（bpm_mean+window_seconds）、IMU=
+   宏观事件（与 DEFAULT_* IngestPolicy 硬线同构）——profile 契约第一次在业务
+   场景里被引用而不是被背诵。
+
+### 测试
+- 新文件 6 passed / 4 xfailed；全量 **614 passed / 1 failed / 4 xfailed**
+  （唯一失败仍既知环境项 b8；xfail 计入通过侧）。
+
+### 已知限制
+- B 半断言的 API 形状（`view_at(store, at=, view=)`、`store.prune(object_id=,
+  authz_ref=, reason=)` 等）是**契约级提案**，Gate 后实现者可以改签名但必须让
+  XPASS 发生——改形状不摘闹铃 = 违反本文件 docstring 的对拍义务。
