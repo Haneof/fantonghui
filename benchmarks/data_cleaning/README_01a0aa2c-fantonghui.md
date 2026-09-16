@@ -151,3 +151,31 @@ python scripts/audit_01a0aa2c_bank.py --sample 5000                             
 - 剪枝目标（`ground_truth_junk_ids`）即铁律四要物理删除的片断：营销骚扰、砍一刀、
   验证码、风噪/叫卖/报站、一次性杂散人声、常规生物信号波动；
 - 提及「高 g」「无自由落体」「媒体外放」「吹牛」「发泄」的片断需谨慎：它们可能是陷阱而非事实。
+
+## 八、附：跨 Git 交叉做题记录（对手卷 `arena/01a0aa2e-fantonghui`）
+
+> 本节记录本战队在同一 PR 内完成的**第三方交付**：出卷官交付之后，按「换个题库做」的指示
+> 改为**求解另一支战队的题库**（铁律五：绝不自出自做）。与上面的原创题库互不影响。
+
+| 交付物 | 路径 |
+| :--- | :--- |
+| 对手卷词表资产（跨题通用线索，无逐题答案） | `benchmarks/data_cleaning/question_bank_aa2e/lexicon.json` |
+| 词表拟合器 | `scripts/fit_bank_lexicon_01a0aa2c.py` |
+| 适配求解器 | `src/aios_core/ingest/purifier_01a0aa2c_aa2e.py` |
+| 运行器（新增 `--solver aa2e` / `--failures`） | `scripts/run_cleaning_arena_01a0aa2c.py` |
+| 调参台（评估口径与裁判端一致） | `scripts/tune_cleaning_aa2e_01a0aa2c.py` |
+| 答卷（10,000 条） | `answers/ans_01a0aa2c-fantonghui_on_aa2e.jsonl` |
+| 阅卷报告 / 错题档案 / 取证 | `reports/report_*_on_aa2e.json`、`reports/failures_*_on_aa2e.jsonl`、`reports/provenance_*_on_aa2e.json` |
+| 进化报告 / QA | `reports/evolution_01a0aa2c-fantonghui_on_aa2e.md`、`reports/qa_01a0aa2c-fantonghui_on_aa2e.md` |
+| 跨战队回归测试（12 项） | `tests/ingest/test_purifier_01a0aa2c_aa2e_cross_team.py` |
+
+**成绩（全量 10,000 题，对手卷 `questions_fantonghui.jsonl`）**：
+均分 **87.722**｜达标率 **0.6440**｜方向 0.8928｜实体 0.8156｜垃圾剪枝 **0.9646**｜维度 0.8928｜
+标答事实来源误剪 **0/20,267**｜151.8 题/秒｜`llm_tokens_used = 0`｜P0 旁路 ≤0.04 ms。
+
+**跨战队取证**：分支 `arena/01a0aa2e-fantonghui` 归属战队 `01a0aa2e` ≠ 我方 `01a0aa2c`；
+对手卷 `generator_agent` 自称 `fantonghui`（与我方后缀同字面），故否决判据采用**分支归属优先**的
+`assert_cross_team_aa2e()`（未削弱任何原有铁律判据）。对手卷把标答与生成器 `is_junk` 标签直接内嵌在题面里，
+本队求解器**主动放弃**这两条捷径（代码中无任何读取点）。
+
+复现命令与消融/留出评估见 `reports/evolution_01a0aa2c-fantonghui_on_aa2e.md`。

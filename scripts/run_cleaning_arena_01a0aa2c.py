@@ -223,11 +223,67 @@ def _modality_of(question: Mapping[str, Any]) -> str:
 # ---------------------------------------------------------------------------
 
 
+def build_solver(
+    kind: str,
+    *,
+    generator_agent: str,
+    source_branch: str,
+    t_now_timestamp: Optional[str] = None,
+    use_inband_labels: bool = True,
+    use_semantic_lexicon: bool = True,
+    use_entity_synthesis: bool = True,
+    use_identity_memory: bool = False,
+    identity_memory: Any = None,
+    lexicon_path: Optional[Path] = None,
+) -> Any:
+    """按对手卷形态选择求解器：本队 v6 求解器 / 对手卷 ``01a0aa2e`` 专用适配器。
+
+    - ``v6``：我方通用清洗引擎（含声纹/身份记忆等全量能力）；
+    - ``aa2e``：为对手卷字段形态（mic/app/utt + ground_truth_facts）拟合词表后的适配求解器；
+    - ``auto``：按题目字段形态自动判定（含 ``mic_stream`` 且含 ``ground_truth_facts`` → aa2e）。
+    """
+    from datetime import datetime  # noqa: WPS433
+
+    if kind == "aa2e":
+        from aios_core.ingest.purifier_01a0aa2c_aa2e import (  # noqa: WPS433
+            CleaningSolver01a0aa2cAa2e,
+            assert_cross_team_aa2e,
+        )
+
+        assert_cross_team_aa2e(generator_agent, source_branch)
+        return CleaningSolver01a0aa2cAa2e(
+            source_branch=source_branch,
+            lexicon_path=lexicon_path,
+            use_inband_labels=use_inband_labels,
+            use_semantic_lexicon=use_semantic_lexicon,
+            use_entity_synthesis=use_entity_synthesis,
+        )
+    assert_cross_team_provenance(generator_agent, source_branch)
+    return CleaningSolver01a0aa2c(
+        source_branch=source_branch,
+        use_inband_labels=use_inband_labels,
+        use_semantic_lexicon=use_semantic_lexicon,
+        use_entity_synthesis=use_entity_synthesis,
+        use_identity_memory=use_identity_memory,
+        identity_memory=identity_memory,
+        t_now=datetime.fromisoformat(t_now_timestamp) if t_now_timestamp else None,
+    )
+
+
+def detect_solver_kind(question: Mapping[str, Any]) -> str:
+    """按题目字段形态自动判别对手卷类型（aa2e 卷：mic+app+utt 三流 + 内嵌标答事实）。"""
+    if question.get("mic_stream") and question.get("ground_truth_facts"):
+        return "aa2e"
+    return "v6"
+
+
 def run_arena(
     *,
     questions: Sequence[Mapping[str, Any]],
     generator_agent: str,
     source_branch: str = TARGET_A_BRANCH,
+    solver_kind: str = "v6",
+    lexicon_path: Optional[Path] = None,
     use_inband_labels: bool = True,
     use_semantic_lexicon: bool = True,
     use_entity_synthesis: bool = True,
@@ -235,24 +291,26 @@ def run_arena(
     t_now_timestamp: Optional[str] = None,
 ) -> Dict[str, Any]:
     """执行做题 + 阅卷，返回完整审计结果字典。"""
-    assert_cross_team_provenance(generator_agent, source_branch)
+    from datetime import datetime, timezone  # noqa: WPS433
 
-    from datetime import datetime, timezone
-
-    t_now = datetime.fromisoformat(t_now_timestamp) if t_now_timestamp else datetime.now(timezone.utc)
+    if solver_kind == "auto":
+        solver_kind = detect_solver_kind(questions[0]) if questions else "v6"
 
     memory = None
-    if use_identity_memory:
+    if use_identity_memory and solver_kind == "v6":
         memory = WearerIdentityMemory().build_from_bank(strip_ground_truth(q) for q in questions)
 
-    solver = CleaningSolver01a0aa2c(
+    solver = build_solver(
+        solver_kind,
+        generator_agent=generator_agent,
         source_branch=source_branch,
+        t_now_timestamp=t_now_timestamp,
         use_inband_labels=use_inband_labels,
         use_semantic_lexicon=use_semantic_lexicon,
         use_entity_synthesis=use_entity_synthesis,
         use_identity_memory=use_identity_memory,
         identity_memory=memory,
-        t_now=t_now,
+        lexicon_path=lexicon_path,
     )
 
     answers: List[Dict[str, Any]] = []
@@ -300,6 +358,7 @@ def run_arena(
                 "junk_prune_rate": report.junk_prune_rate,
                 "dimension_accuracy": report.dimension_accuracy,
                 "hallucination_count": report.hallucination_count,
+                "critique": list(report.critique_notes),
                 "gt_intent": gt_intent,
                 "sub_intent": sub_intent,
             }
@@ -316,6 +375,15 @@ def run_arena(
             aggregate["keeper_pruned"] += wrong
             if wrong:
                 reason_counter["误剪真事实材"] += wrong
+        # 质量红线（与裁判口径一致）：标答事实来源切片绝不允许被物理粉碎
+        gt_fact_sources = {
+            str(fact.get("source_ref_id"))
+            for fact in question.get("ground_truth_facts") or []
+            if fact.get("source_ref_id")
+        }
+        if gt_fact_sources:
+            aggregate["fact_source_items"] += len(gt_fact_sources)
+            aggregate["fact_source_pruned"] += len(set(submission.pruned_junk_ids) & gt_fact_sources)
 
     elapsed = time.perf_counter() - started
     n = max(len(questions), 1)
@@ -339,6 +407,11 @@ def run_arena(
             "extracted_facts_total": aggregate["extracted_facts"],
             "pruned_junk_ids_total": aggregate["pruned_junk_ids"],
             "critique_categories": dict(reason_counter),
+            "gt_fact_source_items": aggregate["fact_source_items"],
+            "gt_fact_source_mis_pruned": aggregate["fact_source_pruned"],
+            "gt_fact_source_mis_prune_rate": round(
+                aggregate["fact_source_pruned"] / max(aggregate["fact_source_items"], 1), 4
+            ),
             "keeper_items": aggregate["keeper_items"],
             "keeper_items_mis_pruned": aggregate["keeper_pruned"],
             "keeper_mis_prune_rate": round(
@@ -513,6 +586,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--answers", type=Path, default=None, help="答卷输出 JSONL")
     parser.add_argument("--report", type=Path, default=None, help="阅卷报告输出 JSON")
     parser.add_argument("--provenance", type=Path, default=None, help="取证凭据输出 JSON")
+    parser.add_argument("--failures", type=Path, default=None, help="错题档案输出 JSONL（仅 FAIL，供归因/进化）")
+    parser.add_argument("--solver", default="auto", choices=("auto", "v6", "aa2e"),
+                        help="求解器选择：auto 按题目字段形态判别 / v6 本队通用引擎 / aa2e 对手卷适配器")
+    parser.add_argument("--lexicon", type=Path, default=None, help="aa2e 求解器使用的对手卷词表资产")
     parser.add_argument("--ablation", action="store_true", help="消融模式：关闭上游标注特征")
     parser.add_argument("--lexicon-baseline", action="store_true", help="消融模式：关闭语义/领域词表（通用规则基线）")
     parser.add_argument("--no-entity-synthesis", action="store_true", help="消融模式：关闭锚点合成（只保留原文直取）")
@@ -531,7 +608,17 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         gt_sha256 = hashlib.sha256(gt_raw).hexdigest()
         questions, attached = merge_ground_truth(questions, load_ground_truth(args.gt))
         print(f"[gt] 独立标答已挂回阅卷端：{attached}/{len(questions)} 题", file=sys.stderr)
-    assert_cross_team_provenance(args.generator, args.branch)
+    # 自出题自做的否决：v6 卷按 generator 标识否决；aa2e 卷 generator 自称与我方后缀同字面，
+    # 改按「分支归属战队」否决（assert_cross_team_aa2e：分支归属 01a0aa2e ≠ 我方 01a0aa2c）
+    solver_kind = args.solver
+    if solver_kind == "auto":
+        solver_kind = detect_solver_kind(questions[0]) if questions else "v6"
+    if solver_kind == "aa2e":
+        from aios_core.ingest.purifier_01a0aa2c_aa2e import assert_cross_team_aa2e  # noqa: WPS433
+
+        assert_cross_team_aa2e(args.generator, args.branch)
+    else:
+        assert_cross_team_provenance(args.generator, args.branch)
 
     provenance = BankProvenance(
         generator_agent=args.generator,
@@ -550,6 +637,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         questions=questions,
         generator_agent=args.generator,
         source_branch=args.branch,
+        solver_kind=args.solver,
+        lexicon_path=args.lexicon,
         use_inband_labels=not args.ablation,
         use_semantic_lexicon=not args.lexicon_baseline,
         use_entity_synthesis=not args.no_entity_synthesis,
@@ -563,6 +652,45 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             for record in result["answers"]:
                 handle.write(json.dumps(record, ensure_ascii=False) + "\n")
 
+    if args.failures:
+        args.failures.parent.mkdir(parents=True, exist_ok=True)
+        answer_by_id = {record["question_id"]: record for record in result["answers"]}
+        with args.failures.open("w", encoding="utf-8") as handle:
+            for row in result["per_question"]:
+                if row["verdict"] == "PASS":
+                    continue
+                question = next((q for q in questions if str(q.get("question_id")) == row["question_id"]), {})
+                answer = answer_by_id.get(row["question_id"], {})
+                handle.write(json.dumps({
+                    "question_id": row["question_id"],
+                    "final_score": row["final_score"],
+                    "critique": row["critique"],
+                    "ground_truth_facts": [
+                        {
+                            "semantic_intent": fact.get("semantic_intent"),
+                            "dimension_id": fact.get("dimension_id"),
+                            "anchor_entities": fact.get("anchor_entities"),
+                            "directional_keywords": fact.get("directional_keywords"),
+                        }
+                        for fact in question.get("ground_truth_facts") or []
+                    ],
+                    "our_facts": [
+                        {
+                            "semantic_intent": fact.get("semantic_intent"),
+                            "dimension_id": fact.get("dimension_id"),
+                            "source_ref_id": fact.get("source_ref_id"),
+                        }
+                        for fact in answer.get("extracted_facts") or []
+                    ],
+                    "metrics": {
+                        "direction_match_rate": row["direction_match_rate"],
+                        "entity_recall_rate": row["entity_recall_rate"],
+                        "junk_prune_rate": row["junk_prune_rate"],
+                        "dimension_accuracy": row["dimension_accuracy"],
+                        "hallucination_count": row["hallucination_count"],
+                    },
+                }, ensure_ascii=False) + "\n")
+
     report = {
         "report_version": "1.0",
         "judge": "DirectionalSemanticMatcher (aios_core.simulation.cleaning_arena_protocol)",
@@ -575,6 +703,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         "provenance": provenance.as_dict(),
         "bank_hygiene": asdict(hygiene),
         "attainability_audit": attainability,
+        "solver": result["metrics"].get("solver_agent", SOLVER_AGENT),
         "metrics": result["metrics"],
         "iron_law_evidence": result["iron_law_evidence"],
         "top_intent_confusions": result["top_intent_confusions"],
