@@ -1,0 +1,91 @@
+{
+  "split": "holdout",
+  "counts": {
+    "questions": 8000,
+    "structured_pass": 3997,
+    "strict_evidence_pass": 0,
+    "EVIDENCE_INCOMPLETE": 8000,
+    "NUMERIC_MISSING": 4003
+  },
+  "mean_score": 94.36840082575625,
+  "dimensions": {
+    "global_daily_summary": {
+      "direction_aligned": 8000,
+      "evidence_recall_sum": 7844.871428571628,
+      "numeric_total": 0,
+      "numeric_errors": 0,
+      "score_sum": 796121.7857142867
+    },
+    "dim:health": {
+      "direction_aligned": 8000,
+      "evidence_recall_sum": 7779.6666666665105,
+      "numeric_total": 28003,
+      "numeric_errors": 4003,
+      "score_sum": 769472.9166666769
+    },
+    "dim:social": {
+      "direction_aligned": 8000,
+      "evidence_recall_sum": 8000.0,
+      "numeric_total": 0,
+      "numeric_errors": 0,
+      "score_sum": 800000.0
+    },
+    "dim:emotion": {
+      "direction_aligned": 8000,
+      "evidence_recall_sum": 2666.6666666667616,
+      "numeric_total": 0,
+      "numeric_errors": 0,
+      "score_sum": 666666.6666666841
+    },
+    "dim:finance": {
+      "direction_aligned": 8000,
+      "evidence_recall_sum": 7896.875,
+      "numeric_total": 24000,
+      "numeric_errors": 0,
+      "score_sum": 797421.875
+    },
+    "dim:career": {
+      "direction_aligned": 8000,
+      "evidence_recall_sum": 4000.0,
+      "numeric_total": 0,
+      "numeric_errors": 0,
+      "score_sum": 700000.0
+    }
+  },
+  "error_examples": {
+    "EVIDENCE_INCOMPLETE": [
+      "DAY_daily-examiner-01a0aa30_02001",
+      "DAY_daily-examiner-01a0aa30_02002",
+      "DAY_daily-examiner-01a0aa30_02003",
+      "DAY_daily-examiner-01a0aa30_02004",
+      "DAY_daily-examiner-01a0aa30_02005",
+      "DAY_daily-examiner-01a0aa30_02006",
+      "DAY_daily-examiner-01a0aa30_02007",
+      "DAY_daily-examiner-01a0aa30_02008",
+      "DAY_daily-examiner-01a0aa30_02009",
+      "DAY_daily-examiner-01a0aa30_02010"
+    ],
+    "NUMERIC_MISSING": [
+      "DAY_daily-examiner-01a0aa30_02002",
+      "DAY_daily-examiner-01a0aa30_02009",
+      "DAY_daily-examiner-01a0aa30_02013",
+      "DAY_daily-examiner-01a0aa30_02017",
+      "DAY_daily-examiner-01a0aa30_02021",
+      "DAY_daily-examiner-01a0aa30_02022",
+      "DAY_daily-examiner-01a0aa30_02023",
+      "DAY_daily-examiner-01a0aa30_02032",
+      "DAY_daily-examiner-01a0aa30_02036",
+      "DAY_daily-examiner-01a0aa30_02037"
+    ]
+  },
+  "answers_sha256": "cf65a1e4bf17e78e144cb9fa4395d6e90816ff2234288ac2586799967ba82da5",
+  "gt_sha256": "32cb8b3e5688da828595901effce5409ca977dedc7e5c7a1458b57bd58f41e4b",
+  "evaluator_sha256": "c45c57bf6e5d6d44a4a5760983798cc3880e600fef1ab5adf40ec7e313db9c17",
+  "grading_type": "custom finite-ontology structured self-check; NOT an official or independent semantic judge",
+  "weights": {
+    "state_and_expression": 50,
+    "numeric_anchors": 25,
+    "evidence_recall": 25
+  },
+  "limitations": "Local expression groups and negation are incomplete; arbitrary paraphrases or contradictory free text may require human review. No universal free-text redline certification. Ground-truth core_claim is never copied into an answer."
+}

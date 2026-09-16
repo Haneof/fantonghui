@@ -1,0 +1,19 @@
+{
+  "verdict": "PASS",
+  "totals": {
+    "valid_dimension_submissions": 60000,
+    "deduplicated_settled_transactions": 46018,
+    "questions": 10000,
+    "input_slices": 1770653
+  },
+  "answers_sha256": "7940c3be9c0ec61f2227c53c4cc70479f2927f3940db4067aefdcd4b36a8fc5a",
+  "checks": [
+    "source/artifact SHA256",
+    "10000 distinct people",
+    "six dimensions and submission aliases",
+    "evidence reference existence",
+    "recorded-now versus historical date",
+    "ledger reconciliation"
+  ],
+  "limits": "This audit checks identity, provenance and arithmetic; it is not semantic correctness certification."
+}

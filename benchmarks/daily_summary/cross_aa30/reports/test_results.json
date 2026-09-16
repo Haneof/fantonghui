@@ -1,0 +1,9 @@
+{
+  "command": "PYTHONPATH=src .venv/bin/python -m pytest -q -o addopts=''",
+  "tests": 1446,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "duration_seconds": 65.462,
+  "scope": "Full merged workspace, including preserved unrelated cleaning files; audit script additionally exercised against full 10000-answer artifact."
+}

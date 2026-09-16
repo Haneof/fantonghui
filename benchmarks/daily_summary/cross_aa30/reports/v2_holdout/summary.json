@@ -1,0 +1,64 @@
+{
+  "split": "holdout",
+  "counts": {
+    "questions": 8000,
+    "structured_pass": 8000,
+    "strict_evidence_pass": 8000
+  },
+  "mean_score": 100.0,
+  "dimensions": {
+    "global_daily_summary": {
+      "direction_aligned": 8000,
+      "evidence_recall_sum": 8000.0,
+      "numeric_total": 0,
+      "numeric_errors": 0,
+      "score_sum": 800000.0
+    },
+    "dim:health": {
+      "direction_aligned": 8000,
+      "evidence_recall_sum": 8000.0,
+      "numeric_total": 28003,
+      "numeric_errors": 0,
+      "score_sum": 800000.0
+    },
+    "dim:social": {
+      "direction_aligned": 8000,
+      "evidence_recall_sum": 8000.0,
+      "numeric_total": 0,
+      "numeric_errors": 0,
+      "score_sum": 800000.0
+    },
+    "dim:emotion": {
+      "direction_aligned": 8000,
+      "evidence_recall_sum": 8000.0,
+      "numeric_total": 0,
+      "numeric_errors": 0,
+      "score_sum": 800000.0
+    },
+    "dim:finance": {
+      "direction_aligned": 8000,
+      "evidence_recall_sum": 8000.0,
+      "numeric_total": 24000,
+      "numeric_errors": 0,
+      "score_sum": 800000.0
+    },
+    "dim:career": {
+      "direction_aligned": 8000,
+      "evidence_recall_sum": 8000.0,
+      "numeric_total": 0,
+      "numeric_errors": 0,
+      "score_sum": 800000.0
+    }
+  },
+  "error_examples": {},
+  "answers_sha256": "7940c3be9c0ec61f2227c53c4cc70479f2927f3940db4067aefdcd4b36a8fc5a",
+  "gt_sha256": "32cb8b3e5688da828595901effce5409ca977dedc7e5c7a1458b57bd58f41e4b",
+  "evaluator_sha256": "c45c57bf6e5d6d44a4a5760983798cc3880e600fef1ab5adf40ec7e313db9c17",
+  "grading_type": "custom finite-ontology structured self-check; NOT an official or independent semantic judge",
+  "weights": {
+    "state_and_expression": 50,
+    "numeric_anchors": 25,
+    "evidence_recall": 25
+  },
+  "limitations": "Local expression groups and negation are incomplete; arbitrary paraphrases or contradictory free text may require human review. No universal free-text redline certification. Ground-truth core_claim is never copied into an answer."
+}
