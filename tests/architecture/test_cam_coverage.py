@@ -17,7 +17,7 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-CHARTER = REPO_ROOT / "AIOS核心系统宪法v3.0.md"
+CHARTER = REPO_ROOT / "docs" / "constitution" / "AIOS核心系统宪法v3.0.md"
 LEDGER_PATH = REPO_ROOT / "schemas" / "constitution_acceptance.py"
 
 _ID_RE = re.compile(r"^\|\s*((?:A\d{2})|(?:R[123]-\d{2})|(?:V3-\d{2}))\s*\|", re.MULTILINE)

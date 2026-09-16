@@ -1,18 +1,16 @@
 # AIOS 2.0 任务进度表
 
 > 总任务母表：`AIOS_Core_详细开发任务拆分_R2_总工程师版.md`
-> 宪法基线：`AIOS核心系统宪法v3.0.md`（唯一基线）+《AIOS宪法v3.0修改案_R4.md》(待批准)
-> 工程重构与模块编号唯一账本：《AIOS_Core_工程重构与任务拆分设计书_R4_首席架构师版.md》
-> CAM 验收矩阵：`schemas/constitution_acceptance.py`（46+9 项，CI 闸门 tests/architecture/test_cam_coverage.py）
+> 宪法基线：`AIOS宪法2.0.txt` + R1/R2
 > 当前主线：`aios-2.0`
 > 工作分支：`arena/01a09bc6-fantonghui`
-> 最后更新：2026-09-16 (M0′ R4 候选契约层冻结落地 + CAM 矩阵上线；等待 R4 修改案签核与 M0-022R 合并复审)
+> 最后更新：2026-09-14 (M0 THIRD GATE PATCH GREEN / WAITING ARCHITECT RE-REVIEW)
 
 ## 里程碑总览
 
 | 里程碑 | 目标 | 状态 | 完成度 |
 |---|---|---|---|
-| M0 | 冻结世界契约与核心存储 | 进行中 — v2.0 契约集全绿 + **M0′ R4 候选契约层落地**；等待 R4 签核与 M0-022R 合并复审 | 16/22 FINAL PASS；5 项 REOPENED+PATCHED；M0-022 BLOCKED→待改签 022R；**M0′ 契约增量 8/8 候选冻结（M0-023~030），CAM M0-029 已交付** |
+| M0 | 冻结世界契约与核心存储 | 进行中 — B6/B7/B5/R4 patch 已全绿，等待 GPT-6 复审 | 16/22 当前保持 FINAL PASS；M0-002/009/016/017/019 REOPENED+PATCHED；M0-022 BLOCKED |
 | M1 | 可写、可查、可下钻的共同世界 | 未开始 / M0 Gate 前禁止启动 | 0/16 |
 | M2 | 主动运行闭环 | 未开始 | 0/15 |
 | M3 | 长期纠错与多尺度认知 | 未开始 | 0/11 |
@@ -48,14 +46,6 @@
 | M0-020 | 历史世界读取与 Knowledge Cutoff | FINAL PASS / R3 future service ruling | Gate全量418+15 | 426ea4c | store独立透镜保留；M1 public historical AI view 必须 world snapshot+cutoff 双绑定 |
 | M0-021 | Task / Event 状态机冻结 | FINAL PASS | Gate全量418+15 | 8818dba | exhaustive matrices + revision transition helper |
 | M0-022 | M0 契约总测试与冻结快照 | **BLOCKED / LATEST PATCH CANDIDATE GREEN / WAITING GPT-6 RE-REVIEW** | **418+15** | candidate `9c080f6` | latest repair green；未获准进入M1 |
-| M0-023 | 写入来源分类 source_class 与触发豁免契约 | **契约层已冻结（R4 候选）/ 待签核** | tests/unit/test_m0_prime_contracts.py | governance/issues/M0-023_issue.md | 遗留运行面：M1 迁移+部分索引，M2-002 豁免过滤器 |
-| M0-024 | LifeChapter 契约冻结 | **契约层已冻结（R4 候选）/ 待签核** | 同上 | M0-024_issue.md | 勘误：Summary 已在 M0 注册表，真实缺口仅 LifeChapter |
-| M0-025 | Prediction Register 契约冻结 | **契约层已冻结（R4 候选）/ 待签核** | 同上 | M0-025_issue.md | 第 53 条立项理由空白拒写已入校验 |
-| M0-026 | CommunicationExperience 契约冻结 | **契约层已冻结（R4 候选）/ 待签核** | 同上 | M0-026_issue.md | OpExp/ToolProposal 已冻（见 024 勘误），不重复 |
-| M0-027 | Reinterpretation 契约冻结（R4-01） | **契约层已冻结（R4 候选）/ 待签核** | 同上 | M0-027_issue.md | M3-013 双透镜读面；撤销=MAINTENANCE |
-| M0-028 | BudgetPolicy/AssemblyPolicy 契约冻结 | **契约层已冻结（R4 候选）/ 待签核** | 同上 | M0-028_issue.md | MeteringRecord/网关执法=M2-018 |
-| M0-029 | CAM 宪法验收矩阵 + CI 映射 gate | **FINAL（本地实现层）** | tests/architecture/test_cam_coverage.py（7 用例） | schemas/constitution_acceptance.py | 55/55 项映射；R4 项批准前锁 proposed_pending_R4 |
-| M0-030 | runtime_profile（virtual/band_v0）契约 + R4-09.1 Claim 信任字段 | **候选契约已冻结** | 411 (9新+386复跑面) | `governance/issues/M0-030_issue.md` | 快照40模型含profile家族；转正随签核包§2第1步 |
 
 ## Latest Gate evidence
 
@@ -69,5 +59,3 @@
 - production review/archive head after candidate may be newer；semantic candidate 与文档归档 commit 必须分开引用
 
 M0 不得在 `architect-01` 对 `9c080f6...` 最新候选独立复审给出可接受 verdict 且 `chief-01` 最终签 Gate 前恢复为 22/22 FINAL PASS。M1 与并行核心开发继续暂停。
-
-**M0′ 说明（2026-09-16）**：R4 修改案批准前，M0-023~028 以候选契约形态进入 registry/snapshot（`gate_version=M0-R2+R4-delta-candidate`），全量套件 586 passed / 1 环境性失败（b8 跨进程重放在沙箱 py3.11，CI 3.12.14 全绿）。批准动作 = 仅改 gate_version 字符串；驳回动作 = revert 契约 delta 并再生成快照。M1 开工 Gate 改为 **M0-022R**（v2.0 集 + R4 delta + CAM 55/55 映射 合并复审）。 **签核材料已打包**（`governance/M0-022R_ratification_package.md`，含五项风险摊开与批准/驳回单步动作）；M1-019 施工图与 R4-07a 静态守卫以 Gate 前文档/守卫形态先行就位（`governance/issues/M1-019_blueprint.md`）。 M1-020 HotCard 施工图同批就位（`governance/issues/M1-020_blueprint.md`，含摘要不回写教义与四槽位契约字段映射）；R2 改订草案已附于签核包 §7。 G-M1P 正式压测套件已落地为 `aios_core.bench.g_m1p`（Gate 后一键跑 50 万修订；CI 降规模常热），M1 表行仍待 Gate。 Gate 后开工序列表 `governance/POST_GATE_48H_施工序列.md` 与 B1 迁移彩排脚本已备妥（48h 序列内无未验证物），签核人批准后即刻按 B0 启动。 M1 出口主戏 M1-016 的验收骨架已预立（`tests/scenarios/test_sports_event_world.py`：A 半今日绿、B 半 strict-xfail 闹铃对拍 B2/B4 交付物），48h 序列各块从此有终局标尺。
