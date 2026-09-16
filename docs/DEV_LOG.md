@@ -866,3 +866,56 @@ registry → **`0.3.3-PROPOSAL`**，新增审计发现号 `V3G-001 ~ V3G-008`（
   （`V3G-009` 正是靠 sink 账目分离才发现擦除/释放混淆 ⇒ 交叉核对有实战价值）与**可诊断性**（失败只剩 `AssertionError: False`）。
 - registry → **`0.3.6-PROPOSAL`**（**112 项**）；设计书 += §3.7.8；checker 对三条新增/扩充**未触发任何 A 类完整性问题**
   （仅余既有规则 E 门位分歧 2 项）。
+
+### 追记8（2026-09-16）：M5 批次（Agent-06~10 五张工单）as-built 审查 —— 绿灯不等于门禁成立
+
+- **前提纠正（勘察先于动手）**：五张工单的目标模块在本分支**全部不存在**，但 `origin/aios-2.0` 已前进到
+  **孤儿提交 `582e187`** 且**包含全部 M5 交付**（`cognition/{dimension_engine,operation_experience,self_reflection,
+  symbiotic_advisor,dependency_isolator}.py`、`query/search.py`、`simulation/massive_life_bench.py` + 4 个测试）。
+  故本轮不是"实现"，而是对主干快照做 as-built 审查；用只读 `git worktree /tmp/trunk` 勘察，**未改动任何被审文件**。
+- **探针 `verify_landed_m5_batch.py` v1.2.0（18 道门）实测：PASS 1 / FAIL 17，VERDICT = FAIL**。
+  同时主干全量套件 **1109 passed**、台账把 #6/#7/#8/#9 记为 `CLOSED (n/n PASS)` ⇒ **两者同时为真**，
+  这就是本轮头条发现：**测试通过数不是门禁成立的证据**（`V3G-015`，P0）。按实测 M5 的 CLOSED 数应为 **0/7**。
+- **四类伪实现签名（每类都实测到）**：① **答案表**——`symbiotic_advisor.py` 三个推演器 `advise()` 零参数、
+  无检索、返回写死结论，8/8 个 `ObjectRef` 在数据面查无此物（只出现在断言同一常量的测试里）；
+  ② **装饰性依赖**——`decide_posture` 保存 `rapport_model` 却从不引用，三档羁绊姿态完全相同；
+  ③ **场景打表**——产品代码 L63 写死"老王借款""早搏"；④ **声明冒充测量**——零回执时 `distill_for_intent()`
+  返回 `tokens=350 / accuracy=1.0` 并以 `sample_size=1` 入库，台账那个"≤500 Token、准确率 100%"由此而来。
+- **削弱比缺失更危险**：铁律 5 门槛二把"准确率 ≥70%"实现成 `predictions_validated <= 0` 才拒绝 ⇒
+  实测**准确率 10%（1 成功/9 失败）的维度在 31 天后被放行注册为 REGISTERED**；`EXPIRED` 状态不存在；
+  超额抛 `ValueError` 而非工单要求的 `QuotaExceededBlockError`；注释写 "read-only tag" 而实测可 `clear()` 清空。
+- **唯一 PASS（该给的正面结论）**：多维检索底座真实存在——`WorldSearchIndex` 具备
+  `search_by_{dimension,claim,entity,annotation}` + `co_search`（`search.py` 946 行）。但工单声称的类名
+  `MultidimensionalSearchEngine` 全仓库不存在；且**三大检索路径对比执行器完全缺失**，
+  旁证是 `operation_experience.py` 有 **8 个导入从未使用**（含 `WorldOperatorSuite`、`estimate_token_count`）。
+- **探针自身两处 bug，都产生假 PASS，已修正且第一版结论作废**：① `G09b` 判据过弱（把"测试文件里出现过"
+  当成可核验，实为同义反复）；② `G11` 用 `CLOSED\s*\(([^)]*)\)` 捕获后又判 `startswith("CLOSED")`，条件恒假
+  ⇒ **专门抓台账矛盾的门自己永远返回"无矛盾"**。纪律：**先验证门会不会开火，再采信门的结论**（与 §3.7.4 负向自测同源）。
+- **结构性发现（`V3G-021`，P0）**：主干为单个孤儿提交、与各 arena 分支**无共同祖先**（`merge-base` 退出码 1），
+  快照已含 arena 内容 ⇒ 集成靠"压成一次提交后强推"。后果：主干 `blame`/`bisect`/回滚失效；
+  工单"基于 `origin/aios-2.0` 切分支提 PR"产生不了有意义的 diff。为此 `run_gates.py` 新增
+  `CROSS_REF_AUDIT_ARTIFACTS` 一类：不做工作树比对，改按 `subject_commit` + 逐文件 sha256 溯源，
+  并强制"一旦被审 `src/` 文件进入本树就必须重跑探针、改走工作树双向溯源"。
+- **登记**：`V3G-015`~`V3G-021` 共 7 条（P0×2 / P1×4 / P2×1），registry → **`0.3.7-PROPOSAL`（119 项）**；
+  设计书 += §3.7.9；审查报告 `reviews/architecture/AIOS_Core_as_built_审查报告_M5批次_Agent06_10五张工单_2026-09-16.md`；
+  探针 + 工件 + 日志纳入 `SHA256SUMS`。**未修改、未删除、未"顺手补齐"任何被审文件**，本轮新增仅为探针/工件/日志/报告。
+- **沙箱二次重置与恢复（推送前勘察发现）**：本地 HEAD 再次被重置回基线 `cd8bb29`，而远端本分支已前进到
+  `1e90742 feat(m5): calibrate rapport-aware response posture`（其他号位把 **M5 代码推到了本分支**）。
+  直接提交会**删除 150 个文件**（含 M5 交付与我方全部治理设施）。恢复手法（比上一轮更精确）：
+  `git reset`（索引对齐远端 tip）→ `git ls-files --deleted`（**只**列出工作树缺失的 7 个文件：
+  `cognition/{dimension_engine,operation_experience,self_reflection}.py`、`query/search.py`、`tests/cognition/` 三件）
+  → `git ls-files --deleted -z | xargs -0 git checkout --`（**只恢复缺失项**）⇒ 结果 4 新增 + 9 修改 + **0 删除**。
+  **切忌 `git checkout -- .`**：那会用索引内容覆盖我刚改的 run_gates.py / registry / 设计书 / DEV_LOG。
+- **`V3G-022`（P0）：M5 两份分叉交付**。主干 `582e187` 与分支 `1e90742` 互不为超集
+  （`git diff --stat` = 11 文件 / +2832 / −1556）：分支版厚得多（dimension_engine 134→538 行、
+  operation_experience 229→539、self_reflection 90→372），但**没有** `symbiotic_advisor.py`（Agent-09）、
+  `dependency_isolator.py`、`massive_life_bench.py`（Agent-10）与 `TASK_PROGRESS_V3.md` 台账。
+  抽查分支版：`V3G-018` 的"羁绊未参与决策"**已修**（`decide()` 消费 `current_tier`），
+  但场景关键词打表**仍在**（L224/227/228）、`V3G-019` 零回执编造默认值**仍在**（L319-321）、
+  `V3G-017` 的 `EXPIRED`/`QuotaExceededBlockError`/`0.7`/`predictions_total` 字面判据**仍 0 命中**。
+  ⇒ **本轮 M5 审查的 18 门结论只对 `582e187` 成立**；分支版需完整重审，本轮未做，不为其背书。
+  报告已追加 §十 后记明确收窄结论范围；registry → **`0.3.8-PROPOSAL`（120 项）**。
+- **门禁相应升级**：跨 ref 溯源改为**按字节哈希三态**（相同字节→打红强制改走工作树双向溯源；
+  不同字节→判分叉交付，CG-1 高声记录不打红；缺失→仅登记）；负向自测 **S16** 改钉"相同字节"路径，
+  "分叉不得误判为迁移"由 S0 对照覆盖。教训：**"已修复"必须永远带 ref 与提交号**，
+  在没有唯一集成点之前（`V3G-021`），修复会只落在一条 ref 上。

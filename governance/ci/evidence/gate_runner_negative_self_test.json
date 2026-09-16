@@ -121,6 +121,22 @@
       "hard_failures": 1,
       "scenario": "S14 改 M1-001R 被测源码（多支探针须按工件各自溯源）",
       "verdict": "PASS"
+    },
+    {
+      "exit": 1,
+      "expected_absent_marker": null,
+      "expected_marker": "跨 ref 审计探针溯源断裂",
+      "hard_failures": 2,
+      "scenario": "S15 篡改跨 ref 审计探针（M5）但不重跑工件",
+      "verdict": "PASS"
+    },
+    {
+      "exit": 1,
+      "expected_absent_marker": null,
+      "expected_marker": "相同字节",
+      "hard_failures": 2,
+      "scenario": "S16 被审 src 文件以**相同字节**落地本树（必须改走工作树双向溯源）",
+      "verdict": "PASS"
     }
   ]
 }

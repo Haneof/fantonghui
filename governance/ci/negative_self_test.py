@@ -23,6 +23,8 @@ S11 篡改 as-built 审计工件字节  ⇒ CG-1 哈希不符（审计工件同�
 S12 改**被测源码**但不重跑审计  ⇒ CG-1 审计溯源断裂（subject_sha256 不符）
 S13 派工单注册表多声明一个不存在的交付物 ⇒ CG-6 交付物缺口棘轮被突破
 S14 改 M1-001R 被测源码 ⇒ 只有该模块的审计工件失效，M1-017 的不得被牵连（expect_absent）
+S15 篡改跨 ref（M5）审计探针但不重跑 ⇒ CG-1 必须照样开火
+S16 被审 src 文件以相同字节落地本树 ⇒ 必须强制改走工作树双向溯源（分叉版本只记录不打红，由 S0 对照）
 
 只用标准库。运行：`python3 governance/ci/negative_self_test.py`（约 1 分钟，含一次 50k 探针实跑）
 """
@@ -314,6 +316,38 @@ def s14(tree: Path) -> None:
     f = tree / "src/aios_core/ingest/multimodal_edge.py"
     f.write_text(f.read_text(encoding="utf-8") + "\n# patched by another agent\n",
                  encoding="utf-8")
+
+
+@scenario("S15 篡改跨 ref 审计探针（M5）但不重跑工件",
+          "跨 ref 审计探针溯源断裂")
+def s15(tree: Path) -> None:
+    """跨 ref 工件（被审代码在另一条 ref 上）不做工作树比对，但**探针完整性必须照样守**。
+    否则改探针不重跑就能让任何结论"合法"归档——这正是 §3.7.9 里那个假 PASS 教训的门禁化。"""
+    f = tree / "reviews/architecture/evidence/verify_landed_m5_batch.py"
+    f.write_text(f.read_text(encoding="utf-8") + "\n# patched after artifact was produced\n",
+                 encoding="utf-8")
+
+
+@scenario("S16 被审 src 文件以**相同字节**落地本树（必须改走工作树双向溯源）",
+          "相同字节")
+def s16(tree: Path) -> None:
+    """钉住跨 ref 处置的防呆：一旦**同一份字节**的被审代码落地本树，跨 ref 工件的旧数字就必须改走
+    工作树双向溯源，否则会出现"用 582e187 快照的实测数描述本树代码"这种最难发现的溯源谎言。
+    模拟手法：把工件记录的 subject_file_sha256 改成本树该文件的真实哈希（= 被审代码原样落地）。
+    注意：这同时会触发工件自身哈希不符（S1 的判据），本场景只断言**迁移门**开火。
+    反面由 S0 对照覆盖——真实树当前就是"不同字节的分叉交付"状态，那种情况**只记录不打红**，
+    若 S0 出现失败即说明分叉被误判为迁移。"""
+    import hashlib
+    import json as _json
+    art = tree / "reviews/architecture/evidence/verify_landed_m5_batch_result.json"
+    data = _json.loads(art.read_text(encoding="utf-8"))
+    target = "src/aios_core/cognition/self_reflection.py"
+    f = tree / target
+    f.parent.mkdir(parents=True, exist_ok=True)
+    if not f.exists():
+        f.write_text("# integrated into this tree\n", encoding="utf-8")
+    data.setdefault("subject_file_sha256", {})[target] = hashlib.sha256(f.read_bytes()).hexdigest()
+    art.write_text(_json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def main() -> int:

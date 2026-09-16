@@ -1,7 +1,7 @@
 {
   "generated_by": "governance/ci/run_gates.py",
   "git": {
-    "commit": "f7625fee9bbeaf0e248b6f8c05fa69eca58c2c63",
+    "commit": "1e907427863e6c0d994501892c5ad6c1bda8a2f4",
     "dirty": true
   },
   "rule": "引用任何数字前先核 script_sha256 与本文件登记值一致；不一致 ⇒ 按统一母表 §9.4 降级为『可复现但未取证』，不得写进 Issue 验收。脚本改动后旧工件即失去溯源，必须重跑或显式标注为历史运行。",
@@ -18,12 +18,12 @@
   },
   "book": {
     "path": "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md",
-    "sha256": "72819511fdb7489ba88afd0f77cdf3b6848a611f76312e20c35635929cd7389f"
+    "sha256": "45474458321472f36e1cb83b7e801cf81b30e1aba3dfcb2147df77bb85040503"
   },
   "registry": {
     "path": "governance/issue_registry/v3_issue_registry.json",
-    "sha256": "ed66282f0658377f6cc3829282a482a9f904fd9f6a48c81c87013e02027d181d",
-    "version": "0.3.6-PROPOSAL"
+    "sha256": "04c58d0725618f8c749f4dea359f7878339c936b05a6e6d006546c91a3456a8d",
+    "version": "0.3.8-PROPOSAL"
   },
   "artifacts": [
     {
@@ -151,6 +151,28 @@
       "produced_by": {
         "probe_version": "1.1.0",
         "script_sha256": "a3388fa1ee2792affccbeb4009546f753e6f0168bd9ab918f96aa4b8597daba7",
+        "scale": null,
+        "ci_scale": null,
+        "gate_applicability": null
+      }
+    },
+    {
+      "path": "reviews/architecture/evidence/verify_landed_m5_batch.log",
+      "sha256": "0b5cea1a1e9ccbf86e85a6d4bb2eaf5668a714aca6ceb007d2738dfb961d5922",
+      "bytes": 14824
+    },
+    {
+      "path": "reviews/architecture/evidence/verify_landed_m5_batch.py",
+      "sha256": "5c6ae01c66e33afb9edce66af7f29d8d3e56d2dd919bc25d33b75d906330bb6d",
+      "bytes": 43401
+    },
+    {
+      "path": "reviews/architecture/evidence/verify_landed_m5_batch_result.json",
+      "sha256": "6fc68252c9483cf744f671c3a2aa3ab9201bf7387255fb3618160b5c5b37b239",
+      "bytes": 27844,
+      "produced_by": {
+        "probe_version": "1.2.0",
+        "script_sha256": "5c6ae01c66e33afb9edce66af7f29d8d3e56d2dd919bc25d33b75d906330bb6d",
         "scale": null,
         "ci_scale": null,
         "gate_applicability": null

@@ -1,5 +1,5 @@
 {
-  "registry_version": "0.3.6-PROPOSAL",
+  "registry_version": "0.3.8-PROPOSAL",
   "status": "PROPOSAL — 待项目总工程师逐号裁决后升格为唯一真源；在此之前 CI 门保持红色",
   "generated_by": "reviews/architecture/AIOS_V3_UNIFIED_BACKLOG_AND_AS_BUILT_VERIFICATION_2026-09-16.md §9.2/§9.3 + reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3（RC-001~RC-041，41 条提案号）",
   "generated_at_commit": "00adf2b",
@@ -2056,6 +2056,266 @@
         "退出码实测：命中时 exit=1、干净根（governance/ci）exit=0",
         "探测器自证：8 项 0 失败（Compare/BoolOp/UnaryOp 三种误用各命中 1；字符串/f-string/Name/无消息四种正常写法各 0 误报；SyntaxError 文件被上报为 SYNTAX_ERROR 而非跳过）",
         "假阴性对照：ERE 正则 `^\\s*assert [^,]+, *[A-Za-z_][A-Za-z0-9_.\\[\\]() ]* *(==|!=|<=|>=|<|>|is) ` 扫描范围 tests/ 与 src/（**已包含命中文件所在的 tests/simulation/**）却命中 0 处；同一棵树 AST 扫描（tests/ src/ governance/，130 文件）命中 1 处"
+      ]
+    },
+    {
+      "id": "V3G-015",
+      "slug": "ledger-closed-claims-contradict-measured-gates",
+      "milestone": "NUMCI",
+      "gate": "Gate0",
+      "status": "OPEN",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_as_built_审查报告_M5批次_Agent06_10五张工单_2026-09-16.md §七、八",
+        "被审对象 origin/aios-2.0 @ 582e187（跨 ref，本分支不含 M5 代码）"
+      ],
+      "semantics": "进度台账 docs/specifications/TASK_PROGRESS_V3.md 把 M5 批次 #6/#7/#8/#9 记为 CLOSED (n/n PASS) 并称 M5 为『核心大突破 6/7 CLOSED』，判据是**测试通过数**；而按工单原文逐条实测，这 4 条共 14 道门中 13 道 FAIL（探针 18 门：PASS 1 / FAIL 17）。",
+      "note": "根因是把『测试全绿』当成『工单硬门禁成立』。主干全量套件 1109 passed 为真、台账字面也为真，但那些测试断言的是**场景常量**（如 expected_tokens == 360 是测试自己喂进回执的数字；姿态决策断言的是产品代码里写死的『老王借款』『早搏』关键词），不是门槛语义。⇒ 台账给出的里程碑完成度对放行决策具有误导性：按实测 M5 的 CLOSED 数应为 **0/7**（#6 检索底座真实但工单核心交付物缺失，不足以 CLOSED）。本条为本轮最高优先级：台账口径纠正前，任何修复都无法被可信验收。",
+      "traces_to": [
+        "V3G-012",
+        "V3G-013",
+        "V3G-006",
+        "NUMCI-001"
+      ],
+      "priority": "P0",
+      "resolution": "OPEN_NEEDS_GOVERNANCE_RULING（台账口径与里程碑关闭数需治理方裁定回退）",
+      "acceptance": "① 台账 #6/#7/#8/#9 由 CLOSED 回退为 EXECUTING 或 BLOCKED，条目旁引用本探针工件；② 『CLOSED』判据从测试通过数改为『工单断言逐条实测通过 + 工件哈希入库』；③ M5 里程碑完成度按实测重算；④ 重跑探针 18 门并归档新工件后方可再标 CLOSED。",
+      "forbidden": [
+        "以测试通过数作为工单门禁成立的证据",
+        "在台账口径纠正前继续按 CLOSED 派生后续工单",
+        "删除或改写本报告/工件以消除矛盾"
+      ],
+      "evidence": [
+        "reviews/architecture/evidence/verify_landed_m5_batch_result.json → gate_details[G11].contradictions（4 条 CLOSED 与失败门对应）",
+        "reviews/architecture/evidence/verify_landed_m5_batch_result.json → pass=1 fail=17 verdict=FAIL；主干全量套件 1109 passed（两者并存即矛盾本身）"
+      ]
+    },
+    {
+      "id": "V3G-016",
+      "slug": "symbiotic-advisor-is-hardcoded-answer-table",
+      "milestone": "NUMCI",
+      "gate": "Gate0",
+      "status": "OPEN",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_as_built_审查报告_M5批次_Agent06_10五张工单_2026-09-16.md §五",
+        "被审对象 origin/aios-2.0 @ 582e187（跨 ref，本分支不含 M5 代码）"
+      ],
+      "semantics": "src/aios_core/cognition/symbiotic_advisor.py（47 行）三个推演器 MomBirthdayGiftAdvisor / FraudPreventionAdvisor / HealthFatigueBreakerAdvisor 的 advise() **不接收任何参数**（param_count=0）、函数体内**无任何检索调用**、直接 return 写死的结论字符串与写死的 ObjectRef 列表；重复调用输出完全一致。",
+      "note": "工单要求『调取多维心智搜索，比对 2023 丝巾、2024 足浴盆闲置倒水腰疼、2025 按摩椅好评、2026 膝盖受凉，精准推荐』与『必须携带**确凿的**因果证据指针 ObjectRef，**严禁凭空编造**』。实测：8/8 个 object_id（obs_2023_scarf_idle、obs_2024_footbath_backache、obs_2025_massage_chair_good、obs_2026_knee_cold、court_ruling_chaoyang_fraud、obs_2_years_ago_wechat_delay、obs_thursday_overnight_work、obs_pvc_arrhythmia）在数据文件/fixtures/非测试 src 中**全部查无此物**，唯一出现处是断言同一常量的测试文件 ⇒ 正好命中工单明令禁止的『凭空编造』。这不是推演器，是答案表：输出与用户真实世界状态无关，改变 store 内容不会改变建议。",
+      "traces_to": [
+        "V3G-015",
+        "V3G-009",
+        "NUMCI-001"
+      ],
+      "priority": "P1",
+      "resolution": "OPEN_NEEDS_FIX_BY_OWNER（缺陷在 Agent-09 交付的产品代码与其自建测试内）",
+      "acceptance": "① advise() 接收世界状态/store 与查询意图，实际调用 search_mind / co_search 取回观测；② 每个 ObjectRef 返回前必须在世界库解析成功，失败即拒绝出建议（fail-closed）；③ 结论必须由取回证据推导（含比对与因果链），改变输入必须改变输出；④ 测试改为对**夹具世界**断言，而非断言常量字符串。",
+      "forbidden": [
+        "把写死的结论字符串当作推演输出",
+        "返回无法在世界库解析的 ObjectRef",
+        "以『红线仍通过』为由保留答案表"
+      ],
+      "evidence": [
+        "reviews/architecture/evidence/verify_landed_m5_batch_result.json → G09a.per_class（三类 param_count=0, calls_retrieval=false）",
+        "reviews/architecture/evidence/verify_landed_m5_batch_result.json → G09b.only_in_tests_ids（8 个 id 仅出现在测试文件）",
+        "reviews/architecture/evidence/verify_landed_m5_batch_result.json → G09c.per_class（identical_across_calls=true ×3）"
+      ]
+    },
+    {
+      "id": "V3G-017",
+      "slug": "dimension-lifecycle-triple-gate-weakened",
+      "milestone": "NUMCI",
+      "gate": "Gate0",
+      "status": "OPEN",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_as_built_审查报告_M5批次_Agent06_10五张工单_2026-09-16.md §四",
+        "被审对象 origin/aios-2.0 @ 582e187（跨 ref，本分支不含 M5 代码）"
+      ],
+      "semantics": "src/aios_core/cognition/dimension_engine.py 对铁律 5 三重门槛的实现被削弱：门槛二『预测准确率 ≥70%』被实现为 `predictions_validated <= 0` 才拒绝（即**至少成功过 1 次**即可）；DimensionStatus **没有 EXPIRED**，30 天未达标不会自动失效；门槛三超额抛通用 ValueError 而非工单要求的 QuotaExceededBlockError（该类型不存在）；HighOrderDimensionDistiller.distill() 只是 propose_dimension 的薄包装且吞掉 ValueError 返回 None；『只读标签』实测可被 discard/clear。",
+      "note": "实测：注入 3 天跨域异常 → propose → 喂 1 次成功 / 9 次失败（准确率 10%）→ 31 天后 attempt_register **放行，终态 REGISTERED**。⇒ 预测准确率 10% 的维度可顺利成为正式维度，这正是铁律 5 要防的『虚假自省导致维度爆炸』的入口；『坚决捍卫铁律 5』的交付表述与实测不符。工单点名的 DIM_BURNOUT_RISK / DIM_CREDIT_RISK 在全 src 树不存在。附带精度问题：detect_continuous_anomaly 用 `.days <= required_days` 做窗口，`.days` 截断 ⇒ 实际窗口 [0,4 天) 而非 [0,3 天]。门槛一（连续 3 天 + 跨 2 域）与门槛三的**拦截行为**成立，是本模块仅有的两处真逻辑。",
+      "traces_to": [
+        "V3G-015",
+        "V3G-011",
+        "NUMCI-001"
+      ],
+      "priority": "P1",
+      "resolution": "OPEN_NEEDS_FIX_BY_OWNER（缺陷在 Agent-07 交付的产品代码内）",
+      "acceptance": "① 门槛二改为 predictions_validated / predictions_total >= 0.70 并记录总次数；② 增加 EXPIRED 与到期推进；③ 定义并抛出 QuotaExceededBlockError；④ distill() 落地真实跨维度提炼与两个点名维度，异常不得吞（区分门限未达/重名/状态错误）；⑤ 只读标签用 frozenset 视图或带校验 setter 强制；⑥ 窗口边界按总秒数比较，消除 `.days` 截断。",
+      "forbidden": [
+        "以『至少成功过 1 次』充当『准确率 ≥70%』",
+        "让不达标候选永久停留 CANDIDATE",
+        "把注释里的 read-only 当作已强制的不变量",
+        "吞掉异常后返回 None 作为唯一失败信号"
+      ],
+      "evidence": [
+        "reviews/architecture/evidence/verify_landed_m5_batch_result.json → G07a（accuracy=0.1, successes=1, attempts=10, final_status=REGISTERED, source_predicate='predictions_validated <= 0'）",
+        "reviews/architecture/evidence/verify_landed_m5_batch_result.json → G07b.status_members（无 EXPIRED）",
+        "reviews/architecture/evidence/verify_landed_m5_batch_result.json → G07c（exception_type=ValueError, QuotaExceededBlockError_defined=false）",
+        "reviews/architecture/evidence/verify_landed_m5_batch_result.json → G07d（named_dimensions_found=[]，distill 吞异常）",
+        "reviews/architecture/evidence/verify_landed_m5_batch_result.json → G07e（tags_before=['DIM_X'], tags_after=[], mutation_blocked=false）"
+      ]
+    },
+    {
+      "id": "V3G-018",
+      "slug": "posture-decider-ignores-rapport-and-hardcodes-scenario",
+      "milestone": "NUMCI",
+      "gate": "Gate0",
+      "status": "OPEN",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_as_built_审查报告_M5批次_Agent06_10五张工单_2026-09-16.md §五",
+        "被审对象 origin/aios-2.0 @ 582e187（跨 ref，本分支不含 M5 代码）"
+      ],
+      "semantics": "src/aios_core/cognition/self_reflection.py：HumanlikeResponsePostureDecider 构造时接收并保存 rapport_model，但 decide_posture **函数体内从未引用它**；产品代码 L63 写死关键词『老王借款』『早搏』直接返回 CRITICAL_SPOKEN；SelfIdentityMirror.reflect() 函数体只有一条 return，返回 __init__ 里的常量字典，无任何审视/校验。",
+      "note": "实测：同一事件在三档羁绊（STRANGER_RESPECT / FAMILIAR_COMPANION / TRUSTED_WINGMAN）下姿态**完全相同**（均 HAPTIC_NUDGE，distinct_outcomes=1）⇒ 工单要求的『根据紧急度**与羁绊**精准决策』只剩紧急度一半；DynamicRapportModel 的档位演化虽是真逻辑（trust_score 阈值 50/100）却**没有任何消费者**，是装饰性依赖。关键词打表的后果：对该场景『毫不犹豫直言』不是因为理解紧急度，而是因为代码里有这两个词；换成等价表述（『老张想借钱』『室性早搏』）即退化为 SILENCE。『镜面』不照任何东西：它不会发现当前心智状态违反铁律，只是复述四条原则字符串。测试全绿是因为它断言的正是这两个硬编码关键词的行为。",
+      "traces_to": [
+        "V3G-015",
+        "V3G-016",
+        "NUMCI-001"
+      ],
+      "priority": "P1",
+      "resolution": "OPEN_NEEDS_FIX_BY_OWNER（缺陷在 Agent-08 交付的产品代码内）",
+      "acceptance": "① decide_posture 必须消费 rapport 档位（同一事件不同档位姿态可不同，并给出规则表）；② 移除产品代码中的场景字面量，改按事件严重度/类型/证据强度判定，场景关键词只允许出现在测试夹具；③ reflect() 落地真实审视：接收当前心智状态并检查是否违反四项铁律，违规时返回可行动告警而非复述常量。",
+      "forbidden": [
+        "把测试场景关键词写进产品代码",
+        "保存依赖却从不使用（装饰性依赖）",
+        "以复述常量字典充当『审视』"
+      ],
+      "evidence": [
+        "reviews/architecture/evidence/verify_landed_m5_batch_result.json → G08a.posture_by_tier（三档同结果）+ decide_posture_references_rapport=false",
+        "reviews/architecture/evidence/verify_landed_m5_batch_result.json → G08b.literal_hits（L63『老王借款』『早搏』）",
+        "reviews/architecture/evidence/verify_landed_m5_batch_result.json → G08c（returns_constant_only=true, performs_any_check=false）"
+      ]
+    },
+    {
+      "id": "V3G-019",
+      "slug": "three-pathway-executor-missing-token-numbers-declared",
+      "milestone": "NUMCI",
+      "gate": "Gate0",
+      "status": "OPEN",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_as_built_审查报告_M5批次_Agent06_10五张工单_2026-09-16.md §三",
+        "被审对象 origin/aios-2.0 @ 582e187（跨 ref，本分支不含 M5 代码）"
+      ],
+      "semantics": "工单要求的『三大检索路径对比执行器』（Pathway A 暴力扫描 / B 朴素关键词 / C 拓扑分级下钻）在全 src 树中**不存在**：只有 PathwayType 枚举 + 回执/策略模型 + 蒸馏器；且 distill_for_intent 在**零实测回执**时直接返回硬编码 expected_tokens=350 / accuracy=1.0 / latency_ms=25.0 并以 sample_size=1 持久化入库。",
+      "note": "旁证：operation_experience.py 有 **8 个导入从未使用**，其中 5 个正是执行与计量所需（WorldOperatorSuite、estimate_token_count、OperationRequest、new_operation_id、SourceClass）⇒ 执行器是计划中而未落笔。后果：台账与测试里那个『Token 由 15,000~50,000 压缩至 500 以内、准确率 100%』**来自代码常量，不是任何一次真实检索的测量值**；test_operation_experience.py 断言的 expected_tokens == 360 是测试自己喂进回执的数字，prior ≤500 只因默认值 350 才成立。『A 比 C 贵 30~100 倍』这一核心论断在本仓库没有任何证据。**正面结论**：多维检索底座真实存在——WorldSearchIndex 具备 search_by_{dimension,claim,entity,annotation} + co_search（946 行），G06d 为本轮 18 门中唯一 PASS。另：工单声称的类名 MultidimensionalSearchEngine 在全仓库不存在，实际类为 WorldSearchIndex（能力成立、名称不符）。",
+      "traces_to": [
+        "V3G-015",
+        "V3G-006",
+        "NUMCI-001"
+      ],
+      "priority": "P1",
+      "resolution": "OPEN_NEEDS_FIX_BY_OWNER（缺陷在 Agent-06 交付的产品代码内）",
+      "acceptance": "① 实现真正的对比执行器：同一意图分别走 A（全量迭代）/B（关键词）/C（金字塔→实体超链接→锚点→微切片），token 用 estimate_token_count 实测计量，回执落库后再蒸馏；② distill_for_intent 无实测记录时**必须拒绝**（返回『无经验』），不得编造 350/1.0 入库；③ 工单/台账引用的类名与数字必须与代码一致；④ 单次命中 ≤150 token 的铁律必须有实测工件支撑。",
+      "forbidden": [
+        "在无实测回执时编造黄金路径数字入库",
+        "以测试自喂的回执数字充当路径对比结论",
+        "用枚举与模型的存在充当执行器的存在"
+      ],
+      "evidence": [
+        "reviews/architecture/evidence/verify_landed_m5_batch_result.json → G06a（executors_found=0, enum_only=true）",
+        "reviews/architecture/evidence/verify_landed_m5_batch_result.json → G06b（unused_count=8, critical_unused 5 项）",
+        "reviews/architecture/evidence/verify_landed_m5_batch_result.json → G06c（expected_tokens=350, expected_accuracy=1.0, sample_size=1，零回执条件下）",
+        "reviews/architecture/evidence/verify_landed_m5_batch_result.json → G06d（four_dimension_methods 齐备 ⇒ PASS）"
+      ]
+    },
+    {
+      "id": "V3G-020",
+      "slug": "agent-arena-deliverable-path-and-capabilities-missing",
+      "milestone": "NUMCI",
+      "gate": "Gate0",
+      "status": "OPEN",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_as_built_审查报告_M5批次_Agent06_10五张工单_2026-09-16.md §六",
+        "被审对象 origin/aios-2.0 @ 582e187（跨 ref，本分支不含 M5 代码）"
+      ],
+      "semantics": "工单点名的 src/aios_core/simulation/agent_mind_bench.py 与 tests/simulation/test_agent_mind_bench.py **均不存在**；实际落地 massive_life_bench.py（721 行）+ test_massive_world_token_efficiency.py。工单要求的 10 项能力中 **6 项在全 src 树完全不存在**：AgentMindArena 类、自主调用 distill_dimension、自主调用 advise_decision、证据检索命中率、人设分寸感得分、全景体检报告生成。",
+      "note": "实际交付只含 MassiveBenchStats（无方法）与 MassiveLifeBenchGenerator.generate_world_dataset ⇒ 那是『千人千面世界发生器』，不是『让目标 Agent 独立进驻、自主调用 search_mind/distill_dimension/decide_posture/advise_decision 的战训考场』，也没有 Token 预算使用率/命中率/分寸感评分、五大铁律违宪一票否决与《全景体检报告》生成与经验库持久化。文件名与工单不符 ⇒ 台账与验收无法按工单路径对账。台账把 #10 记为 EXECUTING（未称 CLOSED），这一条是诚实的，故本条定 P2 而非 P1。",
+      "traces_to": [
+        "V3G-015",
+        "V3G-003",
+        "NUMCI-001"
+      ],
+      "priority": "P2",
+      "resolution": "OPEN_NEEDS_FIX_BY_OWNER（#10 台账已诚实记为 EXECUTING，本条登记缺口以免被误当已交付）",
+      "acceptance": "① 按工单路径交付 agent_mind_bench.py 与 test_agent_mind_bench.py（或在台账/工单中正式改名并说明）；② 实现 AgentMindArena：Agent 进驻后自主调用四大能力，逐项统计 Token 预算使用率、证据检索命中率、人设分寸感得分；③ 实现五大铁律违宪检查（篡改历史一票否决、P0 调用大模型一票否决）；④ 生成《AIOS 3.0 共生心智操作全景体检报告》并持久化到经验库；⑤ 补『高智商省 Token 策略 vs 低能耗散策略』对比测试。",
+      "forbidden": [
+        "以世界发生器充当战训考场",
+        "在缺 6/10 项能力的情况下把 #10 标为 CLOSED",
+        "交付物路径与工单不符却不登记"
+      ],
+      "evidence": [
+        "reviews/architecture/evidence/verify_landed_m5_batch_result.json → G10a.missing 与 actual_simulation_files",
+        "reviews/architecture/evidence/verify_landed_m5_batch_result.json → G10b.missing_capabilities（6 项）+ delivered_classes"
+      ]
+    },
+    {
+      "id": "V3G-021",
+      "slug": "trunk-is-single-orphan-commit-no-common-ancestor",
+      "milestone": "NUMCI",
+      "gate": "Gate0",
+      "status": "OPEN",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_as_built_审查报告_M5批次_Agent06_10五张工单_2026-09-16.md §七",
+        "被审对象 origin/aios-2.0 @ 582e187（跨 ref，本分支不含 M5 代码）"
+      ],
+      "semantics": "origin/aios-2.0 现为**单个孤儿提交** 582e187（git rev-list --max-parents=0 返回它自己，无父提交），与各 arena 工作分支**无共同祖先**（git merge-base 退出码 1；审查方分支根提交为 cd8bb29）。该快照已包含 arena 分支的内容（如 governance/ci/lint_assert_msg_ast.py）⇒ 集成方式是『把工作树压成一次提交后强推』，而非 merge/PR。",
+      "note": "三重后果。① 主干上 git blame / bisect / 回滚能力**全部失效**，任何回归都无法定位到引入提交；② 工单里『基于 origin/aios-2.0 切新分支提 PR』在当前形态下**产生不了有意义的 diff**（无共同祖先 ⇒ PR 会把全仓库显示为新增），验收与代码评审失去基础；③ 主干与 arena 分支之间**无法用 git 判定谁包含谁**，『不覆盖别人文件』只能靠人工 name-status 三分类（审查方本轮已三次这样做，并两次因此避免了删除他人 9~18 个文件的事故）。这也解释了为什么本轮 M5 审查必须按『跨 ref』处置：run_gates.py 因此新增 CROSS_REF_AUDIT_ARTIFACTS 一类（只校验探针完整性 + 记录被审提交与逐文件哈希，并强制『一旦被审 src/ 文件进入本树就必须重跑探针、改走工作树双向溯源』）。",
+      "traces_to": [
+        "V3G-015",
+        "V3G-005",
+        "V3G-013",
+        "NUMCI-001"
+      ],
+      "priority": "P0",
+      "resolution": "OPEN_NEEDS_GOVERNANCE_RULING（集成方式与历史可追溯性需治理方裁定）",
+      "acceptance": "① 治理方指定**唯一**集成方式（推荐：以 merge/PR 到一条有历史的主干，禁止对主干强推孤儿快照）；② 恢复可追溯历史（保留父提交链，或至少为每次快照保留被压扁前的提交列表作为工件）；③ 集成方式裁定前，所有跨 ref 审查工件必须记录 subject_commit + 逐文件哈希（本条已按此执行）；④ 工单模板中的『基于 X 切分支提 PR』必须与真实集成方式一致，否则该指令无效。",
+      "forbidden": [
+        "对主干强推孤儿快照（丢弃历史）",
+        "在无共同祖先的 ref 之间用 PR diff 做验收",
+        "假定『本地领先』而直接推送或强推（本轮已两次险些删除他人交付）"
+      ],
+      "evidence": [
+        "git rev-list --max-parents=0 origin/aios-2.0 → 582e187（自身即根提交）",
+        "git merge-base HEAD origin/aios-2.0 → 退出码 1（无共同祖先）",
+        "reviews/architecture/evidence/verify_landed_m5_batch_result.json → provenance.subject_commit=582e1875a1dbe07fdcfc1c086b55d9abe47d19cc, subject_availability=CROSS_REF",
+        "docs/DEV_LOG.md 追记5/追记8：三轮推送竞态的 name-status 三分类处置记录"
+      ]
+    },
+    {
+      "id": "V3G-022",
+      "slug": "m5-two-divergent-deliveries-across-refs",
+      "milestone": "NUMCI",
+      "gate": "Gate0",
+      "status": "OPEN",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_as_built_审查报告_M5批次_Agent06_10五张工单_2026-09-16.md §十（ref 分叉后记）",
+        "docs/DEV_LOG.md 追记8",
+        "git diff --stat 582e187 HEAD -- src/aios_core/cognition/ src/aios_core/query/search.py tests/cognition/"
+      ],
+      "semantics": "同一批 M5 工单在两条 ref 上存在**互不为超集**的两份交付：主干快照 582e187 有 cognition/{dimension_engine 134行, operation_experience 229行, self_reflection 90行, symbiotic_advisor 47行, dependency_isolator 35行} + query/search.py 946行 + tests/cognition 四件；工作分支 1e90742 有 dimension_engine 538行 / operation_experience 539行 / self_reflection 372行 / search.py 954行 + 三件测试，但**没有 symbiotic_advisor.py（Agent-09 交付）及其测试**，也没有 massive_life_bench.py（Agent-10）与 TASK_PROGRESS_V3.md 台账。两版差异达 11 文件 / +2832 / −1556 行。",
+      "note": "三重后果。① **修复只落在一条 ref 上**：分支版 decide() 已消费 rapport_model.current_tier（⇒ V3G-018 的『装饰性依赖』在分支版已修，主干版仍是 90 行不引用羁绊的实现）；反之主干版有 Agent-09/10 的（薄）交付而分支版完全没有 ⇒ **任一条 ref 都不能单独放行**。② **审查结论必须绑定 ref**：本审查方对 582e187 的 18 门实测（PASS 1 / FAIL 17）**不描述**分支版代码。对分支版的抽查（非完整重审）显示：V3G-017 的字面判据 EXPIRED / QuotaExceededBlockError / 0.7 / predictions_total 在 dimension_engine.py（538行）中**仍 0 命中**；V3G-018 的场景关键词打表**仍在**（self_reflection.py L224『老王借款』、L227『连续早搏』、L228『早搏』）；V3G-019 的『零回执编造默认值』**仍在**（operation_experience.py L319-321 expected_accuracy=1.0 / sample_size=1）；DIM_BURNOUT_RISK 已出现 1 处（工单点名维度之一）。⇒ 分支版需要一次完整重审，**本轮未做**，不得以本报告结论代替。③ 这是 V3G-021（孤儿主干、无唯一集成方式）的直接恶果：没有唯一集成点，就会出现两条 ref 各自演进、各自声称完成。为此 run_gates.py 的跨 ref 溯源改为**按字节哈希三态判定**：相同字节落地本树 ⇒ 打红并要求改走工作树双向溯源；不同字节 ⇒ 判为分叉交付，高声记录（CG-1 note）而不打红；文件缺失 ⇒ 仅登记。负向自测 S16 钉住『相同字节』路径，分叉不误判由 S0 对照覆盖。",
+      "traces_to": [
+        "V3G-021",
+        "V3G-013",
+        "V3G-015",
+        "V3G-017",
+        "V3G-018",
+        "V3G-019"
+      ],
+      "priority": "P0",
+      "resolution": "OPEN_NEEDS_GOVERNANCE_RULING（需治理方指定唯一权威 ref 与唯一集成方式，并把两份交付对齐成一份）",
+      "acceptance": "① 治理方指定唯一权威 ref 与唯一集成方式（见 V3G-021）；② 两份交付逐文件对齐为一份（取并集：分支版的厚实现 + 主干版的 Agent-09/Agent-10 交付与台账），或明确废弃其中一份并记录理由；③ 合并后**重跑本探针 18 门**并把工件按工作树双向溯源归档（届时跨 ref 类应清空）；④ 台账 CLOSED 判据按 V3G-015 纠正后方可重新记账；⑤ 分支版完整重审完成前，不得以 582e187 的实测数为其背书。",
+      "forbidden": [
+        "在两条 ref 上各自继续演进同一批工单",
+        "用对 582e187 的实测数描述分支版代码（或反之）",
+        "以『分支版行数更多』推定其覆盖主干版全部交付（实测缺 Agent-09/Agent-10 与台账）",
+        "删除任一份交付而不先裁定权威版本"
+      ],
+      "evidence": [
+        "git diff --stat 582e187 HEAD → 11 files changed, 2832 insertions(+), 1556 deletions(-)；其中 symbiotic_advisor.py −47、dependency_isolator.py −35、test_symbiotic_advisor.py −60（分支侧缺失）",
+        "分支版 grep 计数：EXPIRED=0、QuotaExceededBlockError=0、0.7=0、predictions_total=0、DIM_BURNOUT_RISK=1",
+        "分支版 self_reflection.py L224/227/228 场景关键词；operation_experience.py L319-321 零回执默认值",
+        "reviews/architecture/evidence/verify_landed_m5_batch_result.json → CG-1 分叉记录：4 个被审 src 文件在本树为不同字节（dimension_engine / operation_experience / self_reflection / search.py）",
+        "docs/DEV_LOG.md 追记8：沙箱二次重置后的恢复过程（索引对齐远端 tip、只恢复工作树缺失的 7 个文件、零删除）"
       ]
     }
   ],

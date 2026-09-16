@@ -1,0 +1,611 @@
+{
+  "tool": "reviews/architecture/evidence/verify_landed_m5_batch.py",
+  "tool_version": "1.2.0",
+  "provenance": {
+    "probe_script": "reviews/architecture/evidence/verify_landed_m5_batch.py",
+    "script_sha256": "5c6ae01c66e33afb9edce66af7f29d8d3e56d2dd919bc25d33b75d906330bb6d",
+    "probe_version": "1.2.0",
+    "generated_at_utc": "2026-09-16T05:12:56Z",
+    "subject_repo_root": "/tmp/trunk",
+    "subject_commit": "582e1875a1dbe07fdcfc1c086b55d9abe47d19cc",
+    "subject_availability": "CROSS_REF（被审对象位于 origin/aios-2.0 快照；本分支不含 M5 代码，故按 subject_commit + subject_file_sha256 溯源，不做工作树比对）"
+  },
+  "subject_file_sha256": {
+    "src/aios_core/query/search.py": "c3274776c8232c69f7b7b39e2576bf57c83d283d61a4f3630c78b91f67189eef",
+    "src/aios_core/cognition/operation_experience.py": "a067ea8d6106b077f2db0cdd0cceb5bf619c320ed5644e16645c9341381093c6",
+    "src/aios_core/cognition/dimension_engine.py": "321ae6191811015a01bdfd07a1b67eabf96084319545a9863f2d4948117ddff6",
+    "src/aios_core/cognition/self_reflection.py": "c1c3410508b22c3691535262df8a2ae678aff5e5f40495fbddd168d9aa693514",
+    "src/aios_core/cognition/symbiotic_advisor.py": "aa67a14cc401e695f1f3a571d800270d76eaef14b41d77aa019292c14953b2ec",
+    "src/aios_core/simulation/massive_life_bench.py": "a4527c5b4a62983639355e72db776797013ffc4d90d2221da61fb2da0612015a",
+    "tests/cognition/test_dimension_lifecycle.py": "e5b03fbce92bf99e36014b1d9f78de8030b3e21af28c16206975372e610e32e2",
+    "tests/cognition/test_operation_experience.py": "3c961c841ca24f776c0dc50479d533545ed7f4d04014fdf613f12a7dd110ae85",
+    "tests/cognition/test_self_reflection.py": "cdcfaa3287460b40e333ed78d91bc92931ae64e29fdac207f57569b21fb83a39",
+    "tests/cognition/test_symbiotic_advisor.py": "a041e8172d73ff8122fa44dc6d6693696342064312fb14d03bc5bf12ef0c6bfc",
+    "docs/specifications/TASK_PROGRESS_V3.md": "c7e18d4813f2db2ce8a6786cb905d8760174bc893dabe5c08ed1c7432cf89f09"
+  },
+  "gate_count": 18,
+  "pass": 1,
+  "fail": 17,
+  "na": 0,
+  "verdict": "FAIL",
+  "all_gates_pass": false,
+  "gates": {
+    "G06d": true,
+    "G06a": false,
+    "G06b": false,
+    "G06c": false,
+    "G07a": false,
+    "G07b": false,
+    "G07c": false,
+    "G07d": false,
+    "G07e": false,
+    "G08a": false,
+    "G08b": false,
+    "G08c": false,
+    "G09a": false,
+    "G09b": false,
+    "G09c": false,
+    "G10a": false,
+    "G10b": false,
+    "G11": false
+  },
+  "gate_details": [
+    {
+      "gate_id": "G06d",
+      "order": "Agent-06",
+      "title": "多维检索总线四大维度是否真实存在（工单前提核对）",
+      "requirement": "工单前提：主干已同步 MultidimensionalSearchEngine，原生支持 Dimension/Claim/Entity/Annotation 联合检索",
+      "verdict": "PASS",
+      "measured": {
+        "bus_class": [
+          "SearchHit",
+          "SearchPage",
+          "MindSearchHit",
+          "MindSearchPage",
+          "WorldSearchIndex"
+        ],
+        "four_dimension_methods": [
+          "search_by_annotation",
+          "search_by_claim",
+          "search_by_dimension",
+          "search_by_entity"
+        ],
+        "class_named_MultidimensionalSearchEngine": false,
+        "note": "能力存在但类名与工单声称不符"
+      },
+      "note": "四大维度检索方法齐备（能力真实存在）；但工单声称的类名 MultidimensionalSearchEngine 在全仓库不存在，实际类为 WorldSearchIndex ⇒ 工单前提表述与代码不符（不影响能力成立）。"
+    },
+    {
+      "gate_id": "G06a",
+      "order": "Agent-06",
+      "title": "三大检索路径对比执行器是否存在",
+      "requirement": "工单：实现 Pathway A 暴力扫描 / B 朴素关键词 / C 拓扑分级下钻 的**对比执行器**",
+      "verdict": "FAIL",
+      "measured": {
+        "classes_in_operation_experience": [
+          "PathwayType",
+          "QueryExecutionReceipt",
+          "OptimalRetrievalStrategy",
+          "OperationExperienceDistiller"
+        ],
+        "executors_found": 0,
+        "enum_only": true
+      },
+      "note": "全 src 树中不存在任何按三条路径分支并实际执行检索的函数；只有 PathwayType 枚举 + 回执/策略模型 + 蒸馏器。⇒ 三条路径从未被真正执行过，工单要求的『对比执行器』缺失。"
+    },
+    {
+      "gate_id": "G06b",
+      "order": "Agent-06",
+      "title": "执行力缺失的旁证：导入却从未使用的执行机器",
+      "requirement": "工单铁律：严禁占位符",
+      "verdict": "FAIL",
+      "measured": {
+        "unused_imports": [
+          "Any",
+          "OperationRequest",
+          "Optional",
+          "SourceClass",
+          "Tuple",
+          "WorldOperatorSuite",
+          "estimate_token_count",
+          "new_operation_id"
+        ],
+        "critical_unused": [
+          "OperationRequest",
+          "SourceClass",
+          "WorldOperatorSuite",
+          "estimate_token_count",
+          "new_operation_id"
+        ],
+        "unused_count": 8
+      },
+      "note": "导入了真正执行/计量所需的机器却从未使用：['OperationRequest', 'SourceClass', 'WorldOperatorSuite', 'estimate_token_count', 'new_operation_id'] ⇒ 执行器是计划中而未落笔的强旁证。"
+    },
+    {
+      "gate_id": "G06c",
+      "order": "Agent-06",
+      "title": "『≤500 Token / 准确率 100%』是实测还是声明",
+      "requirement": "工单：将 Token 由 15,000~50,000 压缩至 500 以内，准确率 100%",
+      "verdict": "FAIL",
+      "measured": {
+        "expected_tokens": 350,
+        "expected_accuracy": 1.0,
+        "expected_latency_ms": 25.0,
+        "sample_size": 1,
+        "preferred_pathway": "hierarchical_topo"
+      },
+      "note": "在**零实测回执**的情况下，蒸馏器直接返回 expected_tokens=350 / accuracy=1.0 / latency=25.0，并把它作为 sample_size=1 的『经验』持久化入库 ⇒ 台账与测试里那个 ≤500 Token、100% 准确率来自代码常量，不是任何一次真实检索的测量值。"
+    },
+    {
+      "gate_id": "G07a",
+      "order": "Agent-07",
+      "title": "门槛二：30 天试用期内预测准确率 ≥70%",
+      "requirement": "工单：候选维度必须在 30 天内提供连续认知解释力与成功预测（Prediction 准确率 ≥70%），否则自动失效",
+      "verdict": "FAIL",
+      "measured": {
+        "accuracy": 0.1,
+        "successes": 1,
+        "attempts": 10,
+        "final_status": "REGISTERED",
+        "source_predicate": "predictions_validated <= 0"
+      },
+      "note": "准确率 10%（1 成功 / 9 失败）的候选维度在 31 天后被**放行注册为 REGISTERED**。源码判据是 `predictions_validated <= 0` 才拒绝 ⇒ 实际门槛是『至少成功过 1 次』，工单要求的 ≥70% 准确率**未实现**。"
+    },
+    {
+      "gate_id": "G07b",
+      "order": "Agent-07",
+      "title": "门槛二：未达标自动失效 EXPIRED",
+      "requirement": "工单：30 天内未达标 ⇒ 自动失效（EXPIRED）",
+      "verdict": "FAIL",
+      "measured": {
+        "status_members": [
+          "UNINIT",
+          "PROPOSED",
+          "CANDIDATE",
+          "REGISTERED",
+          "REJECTED"
+        ],
+        "has_EXPIRED": false,
+        "auto_expire_logic": false
+      },
+      "note": "DimensionStatus 枚举成员 = ['UNINIT', 'PROPOSED', 'CANDIDATE', 'REGISTERED', 'REJECTED']，**没有 EXPIRED**；且全模块无任何自动失效推进逻辑。⇒ 工单要求的『30 天未达标自动失效』完全缺失：不达标的候选维度会永久停留在 CANDIDATE。"
+    },
+    {
+      "gate_id": "G07c",
+      "order": "Agent-07",
+      "title": "门槛三：每日反思配额 1 次，超额抛 QuotaExceededBlockError",
+      "requirement": "工单：超额直接抛出 QuotaExceededBlockError",
+      "verdict": "FAIL",
+      "measured": {
+        "second_reflection_blocked": true,
+        "exception_type": "ValueError",
+        "required_type": "QuotaExceededBlockError",
+        "QuotaExceededBlockError_defined": false
+      },
+      "note": "配额确实拦住了同日第二次反思，但抛出的是 **ValueError** 而非工单要求的 `QuotaExceededBlockError`（该类型在模块中不存在）⇒ 调用方无法按类型捕获，『超额直接抛出 QuotaExceededBlockError』不成立。"
+    },
+    {
+      "gate_id": "G07d",
+      "order": "Agent-07",
+      "title": "高阶维度提炼器与工单点名的两个维度",
+      "requirement": "工单：实现 HighOrderDimensionDistiller，提炼 DIM_BURNOUT_RISK（过劳猝死风险）、DIM_CREDIT_RISK（老王信用破产）并挂载只读标签",
+      "verdict": "FAIL",
+      "measured": {
+        "named_dimensions_found": [],
+        "distiller_class_exists": true,
+        "distill_body": "def distill(self, name: str, current_time: datetime.datetime) -> Optional[DimensionState]:\n    try:\n        self.state_machine.propose_dimension(name, current_time)\n        return self.state_machine.dimensions.get(name)\n    except ValueError as e:\n        return None",
+        "swallows_exception": true
+      },
+      "note": "工单点名的 DIM_BURNOUT_RISK / DIM_CREDIT_RISK 在全 src 树中不存在；distill() 只是 propose_dimension 的薄包装，无任何『高阶提炼』逻辑（不做跨维度组合、不做解释力评估）；distill() 吞掉 ValueError 后返回 None ⇒ 门限未达、重名、状态错误等不同失败被压成同一个 None，不可诊断"
+    },
+    {
+      "gate_id": "G07e",
+      "order": "Agent-07",
+      "title": "挂载的维度标签是否真的只读",
+      "requirement": "工单：提炼出的高阶维度挂载**只读**标签",
+      "verdict": "FAIL",
+      "measured": {
+        "tags_before": [
+          "DIM_X"
+        ],
+        "tags_after": [],
+        "mutation_blocked": false
+      },
+      "note": "标签挂载后调用方可以随意 discard/clear（实测成功清空）⇒ 所谓『只读标签』只是注释里的声明，无任何强制（既非 frozen dataclass、也非只读视图、也无校验）。篡改已注册维度标签不会被拦截。"
+    },
+    {
+      "gate_id": "G08a",
+      "order": "Agent-08",
+      "title": "姿态决策是否真的使用羁绊档位",
+      "requirement": "工单：根据当前事件紧急度**与羁绊**精准决策 SILENCE / HAPTIC_NUDGE / CRITICAL_SPOKEN",
+      "verdict": "FAIL",
+      "measured": {
+        "posture_by_tier": {
+          "STRANGER_RESPECT": "HAPTIC_NUDGE",
+          "FAMILIAR_COMPANION": "HAPTIC_NUDGE",
+          "TRUSTED_WINGMAN": "HAPTIC_NUDGE"
+        },
+        "distinct_outcomes": 1,
+        "decide_posture_references_rapport": false
+      },
+      "note": "同一事件在三档羁绊下姿态完全相同（{'STRANGER_RESPECT': 'HAPTIC_NUDGE', 'FAMILIAR_COMPANION': 'HAPTIC_NUDGE', 'TRUSTED_WINGMAN': 'HAPTIC_NUDGE'}），且 decide_posture 函数体内**从未引用 self.rapport_model**（构造函数接收并保存了它，却不用）⇒ 工单要求的『与羁绊』维度实际未参与决策，是装饰性依赖。"
+    },
+    {
+      "gate_id": "G08b",
+      "order": "Agent-08",
+      "title": "测试场景字面量是否被写进产品代码（打表）",
+      "requirement": "工单铁律：严禁占位符；测试须验证『老王借款与突发早搏时毫不犹豫直言』",
+      "verdict": "FAIL",
+      "measured": {
+        "literal_hits": [
+          {
+            "line": 63,
+            "literal": "老王借款",
+            "matched": "老王借款"
+          },
+          {
+            "line": 63,
+            "literal": "老王借款",
+            "matched": "老王"
+          },
+          {
+            "line": 63,
+            "literal": "早搏",
+            "matched": "早搏"
+          }
+        ],
+        "source_file": "src/aios_core/cognition/self_reflection.py"
+      },
+      "note": "产品代码里出现测试场景的字面量关键词 [{'line': 63, 'literal': '老王借款', 'matched': '老王借款'}, {'line': 63, 'literal': '老王借款', 'matched': '老王'}, {'line': 63, 'literal': '早搏', 'matched': '早搏'}] ⇒ 姿态决策对该场景『果断直言』不是因为理解了紧急度，而是因为代码里写了这两个词。换任何未在关键词表里的等价表述（如『老张想借钱』『室性早搏』）都会退化为 SILENCE。"
+    },
+    {
+      "gate_id": "G08c",
+      "order": "Agent-08",
+      "title": "SelfIdentityMirror 是否真的『审视』铁律与底线",
+      "requirement": "工单：心智启动时首先**审视**四项铁律与认知底线（绝对诚实、生死第一、不废话）",
+      "verdict": "FAIL",
+      "measured": {
+        "reflect_body": "def reflect(self) -> Dict[str, Any]:\n    return {'identity': self.core_identity, 'principles': self.principles, 'boundaries': self.cognitive_boundaries}",
+        "returns_constant_only": true,
+        "performs_any_check": false
+      },
+      "note": "reflect() 的函数体只有一条 return，返回 __init__ 里写死的常量字典；无任何比对、校验、违规检测。⇒ 『镜面』不照任何东西：它不会发现当前心智状态违反铁律，只是把四条原则字符串复述一遍。"
+    },
+    {
+      "gate_id": "G09a",
+      "order": "Agent-09",
+      "title": "三个推演器是否接收世界状态并调取检索",
+      "requirement": "工单：调取多维心智搜索，比对 2023丝巾/2024足浴盆闲置倒水腰疼/2025按摩椅好评/2026膝盖受凉，精准推荐",
+      "verdict": "FAIL",
+      "measured": {
+        "per_class": {
+          "MomBirthdayGiftAdvisor": {
+            "exists": true,
+            "advise_params": [],
+            "param_count": 0,
+            "calls_retrieval": false,
+            "body_chars": 421
+          },
+          "FraudPreventionAdvisor": {
+            "exists": true,
+            "advise_params": [],
+            "param_count": 0,
+            "calls_retrieval": false,
+            "body_chars": 317
+          },
+          "HealthFatigueBreakerAdvisor": {
+            "exists": true,
+            "advise_params": [],
+            "param_count": 0,
+            "calls_retrieval": false,
+            "body_chars": 320
+          }
+        }
+      },
+      "note": "['MomBirthdayGiftAdvisor', 'FraudPreventionAdvisor', 'HealthFatigueBreakerAdvisor'] 的 advise() **不接收任何输入**（参数只有 self），函数体内**没有任何检索调用**，直接 return 写死的结论字符串 ⇒ 工单要求的『调取多维心智搜索、比对四年观测』完全未实现；输出与用户真实世界状态无关，改变 store 内容不会改变建议。"
+    },
+    {
+      "gate_id": "G09b",
+      "order": "Agent-09",
+      "title": "因果证据指针 ObjectRef 是否确凿可核验",
+      "requirement": "工单：所有建议必须携带**确凿的**因果证据指针 ObjectRef，**严禁凭空编造**",
+      "verdict": "FAIL",
+      "measured": {
+        "total_refs": 8,
+        "unverifiable_count": 0,
+        "only_in_tests_count": 8,
+        "unverifiable_ids": [],
+        "only_in_tests_ids": [
+          "obs_2023_scarf_idle",
+          "obs_2024_footbath_backache",
+          "obs_2025_massage_chair_good",
+          "obs_2026_knee_cold",
+          "court_ruling_chaoyang_fraud",
+          "obs_2_years_ago_wechat_delay",
+          "obs_thursday_overnight_work",
+          "obs_pvc_arrhythmia"
+        ],
+        "refs": [
+          {
+            "object_id": "obs_2023_scarf_idle",
+            "line": 16,
+            "found_in_data_or_fixtures": [],
+            "found_in_src": [],
+            "found_only_in_tests": [
+              "tests/cognition/test_symbiotic_advisor.py"
+            ]
+          },
+          {
+            "object_id": "obs_2024_footbath_backache",
+            "line": 17,
+            "found_in_data_or_fixtures": [],
+            "found_in_src": [],
+            "found_only_in_tests": [
+              "tests/cognition/test_symbiotic_advisor.py"
+            ]
+          },
+          {
+            "object_id": "obs_2025_massage_chair_good",
+            "line": 18,
+            "found_in_data_or_fixtures": [],
+            "found_in_src": [],
+            "found_only_in_tests": [
+              "tests/cognition/test_symbiotic_advisor.py"
+            ]
+          },
+          {
+            "object_id": "obs_2026_knee_cold",
+            "line": 19,
+            "found_in_data_or_fixtures": [],
+            "found_in_src": [],
+            "found_only_in_tests": [
+              "tests/cognition/test_symbiotic_advisor.py"
+            ]
+          },
+          {
+            "object_id": "court_ruling_chaoyang_fraud",
+            "line": 30,
+            "found_in_data_or_fixtures": [],
+            "found_in_src": [],
+            "found_only_in_tests": [
+              "tests/cognition/test_symbiotic_advisor.py"
+            ]
+          },
+          {
+            "object_id": "obs_2_years_ago_wechat_delay",
+            "line": 31,
+            "found_in_data_or_fixtures": [],
+            "found_in_src": [],
+            "found_only_in_tests": [
+              "tests/cognition/test_symbiotic_advisor.py"
+            ]
+          },
+          {
+            "object_id": "obs_thursday_overnight_work",
+            "line": 42,
+            "found_in_data_or_fixtures": [],
+            "found_in_src": [],
+            "found_only_in_tests": [
+              "tests/cognition/test_symbiotic_advisor.py"
+            ]
+          },
+          {
+            "object_id": "obs_pvc_arrhythmia",
+            "line": 43,
+            "found_in_data_or_fixtures": [],
+            "found_in_src": [],
+            "found_only_in_tests": [
+              "tests/cognition/test_symbiotic_advisor.py"
+            ]
+          }
+        ]
+      },
+      "note": "8/8 个证据指针**无法在数据面核验**：['obs_2023_scarf_idle', 'obs_2024_footbath_backache', 'obs_2025_massage_chair_good', 'obs_2026_knee_cold', 'court_ruling_chaoyang_fraud', 'obs_2_years_ago_wechat_delay', 'obs_thursday_overnight_work', 'obs_pvc_arrhythmia']（其中 0 个全仓库查无此物，8 个只出现在断言同一常量的测试文件里）。⇒ 它们不是指向真实观测的指针，而是凭空写出的字符串常量，正好命中工单明令禁止的『凭空编造』；且没有任何代码在返回前核验这些 id 是否存在于世界库。"
+    },
+    {
+      "gate_id": "G09c",
+      "order": "Agent-09",
+      "title": "建议是否随世界状态变化（打表判定）",
+      "requirement": "工单：调取检索、比对历史观测后给出精准推荐",
+      "verdict": "FAIL",
+      "measured": {
+        "per_class": {
+          "MomBirthdayGiftAdvisor": {
+            "identical_across_calls": true,
+            "conclusion_chars": 35,
+            "evidence_pointer_count": 4
+          },
+          "FraudPreventionAdvisor": {
+            "identical_across_calls": true,
+            "conclusion_chars": 28,
+            "evidence_pointer_count": 2
+          },
+          "HealthFatigueBreakerAdvisor": {
+            "identical_across_calls": true,
+            "conclusion_chars": 28,
+            "evidence_pointer_count": 2
+          }
+        }
+      },
+      "note": "三个推演器重复调用输出完全一致，且不接受任何世界状态输入 ⇒ 输出是常量表。『推演』不存在：没有检索、没有比对、没有因果链计算，只有预先写好的答案。"
+    },
+    {
+      "gate_id": "G10a",
+      "order": "Agent-10",
+      "title": "工单点名的交付物路径是否存在",
+      "requirement": "工单：交付 src/aios_core/simulation/agent_mind_bench.py 与 tests/simulation/test_agent_mind_bench.py",
+      "verdict": "FAIL",
+      "measured": {
+        "missing": [
+          "src/aios_core/simulation/agent_mind_bench.py",
+          "tests/simulation/test_agent_mind_bench.py"
+        ],
+        "actual_simulation_files": [
+          "src/aios_core/simulation/__init__.py",
+          "src/aios_core/simulation/headless_life_driver.py",
+          "src/aios_core/simulation/massive_life_bench.py"
+        ]
+      },
+      "note": "工单点名的交付物缺失：['src/aios_core/simulation/agent_mind_bench.py', 'tests/simulation/test_agent_mind_bench.py']；实际落地的是 ['src/aios_core/simulation/__init__.py', 'src/aios_core/simulation/headless_life_driver.py', 'src/aios_core/simulation/massive_life_bench.py'] ⇒ 文件名与工单不符，台账与验收无法按工单路径对账。"
+    },
+    {
+      "gate_id": "G10b",
+      "order": "Agent-10",
+      "title": "战训考场四项核心能力是否存在",
+      "requirement": "工单：AgentMindArena 让目标 Agent 独立进驻，自主调用 search_mind / distill_dimension / decide_posture / advise_decision；自动统计 Token 预算使用率、证据检索命中率、人设分寸感得分、五大铁律违宪检查（篡改历史一票否决、P0调用大模型一票否决）；自动生成《AIOS 3.0 共生心智操作全景体检报告》并持久化到经验库",
+      "verdict": "FAIL",
+      "measured": {
+        "capability_matrix": {
+          "AgentMindArena 类": {
+            "in_delivered_bench": false,
+            "anywhere_in_src": false
+          },
+          "自主调用 search_mind": {
+            "in_delivered_bench": false,
+            "anywhere_in_src": true
+          },
+          "自主调用 distill_dimension": {
+            "in_delivered_bench": false,
+            "anywhere_in_src": false
+          },
+          "自主调用 decide_posture": {
+            "in_delivered_bench": false,
+            "anywhere_in_src": true
+          },
+          "自主调用 advise_decision": {
+            "in_delivered_bench": false,
+            "anywhere_in_src": false
+          },
+          "Token 预算使用率": {
+            "in_delivered_bench": false,
+            "anywhere_in_src": true
+          },
+          "证据检索命中率": {
+            "in_delivered_bench": false,
+            "anywhere_in_src": false
+          },
+          "人设分寸感得分": {
+            "in_delivered_bench": false,
+            "anywhere_in_src": false
+          },
+          "违宪检查/一票否决": {
+            "in_delivered_bench": false,
+            "anywhere_in_src": true
+          },
+          "全景体检报告生成": {
+            "in_delivered_bench": false,
+            "anywhere_in_src": false
+          }
+        },
+        "missing_capabilities": [
+          "AgentMindArena 类",
+          "自主调用 distill_dimension",
+          "自主调用 advise_decision",
+          "证据检索命中率",
+          "人设分寸感得分",
+          "全景体检报告生成"
+        ],
+        "delivered_classes": [
+          [
+            "MassiveBenchStats",
+            []
+          ],
+          [
+            "MassiveLifeBenchGenerator",
+            [
+              "__init__",
+              "generate_world_dataset"
+            ]
+          ]
+        ]
+      },
+      "note": "工单要求的 10 项能力中 6 项在全 src 树中完全不存在：['AgentMindArena 类', '自主调用 distill_dimension', '自主调用 advise_decision', '证据检索命中率', '人设分寸感得分', '全景体检报告生成']。实际交付的 massive_life_bench.py 只含 [('MassiveBenchStats', []), ('MassiveLifeBenchGenerator', ['__init__', 'generate_world_dataset'])] ⇒ 那是『世界发生器』，不是『让 Agent 进驻并自主调用四大能力的战训考场』，也没有评分、违宪检查与体检报告。"
+    },
+    {
+      "gate_id": "G11",
+      "order": "台账",
+      "title": "台账 CLOSED 声称与本探针实测是否一致",
+      "requirement": "台账 docs/specifications/TASK_PROGRESS_V3.md 将 #7/#8/#9 记为 CLOSED (n/n PASS)",
+      "verdict": "FAIL",
+      "measured": {
+        "ledger_claims": {
+          "M5-001": {
+            "slug": "SEARCH",
+            "is_closed": true,
+            "claimed": "8/8 PASS",
+            "line": "| **#6** | C06 查询 | `TASK-M5-001-SEARCH` | 多维心智检索总线原生四大维度（维度/主张/实体/注记）联合精准检索 | **CLOSED (8/8 PASS)** | `src/aios_core/query/search.py`<br>`src/aios_core/operations/world_operator.py`<br>`tests/query/test_multidimensional"
+          },
+          "M5-002": {
+            "slug": "DIM-LIFECYCLE",
+            "is_closed": true,
+            "claimed": "3/3 PASS",
+            "line": "| **#7** | C03 认知 | `TASK-M5-002-DIM-LIFECYCLE` | 维度生命周期（跨域3天/试用30天/每日1次反思配额）与高阶提炼挂载 | **CLOSED (3/3 PASS)** | `src/aios_core/cognition/dimension_engine.py`<br>`tests/cognition/test_dimension_lifecycle.py` |"
+          },
+          "M5-003": {
+            "slug": "RAPPORT-MIRROR",
+            "is_closed": true,
+            "claimed": "7/7 PASS",
+            "line": "| **#8** | C08 人设 | `TASK-M5-003-RAPPORT-MIRROR` | AI 自我镜面审视、动态羁绊与像人三档姿态决策机 | **CLOSED (7/7 PASS)** | `src/aios_core/cognition/self_reflection.py`<br>`tests/cognition/test_self_reflection.py` |"
+          },
+          "M5-004": {
+            "slug": "ACTION-ADVISOR",
+            "is_closed": true,
+            "claimed": "3/3 PASS",
+            "line": "| **#9** | C05 决策 | `TASK-M5-004-ACTION-ADVISOR` | 共生决策推演引擎（送礼推演/老王防诈阻击/早搏熔断，带因果证据引用） | **CLOSED (3/3 PASS)** | `src/aios_core/cognition/symbiotic_advisor.py`<br>`tests/cognition/test_symbiotic_advisor.py` |"
+          },
+          "M5-005": {
+            "slug": "AGENT-ARENA",
+            "is_closed": false,
+            "claimed": "EXECUTING",
+            "line": "| **#10**| 考场评测 | `TASK-M5-005-AGENT-ARENA` | 独立 Agent 虚拟人生千人千面战训考场与全景诊断器 | **EXECUTING** | 派发云端大兵团多 Agent 战队并发实测与经验沉淀 |"
+          }
+        },
+        "contradictions": [
+          {
+            "ledger_id": "M5-001",
+            "claimed": "CLOSED (8/8 PASS)",
+            "probe_failed_gates": [
+              "G06a",
+              "G06b",
+              "G06c"
+            ],
+            "failed_count": 3
+          },
+          {
+            "ledger_id": "M5-002",
+            "claimed": "CLOSED (3/3 PASS)",
+            "probe_failed_gates": [
+              "G07a",
+              "G07b",
+              "G07c",
+              "G07d",
+              "G07e"
+            ],
+            "failed_count": 5
+          },
+          {
+            "ledger_id": "M5-003",
+            "claimed": "CLOSED (7/7 PASS)",
+            "probe_failed_gates": [
+              "G08a",
+              "G08b",
+              "G08c"
+            ],
+            "failed_count": 3
+          },
+          {
+            "ledger_id": "M5-004",
+            "claimed": "CLOSED (3/3 PASS)",
+            "probe_failed_gates": [
+              "G09a",
+              "G09b",
+              "G09c"
+            ],
+            "failed_count": 3
+          }
+        ]
+      },
+      "note": "4 条台账 CLOSED 声称与本探针实测矛盾：[{'ledger_id': 'M5-001', 'claimed': 'CLOSED (8/8 PASS)', 'probe_failed_gates': ['G06a', 'G06b', 'G06c'], 'failed_count': 3}, {'ledger_id': 'M5-002', 'claimed': 'CLOSED (3/3 PASS)', 'probe_failed_gates': ['G07a', 'G07b', 'G07c', 'G07d', 'G07e'], 'failed_count': 5}, {'ledger_id': 'M5-003', 'claimed': 'CLOSED (7/7 PASS)', 'probe_failed_gates': ['G08a', 'G08b', 'G08c'], 'failed_count': 3}, {'ledger_id': 'M5-004', 'claimed': 'CLOSED (3/3 PASS)', 'probe_failed_gates': ['G09a', 'G09b', 'G09c'], 'failed_count': 3}] ⇒ 『测试全绿』被当成了『工单硬门禁成立』。台账按测试通过数记账，而测试断言的是场景常量，不是工单的门槛语义。"
+    }
+  ]
+}

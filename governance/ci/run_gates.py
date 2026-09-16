@@ -78,6 +78,12 @@ AUDIT_ARTIFACTS = [ARCH_EVIDENCE / "verify_landed_m1_017_cjk_1m_result.json",
 # 指向修复前的源码字节状态（工作树中已不存在），双向溯源必然不符。它作为 HISTORICAL 证据
 # 进 SHA256SUMS（防篡改），但不参与"当前代码"的溯源校验——这正是三态规则里"历史运行"的处置方式。
 HISTORICAL_AUDIT_ARTIFACTS = [ARCH_EVIDENCE / "verify_landed_m1_001r_edge_PREFIX_historical_result.json"]
+# 跨 ref 被审对象（M5 批次 / Agent-06~10）：被审代码在 origin/aios-2.0 的**单个孤儿提交** 582e187 上，
+# 与本分支**无共同祖先**，本工作树不含这些 M5 文件 ⇒ CG-1 的"被测源码工作树比对"不适用。
+# 三态规则的延伸处置：不做工作树比对，但必须①探针脚本哈希自洽（改动后必须重跑）②工件记录被审提交号
+# 与逐文件 sha256 ③**验证被审 src/ 文件确实不在本树**——一旦它们被集成进来，本工件必须改走
+# AUDIT_ARTIFACTS 的工作树双向溯源，否则会出现"用跨 ref 的旧数字描述本树新代码"的漏洞。
+CROSS_REF_AUDIT_ARTIFACTS = [ARCH_EVIDENCE / "verify_landed_m5_batch_result.json"]
 DISPATCH_REGISTRY = REPO / "governance/dispatches/TASK_DISPATCH_REGISTRY.md"
 CI_EVIDENCE = REPO / "governance/ci/evidence"
 
@@ -122,6 +128,11 @@ MANIFEST_FILES = [
     "reviews/architecture/evidence/verify_landed_m1_001r_edge_PREFIX_historical_result.json",
     "reviews/architecture/evidence/verify_landed_m1_001r_edge_PREFIX_historical.log",
     "reviews/architecture/AIOS_Core_as_built_审查报告_M1_001R_端侧摄入与声纹TTL_2026-09-16.md",
+    # --- as-built 审查（M5 批次：Agent-06~10 五张工单，被审对象在 origin/aios-2.0 跨 ref）---
+    "reviews/architecture/evidence/verify_landed_m5_batch.py",
+    "reviews/architecture/evidence/verify_landed_m5_batch_result.json",
+    "reviews/architecture/evidence/verify_landed_m5_batch.log",
+    "reviews/architecture/AIOS_Core_as_built_审查报告_M5批次_Agent06_10五张工单_2026-09-16.md",
 ]
 # 自测结果 JSON 同样**不进清单**：它由自测自身重写，被哈希就会形成"写→不符→再写"的自指回路。
 # 它作为运行记录入库（内容字节确定性，便于 diff），完整性由 git 与 PROVENANCE.json 保证。
@@ -344,6 +355,69 @@ def cg1_provenance(rep: Report) -> dict:
             rep.fail("CG-1", f"审计探针溯源断裂：{art.name} 由 {str(prov.get('script_sha256'))[:12]}… 产出，"
                              f"当前探针 {probe_path.name} 为 {audit_probe_sha[:12]}… ⇒ 探针改动后未重跑")
         out["audit_artifacts"].append(rec)
+
+    # 跨 ref 审计工件（被审对象在另一条 ref 上）：只校验探针完整性 + 被审提交/逐文件哈希 + 未迁移进本树
+    out["cross_ref_audit_artifacts"] = []
+    for art in CROSS_REF_AUDIT_ARTIFACTS:
+        if not art.exists():
+            rep.fail("CG-1", f"缺少跨 ref 审计工件：{art.name}")
+            continue
+        try:
+            data = json.loads(art.read_text(encoding="utf-8"))
+        except Exception as exc:
+            rep.fail("CG-1", f"跨 ref 审计工件不可解析：{art.name}（{exc}）")
+            continue
+        prov = data.get("provenance") or {}
+        probe_path, probe_source = _resolve_audit_probe(art, prov)
+        if probe_path is None:
+            rep.fail("CG-1", f"无法定位跨 ref 审计工件的探针脚本：{art.name}"
+                             f"（provenance.probe_script={prov.get('probe_script')!r}）")
+            continue
+        actual_probe_sha = sha256_file(probe_path)
+        rec = {"artifact": art.name, "sha256": sha256_file(art),
+               "probe_script": str(probe_path.relative_to(REPO)),
+               "probe_script_resolved_by": probe_source,
+               "probe_version": prov.get("probe_version"),
+               "script_sha256_in_artifact": prov.get("script_sha256"),
+               "script_sha256_actual": actual_probe_sha,
+               "subject_commit": prov.get("subject_commit"),
+               "subject_availability": prov.get("subject_availability"),
+               "subject_file_count": len(data.get("subject_file_sha256") or {}),
+               "verdict": data.get("verdict"),
+               "gate_pass": data.get("pass"), "gate_fail": data.get("fail")}
+        if prov.get("script_sha256") != actual_probe_sha:
+            rep.fail("CG-1", f"跨 ref 审计探针溯源断裂：{art.name} 由 {str(prov.get('script_sha256'))[:12]}… 产出，"
+                             f"当前探针 {probe_path.name} 为 {actual_probe_sha[:12]}… ⇒ 探针改动后未重跑")
+        if not prov.get("subject_commit") or not data.get("subject_file_sha256"):
+            rep.fail("CG-1", f"跨 ref 审计工件缺被审提交号或逐文件哈希 ⇒ 不可溯源：{art.name}")
+        # 按字节哈希三态判定（V3G-022）：
+        #   identical  = 同一份字节已落地本树 ⇒ 必须重跑探针、改走工作树双向溯源（打红）
+        #   divergent  = 本树是**另一份**交付 ⇒ 工件数字只描述其 subject_commit 快照，高声记录但不得打红
+        #   absent     = 本树没有该文件（跨 ref 审查的常态）
+        identical, divergent, absent = [], [], []
+        for f, h in sorted((data.get("subject_file_sha256") or {}).items()):
+            if not f.startswith("src/"):
+                continue
+            lp = REPO / f
+            if not lp.exists():
+                absent.append(f)
+            elif sha256_file(lp) == h:
+                identical.append(f)
+            else:
+                divergent.append(f)
+        rec["subject_src_identical_bytes_in_this_tree"] = identical
+        rec["subject_src_divergent_bytes_in_this_tree"] = divergent
+        rec["subject_src_absent_from_this_tree"] = absent
+        if identical:
+            rep.fail("CG-1", f"跨 ref 审计工件的被审源文件已以**相同字节**进入本工作树（{identical}）⇒ "
+                             f"必须重跑探针并改走 AUDIT_ARTIFACTS 的工作树双向溯源，"
+                             f"否则会用跨 ref 旧数字描述本树代码：{art.name}")
+        if divergent:
+            rep.note(f"CG-1 跨 ref **分叉交付**：{art.name} 的被审源文件在本树存在不同字节版本"
+                     f"（{len(divergent)} 个：{divergent}）⇒ 该工件的实测数只描述 "
+                     f"subject_commit={str(prov.get('subject_commit'))[:12]}… 的快照，"
+                     f"**不得**用于描述本树代码；两份分叉交付已登记 V3G-022，本树版本须另行重审")
+        out["cross_ref_audit_artifacts"].append(rec)
 
     rep.sections["CG-1"] = out
     return out
@@ -869,7 +943,9 @@ def main() -> int:
               f"{rep.sections.get('CG-1', {}).get('sums_files', 0)} 哈希核对通过；"
               f"{len(rep.sections.get('CG-1', {}).get('artifacts', []))} 个设计探针工件 + "
               f"{len(rep.sections.get('CG-1', {}).get('audit_artifacts', []))} 份 as-built 审计工件"
-              f"（探针哈希 + 被测源码哈希双向溯源）已核对")
+              f"（探针哈希 + 被测源码哈希双向溯源）+ "
+              f"{len(rep.sections.get('CG-1', {}).get('cross_ref_audit_artifacts', []))} 份跨 ref 审计工件"
+              f"（被审代码在另一条 ref ⇒ 探针哈希 + 被审提交号 + 逐文件哈希溯源）已核对")
         c2 = rep.sections.get("CG-2", {})
         print(f"CG-2 编号门   : checker={c2.get('gate')} registry={c2.get('registry_version')} "
               f"RC 条目 {c2.get('rc_entries')} / alias {c2.get('aliases')}")
