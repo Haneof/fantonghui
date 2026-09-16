@@ -1,0 +1,165 @@
+{
+ "solver_agent": "01a0aa2d-fantonghui",
+ "generator_agent": "fantonghui",
+ "split": "v1baseline",
+ "n_questions": 1000,
+ "kb_enabled": false,
+ "avg_final_score": 30.97,
+ "pass_rate": 0.035,
+ "avg_direction_match": 0.0845,
+ "avg_entity_recall": 0.0696,
+ "avg_junk_prune": 1.0,
+ "avg_dimension_accuracy": 0.0845,
+ "total_hallucination": 0,
+ "p0_questions": 775,
+ "p0_max_exec_ms": 1.506,
+ "solver_wall_time_s": 0.1,
+ "error_attribution": {
+  "INTENT_DRIFT": {
+   "count": 1822,
+   "rate": 1.822,
+   "examples": [
+    [
+     "Q_fantonghui_06001",
+     "遗漏/偏离事实: fact_02 (佩戴者心率骤降伴失衡下沉，疑似窦性停搏晕厥前兆须立即平卧呼救)"
+    ],
+    [
+     "Q_fantonghui_06002",
+     "遗漏/偏离事实: fact_01 (佩戴者拿到DNA报告证实孩子与己无关，决定与汤志强摊牌并咨询离婚与抚养追偿)"
+    ],
+    [
+     "Q_fantonghui_06002",
+     "遗漏/偏离事实: fact_02 (汤志强发送承诺后2分钟内撤回并私聊辩称手滑发错，涉嫌销毁证据)"
+    ],
+    [
+     "Q_fantonghui_06003",
+     "遗漏/偏离事实: fact_01 (投资人张彦博依据对赌协议要求佩戴者个人连带清偿200万元，佩戴者拟协商展期或应诉)"
+    ],
+    [
+     "Q_fantonghui_06003",
+     "遗漏/偏离事实: fact_02 (佩戴者否认不适实则胸闷疑似心梗，须一票否决其乐观说辞并送医)"
+    ],
+    [
+     "Q_fantonghui_06004",
+     "遗漏/偏离事实: fact_01 (遛狗不拴绳引发幼童受伤纠纷，佩戴者要求林佩珊道歉赔偿并承诺今后规范养犬)"
+    ],
+    [
+     "Q_fantonghui_06004",
+     "遗漏/偏离事实: fact_02 (佩戴者心率骤降伴失衡下沉，疑似窦性停搏晕厥前兆须立即平卧呼救)"
+    ],
+    [
+     "Q_fantonghui_06005",
+     "遗漏/偏离事实: fact_02 (IMU仅记录轻微顺势躺倒无碰撞波峰，黄璇玑却大声呼痛索赔18万元，疑似碰瓷诈伤)"
+    ]
+   ]
+  }
+ },
+ "intent_confusion_top": [
+  [
+   [
+    "CARDIAC_BURST|dim:health",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   119
+  ],
+  [
+   [
+    "FALL_INJURY_ALERT|dim:health",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   117
+  ],
+  [
+   [
+    "FAKE_TRANSFER_COUNTER|dim:finance",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   115
+  ],
+  [
+   [
+    "PROMISE_RETRACT_REVERSAL|dim:social",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   113
+  ],
+  [
+   [
+    "FAKE_FALL_FRAUD|dim:finance",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   104
+  ],
+  [
+   [
+    "BRADYCARDIA_SYNCOPE|dim:health",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   90
+  ],
+  [
+   [
+    "EVIDENCE_RECALL_COVER|dim:social",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   71
+  ],
+  [
+   [
+    "MI_DENIAL_CRITICAL|dim:health",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   35
+  ],
+  [
+   [
+    "WAGE_ARREARS_IRONY|dim:finance",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   33
+  ],
+  [
+   [
+    "MEDICAL_DISPUTE_PUSH|dim:career",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   32
+  ],
+  [
+   [
+    "THESIS_BLIND_REVIEW|dim:career",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   32
+  ],
+  [
+   [
+    "LABOR_ARBITRATION|dim:career",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   31
+  ],
+  [
+   [
+    "NONCOMPETE_2M|dim:career",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   31
+  ],
+  [
+   [
+    "CUSTOMS_SEIZURE_LC|dim:career",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   31
+  ],
+  [
+   [
+    "CIVIL_SERVICE_REVIEW|dim:career",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   29
+  ]
+ ],
+ "miss_junk_top": []
+}

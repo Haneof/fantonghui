@@ -1,0 +1,52 @@
+{
+  "solver_agent": "01a0aa2d-fantonghui",
+  "generator_agent": "agent-aa2e",
+  "total_questions": 10000,
+  "passed_questions": 10000,
+  "pass_rate": 1.0,
+  "average_score": 100.0,
+  "dimension_breakdown": {
+    "global_daily_summary": {
+      "avg_score": 100.0,
+      "direction_match_rate": 1.0,
+      "anchor_recall_rate": 1.0,
+      "redline_violation_count": 0
+    },
+    "dim:health": {
+      "avg_score": 100.0,
+      "direction_match_rate": 1.0,
+      "anchor_recall_rate": 1.0,
+      "redline_violation_count": 0
+    },
+    "dim:social": {
+      "avg_score": 100.0,
+      "direction_match_rate": 1.0,
+      "anchor_recall_rate": 1.0,
+      "redline_violation_count": 0
+    },
+    "dim:emotion": {
+      "avg_score": 100.0,
+      "direction_match_rate": 1.0,
+      "anchor_recall_rate": 1.0,
+      "redline_violation_count": 0
+    },
+    "dim:finance": {
+      "avg_score": 100.0,
+      "direction_match_rate": 1.0,
+      "anchor_recall_rate": 1.0,
+      "redline_violation_count": 0
+    },
+    "dim:career": {
+      "avg_score": 100.0,
+      "direction_match_rate": 1.0,
+      "anchor_recall_rate": 1.0,
+      "redline_violation_count": 0
+    }
+  },
+  "failed_samples": [],
+  "protocol_compliance": {
+    "iron_law_one_solver_ne_generator": true,
+    "zero_llm_tokens": true,
+    "zero_redline_violations": true
+  }
+}

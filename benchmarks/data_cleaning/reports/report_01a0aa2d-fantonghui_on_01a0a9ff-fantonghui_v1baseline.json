@@ -1,0 +1,165 @@
+{
+ "solver_agent": "01a0aa2d-fantonghui",
+ "generator_agent": "01a0a9ff-fantonghui",
+ "split": "v1baseline",
+ "n_questions": 1000,
+ "kb_enabled": false,
+ "avg_final_score": 37.66,
+ "pass_rate": 0.091,
+ "avg_direction_match": 0.1878,
+ "avg_entity_recall": 0.1308,
+ "avg_junk_prune": 1.0,
+ "avg_dimension_accuracy": 0.1878,
+ "total_hallucination": 0,
+ "p0_questions": 875,
+ "p0_max_exec_ms": 1.105,
+ "solver_wall_time_s": 0.1,
+ "error_attribution": {
+  "INTENT_DRIFT": {
+   "count": 2343,
+   "rate": 2.343,
+   "examples": [
+    [
+     "Q_01a0a9ff-fantonghui_06001",
+     "遗漏/偏离事实: fact_01 (国家公职考试面试递补但政审突发情况需处理)"
+    ],
+    [
+     "Q_01a0a9ff-fantonghui_06001",
+     "遗漏/偏离事实: fact_02 (APP通知：【公司HR】您的考勤记录已更新，请确认下周五)"
+    ],
+    [
+     "Q_01a0a9ff-fantonghui_06001",
+     "遗漏/偏离事实: fact_03 (国考递补进面但政审出了问题，下周五前要补材料)"
+    ],
+    [
+     "Q_01a0a9ff-fantonghui_06002",
+     "遗漏/偏离事实: fact_01 (APP通知：【海关】您的外贸订单住建局被查扣，请配合查验)"
+    ],
+    [
+     "Q_01a0a9ff-fantonghui_06002",
+     "遗漏/偏离事实: fact_02 (仲裁庭上要和HR对质考勤记录 劳动仲裁)"
+    ],
+    [
+     "Q_01a0a9ff-fantonghui_06003",
+     "遗漏/偏离事实: fact_01 (核心外贸订单被海关查扣引发信用证承兑危机)"
+    ],
+    [
+     "Q_01a0a9ff-fantonghui_06003",
+     "遗漏/偏离事实: fact_02 (APP通知：【仲裁委】劳动仲裁开庭通知：下周一在车管所开庭)"
+    ],
+    [
+     "Q_01a0a9ff-fantonghui_06003",
+     "遗漏/偏离事实: fact_03 (外贸订单被海关扣了，信用证快到期得赶紧处理，甭跟额装糊涂)"
+    ]
+   ]
+  }
+ },
+ "intent_confusion_top": [
+  [
+   [
+    "PIPE_BACKFLOW_COMPENSATION|dim:life",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   130
+  ],
+  [
+   [
+    "CIVIL_SERVICE_INTERVIEW|dim:career",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   106
+  ],
+  [
+   [
+    "OVERSEAS_DRIVING_ACCIDENT|dim:life",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   104
+  ],
+  [
+   [
+    "LABOR_ARBITRATION_FORGED|dim:career",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   90
+  ],
+  [
+   [
+    "THESIS_BLIND_REVIEW|dim:career",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   85
+  ],
+  [
+   [
+    "CUSTOMS_ORDER_SEIZURE|dim:career",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   84
+  ],
+  [
+   [
+    "RENTAL_LEAK_DISPUTE|dim:life",
+    "ARGUMENT_CONFLICT|dim:social"
+   ],
+   77
+  ],
+  [
+   [
+    "NON_COMPETE_2M|dim:career",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   73
+  ],
+  [
+   [
+    "DECORATION_RUNAWAY|dim:finance",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   72
+  ],
+  [
+   [
+    "PARENT_CANCER_CONCEALED|dim:social",
+    "MEDICAL_APPOINTMENT|dim:health"
+   ],
+   67
+  ],
+  [
+   [
+    "USED_CAR_FLOODED|dim:life",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   60
+  ],
+  [
+   [
+    "INHERITANCE_DISPUTE|dim:finance",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   59
+  ],
+  [
+   [
+    "FINANCING_BET_FAILURE|dim:finance",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   53
+  ],
+  [
+   [
+    "SECOND_HAND_HOUSE_CHAIN|dim:finance",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   50
+  ],
+  [
+   [
+    "HIDDEN_MARITAL_ASSETS|dim:finance",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   50
+  ]
+ ],
+ "miss_junk_top": []
+}

@@ -1,0 +1,165 @@
+{
+ "solver_agent": "01a0aa2d-fantonghui",
+ "generator_agent": "fantonghui",
+ "split": "heldout",
+ "n_questions": 4000,
+ "kb_enabled": true,
+ "avg_final_score": 78.49,
+ "pass_rate": 0.4665,
+ "avg_direction_match": 0.7389,
+ "avg_entity_recall": 0.6989,
+ "avg_junk_prune": 1.0,
+ "avg_dimension_accuracy": 0.7389,
+ "total_hallucination": 249,
+ "p0_questions": 3135,
+ "p0_max_exec_ms": 2.377,
+ "solver_wall_time_s": 3.6,
+ "error_attribution": {
+  "INTENT_DRIFT": {
+   "count": 2254,
+   "rate": 0.5635,
+   "examples": [
+    [
+     "Q_fantonghui_06005",
+     "遗漏/偏离事实: fact_03 (佩戴者以隐语安排事项交接，强调保密并切断电话联系)"
+    ],
+    [
+     "Q_fantonghui_06007",
+     "遗漏/偏离事实: fact_01 (佩戴者50万元购入二手车经第三方检测实锤为泡水事故车，持报告上门找车商赖雅婷退车维权)"
+    ],
+    [
+     "Q_fantonghui_06010",
+     "遗漏/偏离事实: fact_02 (郭语嫣先在电话中答应下月15号协议离婚，两小时后短信反悔拒绝并威胁纠缠)"
+    ],
+    [
+     "Q_fantonghui_06011",
+     "遗漏/偏离事实: fact_02 (冯志强先在电话中答应下月15号协议离婚，两小时后短信反悔拒绝并威胁纠缠)"
+    ],
+    [
+     "Q_fantonghui_06012",
+     "遗漏/偏离事实: fact_01 (佩戴者发现配偶刘韵如私自将婚前房产过户并转移200万元存款，决定聘请律师取证并提起离婚财产分割诉讼)"
+    ],
+    [
+     "Q_fantonghui_06015",
+     "遗漏/偏离事实: fact_02 (洪承恩发送200万元转账截图但银行提示对方账户异常转账失败，截图系伪造或无效)"
+    ],
+    [
+     "Q_fantonghui_06018",
+     "遗漏/偏离事实: fact_01 (佩戴者投入12万元的虚拟币理财盘崩盘跑路提现失败，决定联合难友报警并向庄滢心追偿拉人头责任)"
+    ],
+    [
+     "Q_fantonghui_06019",
+     "遗漏/偏离事实: fact_02 (郑钰琪发送8万元转账截图但银行提示对方账户异常转账失败，截图系伪造或无效)"
+    ]
+   ]
+  }
+ },
+ "intent_confusion_top": [
+  [
+   [
+    "BIPOLAR_CRISIS|dim:health",
+    "SUICIDE_IDEATION_CRITICAL|dim:health"
+   ],
+   34
+  ],
+  [
+   [
+    "WORKPLACE_HARASSMENT|dim:social",
+    "CONCEALED_CANCER|dim:social"
+   ],
+   26
+  ],
+  [
+   [
+    "FAKE_TRANSFER_COUNTER|dim:finance",
+    "FAKE_TRANSFER_COUNTER|dim:finance"
+   ],
+   21
+  ],
+  [
+   [
+    "PROMISE_RETRACT_REVERSAL|dim:social",
+    "GOUT_TOPHUS_RUPTURE|dim:health"
+   ],
+   20
+  ],
+  [
+   [
+    "CHAIN_PROPERTY_BREACH|dim:finance",
+    "RENOVATION_RUNAWAY|dim:finance"
+   ],
+   18
+  ],
+  [
+   [
+    "PROMISE_RETRACT_REVERSAL|dim:social",
+    "CARDIAC_BURST|dim:health"
+   ],
+   15
+  ],
+  [
+   [
+    "FOOD_SAFETY_INSPECTION|dim:life",
+    "GOUT_TOPHUS_RUPTURE|dim:health"
+   ],
+   14
+  ],
+  [
+   [
+    "NEIGHBOR_LEAK_DISPUTE|dim:social",
+    "LABOR_ARBITRATION|dim:career"
+   ],
+   13
+  ],
+  [
+   [
+    "PROMISE_RETRACT_REVERSAL|dim:social",
+    "FALL_INJURY_ALERT|dim:health"
+   ],
+   12
+  ],
+  [
+   [
+    "PROMISE_RETRACT_REVERSAL|dim:social",
+    "RENOVATION_RUNAWAY|dim:finance"
+   ],
+   12
+  ],
+  [
+   [
+    "BRADYCARDIA_SYNCOPE|dim:health",
+    "CONCEALED_CANCER|dim:social"
+   ],
+   11
+  ],
+  [
+   [
+    "STROKE_PRODROME|dim:health",
+    "BIPOLAR_CRISIS|dim:health"
+   ],
+   11
+  ],
+  [
+   [
+    "CUSTOMS_SEIZURE_LC|dim:career",
+    "FALL_INJURY_ALERT|dim:health"
+   ],
+   10
+  ],
+  [
+   [
+    "BRADYCARDIA_SYNCOPE|dim:health",
+    "CIVIL_SERVICE_REVIEW|dim:career"
+   ],
+   10
+  ],
+  [
+   [
+    "BET_ON_AGREEMENT|dim:finance",
+    "FALL_INJURY_ALERT|dim:health"
+   ],
+   10
+  ]
+ ],
+ "miss_junk_top": []
+}

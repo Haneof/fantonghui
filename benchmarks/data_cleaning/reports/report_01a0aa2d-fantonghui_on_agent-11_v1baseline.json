@@ -1,0 +1,165 @@
+{
+ "solver_agent": "01a0aa2d-fantonghui",
+ "generator_agent": "agent-11",
+ "split": "v1baseline",
+ "n_questions": 1000,
+ "kb_enabled": false,
+ "avg_final_score": 27.0,
+ "pass_rate": 0.001,
+ "avg_direction_match": 0.0325,
+ "avg_entity_recall": 0.0175,
+ "avg_junk_prune": 1.0,
+ "avg_dimension_accuracy": 0.0325,
+ "total_hallucination": 4,
+ "p0_questions": 9,
+ "p0_max_exec_ms": 0.095,
+ "solver_wall_time_s": 0.1,
+ "error_attribution": {
+  "INTENT_DRIFT": {
+   "count": 985,
+   "rate": 0.985,
+   "examples": [
+    [
+     "Q_agent11_06001",
+     "遗漏/偏离事实: F06001_01 (佩戴者在小区楼下用餐，向服务员点单童装与凉茶，全程约20分钟)"
+    ],
+    [
+     "Q_agent11_06002",
+     "遗漏/偏离事实: F06002_01 (佩戴者在京港澳高速货运线用餐，向服务员点单本地小白菜与椰子水，全程约14分钟)"
+    ],
+    [
+     "Q_agent11_06003",
+     "遗漏/偏离事实: F06003_01 (当日声纹聚类从24个说话人碎片中将佩戴者李静怡本人稳定锚定为长期声纹，核心亲友王小满一并绑定，其余21至22个为推销员、客服与路人等一次性杂散人声)"
+    ],
+    [
+     "Q_agent11_06004",
+     "遗漏/偏离事实: F06004_01 (佩戴者于08:45从千灯湖一号公馆前往志远建材有限公司，全程约3分钟、5.9公里，以骑行方式完成通勤)"
+    ],
+    [
+     "Q_agent11_06005",
+     "遗漏/偏离事实: F06005_01 (佩戴者点外卖土鸡蛋等11件并已送达)"
+    ],
+    [
+     "Q_agent11_06006",
+     "遗漏/偏离事实: F06006_01 (录音中出现的「涉洗钱」「下周还钱」等语句经判定为影视/短视频外放内容，非佩戴者何国强现场真实对话，不应作为事实提纯)"
+    ],
+    [
+     "Q_agent11_06007",
+     "遗漏/偏离事实: F06007_01 (佩戴者与黄总在工作场所沟通进度，确认当晚需加班约5小时)"
+    ],
+    [
+     "Q_agent11_06008",
+     "遗漏/偏离事实: F06008_01 (当日声纹聚类从24个说话人碎片中将佩戴者黄小军本人稳定锚定为长期声纹，核心亲友陈叔一并绑定，其余21至22个为推销员、客服与路人等一次性杂散人声)"
+    ]
+   ]
+  }
+ },
+ "intent_confusion_top": [
+  [
+   [
+    "VOICE_BINDING_USER|dim:social",
+    "VOICE_BINDING_USER|dim:life"
+   ],
+   208
+  ],
+  [
+   [
+    "SOCIAL_CHAT|dim:social",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   72
+  ],
+  [
+   [
+    "FAMILY_DAILY|dim:family",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   46
+  ],
+  [
+   [
+    "MEDICAL_APPOINTMENT|dim:health",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   36
+  ],
+  [
+   [
+    "WORK_OVERTIME|dim:career",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   35
+  ],
+  [
+   [
+    "EXERCISE_SESSION|dim:health",
+    "EXERCISE_SESSION|dim:life"
+   ],
+   35
+  ],
+  [
+   [
+    "CHILD_SCHOOL|dim:family",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   34
+  ],
+  [
+   [
+    "DELIVERY_EVENT|dim:logistics",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   33
+  ],
+  [
+   [
+    "STAIR_CLIMB|dim:health",
+    "STAIR_CLIMB|dim:life"
+   ],
+   32
+  ],
+  [
+   [
+    "WEATHER_EXPOSURE|dim:environment",
+    "WEATHER_EXPOSURE|dim:life"
+   ],
+   32
+  ],
+  [
+   [
+    "MEAL_EVENT|dim:daily",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   31
+  ],
+  [
+   [
+    "TRAFFIC_RISK|dim:safety",
+    "TRAFFIC_RISK|dim:life"
+   ],
+   30
+  ],
+  [
+   [
+    "DAILY_COMMUTE|dim:daily",
+    "DAILY_COMMUTE|dim:life"
+   ],
+   27
+  ],
+  [
+   [
+    "SEDENTARY_LONG|dim:health",
+    "SEDENTARY_LONG|dim:life"
+   ],
+   22
+  ],
+  [
+   [
+    "BAROMETRIC_STABLE|dim:environment",
+    "BAROMETRIC_STABLE|dim:health"
+   ],
+   21
+  ]
+ ],
+ "miss_junk_top": []
+}

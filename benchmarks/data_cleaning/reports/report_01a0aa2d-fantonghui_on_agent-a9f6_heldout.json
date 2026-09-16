@@ -1,0 +1,95 @@
+{
+ "solver_agent": "01a0aa2d-fantonghui",
+ "generator_agent": "agent-a9f6",
+ "split": "heldout",
+ "n_questions": 4000,
+ "kb_enabled": true,
+ "avg_final_score": 85.15,
+ "pass_rate": 0.6883,
+ "avg_direction_match": 0.8498,
+ "avg_entity_recall": 0.7064,
+ "avg_junk_prune": 1.0,
+ "avg_dimension_accuracy": 0.8498,
+ "total_hallucination": 0,
+ "p0_questions": 111,
+ "p0_max_exec_ms": 0.239,
+ "solver_wall_time_s": 0.3,
+ "error_attribution": {
+  "INTENT_DRIFT": {
+   "count": 601,
+   "rate": 0.1502,
+   "examples": [
+    [
+     "Q_agent-a9f6_06002",
+     "遗漏/偏离事实: Q_agent-a9f6_06002-fact-1 (李姐向佩戴者郑重托付家事：存折密码是你生日倒过来，万一我有个三长两短就找它……需要记录并跟进)"
+    ],
+    [
+     "Q_agent-a9f6_06003",
+     "遗漏/偏离事实: Q_agent-a9f6_06003-fact-1 (浦东新区人民法院就房屋租赁合同纠纷向佩戴者送达开庭传票，开庭时间10月9日上午9时30分，属必须跟进的法律要务)"
+    ],
+    [
+     "Q_agent-a9f6_06015",
+     "遗漏/偏离事实: Q_agent-a9f6_06015-fact-1 (二姨向佩戴者郑重托付家事：孩子这周五放学你去接，班主任说要当面聊聊……需要记录并跟进)"
+    ],
+    [
+     "Q_agent-a9f6_06016",
+     "遗漏/偏离事实: Q_agent-a9f6_06016-fact-1 (二姨向佩戴者郑重托付家事：下周三我住院做手术，家里钥匙放老地方，狗每天喂两……需要记录并跟进)"
+    ],
+    [
+     "Q_agent-a9f6_06018",
+     "遗漏/偏离事实: Q_agent-a9f6_06018-fact-1 (中山医院生化检验危急值：D-二聚体结果5.8 mg/L严重超标（参考值<0.55），需要佩戴者立即复诊处理)"
+    ],
+    [
+     "Q_agent-a9f6_06025",
+     "遗漏/偏离事实: Q_agent-a9f6_06025-fact-1 (仁济医院生化检验危急值：肌钙蛋白I结果0.62 ng/mL严重超标（参考值<0.04），需要佩戴者立即复诊处理)"
+    ],
+    [
+     "Q_agent-a9f6_06035",
+     "遗漏/偏离事实: Q_agent-a9f6_06035-fact-1 (省人民医院生化检验危急值：空腹血糖结果17.8 mmol/L严重超标（参考值3.9-6.1），需要佩戴者立即复诊处理)"
+    ],
+    [
+     "Q_agent-a9f6_06042",
+     "遗漏/偏离事实: Q_agent-a9f6_06042-fact-1 (武侯区人民法院就房屋租赁合同纠纷向佩戴者送达开庭传票，开庭时间10月12日上午9时30分，属必须跟进的法律要务)"
+    ]
+   ]
+  }
+ },
+ "intent_confusion_top": [
+  [
+   [
+    "FAMILY_ENTRUSTMENT|dim:family",
+    "DEBT_BORROWING|dim:finance"
+   ],
+   212
+  ],
+  [
+   [
+    "COURT_SUMMONS|dim:legal",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   151
+  ],
+  [
+   [
+    "LAB_CRITICAL_VALUE|dim:health",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   136
+  ],
+  [
+   [
+    "BUSINESS_CONFIDENTIALITY|dim:career",
+    "DEBT_BORROWING|dim:finance"
+   ],
+   89
+  ],
+  [
+   [
+    "HIDDEN_CARDIAC_CRISIS|dim:health",
+    "CONCURRENT_VITALS|dim:finance"
+   ],
+   13
+  ]
+ ],
+ "miss_junk_top": []
+}

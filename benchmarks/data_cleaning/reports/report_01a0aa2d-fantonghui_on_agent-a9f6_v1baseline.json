@@ -1,0 +1,208 @@
+{
+ "solver_agent": "01a0aa2d-fantonghui",
+ "generator_agent": "agent-a9f6",
+ "split": "v1baseline",
+ "n_questions": 1000,
+ "kb_enabled": false,
+ "avg_final_score": 38.79,
+ "pass_rate": 0.213,
+ "avg_direction_match": 0.218,
+ "avg_entity_recall": 0.1655,
+ "avg_junk_prune": 0.95,
+ "avg_dimension_accuracy": 0.218,
+ "total_hallucination": 0,
+ "p0_questions": 21,
+ "p0_max_exec_ms": 0.043,
+ "solver_wall_time_s": 0.0,
+ "error_attribution": {
+  "INTENT_DRIFT": {
+   "count": 782,
+   "rate": 0.782,
+   "examples": [
+    [
+     "Q_agent-a9f6_06001",
+     "遗漏/偏离事实: Q_agent-a9f6_06001-fact-1 (与蓝湾食品的正式签约敲定于10月8日下午2点（总部17层会议室），需备齐营业执照副本与公章)"
+    ],
+    [
+     "Q_agent-a9f6_06002",
+     "遗漏/偏离事实: Q_agent-a9f6_06002-fact-1 (李姐向佩戴者郑重托付家事：存折密码是你生日倒过来，万一我有个三长两短就找它……需要记录并跟进)"
+    ],
+    [
+     "Q_agent-a9f6_06003",
+     "遗漏/偏离事实: Q_agent-a9f6_06003-fact-1 (浦东新区人民法院就房屋租赁合同纠纷向佩戴者送达开庭传票，开庭时间10月9日上午9时30分，属必须跟进的法律要务)"
+    ],
+    [
+     "Q_agent-a9f6_06005",
+     "遗漏/偏离事实: Q_agent-a9f6_06005-fact-1 (与蓝湾食品的正式签约敲定于9月26日下午2点（总部17层会议室），需备齐营业执照副本与公章)"
+    ],
+    [
+     "Q_agent-a9f6_06006",
+     "遗漏/偏离事实: Q_agent-a9f6_06006-fact-1 (佩戴者在滨江骑行道户外活动期间气压3小时骤降26.6hPa，判定暴风雨强对流逼近的安全风险)"
+    ],
+    [
+     "Q_agent-a9f6_06007",
+     "遗漏/偏离事实: Q_agent-a9f6_06007-fact-1 (佩戴者在郊野公园步道户外活动期间气压3小时骤降18.1hPa，判定暴风雨强对流逼近的安全风险)"
+    ],
+    [
+     "Q_agent-a9f6_06008",
+     "遗漏/偏离事实: Q_agent-a9f6_06008-fact-1 (佩戴者静坐无运动状态下心率持续21分钟高达118bpm，判定为静息心动过速异常体征)"
+    ],
+    [
+     "Q_agent-a9f6_06010",
+     "遗漏/偏离事实: Q_agent-a9f6_06010-fact-1 (佩戴者在环山绿道户外活动期间气压3小时骤降24.1hPa，判定暴风雨强对流逼近的安全风险)"
+    ]
+   ]
+  },
+  "NOISE_LEAK": {
+   "count": 50,
+   "rate": 0.05,
+   "examples": [
+    [
+     "Q_agent-a9f6_06028",
+     "垃圾剪枝不足: 遗留了 6 个垃圾片段未清理"
+    ],
+    [
+     "Q_agent-a9f6_06082",
+     "垃圾剪枝不足: 遗留了 6 个垃圾片段未清理"
+    ],
+    [
+     "Q_agent-a9f6_06083",
+     "垃圾剪枝不足: 遗留了 5 个垃圾片段未清理"
+    ],
+    [
+     "Q_agent-a9f6_06086",
+     "垃圾剪枝不足: 遗留了 6 个垃圾片段未清理"
+    ],
+    [
+     "Q_agent-a9f6_06118",
+     "垃圾剪枝不足: 遗留了 7 个垃圾片段未清理"
+    ],
+    [
+     "Q_agent-a9f6_06130",
+     "垃圾剪枝不足: 遗留了 6 个垃圾片段未清理"
+    ],
+    [
+     "Q_agent-a9f6_06136",
+     "垃圾剪枝不足: 遗留了 8 个垃圾片段未清理"
+    ],
+    [
+     "Q_agent-a9f6_06140",
+     "垃圾剪枝不足: 遗留了 4 个垃圾片段未清理"
+    ]
+   ]
+  }
+ },
+ "intent_confusion_top": [
+  [
+   [
+    "FALL_IMPACT|dim:health",
+    "∅|∅"
+   ],
+   95
+  ],
+  [
+   [
+    "RESTING_TACHYCARDIA|dim:health",
+    "∅|∅"
+   ],
+   86
+  ],
+  [
+   [
+    "FAMILY_ENTRUSTMENT|dim:family",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   76
+  ],
+  [
+   [
+    "BARO_STORM_DROP|dim:safety",
+    "∅|∅"
+   ],
+   71
+  ],
+  [
+   [
+    "BUSINESS_CONFIDENTIALITY|dim:career",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   69
+  ],
+  [
+   [
+    "DEBT_BORROWING|dim:finance",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   63
+  ],
+  [
+   [
+    "PVC_BURST|dim:health",
+    "∅|∅"
+   ],
+   62
+  ],
+  [
+   [
+    "FAINT_DISTRESS_CALL|dim:health",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   50
+  ],
+  [
+   [
+    "BANK_LARGE_TRANSFER|dim:finance",
+    "∅|∅"
+   ],
+   40
+  ],
+  [
+   [
+    "CONTRACT_SIGNING_SCHEDULE|dim:career",
+    "∅|∅"
+   ],
+   39
+  ],
+  [
+   [
+    "LAB_CRITICAL_VALUE|dim:health",
+    "∅|∅"
+   ],
+   35
+  ],
+  [
+   [
+    "COURT_SUMMONS|dim:legal",
+    "∅|∅"
+   ],
+   31
+  ],
+  [
+   [
+    "FAINT_DISTRESS_CALL|dim:health",
+    "SOS_DISTRESS|dim:health"
+   ],
+   18
+  ],
+  [
+   [
+    "REAL_MEDICAL_REQUEST|dim:health",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   14
+  ],
+  [
+   [
+    "RESIGNATION_DECISION|dim:career",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   9
+  ]
+ ],
+ "miss_junk_top": [
+  [
+   "Q_agent",
+   150
+  ]
+ ]
+}

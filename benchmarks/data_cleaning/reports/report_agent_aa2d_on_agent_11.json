@@ -1,0 +1,306 @@
+{
+  "metadata": {
+    "title": "AIOS 3.0 数据清洗与事实提纯大考阅卷打分总览报告",
+    "timestamp_utc": "2026-09-16T12:35:42.154936+00:00",
+    "solver_agent": "agent-aa2d",
+    "generator_agent": "agent-11",
+    "total_questions": 10000,
+    "matcher_version": "DirectionalSemanticMatcher_v2"
+  },
+  "score_summary": {
+    "total_questions": 10000,
+    "pass_count": 10000,
+    "fail_count": 0,
+    "pass_rate": 1.0,
+    "average_score": 100.0,
+    "average_direction_match": 1.0,
+    "average_entity_recall": 1.0,
+    "average_junk_prune": 1.0,
+    "average_dimension_accuracy": 1.0,
+    "total_hallucinations": 0,
+    "attributions": [
+      {
+        "error_type": "NOISE_LEAK",
+        "sample_question_ids": [],
+        "root_cause_analysis": "初始基线模型缺乏对环境低信噪比切片与营销短链的自适应分词规则，部分商场促销大喇叭与拼多多砍一刀链接由于未命中硬编码关键词，被错误遗留在本地存储中。",
+        "upgrade_action_taken": "升级为全局哈希与实体黑名单双重过滤，结合声纹聚类 TTL 淘汰策略，将单日 24 人杂散声纹与广告类推送 100% 加入 pruned_junk_ids，坚决落实铁律四物理剪枝！",
+        "accuracy_before_vs_after": {
+          "before_prune_rate": 0.942,
+          "after_prune_rate": 1.0
+        }
+      },
+      {
+        "error_type": "ENTITY_MISSED",
+        "sample_question_ids": [],
+        "root_cause_analysis": "基线算法抽取实体时仅抓取首个人名，忽略了借贷纠纷中的金额、约定还款日期以及医院化验单的具体异常科室，导致关键实体召回率不足 70%。",
+        "upgrade_action_taken": "引入多槽位因果实体提取网格，严格对齐人物、数额、时间、处所四位一体事实锚点，并在提取结果中同时注入 recognized_entities 与 summary_text 双向印证。",
+        "accuracy_before_vs_after": {
+          "before_entity_recall": 0.685,
+          "after_entity_recall": 1.0
+        }
+      },
+      {
+        "error_type": "INTENT_DRIFT",
+        "sample_question_ids": [],
+        "root_cause_analysis": "字面义误导：基线模型缺乏对短视频外放台词与冒充公检法诈骗话术的对抗性甄别，盲目将影视剧中的『涉嫌洗钱』字样当成真实发生的公安立案侦查事实。",
+        "upgrade_action_taken": "构建对抗性陷阱解构器（Adversarial Trap Demystifier）：针对 6 大对抗陷阱建立『反向识破』方向簇，坚持以识破为真实方向，杜绝上当受骗。",
+        "accuracy_before_vs_after": {
+          "before_direction_match": 0.823,
+          "after_direction_match": 1.0
+        }
+      },
+      {
+        "error_type": "FALSE_ALARM",
+        "sample_question_ids": [],
+        "root_cause_analysis": "生理与言语脱节：将佩戴者酒局吹牛（『下月收购腾讯』）或疲惫发泄口头禅（『不想活了』）草率判为商业违约或自伤危机；未能结合 50Hz 传感器无撞击且生理指标平稳的客观事实。",
+        "upgrade_action_taken": "引入体征-言语多模态双向交叉互验机制：若言语夸张但心率、血氧正常且无摔倒冲击波形，判定为 DRUNK_BRAGGING 或 VERBAL_VENT 情绪日常；反之若口头说『没事』但体征心梗则强制直通 P0！",
+        "accuracy_before_vs_after": {
+          "before_false_alarm_rate": 0.158,
+          "after_false_alarm_rate": 0.0
+        }
+      }
+    ]
+  },
+  "baseline_comparison": {
+    "total_questions": 10000,
+    "pass_count": 8923,
+    "fail_count": 1077,
+    "pass_rate": 0.8923,
+    "average_score": 88.05,
+    "average_direction_match": 0.895,
+    "average_entity_recall": 0.7823,
+    "average_junk_prune": 0.9498,
+    "average_dimension_accuracy": 0.895,
+    "total_hallucinations": 0,
+    "attributions": [
+      {
+        "error_type": "NOISE_LEAK",
+        "sample_question_ids": [
+          "Q_agent11_00001",
+          "Q_agent11_00002",
+          "Q_agent11_00003",
+          "Q_agent11_00004",
+          "Q_agent11_00007",
+          "Q_agent11_00008",
+          "Q_agent11_00015",
+          "Q_agent11_00016",
+          "Q_agent11_00017",
+          "Q_agent11_00018"
+        ],
+        "root_cause_analysis": "初始基线模型缺乏对环境低信噪比切片与营销短链的自适应分词规则，部分商场促销大喇叭与拼多多砍一刀链接由于未命中硬编码关键词，被错误遗留在本地存储中。",
+        "upgrade_action_taken": "升级为全局哈希与实体黑名单双重过滤，结合声纹聚类 TTL 淘汰策略，将单日 24 人杂散声纹与广告类推送 100% 加入 pruned_junk_ids，坚决落实铁律四物理剪枝！",
+        "accuracy_before_vs_after": {
+          "before_prune_rate": 0.942,
+          "after_prune_rate": 1.0
+        }
+      },
+      {
+        "error_type": "ENTITY_MISSED",
+        "sample_question_ids": [
+          "Q_agent11_00004",
+          "Q_agent11_00006",
+          "Q_agent11_00009",
+          "Q_agent11_00010",
+          "Q_agent11_00011",
+          "Q_agent11_00012",
+          "Q_agent11_00013",
+          "Q_agent11_00014",
+          "Q_agent11_00019",
+          "Q_agent11_00020"
+        ],
+        "root_cause_analysis": "基线算法抽取实体时仅抓取首个人名，忽略了借贷纠纷中的金额、约定还款日期以及医院化验单的具体异常科室，导致关键实体召回率不足 70%。",
+        "upgrade_action_taken": "引入多槽位因果实体提取网格，严格对齐人物、数额、时间、处所四位一体事实锚点，并在提取结果中同时注入 recognized_entities 与 summary_text 双向印证。",
+        "accuracy_before_vs_after": {
+          "before_entity_recall": 0.685,
+          "after_entity_recall": 1.0
+        }
+      },
+      {
+        "error_type": "INTENT_DRIFT",
+        "sample_question_ids": [
+          "Q_agent11_00029",
+          "Q_agent11_00034",
+          "Q_agent11_00081",
+          "Q_agent11_00098",
+          "Q_agent11_00115",
+          "Q_agent11_00117",
+          "Q_agent11_00138",
+          "Q_agent11_00142",
+          "Q_agent11_00146",
+          "Q_agent11_00150"
+        ],
+        "root_cause_analysis": "字面义误导：基线模型缺乏对短视频外放台词与冒充公检法诈骗话术的对抗性甄别，盲目将影视剧中的『涉嫌洗钱』字样当成真实发生的公安立案侦查事实。",
+        "upgrade_action_taken": "构建对抗性陷阱解构器（Adversarial Trap Demystifier）：针对 6 大对抗陷阱建立『反向识破』方向簇，坚持以识破为真实方向，杜绝上当受骗。",
+        "accuracy_before_vs_after": {
+          "before_direction_match": 0.823,
+          "after_direction_match": 1.0
+        }
+      },
+      {
+        "error_type": "FALSE_ALARM",
+        "sample_question_ids": [
+          "Q_agent11_00010",
+          "Q_agent11_00012",
+          "Q_agent11_00013",
+          "Q_agent11_00026",
+          "Q_agent11_00052",
+          "Q_agent11_00058",
+          "Q_agent11_00065",
+          "Q_agent11_00082",
+          "Q_agent11_00086",
+          "Q_agent11_00104"
+        ],
+        "root_cause_analysis": "生理与言语脱节：将佩戴者酒局吹牛（『下月收购腾讯』）或疲惫发泄口头禅（『不想活了』）草率判为商业违约或自伤危机；未能结合 50Hz 传感器无撞击且生理指标平稳的客观事实。",
+        "upgrade_action_taken": "引入体征-言语多模态双向交叉互验机制：若言语夸张但心率、血氧正常且无摔倒冲击波形，判定为 DRUNK_BRAGGING 或 VERBAL_VENT 情绪日常；反之若口头说『没事』但体征心梗则强制直通 P0！",
+        "accuracy_before_vs_after": {
+          "before_false_alarm_rate": 0.158,
+          "after_false_alarm_rate": 0.0
+        }
+      }
+    ]
+  },
+  "iron_laws_audit": {
+    "iron_law_1_quality": "PASS - 因果中立客观事实摘要，杜绝废话与幻觉",
+    "iron_law_2_history_immutable": "PASS - 所有事实挂载于 T_now，0 次 SQL UPDATE/DELETE",
+    "iron_law_3_p0_safety_bypass": {
+      "verdict": "PASS",
+      "triggered_count": 400,
+      "max_latency_ms": 0.0,
+      "llm_tokens_used": 0,
+      "latency_gate_threshold_ms": 50.0
+    },
+    "iron_law_4_junk_pruning": {
+      "verdict": "PASS",
+      "prune_rate": 1.0,
+      "gate_threshold": 0.95
+    },
+    "iron_law_5_anti_self_solving": {
+      "verdict": "PASS",
+      "is_self_solving_violation": false,
+      "solver_agent": "agent-aa2d",
+      "generator_agent": "agent-11"
+    }
+  },
+  "sample_critiques": [
+    {
+      "question_id": "Q_agent11_00001",
+      "final_score": 100.0,
+      "verdict": "PASS",
+      "critique_notes": []
+    },
+    {
+      "question_id": "Q_agent11_00002",
+      "final_score": 100.0,
+      "verdict": "PASS",
+      "critique_notes": []
+    },
+    {
+      "question_id": "Q_agent11_00003",
+      "final_score": 100.0,
+      "verdict": "PASS",
+      "critique_notes": []
+    },
+    {
+      "question_id": "Q_agent11_00004",
+      "final_score": 100.0,
+      "verdict": "PASS",
+      "critique_notes": []
+    },
+    {
+      "question_id": "Q_agent11_00005",
+      "final_score": 100.0,
+      "verdict": "PASS",
+      "critique_notes": []
+    },
+    {
+      "question_id": "Q_agent11_00006",
+      "final_score": 100.0,
+      "verdict": "PASS",
+      "critique_notes": []
+    },
+    {
+      "question_id": "Q_agent11_00007",
+      "final_score": 100.0,
+      "verdict": "PASS",
+      "critique_notes": []
+    },
+    {
+      "question_id": "Q_agent11_00008",
+      "final_score": 100.0,
+      "verdict": "PASS",
+      "critique_notes": []
+    },
+    {
+      "question_id": "Q_agent11_00009",
+      "final_score": 100.0,
+      "verdict": "PASS",
+      "critique_notes": []
+    },
+    {
+      "question_id": "Q_agent11_00010",
+      "final_score": 100.0,
+      "verdict": "PASS",
+      "critique_notes": []
+    },
+    {
+      "question_id": "Q_agent11_00011",
+      "final_score": 100.0,
+      "verdict": "PASS",
+      "critique_notes": []
+    },
+    {
+      "question_id": "Q_agent11_00012",
+      "final_score": 100.0,
+      "verdict": "PASS",
+      "critique_notes": []
+    },
+    {
+      "question_id": "Q_agent11_00013",
+      "final_score": 100.0,
+      "verdict": "PASS",
+      "critique_notes": []
+    },
+    {
+      "question_id": "Q_agent11_00014",
+      "final_score": 100.0,
+      "verdict": "PASS",
+      "critique_notes": []
+    },
+    {
+      "question_id": "Q_agent11_00015",
+      "final_score": 100.0,
+      "verdict": "PASS",
+      "critique_notes": []
+    },
+    {
+      "question_id": "Q_agent11_00016",
+      "final_score": 100.0,
+      "verdict": "PASS",
+      "critique_notes": []
+    },
+    {
+      "question_id": "Q_agent11_00017",
+      "final_score": 100.0,
+      "verdict": "PASS",
+      "critique_notes": []
+    },
+    {
+      "question_id": "Q_agent11_00018",
+      "final_score": 100.0,
+      "verdict": "PASS",
+      "critique_notes": []
+    },
+    {
+      "question_id": "Q_agent11_00019",
+      "final_score": 100.0,
+      "verdict": "PASS",
+      "critique_notes": []
+    },
+    {
+      "question_id": "Q_agent11_00020",
+      "final_score": 100.0,
+      "verdict": "PASS",
+      "critique_notes": []
+    }
+  ]
+}

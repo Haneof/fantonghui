@@ -1,0 +1,165 @@
+{
+ "solver_agent": "01a0aa2d-fantonghui",
+ "generator_agent": "01a0a9ff-fantonghui",
+ "split": "heldout",
+ "n_questions": 4000,
+ "kb_enabled": true,
+ "avg_final_score": 85.73,
+ "pass_rate": 0.726,
+ "avg_direction_match": 0.839,
+ "avg_entity_recall": 0.7534,
+ "avg_junk_prune": 1.0,
+ "avg_dimension_accuracy": 0.839,
+ "total_hallucination": 15,
+ "p0_questions": 3450,
+ "p0_max_exec_ms": 2.56,
+ "solver_wall_time_s": 2.9,
+ "error_attribution": {
+  "INTENT_DRIFT": {
+   "count": 1789,
+   "rate": 0.4472,
+   "examples": [
+    [
+     "Q_01a0a9ff-fantonghui_06002",
+     "遗漏/偏离事实: fact_01 (APP通知：【海关】您的外贸订单住建局被查扣，请配合查验)"
+    ],
+    [
+     "Q_01a0a9ff-fantonghui_06002",
+     "遗漏/偏离事实: fact_02 (仲裁庭上要和HR对质考勤记录 劳动仲裁)"
+    ],
+    [
+     "Q_01a0a9ff-fantonghui_06013",
+     "遗漏/偏离事实: fact_02 (APP通知：【工商银行】您尾号1288卡银联代扣扣款失败，余额不足，请尽快存入)"
+    ],
+    [
+     "Q_01a0a9ff-fantonghui_06013",
+     "遗漏/偏离事实: fact_03 (房子产权侬凭啥加名字，唉，被刘工头堵门讨薪真是颜面扫地 二手房跳单)"
+    ],
+    [
+     "Q_01a0a9ff-fantonghui_06021",
+     "遗漏/偏离事实: fact_01 (APP通知：【法院】传票通知：关于抚养权纠纷于下周五开庭)"
+    ],
+    [
+     "Q_01a0a9ff-fantonghui_06021",
+     "遗漏/偏离事实: fact_02 (亲子鉴定的事让我整夜睡不着，得找刘工头谈清楚 合伙人转移资产)"
+    ],
+    [
+     "Q_01a0a9ff-fantonghui_06027",
+     "遗漏/偏离事实: fact_02 (APP通知：【华西医院】检验单：血糖14.2mmol/L，尿酮体阳性，请立即复诊)"
+    ],
+    [
+     "Q_01a0a9ff-fantonghui_06032",
+     "遗漏/偏离事实: fact_02 (APP通知：【工商银行】您尾号8812卡于14:20银联代扣扣款失败，余额不足)"
+    ]
+   ]
+  }
+ },
+ "intent_confusion_top": [
+  [
+   [
+    "INHERITANCE_DISPUTE|dim:finance",
+    "EVIDENCE_WITHDRAWAL|dim:finance|dim:finance"
+   ],
+   59
+  ],
+  [
+   [
+    "LABOR_WAGE_DISPUTE|dim:finance",
+    "EVIDENCE_WITHDRAWAL|dim:finance|dim:finance"
+   ],
+   49
+  ],
+  [
+   [
+    "BIPOLAR_CRISIS|dim:health",
+    "SUICIDAL_CRISIS|dim:health|dim:health"
+   ],
+   41
+  ],
+  [
+   [
+    "CRYPTO_PONZI_COLLAPSE|dim:finance",
+    "EVIDENCE_WITHDRAWAL|dim:finance|dim:finance"
+   ],
+   41
+  ],
+  [
+   [
+    "HIDDEN_MARITAL_ASSETS|dim:finance",
+    "EVIDENCE_WITHDRAWAL|dim:finance|dim:finance"
+   ],
+   40
+  ],
+  [
+   [
+    "DECORATION_RUNAWAY|dim:finance",
+    "EVIDENCE_WITHDRAWAL|dim:finance|dim:finance"
+   ],
+   36
+  ],
+  [
+   [
+    "GOUT_TOPHUS_RUPTURE|dim:health",
+    "GOUT_ACUTE_ATTACK|dim:health|dim:health"
+   ],
+   34
+  ],
+  [
+   [
+    "SECOND_HAND_HOUSE_CHAIN|dim:finance",
+    "EVIDENCE_WITHDRAWAL|dim:finance|dim:finance"
+   ],
+   33
+  ],
+  [
+   [
+    "CERVICAL_VERTIGO_FALL|dim:health",
+    "STROKE_PRETEND_FINE|dim:health|dim:health"
+   ],
+   31
+  ],
+  [
+   [
+    "BIPOLAR_CRISIS|dim:health",
+    "EVIDENCE_WITHDRAWAL|dim:health+SUICIDAL_CRISIS|dim:health|dim:health"
+   ],
+   30
+  ],
+  [
+   [
+    "DRUG_ALLERGY_SHOCK|dim:health",
+    "EVIDENCE_WITHDRAWAL|dim:health|dim:health"
+   ],
+   26
+  ],
+  [
+   [
+    "CERVICAL_VERTIGO_FALL|dim:health",
+    "EVIDENCE_WITHDRAWAL|dim:health|dim:health"
+   ],
+   26
+  ],
+  [
+   [
+    "WORK_OVERTIME_ARRHYTHMIA|dim:career",
+    "EVIDENCE_WITHDRAWAL|dim:career|dim:career"
+   ],
+   23
+  ],
+  [
+   [
+    "NON_COMPETE_2M|dim:career",
+    "EVIDENCE_WITHDRAWAL|dim:career|dim:career"
+   ],
+   22
+  ],
+  [
+   [
+    "STROKE_PRETEND_FINE|dim:health",
+    "EVIDENCE_WITHDRAWAL|dim:health|dim:health"
+   ],
+   22
+  ]
+ ],
+ "miss_junk_top": []
+}

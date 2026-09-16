@@ -1,0 +1,95 @@
+{
+ "solver_agent": "01a0aa2d-fantonghui",
+ "generator_agent": "agent-a9f6",
+ "split": "full",
+ "n_questions": 10000,
+ "kb_enabled": true,
+ "avg_final_score": 84.55,
+ "pass_rate": 0.6822,
+ "avg_direction_match": 0.8417,
+ "avg_entity_recall": 0.6988,
+ "avg_junk_prune": 1.0,
+ "avg_dimension_accuracy": 0.8417,
+ "total_hallucination": 0,
+ "p0_questions": 268,
+ "p0_max_exec_ms": 0.233,
+ "solver_wall_time_s": 0.7,
+ "error_attribution": {
+  "INTENT_DRIFT": {
+   "count": 1583,
+   "rate": 0.1583,
+   "examples": [
+    [
+     "Q_agent-a9f6_00001",
+     "遗漏/偏离事实: Q_agent-a9f6_00001-fact-1 (父亲向佩戴者郑重托付家事：存折密码是你生日倒过来，万一我有个三长两短就找它……需要记录并跟进)"
+    ],
+    [
+     "Q_agent-a9f6_00004",
+     "遗漏/偏离事实: Q_agent-a9f6_00004-fact-1 (岳父向佩戴者郑重托付家事：孩子这周五放学你去接，班主任说要当面聊聊……需要记录并跟进)"
+    ],
+    [
+     "Q_agent-a9f6_00009",
+     "遗漏/偏离事实: Q_agent-a9f6_00009-fact-1 (父亲向佩戴者郑重托付家事：下周三我住院做手术，家里钥匙放老地方，狗每天喂两……需要记录并跟进)"
+    ],
+    [
+     "Q_agent-a9f6_00015",
+     "遗漏/偏离事实: Q_agent-a9f6_00015-fact-1 (中山医院生化检验危急值：肌钙蛋白I结果0.62 ng/mL严重超标（参考值<0.04），需要佩戴者立即复诊处理)"
+    ],
+    [
+     "Q_agent-a9f6_00020",
+     "遗漏/偏离事实: Q_agent-a9f6_00020-fact-1 (中山医院生化检验危急值：空腹血糖结果17.8 mmol/L严重超标（参考值3.9-6.1），需要佩戴者立即复诊处理)"
+    ],
+    [
+     "Q_agent-a9f6_00022",
+     "遗漏/偏离事实: Q_agent-a9f6_00022-fact-1 (父亲向佩戴者郑重托付家事：孩子这周五放学你去接，班主任说要当面聊聊……需要记录并跟进)"
+    ],
+    [
+     "Q_agent-a9f6_00038",
+     "遗漏/偏离事实: Q_agent-a9f6_00038-fact-1 (刘洋要求佩戴者对星澜科技相关报价/图纸严格保密至签约，构成商业保密承诺)"
+    ],
+    [
+     "Q_agent-a9f6_00039",
+     "遗漏/偏离事实: Q_agent-a9f6_00039-fact-1 (江岸区人民法院就劳动争议向佩戴者送达开庭传票，开庭时间11月3日上午9时30分，属必须跟进的法律要务)"
+    ]
+   ]
+  }
+ },
+ "intent_confusion_top": [
+  [
+   [
+    "FAMILY_ENTRUSTMENT|dim:family",
+    "DEBT_BORROWING|dim:finance"
+   ],
+   529
+  ],
+  [
+   [
+    "LAB_CRITICAL_VALUE|dim:health",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   387
+  ],
+  [
+   [
+    "COURT_SUMMONS|dim:legal",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   367
+  ],
+  [
+   [
+    "BUSINESS_CONFIDENTIALITY|dim:career",
+    "DEBT_BORROWING|dim:finance"
+   ],
+   257
+  ],
+  [
+   [
+    "HIDDEN_CARDIAC_CRISIS|dim:health",
+    "CONCURRENT_VITALS|dim:finance"
+   ],
+   43
+  ]
+ ],
+ "miss_junk_top": []
+}

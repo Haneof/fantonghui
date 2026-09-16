@@ -1,0 +1,68 @@
+{
+ "generator_agent": "01a0aa2d-fantonghui",
+ "generator_script": "scripts/generate_daily_summary_01a0aa2d.py",
+ "seed": 20260916,
+ "n_questions": 10000,
+ "unique_ids": 10000,
+ "unique_names": 10000,
+ "unique_day_signatures": 2936,
+ "difficulty_dist": {
+  "HARD": 7163,
+  "ADVERSARIAL": 1538,
+  "MEDIUM": 1299
+ },
+ "archetype_top10": [
+  [
+   "career-_social+_fin-",
+   1399
+  ],
+  [
+   "career-_social-_fin-",
+   1324
+  ],
+  [
+   "career+_social+_fin-",
+   920
+  ],
+  [
+   "career+_social-_fin-",
+   851
+  ],
+  [
+   "career0_social+_fin-",
+   758
+  ],
+  [
+   "career0_social-_fin-",
+   755
+  ],
+  [
+   "career-_social-_fin+",
+   651
+  ],
+  [
+   "career-_social+_fin+",
+   616
+  ],
+  [
+   "career+_social-_fin+",
+   497
+  ],
+  [
+   "career+_social+_fin+",
+   463
+  ]
+ ],
+ "trap_questions": 1538,
+ "truth_dimensions": [
+  "dim:global",
+  "dim:health",
+  "dim:social",
+  "dim:emotion",
+  "dim:finance",
+  "dim:career"
+ ],
+ "format": "单题四键：question_id / persona / cleaned_daily_stream(07:00~23:30时间轴切片) / directional_ground_truth(六维方向性标答: core_plot+core_anchors+acceptable_directions+redline_violations+key_evidence_refs)",
+ "validation_errors": [],
+ "validation_error_count": 0
+}

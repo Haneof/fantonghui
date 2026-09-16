@@ -1,0 +1,67 @@
+{
+  "generator_agent": "01a0aa2d-fantonghui",
+  "seed": 20260916,
+  "questions": 10000,
+  "ground_truth_records": 10000,
+  "questions_sha256": "f49535825797fa4bedd1a8560dc15bd878b608a128536df1cb5159f71e3da879",
+  "ground_truth_sha256": "4dc444d36ad0e43ae759a0f87454427830a6cdd50679c7b3a795a31958b85313",
+  "questions_bytes": 82035129,
+  "ground_truth_bytes": 10458709,
+  "focus_counts": {
+    "sensor": 3000,
+    "app": 1500,
+    "mic": 3000,
+    "voiceprint": 2000,
+    "dialogue": 500
+  },
+  "difficulty_counts": {
+    "ADVERSARIAL": 1500,
+    "MEDIUM": 3500,
+    "EASY": 1500,
+    "HARD": 3500
+  },
+  "fact_count_distribution": {
+    "1": 7000,
+    "2": 2500,
+    "3": 500
+  },
+  "verify": {
+    "counters": {
+      "questions": 10000,
+      "facts": 13500,
+      "junk_ids": 266391,
+      "entity_ok": 13500,
+      "keyword_ok": 13500,
+      "source_ok": 13500,
+      "junk_ratio_min": 0.95,
+      "pydantic_ok": 10000
+    },
+    "focus_counts": {
+      "sensor": 3000,
+      "app": 1500,
+      "mic": 3000,
+      "voiceprint": 2000,
+      "dialogue": 500
+    },
+    "difficulty_counts": {
+      "ADVERSARIAL": 1500,
+      "MEDIUM": 3500,
+      "EASY": 1500,
+      "HARD": 3500
+    },
+    "fact_counts": {
+      "1": 7000,
+      "2": 2500,
+      "3": 500
+    },
+    "modality_fragments": {
+      "mic_stream": 48548,
+      "app_message_stream": 53861,
+      "user_dialogue_stream": 22332,
+      "voiceprint": 80100,
+      "sensor": 10000
+    },
+    "problems": [],
+    "problem_total": 0
+  }
+}

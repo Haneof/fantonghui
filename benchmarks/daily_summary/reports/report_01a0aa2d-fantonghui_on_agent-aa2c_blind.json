@@ -1,0 +1,100 @@
+{
+  "solver_agent": "01a0aa2d-fantonghui",
+  "questions_file": "/tmp/banks2/aa2c_10k.jsonl",
+  "answers_file": "benchmarks/daily_summary/answers/ans_01a0aa2d-fantonghui_on_agent-aa2c.jsonl",
+  "questions_graded": 10000,
+  "mean_overall_score": 1.8207,
+  "pass_rate": 0.0,
+  "verdicts": {
+    "PASS": 0,
+    "FAIL": 10000
+  },
+  "fatal_redline_hits": 0,
+  "dimension_mean_scores": {
+    "global_daily_summary": 0.0,
+    "dim:health": 6.072,
+    "dim:social": 0.0,
+    "dim:emotion": 0.0,
+    "dim:finance": 6.066,
+    "dim:career": 0.0
+  },
+  "dimension_miss_counts": {
+    "global_daily_summary": {
+      "no_direction": 10000,
+      "low_anchor": 10000
+    },
+    "dim:health": {
+      "no_direction": 8988,
+      "low_anchor": 10000
+    },
+    "dim:social": {
+      "no_direction": 10000,
+      "low_anchor": 10000
+    },
+    "dim:emotion": {
+      "no_direction": 10000,
+      "low_anchor": 10000
+    },
+    "dim:finance": {
+      "no_direction": 8989,
+      "low_anchor": 10000
+    },
+    "dim:career": {
+      "no_direction": 10000,
+      "low_anchor": 10000
+    }
+  },
+  "worst_samples": [
+    {
+      "score": 0.0,
+      "question_id": "Q_DAILY_00002",
+      "global_summary": "方浩然今日：22:30 深夜独处收场：律所主任设宴祝贺与复盘总结。佩戴者喝下一杯温开水，整理杂乱思绪，准备迎接明日挑战。"
+    },
+    {
+      "score": 0.0,
+      "question_id": "Q_DAILY_00003",
+      "global_summary": "张小虎今日：08:25 【深圳轨道交通】乘车码自动完成扣费4.7元，行程自住址站至工作地站。；21:15 手环触发心率超"
+    },
+    {
+      "score": 0.0,
+      "question_id": "Q_DAILY_00004",
+      "global_summary": "陈舒婷今日：20:45 晚间核心事件进一步激化：紧急寻找桥梁过桥借款。涉及核心当事人与亲密关系的断裂与重组。；08:25"
+    },
+    {
+      "score": 0.0,
+      "question_id": "Q_DAILY_00006",
+      "global_summary": "郭子恒今日：08:25 【郑州轨道交通】乘车码自动完成扣费5.8元，行程自住址站至工作地站。；21:15 手环触发心率超"
+    },
+    {
+      "score": 0.0,
+      "question_id": "Q_DAILY_00007",
+      "global_summary": "蒋依琳今日：09:30 【工作钉钉/企业微信】收到核心日程推进通知：晨起洗漱意外滑倒地砖，参会人员已全部就位。；08:2"
+    },
+    {
+      "score": 0.0,
+      "question_id": "Q_DAILY_00008",
+      "global_summary": "刘晓梦今日：09:30 【工作钉钉/企业微信】收到核心日程推进通知：晨起洗漱意外滑倒地砖，参会人员已全部就位。；08:2"
+    },
+    {
+      "score": 0.0,
+      "question_id": "Q_DAILY_00009",
+      "global_summary": "李明阳今日：22:30 深夜独处收场：整理借条转账凭证连夜写起诉状。佩戴者喝下一杯温开水，整理杂乱思绪，准备迎接明日挑战"
+    },
+    {
+      "score": 0.0,
+      "question_id": "Q_DAILY_00010",
+      "global_summary": "宋晓菲今日：20:45 晚间核心事件进一步激化：紧急寻找桥梁过桥借款。涉及核心当事人与亲密关系的断裂与重组。；08:25"
+    },
+    {
+      "score": 0.0,
+      "question_id": "Q_DAILY_00011",
+      "global_summary": "林雅薇今日：20:45 晚间核心事件进一步激化：紧急寻找桥梁过桥借款。涉及核心当事人与亲密关系的断裂与重组。；08:25"
+    },
+    {
+      "score": 0.0,
+      "question_id": "Q_DAILY_00012",
+      "global_summary": "周振华今日：22:30 深夜独处收场：律所主任设宴祝贺与复盘总结。佩戴者喝下一杯温开水，整理杂乱思绪，准备迎接明日挑战。"
+    }
+  ],
+  "scoring": "DailySummaryDirectionalMatcher（官方协议）；权重 global 0.25 + 五维各 0.15；红线一票否决"
+}
