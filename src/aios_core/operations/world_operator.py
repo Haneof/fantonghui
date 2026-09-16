@@ -763,6 +763,28 @@ class MultidimensionalSearchOperator:
         """按外挂解释图层检索。"""
         return self.index.search_by_annotation(annotation_id, limit=limit)
 
+    def catch_up(self) -> int:
+        """把世界增量与外挂注记同步进检索投影（返回索引到的新行数）。"""
+        return self.index.catch_up()
+
+    def sync_annotations(self) -> int:
+        """只同步外挂注记：索引已追平时，「今天挂的标签」仍须今天可召回。"""
+        return self.index.sync_annotations()
+
+    def ring_adjacency(self, object_ids: Sequence[str], *, limit: int = 50) -> dict:
+        """同层批读入边指针环（拓扑分级下钻原语）。"""
+        return self.index.ring_adjacency(object_ids, limit=limit)
+
+    def co_search(
+        self,
+        keywords: Sequence[str],
+        *,
+        limit: int = 50,
+        strict_freshness: bool = False,
+    ) -> Any:
+        """共现检索原语（宪法第 89 条入口）：与引擎 ``co_search`` 同一语义。"""
+        return self.index.co_search(list(keywords), limit=limit, strict_freshness=strict_freshness)
+
     def query(
         self,
         keywords: Sequence[str] = (),
