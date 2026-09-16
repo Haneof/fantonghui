@@ -1,0 +1,31 @@
+{
+  "solver_agent": "agent-aa2e",
+  "aa2d": {
+    "solve": {
+      "solved": 10000,
+      "elapsed_s": 0.82
+    },
+    "grade": {
+      "graded": 10000,
+      "passed": 10000,
+      "pass_rate": 100.0,
+      "avg_score": 100.0,
+      "sample_fails": []
+    },
+    "answers": "benchmarks/daily_summary/answers/ans_agent_aa2e_on_01a0aa2d.jsonl"
+  },
+  "aa2c": {
+    "solve": {
+      "solved": 10000,
+      "elapsed_s": 1.24
+    },
+    "grade": {
+      "graded": 10000,
+      "passed": 10000,
+      "pass_rate": 100.0,
+      "avg_score": 100.0,
+      "sample_fails": []
+    },
+    "answers": "benchmarks/daily_summary/answers/ans_agent_aa2e_on_01a0aa2c.jsonl"
+  }
+}
