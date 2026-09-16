@@ -19,6 +19,7 @@
 
 from __future__ import annotations
 
+import gc
 import time
 from dataclasses import dataclass
 from datetime import timedelta
@@ -65,7 +66,9 @@ def simulation(tmp_path_factory: pytest.TempPathFactory) -> _SimRun:
     """30 天推演**只跑一遍**（约 2 秒），四个门禁共用同一份证据。"""
     db_path = tmp_path_factory.mktemp("sim001") / "world.db"
     driver = HeadlessLifeDriver(SimulationConfig(days=DAYS, db_path=str(db_path)))
-    return _SimRun(driver=driver, report=driver.run(run_id="sim001-30d"))
+    run = _SimRun(driver=driver, report=driver.run(run_id="sim001-30d"))
+    gc.collect()  # 推演结束即回收：不给同仓其它时序敏感的用例留下 GC 压力
+    return run
 
 
 @pytest.fixture(scope="module")
@@ -139,7 +142,13 @@ def test_gate1_short_window_without_breach_is_refused(tmp_path) -> None:
 
 def test_gate1_hundred_and_eighty_day_window_scales(tmp_path) -> None:
     """180 天长窗同样可跑（工单 30 天/180 天双口径），且不牺牲链路完整。"""
-    config = SimulationConfig(days=180, meetings_total=720, sessions_per_day=0, db_path=str(tmp_path / "l180.db"))
+    config = SimulationConfig(
+        days=180,
+        meetings_total=720,
+        sessions_per_day=0,
+        frames_per_day=0,  # 长窗用例只验证"尺度可承载"，不额外制造图像/看板负载
+        db_path=str(tmp_path / "l180.db"),
+    )
     driver = HeadlessLifeDriver(config)
     result = driver.run(run_id="sim001-180d")
 
