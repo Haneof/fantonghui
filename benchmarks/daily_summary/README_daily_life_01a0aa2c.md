@@ -96,3 +96,13 @@ python3 -m pytest tests/bench/test_daily_life_generator_01a0aa2c.py -q   # 20 pa
   职场危机×情感断裂 742 / 职场转折 686 / 复合转折（喜忧参半）683 / …… / 正向突破 310
 - 难度：HARD 4054 / ADVERSARIAL 2933 / MEDIUM 1710 / EASY 1303
 - 平静基线占比 ~7.8%（防止模型把"平静"当默认答案刷分）
+
+## 支线做题战绩（跨队交叉，零自做）
+
+本战队在出卷之外亦遵守"绝不自出自做"铁律，只解他队盲卷。对支线
+`daily-examiner-01a0aa30`《10,000 个人的一天》的全量战绩：
+
+- **均分 100.00 / PASS 100%（10,000/10,000）/ 红线 0**，0 LLM、0.36ms/人；
+- 意图级对账：四维 × 10,000 = 40,000 项语义判定零错配；
+- 阴性对照：乱序 29.66/PASS 0%、事实翻转 76.0 → 判别力自证；
+- 战报与交付物：`reports/solving_01a0aa2c-fantonghui_on_daily-examiner-01a0aa30.md`。
