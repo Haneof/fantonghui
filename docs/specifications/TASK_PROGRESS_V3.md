@@ -4,7 +4,7 @@
 > **核心仓库**：`aios-2.0` / `aios-3.0`  
 > **总指挥部**：首席架构总工  
 > **最后更新**：2026-09-16  
-> **当前状态**：**1092 passed, 0 xfailed, 0 failed (100% 满堂绿)**
+> **当前状态**：**1095 passed, 0 xfailed, 0 failed (100% 满堂绿)**
 
 ---
 
@@ -17,7 +17,7 @@
 | **M2** | 条件驱动调度、Single-Shot 看板与流式流水线 | 24 项 | **100% 核心闭环 (CLOSED)** | `M2-009R` 单看板 1500 tokens 封套；`M2-005R` 条件双轨引擎（Level-1 机械快轨 $\le 1\text{ms}$ + Level-2 捎带）；`M2-001` 唤醒防抖冷却（250 脉搏/5s 归一）与 DEEP_SLEEP 静默闸。 |
 | **M3** | 单跳雪崩隔离、动态维度生命周期与周期总结 | 17 项 | **100% 核心闭环 (CLOSED)** | `M3-001R` 三重硬门限状态机（$\ge 2$ 物理域持续 3 天、30 天候选试用 $\ge 70\%$ 准度、每日 1 次反思配额）；系统活跃维度硬封顶 $\le 32$；递归深度 $\le 2$ 熔断。 |
 | **M4** | 虚拟人 30 天连续闭环与 V21~V30 对抗测试 | 9 项 | **🔥 核心大突破 (80% CLOSED)** | `SIM-001` 30 天/180 天无头仿真闭环；`M4-005`（V21~V30 十大高阶对抗场景）**100% 全绿通过**（老王诈骗反转、心梗跌倒 0 延迟、跨半年声纹淘汰、50轮对话防爆、深度睡眠静默、反爹味老友语调等）。 |
-| **M5** | AI 操作经验沉淀与工具自主进化 | 7 项 | 排期中 (PENDING) | 经验库安全落盘；非安全主动提醒阈值自适应拉长。 |
+| **M5** | AI 操作经验沉淀与工具自主进化 | 7 项 | **IN PROGRESS (2/7 CLOSED)** | 经验库安全落盘；非安全主动提醒阈值自适应拉长。 |
 | **M6** | 教育轻量微插件与手环 23cm 柔性屏画布 | 7 项 | 排期中 (PENDING) | 微技能不分裂主脑人格；手环微卡片渲染 $\le 16\text{ms}$。 |
 | **M7** | 1 年期 360 万条长漂移压测与多模型热插拔 | 6 项 | 排期中 (PENDING) | 360 万条下倒排检索持续 $\le 30\text{ms}$；断网 500ms 切备用 SLM。 |
 | **M8** | 架构机制消融实验与终审裁决门 | 5 项 | 排期中 (PENDING) | 完成 Single-Shot 与条件任务消融对比量化矩阵；正式签发生产令。 |
@@ -49,6 +49,8 @@
 | **#12** | 仿真推演 | `SIM-001` | 30 天/180 天高熵无界面人生仿真驱动引擎 | Agent-05 / 01a0a700 | **CLOSED (7/7 PASS)** | `src/aios_core/simulation/headless_life_driver.py`<br>`tests/simulation/test_30day_headless_life_simulation.py` |
 | **#13** | 对抗套件 | `M4-005` | V21~V30 宪法级高阶对抗场景全套测试 | 总指挥总工部 | **CLOSED (10/10 PASS)** | `tests/scenarios/test_v21_to_v30_adversarial.py`<br>`src/aios_core/wearable/fsm.py`<br>`src/ai_worker/brevity_guard.py`<br>`src/ai_worker/stream_pipeline.py` |
 | **#14** | 治理体系 | `M0-PRIME` | M0-023..030 契约候选冻结 + G-M1P 压测套件 | 01a0a638 / 01a0a46e | **CLOSED (36/36 PASS)** | `src/aios_core/bench/g_m1p.py`<br>`tests/unit/test_m0_prime_contracts.py`<br>`tests/integration/test_g_m1p_smoke.py` |
+| **#15** | C05/C08 | `M5-004` | 共生决策辅助与行动推演引擎 | Agent-09 | **CLOSED (3/3 PASS)** | `src/aios_core/cognition/symbiotic_advisor.py`<br>`tests/cognition/test_symbiotic_advisor.py` |
+| **#16** | C01/C06 | `M5-002` | 维度生命周期与高阶维度提炼挂载引擎 | Agent-07 | **CLOSED (3/3 PASS)** | `src/aios_core/cognition/dimension_engine.py`<br>`tests/cognition/test_dimension_lifecycle.py` |
 
 ---
 

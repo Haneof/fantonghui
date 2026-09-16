@@ -1,4 +1,4 @@
-# M1 里程碑云端派工总表与工单索引
+# M1/M5 里程碑云端派工总表与工单索引
 
 本文档为 AI 模型团队在 GitHub 云端领单开发的唯一派发索引。
 
@@ -9,3 +9,8 @@
 | **3号提示词** | [`TASK_DISPATCH_AGENT_3_M1_010R.md`](./TASK_DISPATCH_AGENT_3_M1_010R.md) | `M1-010R` 5D 时空多尺度金字塔 | `arena/agent-03-m1-010r` | `src/aios_core/summaries/pyramid_aggregator.py` |
 | **4号提示词** | [`TASK_DISPATCH_AGENT_4_M1_012R.md`](./TASK_DISPATCH_AGENT_4_M1_012R.md) | `M1-012R` 实体拓扑超链接网络 | `arena/agent-04-m1-012r` | `src/aios_core/query/hyperlink_traverser.py` |
 | **5号提示词** | [`TASK_DISPATCH_AGENT_5_M1_018.md`](./TASK_DISPATCH_AGENT_5_M1_018.md) | `M1-018` 认知反向回溯标注 (老王案) | `arena/agent-05-m1-018` | `src/aios_core/world/retrospective_annotation.py` |
+| **6号提示词** | [`TASK_DISPATCH_AGENT_6_M5_SEARCH.md`](./TASK_DISPATCH_AGENT_6_M5_SEARCH.md) | `M5-001` 多维搜索底座与操作总线 | `arena/agent-06-m5-search` | `src/aios_core/query/search.py` |
+| **7号提示词** | [`TASK_DISPATCH_AGENT_7_M5_DIM_LIFECYCLE.md`](./TASK_DISPATCH_AGENT_7_M5_DIM_LIFECYCLE.md) | `M5-002` 维度生命周期与高阶提炼 | `arena/agent-07-m5-dim-lifecycle` | `src/aios_core/cognition/dimension_engine.py` |
+| **8号提示词** | [`TASK_DISPATCH_AGENT_8_M5_RAPPORT_MIRROR.md`](./TASK_DISPATCH_AGENT_8_M5_RAPPORT_MIRROR.md) | `M5-003` AI自身维度总结与羁绊镜面 | `arena/agent-08-m5-rapport-mirror` | `src/aios_core/cognition/self_reflection.py` |
+| **9号提示词** | [`TASK_DISPATCH_AGENT_9_M5_SYMBIOTIC_ADVISOR.md`](./TASK_DISPATCH_AGENT_9_M5_SYMBIOTIC_ADVISOR.md) | `M5-004` 共生决策辅助与行动推演 | `arena/agent-09-m5-action-advisor` | `src/aios_core/cognition/symbiotic_advisor.py` |
+| **10号提示词** | [`TASK_DISPATCH_AGENT_10_M5_AGENT_ARENA.md`](./TASK_DISPATCH_AGENT_10_M5_AGENT_ARENA.md) | `M5-005` 独立Agent战训考场诊断器 | `arena/agent-10-m5-agent-arena` | `src/aios_core/simulation/agent_mind_bench.py` |
