@@ -1,0 +1,31 @@
+{
+  "version": "1.0.0",
+  "effective_from": "2026-09-16",
+  "token_budget": {
+    "monthly_token_budget": 2554000,
+    "single_shot_cockpit_budget": 1500,
+    "comment": "SIM-001 月度 Token 封套全局硬顶；单看板预算与 M2-009R 一致"
+  },
+  "simulation": {
+    "default_days": 30,
+    "long_run_days": 180,
+    "acceleration": 1000,
+    "max_rss_mb": 128,
+    "raw_binary_retention_bytes": 0,
+    "deadlock_hard_limit": 0
+  },
+  "scheduler": {
+    "mechanical_eval_budget_ms_per_condition": 1,
+    "deep_sleep_gate": {
+      "silent_window_start": "02:00",
+      "silent_window_end": "06:00",
+      "p0_bypass_only": true
+    }
+  },
+  "dimension_guard": {
+    "max_active_dimensions": 32,
+    "trial_days": 30,
+    "min_accuracy": 0.70,
+    "daily_reflection_quota": 1
+  }
+}
