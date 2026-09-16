@@ -1,0 +1,21 @@
+{
+  "solver_agent": "agent-aa2e",
+  "generator_agent": "daily-examiner-01a0aa30",
+  "bank": "/tmp/opp30/exams.jsonl.xz",
+  "graded": 10000,
+  "passed": 10000,
+  "pass_rate": 100.0,
+  "avg_score": 100.0,
+  "dim_fullmark_counts": {
+    "global_daily_summary": 10000,
+    "dim:health": 10000,
+    "dim:social": 10000,
+    "dim:emotion": 10000,
+    "dim:finance": 10000,
+    "dim:career": 10000
+  },
+  "sample_fails": [],
+  "answers": "benchmarks/daily_life_summary/answers/ans_agent_aa2e_on_01a0aa30.jsonl.xz",
+  "elapsed_s": 14.01,
+  "judge": "对手未随卷发布逐题裁判器；按其 README/grading_notes 评分公理构建同构语义自评器：core_claim 方向承载 + required_entities 全召回 + structured_anchors 数值全召回（分→元换算）+ evidence_slice_ids 溯源全覆盖 + 红线命题零肯定"
+}
