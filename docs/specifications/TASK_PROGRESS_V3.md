@@ -299,7 +299,20 @@
 - **对抗陷阱**：醉酒吹牛（“下月收购那家公司”）、口头禅宣泄（“再加班我就不活了”）、玩笑借钱（“借我一百万呗”）、反讽吐槽（“感谢领导画的大饼”）、钓鱼短信、假摔碰瓷（IMU 峰值仅 1.0~1.35g 却呼痛索赔）、假转账截图、脱腕误报、夜间早搏阵发、隐匿心梗（“胃有点不舒服”）、真跌倒冲击（IMU 峰值 9.2~12.8g + 冲击后静止 120~300s）。
 - **物理自洽**：传感器题的波形峰值与文案数值强一致（`g_series_peak` 联动），P0 场景自带 `raw_imu_g_force / stillness_seconds / pvc_burst_count / baro_hpa` 物理判据字段，端侧可 ≤50ms 硬旁路。
 
+### 4.5 与既有 `benchmarks/daily_summary/` 出卷交付的分工
+本分支另有并行交付 `benchmarks/daily_summary/questions/questions_01a0aa2d-fantonghui.jsonl`
+（配合 `src/aios_core/simulation/daily_summary_arena_protocol.py` 的**全天多维总结**协议）。
+两者互补、互不覆盖：
+- `benchmarks/daily_summary/*`：面向「全局日总结 + 多维总结」的总结型考卷；
+- `benchmarks/data_cleaning/questions/*`（本节）：面向 Master Dispatch #11 的**清洗竞技场**考卷——
+  每条事实可溯源到具体载体 ID、含 `ground_truth_junk_ids` 供铁律四物理剪枝、含 `CleaningQuestion` 契约字段，
+  可直接被其他战队 `purifier_<solver>.py` 跨 Git 交叉作答与判分。
+
 ### 5. 交叉做题（工序二，本战队作为做题方）结果留痕
+> 说明：本分支 `benchmarks/data_cleaning/answers/ans_01a0aa2d-fantonghui_on_*.jsonl` 与
+> `reports/report_01a0aa2d-fantonghui_on_*.json` 为战队既有交叉做题留痕（含 `_heldout`/`_v1baseline` 复测）。
+> 下表数据为**本清洗器** `src/aios_core/ingest/purifier_01a0aa2d.py` 在四份 10,000 题全量题库上的独立复跑结果
+> （命令见 §6，可随时复现）：
 | 对手题库 | 题量 | 平均分 | 方向吻合 | 实体召回 | 垃圾剪枝 | 幻觉 |
 |---|---|---|---|---|---|---|
 | `agent-11` | 10,000 | 50.02 | 0.392 | 0.237 | 0.980 | 0 |
@@ -317,4 +330,10 @@ PYTHONPATH=src python -m aios_core.simulation.question_generator_01a0aa2d \
   --verify-only benchmarks/data_cleaning/questions/questions_01a0aa2d-fantonghui.jsonl \
   --verify-gt benchmarks/data_cleaning/ground_truth/gt_01a0aa2d-fantonghui.jsonl
 PYTHONPATH=src python -m pytest tests/unit/test_cleaning_arena_question_generator_01a0aa2d.py -q
+```
+
+```bash
+# 独立复跑四份对手题库（答卷/报告输出到 /tmp，作为可复现性证据，不覆盖既有留痕）
+PYTHONPATH=src python -m aios_core.ingest.purifier_01a0aa2d --questions <对手题库.jsonl> \
+  [--ground-truth <对手标答.jsonl>] --answers /tmp/ans.jsonl --report /tmp/report.json
 ```
