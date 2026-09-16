@@ -1,0 +1,25 @@
+{
+  "solver_agent": "01a0aa2c-fantonghui",
+  "generator_tag": "agent_a9f6",
+  "count": 10000,
+  "avg_final_score": 97.8285,
+  "pass_rate": 0.8526,
+  "verdicts": {
+    "PASS": 8526,
+    "FAIL": 1474
+  },
+  "avg_direction_match": 1.0,
+  "avg_entity_recall": 0.9131,
+  "avg_dimension_accuracy": 1.0,
+  "avg_junk_prune": 1.0,
+  "total_hallucinations": 0,
+  "avg_hallucination": 0.0,
+  "self_solving_violations": 0,
+  "score_histogram": {
+    "0-60": 0,
+    "60-80": 0,
+    "80-90": 1474,
+    "90-100": 8526
+  },
+  "worst_cases": []
+}
