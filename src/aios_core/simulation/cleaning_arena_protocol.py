@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import json
 from enum import StrEnum
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Set
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -48,11 +48,13 @@ class CleaningQuestion(BaseModel):
     generator_agent: str = Field(..., description="出题战队编号（如 agent-01）")
     timestamp_utc: str = Field(..., description="虚拟事件发生时间 ISO 8601")
     difficulty: DifficultyLevel = Field(default=DifficultyLevel.MEDIUM)
-
-    # 0. 佩戴者身份与人生阶段标签
-    persona_tag: Optional[str] = Field(
-        default=None,
+    persona_tag: str = Field(
+        default="UNSPECIFIED",
         description="佩戴者身份与人生阶段标签（如 D07_钢筋班包工头_48岁_痛风并发讨薪）"
+    )
+    factor_ids: Dict[str, str] = Field(
+        default_factory=dict,
+        description="七维出题因子编号，便于审计随机覆盖（demographic/core_event/sensor/acoustic/linguistic/speaker_topology/trap）"
     )
 
     # 1. 外部传感器流（50Hz IMU / PPG / GPS / 气压计）
@@ -288,3 +290,31 @@ class DirectionalSemanticMatcher:
             verdict=verdict,
             critique_notes=notes
         )
+
+
+# Keep the protocol module as the convenient public entry point without creating
+# an eager import cycle: the generator imports the protocol models, while callers
+# may still use ``from ...cleaning_arena_protocol import QuestionGenerator``.
+def __getattr__(name: str) -> Any:
+    if name in {
+        "CleaningQuestionGenerator",
+        "HighEntropyQuestionGenerator",
+        "LifeSpectrumQuestionGenerator",
+        "QuestionGenerator",
+        "SevenDimensionQuestionGenerator",
+    }:
+        from .question_generator import (
+            CleaningQuestionGenerator,
+            HighEntropyQuestionGenerator,
+            LifeSpectrumQuestionGenerator,
+            QuestionGenerator,
+            SevenDimensionQuestionGenerator,
+        )
+        return {
+            "CleaningQuestionGenerator": CleaningQuestionGenerator,
+            "HighEntropyQuestionGenerator": HighEntropyQuestionGenerator,
+            "LifeSpectrumQuestionGenerator": LifeSpectrumQuestionGenerator,
+            "QuestionGenerator": QuestionGenerator,
+            "SevenDimensionQuestionGenerator": SevenDimensionQuestionGenerator,
+        }[name]
+    raise AttributeError(name)
