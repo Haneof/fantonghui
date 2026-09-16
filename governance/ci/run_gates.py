@@ -103,6 +103,9 @@ MANIFEST_FILES = [
     "governance/ci/negative_self_test.py",
     "governance/ci/gate_baseline.json",
     "governance/ci/governance-gates.workflow.yml",
+    # --- 语法制程检查器（V3G-014）：AST 而非正则，附探测器自证与命中工件 ---
+    "governance/ci/lint_assert_msg_ast.py",
+    "governance/ci/evidence/lint_assert_msg_ast_2026-09-16.json",
     # --- as-built 审查（第一批派工交付）证据：探针 + 100k/1M 工件 + 审查报告 ---
     "reviews/architecture/evidence/verify_landed_m1_017_cjk.py",
     "reviews/architecture/evidence/verify_landed_m1_017_cjk_1m_result.json",

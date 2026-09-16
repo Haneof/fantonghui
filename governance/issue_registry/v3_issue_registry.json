@@ -1,5 +1,5 @@
 {
-  "registry_version": "0.3.5-PROPOSAL",
+  "registry_version": "0.3.6-PROPOSAL",
   "status": "PROPOSAL — 待项目总工程师逐号裁决后升格为唯一真源；在此之前 CI 门保持红色",
   "generated_by": "reviews/architecture/AIOS_V3_UNIFIED_BACKLOG_AND_AS_BUILT_VERIFICATION_2026-09-16.md §9.2/§9.3 + reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3（RC-001~RC-041，41 条提案号）",
   "generated_at_commit": "00adf2b",
@@ -1732,10 +1732,11 @@
       "gate": "Gate0",
       "status": "OPEN",
       "source_docs": [
-        "reviews/architecture/AIOS_Core_as_built_审查报告_第一批派工交付_2026-09-16.md（as-built 审查报告，2026-09-16）"
+        "reviews/architecture/AIOS_Core_as_built_审查报告_第一批派工交付_2026-09-16.md（as-built 审查报告，2026-09-16）",
+        "docs/specifications/AIOS_Core_详细开发任务拆分_R2.md L533（SIM-001 = 隐藏真值存储）/ L689（SIM-021 = 同一人物连续30天状态演化）"
       ],
       "semantics": "派工单号位与 registry slug 整条链错位一格：2号 CJK 共搜占用 M1-017（真实语义 = simulated-edge-reduction-pipeline），5号 老王案回溯标注占用 M1-018（真实语义 = chinese-hybrid-co-search-engine）；M1-001R/M1-010R/M1-012R 为未注册号，其中 3号/4号连 slug 都不在 registry",
-      "note": "违反 R3_alloc『一个号只能有一个 slug』『改语义 = 发新号 + 旧号标 SUPERSEDED_BY』。后果是验收标准张冠李戴：M1-018 的『中文共搜 p95』被拿去验收双时态标注，M1-017 的『端侧降采样』被拿去验收 CJK 索引 ⇒ V3G-001 那 442.532 ms 在错误号位下没有任何门会拦。正确归属：CJK 共搜 → M1-018(RC-014) + 别名投影 M1-021；回溯标注 → M3-012(+M0-031/RC-004/RC-020)；端侧摄入+声纹 → M1-017(+RC-016)；金字塔与超链接穿透 → registry 无 slug，须先发号。",
+      "note": "违反 R3_alloc『一个号只能有一个 slug』『改语义 = 发新号 + 旧号标 SUPERSEDED_BY』。后果是验收标准张冠李戴：M1-018 的『中文共搜 p95』被拿去验收双时态标注，M1-017 的『端侧降采样』被拿去验收 CJK 索引 ⇒ V3G-001 那 442.532 ms 在错误号位下没有任何门会拦。正确归属：CJK 共搜 → M1-018(RC-014) + 别名投影 M1-021；回溯标注 → M3-012(+M0-031/RC-004/RC-020)；端侧摄入+声纹 → M1-017(+RC-016)；金字塔与超链接穿透 → registry 无 slug，须先发号。 【第二次发生（第二批四张工单）】M2-001 / M2-005R / M3-001R / SIM-001 在**无派单文档**（governance/dispatches/ 只有 1~5 号的 M1-* 五份）、**无 registry 注册**的情况下被三份并行实现同时使用。其中 SIM-001 为语义错位：规格文档 L533 定义 SIM-001 = 隐藏真值存储，而交付物是『30天无界面人生推演』，该语义在规格中对应 **SIM-021**（L689 同一人物连续30天状态演化，另见 L89 M4『同一虚拟人连续30天』）；M2-001 / M2-005R / M3-001R 在规格文档与 registry issues[] 中**均无定义**（M2-005R/M3-001R 连全文都未出现）。⇒ 与第一批同因：号位由交付方自行宣告，而编号权属于本文件（R2）。处置同 fix 字段，不另发新号。",
       "traces_to": [
         "M1-017",
         "M1-018",
@@ -1746,7 +1747,8 @@
         "RC-014"
       ],
       "evidence": [
-        "registry issues[] 与派工单标题行逐条对照（审查报告 §2.1 表）"
+        "registry issues[] 与派工单标题行逐条对照（审查报告 §2.1 表）",
+        "对照实验：grep SIM-001 于 docs/specifications/AIOS_Core_详细开发任务拆分_R2.md → L533 标题为『隐藏真值存储』；grep 30天/推演 → L689『SIM-021 同一人物连续30天状态演化』；registry issues[] 中 SIM-*/M2-005R/M3-001R 号均不存在"
       ],
       "priority": "P0",
       "fix": "号位回归 registry 语义；R 后缀号发正式号或标 PROVISIONAL；金字塔/超链接穿透先注册 slug 再发号",
@@ -1983,6 +1985,77 @@
         "docs/DEV_LOG.md 追记6：父提交 a04964e 全量套件 1 failed, 778 passed；本方提交树全量套件先后为 1 failed, 797 passed 与 798 passed；该项单跑 1 passed in 1.39 s",
         "src/aios_core/simulation/headless_life_driver_independent.py:943 → return self._rss_peak_kb / 1024.0（无基线差分）",
         "对照范式：src/aios_core/simulation/headless_life_driver.py 时点 VmRSS + tests/simulation/test_30day_headless_life_simulation.py:142 差值断言 ≤32MB"
+      ]
+    },
+    {
+      "id": "V3G-013",
+      "slug": "triple-parallel-implementations-authority-unruled",
+      "milestone": "NUMCI",
+      "gate": "Gate0",
+      "status": "OPEN",
+      "source_docs": [
+        "src/aios_core/{dimensions,scheduler,simulation,wake}/ 下 4 个模块族 × 3 份实现（共 12 个产品文件）",
+        "tests/simulation/test_30day_headless_life_simulation{,_independent,_independent2}.py（门禁覆盖对照）",
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.7.8",
+        "docs/DEV_LOG.md 追记7"
+      ],
+      "semantics": "同一批四张工单（M2-005R / M2-001 / M3-001R / SIM-001）在 src/aios_core 下各有**三份并行实现**：evolution_guard{,_independent,_independent2}.py、conditional_engine{...}.py、headless_life_driver{...}.py、cooldown_queue{...}.py，共 12 个产品文件 + 对应测试；**无任何文档裁定哪一份是权威交付**，且三份的门禁覆盖互不一致。",
+      "note": "三重后果。① **发布面重复 3×**：同一需求三份代码需各自维护、各自被 as-built 审查（本审查方本轮已为其中 8 个文件做只读同类陷阱扫描），审查成本与缺陷面同时翻倍。② **门禁覆盖取决于选哪一份**：SIM-001 的『峰值 RSS ≤128MB』门只存在于 A（headless_life_driver.py，6 项测试）与 B（_independent，23 项测试）；C（_independent2，6 项测试）**完全未测 RSS**（全文件仅 sqlite3.connect(\":memory:\") 一处含 memory 字样）。若 C 被选为权威，30 天推演的内存预算将**无任何门把守**。③ **红线覆盖不可比**：A/B 均显式断言零死锁 + 零原始图片滞留 + RSS；C 断言零死锁 + 零滞留字节（stats.retained_image_bytes == 0）+ 月预算硬数 2,554,000 + 常驻对象有界，但缺 RSS ⇒ 三份『都声称过了门禁3』而实际门数不同，横向比较会误导放行决策。号位问题另见 V3G-004（第二次发生）；C 份 L108 的断言写法缺陷另见 V3G-014。**审查方不选边、不删除任何一份**：裁定权威实现属于治理方职权，删代码属于交付方职权。",
+      "traces_to": [
+        "V3G-004",
+        "V3G-005",
+        "V3G-003",
+        "V3G-014",
+        "NUMCI-001"
+      ],
+      "priority": "P1",
+      "resolution": "OPEN_NEEDS_GOVERNANCE_RULING（需治理方裁定唯一权威实现；其余标为对照实现并给出保留理由，或由交付方删除）",
+      "acceptance": "① 治理方书面裁定 4 个模块族各自的权威实现（一份），并在 registry 本条 resolution 写明裁定结果与理由；② 权威实现的门禁覆盖取三份之**并集**（至少含：零死锁、零原始图片/字节滞留、峰值 RSS 预算、月 token 预算硬数、常驻对象有界），缺项补齐后方可放行；③ 非权威实现要么删除，要么在文件头与 registry 中显式标注为『对照实现，不参与放行』，避免被误当交付物；④ 号位按 V3G-004 处置（SIM-001 语义错位纠正为 SIM-021 或发正式新号）。",
+      "forbidden": [
+        "在未裁定的情况下把三份实现都算作交付完成（门禁覆盖不同，不可并列计数）",
+        "由审查方或任一交付方擅自删除/合并他人实现",
+        "以『C 份也过了门禁3』为由放行 C（C 未测 RSS，门数少于 A/B）",
+        "再增加第四份并行实现而不先裁定前三份"
+      ],
+      "evidence": [
+        "ls src/aios_core/{dimensions,scheduler,simulation,wake}/ ⇒ 每族 3 份实现（12 文件）",
+        "门禁覆盖对照：A tests/simulation/test_30day_headless_life_simulation.py 6 项测试含 deadlock+RSS+raw_image；B ..._independent.py 23 项含 deadlock+RSS+raw_image+滞留；C ..._independent2.py 6 项含 deadlock+zero_bytes+预算，**无 RSS**",
+        "docs/DEV_LOG.md 追记7：只读交叉扫描 8 个新文件未见 .bit_count() 位运算哈希误用 / int(x,16) 宽松解析 / datetime.utcnow() 弃用调用；evolution_guard.py:142 的 != timedelta(days=30) 经查为故意的 model_validator 不变量（trial 窗口精确 30 天），不作为缺陷上报"
+      ]
+    },
+    {
+      "id": "V3G-014",
+      "slug": "assert-comma-second-comparison-swallows-cross-check",
+      "milestone": "NUMCI",
+      "gate": "Gate0",
+      "status": "OPEN",
+      "source_docs": [
+        "tests/simulation/test_30day_headless_life_simulation_independent2.py L108",
+        "governance/ci/lint_assert_msg_ast.py（AST 检查器 v1.0.0，stdlib-only，含探测器自证）",
+        "governance/ci/evidence/lint_assert_msg_ast_2026-09-16.json（130 文件 / 命中 1 / VERDICT=FAIL）",
+        "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.7.8"
+      ],
+      "semantics": "`assert stats.retained_image_bytes == 0, RawByteSink().retained_byte_count == 0`——逗号后的比较表达式在 Python 里是**断言消息**，仅在断言失败时求值，因此第二个核对**从未执行**；且它构造的是**全新** RawByteSink（retained_byte_count 恒为 0），即便真被当作断言也是空洞检查（未指向本次运行所用的 sink 实例）。",
+      "note": "**损失范围必须说准，不得夸大**：红线本身没有失守——`stats.retained_image_bytes == 0` 确实被断言，30 天推演的零滞留结论仍成立。真正丢掉的是两样：① **双源交叉核对**被静默降级为单源（运行报告的 stats 与 sink 自身计数不再互证，而本审查方在 M1-001R 的 V3G-009 正是靠 sink 账目分离才发现擦除/释放混淆 ⇒ 交叉核对是有实战价值的）；② **失败诊断退化**为 `AssertionError: False`，出问题时无法定位是哪个源不一致。**方法学教训（本条的另一半价值）**：本审查方第一次用 ERE 正则扫这个模式，在 tests/ 与 src/（已含命中文件所在目录）上得到 **0 命中（假阴性）**，连这唯一一处都没匹配上——原因是 ERE 括号表达式内的 `\\[` `\\]` 是字面量而非转义，字符类被写坏。改用 `ast` 遍历 `Assert` 节点、判 `msg` 是否属于 {Compare, BoolOp, UnaryOp} 后，130 个文件**精确命中 1 处**，且探测器自证 8/8（三种误用形态全部开火、四种正常写法零误报、语法错误文件被上报而非静默跳过）。⇒ 语法制程检查必须走 AST；正则在此类模式上会给出'看起来干净'的假结论，比不检查更危险。",
+      "traces_to": [
+        "V3G-013",
+        "V3G-009",
+        "NUMCI-001"
+      ],
+      "priority": "P2",
+      "resolution": "OPEN_NEEDS_FIX_BY_OWNER（缺陷在 SIM-001 第三份实现（_independent2）的自建门禁测试内；审查方不改他人测试，只登记 + 交付可复用的 AST 检查器）",
+      "acceptance": "① L108 拆为两条断言：对**本次运行所用的 sink 实例**断言 `retained_byte_count == 0`，消息位改为字符串/f-string 描述期望值与实际值；② `governance/ci/lint_assert_msg_ast.py` 全仓库命中数 = 0；③ 该检查器接入 CI（作为门禁或 pre-commit），并把工件纳入 SHA256SUMS；④ 接入前先跑 `--self-test` 确认探测器 8/8（防止把探测器本身改坏成永不开火）。",
+      "forbidden": [
+        "用正则替代 AST 做该模式检查（本仓库已实测假阴性：129 文件 0 命中）",
+        "把逗号后的比较表达式计入红线覆盖率（它从未被执行）",
+        "以『红线仍然通过』为由不修（丢的是交叉核对与可诊断性，下一次回归将无从定位）",
+        "对全新构造的 sink 断言其计数为 0 并称之为验证（恒真，空洞）"
+      ],
+      "evidence": [
+        "governance/ci/evidence/lint_assert_msg_ast_2026-09-16.json → scanned_files=130, hit_count=1, verdict=FAIL, hits[0] = tests/simulation/test_30day_headless_life_simulation_independent2.py:108",
+        "退出码实测：命中时 exit=1、干净根（governance/ci）exit=0",
+        "探测器自证：8 项 0 失败（Compare/BoolOp/UnaryOp 三种误用各命中 1；字符串/f-string/Name/无消息四种正常写法各 0 误报；SyntaxError 文件被上报为 SYNTAX_ERROR 而非跳过）",
+        "假阴性对照：ERE 正则 `^\\s*assert [^,]+, *[A-Za-z_][A-Za-z0-9_.\\[\\]() ]* *(==|!=|<=|>=|<|>|is) ` 扫描范围 tests/ 与 src/（**已包含命中文件所在的 tests/simulation/**）却命中 0 处；同一棵树 AST 扫描（tests/ src/ governance/，130 文件）命中 1 处"
       ]
     }
   ],
