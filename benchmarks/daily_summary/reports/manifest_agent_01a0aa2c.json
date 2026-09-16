@@ -1,0 +1,65 @@
+{
+  "generator_agent": "agent-01a0aa2c",
+  "seed": "0xd417",
+  "total_papers": 1000,
+  "persona_distribution": {
+    "P08": 63,
+    "P05": 49,
+    "P03": 80,
+    "P01": 67,
+    "P14": 73,
+    "P07": 57,
+    "P10": 64,
+    "P16": 71,
+    "P04": 56,
+    "P11": 66,
+    "P12": 68,
+    "P13": 44,
+    "P09": 64,
+    "P02": 69,
+    "P06": 56,
+    "P15": 53
+  },
+  "arc_distribution": {
+    "A07_INVESTMENT_LOSS": 79,
+    "A18_FAMILY_REUNION": 92,
+    "A10_PREGNANCY_CHECK": 80,
+    "A17_EXAM_FAILURE": 42,
+    "A09_FREELANCE_CLIENT_CONFLICT": 73,
+    "A04_MEDICAL_SCARE": 77,
+    "A06_CHILD_SCHOOL_ACCIDENT": 20,
+    "A03_PROMOTION_RAISE": 93,
+    "A11_TRUCK_BREAKDOWN": 56,
+    "A19_OUTDOOR_RESCUE": 66,
+    "A16_RIDER_OVERTIME": 68,
+    "A08_CONTRACT_SIGNED": 29,
+    "A15_RETIREE_SCAM": 18,
+    "A05_ELDER_FALL": 45,
+    "A01_BREAKUP_AFTER_REBUKE": 33,
+    "A12_DOCTOR_DISPUTE": 27,
+    "A02_LAYOFF_RUMOR": 60,
+    "A14_TAX_AUDIT": 29,
+    "A13_WAGE_ARREARS": 13
+  },
+  "difficulty_distribution": {
+    "MEDIUM": 341,
+    "HARD": 318,
+    "ADVERSARIAL": 206,
+    "EASY": 135
+  },
+  "avg_slices_per_paper": 21.7,
+  "files": {
+    "benchmarks/daily_summary/papers/papers_agent_01a0aa2c.jsonl": {
+      "sha256": "77635acc3bd1f47994d52cae8fb787d5e6fc749d0c8b02498a55e0070a5d5a3f"
+    },
+    "benchmarks/daily_summary/questions/questions_agent_01a0aa2c.jsonl": {
+      "sha256": "3d3e098ee4f685c87455d5eb82a51a6fe1c088243e9ac0a4825cd544686bdfab"
+    },
+    "benchmarks/daily_summary/ground_truth/gt_agent_01a0aa2c.jsonl": {
+      "sha256": "c8ebdff1c0344ddf234e0475242fb05b7846102b6f6e31f5ad2940b1470c2434"
+    }
+  },
+  "protocol": "src/aios_core/simulation/summary_arena_protocol.py::DailyPaper",
+  "judge": "src/aios_core/simulation/summary_arena_protocol.py::DirectionalSummaryJudge",
+  "note": "盲卷 questions_* 已审计无标答泄漏; 做题人只能读取 questions 文件."
+}
