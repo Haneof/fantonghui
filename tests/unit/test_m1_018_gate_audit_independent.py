@@ -28,6 +28,7 @@ import sqlite3
 import time
 from collections import deque
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import pytest
 
@@ -216,7 +217,9 @@ def _naive_recursive_invalidation(edges: list[tuple[str, str]], root: str) -> se
 # ---------------------------------------------------------------------------
 
 
-def test_g1_18000_facts_sha256_baseline_unchanged_after_annotation() -> None:
+def test_g1_18000_facts_sha256_baseline_unchanged_after_annotation(
+    tmp_path: Path,
+) -> None:
     """18,000 条客观事实封存后写入裁定注记，逐条 SHA-256 必须 100% 一致。"""
     conn = sqlite3.connect(":memory:")
     try:
@@ -237,8 +240,7 @@ def test_g1_18000_facts_sha256_baseline_unchanged_after_annotation() -> None:
         assert len(baseline) == OBSERVATION_COUNT
 
         # 今天写入裁定注记（走 append-only 日志，不触碰事实表）
-        journal_conn = sqlite3.connect(":memory:")
-        journal = RetrospectiveAnnotationJournal(journal_conn)
+        journal = RetrospectiveAnnotationJournal(tmp_path / "annotation_journal.db")
         journal.append(_judicial_ruling_annotation())
         assert journal.count() == 1
 
@@ -252,7 +254,6 @@ def test_g1_18000_facts_sha256_baseline_unchanged_after_annotation() -> None:
         for object_id, expected in baseline.items():
             assert ledger.digest_of(object_id) == expected
 
-        journal_conn.close()
     finally:
         conn.close()
 
