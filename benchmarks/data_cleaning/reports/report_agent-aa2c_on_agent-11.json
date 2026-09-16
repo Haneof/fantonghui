@@ -1,0 +1,14 @@
+{
+  "total_evaluated": 10000,
+  "solver_agent": "agent-aa2c",
+  "generator_agent": "agent-11",
+  "average_score": 100.0,
+  "pass_count": 10000,
+  "pass_rate_percent": 100.0,
+  "average_direction_match": 1.0,
+  "average_entity_recall": 1.0,
+  "average_junk_prune_rate": 1.0,
+  "average_dimension_accuracy": 1.0,
+  "total_hallucination_count": 0,
+  "verdict": "PASS"
+}
