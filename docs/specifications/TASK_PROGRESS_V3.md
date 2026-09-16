@@ -272,8 +272,8 @@
 | 交付组件 | 路径 | 规模 / 特性 |
 |---|---|---|
 | 出卷器（确定性发生器） | `src/aios_core/simulation/question_generator_01a0aa2d.py` | 57 条核心事实信号目录 + 46 类垃圾噪声族 + 30 条跨维度人生剧本骨架；`random.Random(seed*1_000_003+index)` 逐题摘取，重跑逐字节一致 |
-| 题库 | `benchmarks/data_cleaning/questions/questions_01a0aa2d-fantonghui.jsonl` | **10,000 题**，1.0 万个人的一天（07:00~23:30），71.5 MB |
-| 标答 | `benchmarks/data_cleaning/ground_truth/gt_01a0aa2d-fantonghui.jsonl` | 10,000 条记录 / **13,500 条方向性事实** / **266,391 个垃圾碎片 ID**，10.4 MB |
+| 题库 | `benchmarks/data_cleaning/questions/questions_01a0aa2d-fantonghui.jsonl` | **10,000 题**，1.0 万个人的一天（07:00~23:30），82.0 MB |
+| 标答 | `benchmarks/data_cleaning/ground_truth/gt_01a0aa2d-fantonghui.jsonl` | 10,000 条记录 / **13,500 条方向性事实** / **266,391 个垃圾碎片 ID**，10.5 MB |
 | 清单 | `benchmarks/data_cleaning/questions/manifest_01a0aa2d-fantonghui.json` | 种子、配额、sha256、自检计数（重跑校验用） |
 | 出卷报告 | `benchmarks/data_cleaning/reports/generation_report_01a0aa2d-fantonghui.md` | 配额达成、公平性不变量、标杆样例、出题官自述 |
 | 验收单测 | `tests/unit/test_cleaning_arena_question_generator_01a0aa2d.py` | 6 项硬门禁：目录自检 / 公平性不变量 / 确定性 / 配额 / 禁止自出自做 / 反向篡改必须报错 |
