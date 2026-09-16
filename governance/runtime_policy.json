@@ -1,0 +1,9 @@
+{
+  "policy_version": "1.0",
+  "issued_by": "AIOS Chief Architect Office",
+  "issued_at": "2026-09-16",
+  "scope": "headless_life_simulation",
+  "simulation_monthly_token_budget": 2554000,
+  "budget_notes": "30 天无头人生仿真推演的月度全局 Token 封套。覆盖看板装配、回溯注记、语义捎带评估等全部大模型触点；确定性机械阶段（C01 边缘清洗 / C02 账本持久化 / C06 结构索引）零 Token，不占预算。超额即违规，仿真报告必须如实记账。",
+  "enforcement": "SIM-001 Gate-4 hard envelope"
+}
