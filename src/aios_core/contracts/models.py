@@ -26,6 +26,7 @@ from .enums import (
     UserReaction,
     WakeSource,
     WakeState,
+    NarrativeSegmentStatus,
 )
 from .refs import ObjectRef
 from .time import KnowledgeWindow, TemporalExtent, as_utc, require_aware, require_timezone_name
@@ -593,6 +594,79 @@ class CommunicationExperience(WorldObject):
     def validate_action_pin(self) -> "CommunicationExperience":
         if self.action_ref is not None and self.action_ref.revision is None:
             raise ValueError("action_ref requires pinned ObjectRef revision")
+        return self
+
+
+class NarrativeSegment(WorldObject):
+    """第八章人生相变基础：叙事分段切割与标注。
+    
+    将用户生命线按主题/事件/时间切割为有意义的段落，支持跨维度叙事主线追踪，
+    是人生相变(LifeChapter)归档识别的底层基础设施。
+    """
+    object_type: Literal[ObjectType.NARRATIVE_SEGMENT] = ObjectType.NARRATIVE_SEGMENT
+    title: str = Field(min_length=1)
+    description: str = ""
+    segment_time: TemporalExtent = Field(default_factory=TemporalExtent.unknown_time)
+    segment_status: NarrativeSegmentStatus = NarrativeSegmentStatus.OPEN
+    dimension_refs: list[ObjectRef] = Field(default_factory=list)
+    key_event_refs: list[ObjectRef] = Field(default_factory=list)
+    key_claim_refs: list[ObjectRef] = Field(default_factory=list)
+    participant_refs: list[ObjectRef] = Field(default_factory=list)
+    supersedes_ref: ObjectRef | None = None
+    merged_into_ref: ObjectRef | None = None
+    life_chapter_ref: ObjectRef | None = None
+    theme_tags: list[str] = Field(default_factory=list)
+    coherence_score: float = Field(default=0.5, ge=0.0, le=1.0)
+
+    @model_validator(mode="after")
+    def validate_narrative_segment(self) -> "NarrativeSegment":
+        if self.segment_status == NarrativeSegmentStatus.SEALED and not self.title.strip():
+            raise ValueError("封存的叙事分段必须有明确标题")
+        if self.segment_status == NarrativeSegmentStatus.MERGED and self.merged_into_ref is None:
+            raise ValueError("MERGED NarrativeSegment requires merged_into_ref")
+        if self.merged_into_ref is not None and self.merged_into_ref.revision is None:
+            raise ValueError("merged_into_ref requires pinned ObjectRef revision")
+        if self.supersedes_ref is not None and self.supersedes_ref.revision is None:
+            raise ValueError("supersedes_ref requires pinned ObjectRef revision")
+        if self.life_chapter_ref is not None and self.life_chapter_ref.revision is None:
+            raise ValueError("life_chapter_ref requires pinned ObjectRef revision")
+        for field_name in ["dimension_refs", "key_event_refs", "key_claim_refs", "participant_refs"]:
+            for ref in getattr(self, field_name):
+                if ref.revision is None:
+                    raise ValueError(f"{field_name} requires pinned ObjectRef revisions")
+        return self
+
+
+class DimensionCurvePoint(WorldObject):
+    """第七章高阶认知趋势基础：维度曲线数据点。
+    
+    记录某个维度在某个时间点的量化值、速度(velocity)和加速度(acceleration)，
+    形成维度演化的时序曲线，支持趋势分析和拐点检测。
+    """
+    object_type: Literal[ObjectType.DIMENSION_CURVE_POINT] = ObjectType.DIMENSION_CURVE_POINT
+    dimension_ref: ObjectRef
+    point_time: datetime
+    value: float
+    velocity: float | None = None
+    acceleration: float | None = None
+    confidence: float = Field(default=0.5, ge=0.0, le=1.0)
+    source_summary_ref: ObjectRef | None = None
+    source_evidence_set_ref: ObjectRef | None = None
+    anomaly_flag: bool = False
+    anomaly_description: str | None = None
+    granularity: str = "day"
+
+    @model_validator(mode="after")
+    def validate_curve_point(self) -> "DimensionCurvePoint":
+        require_aware(self.point_time, "point_time")
+        if self.dimension_ref.revision is None:
+            raise ValueError("dimension_ref requires pinned ObjectRef revision")
+        if self.source_summary_ref is not None and self.source_summary_ref.revision is None:
+            raise ValueError("source_summary_ref requires pinned ObjectRef revision")
+        if self.source_evidence_set_ref is not None and self.source_evidence_set_ref.revision is None:
+            raise ValueError("source_evidence_set_ref requires pinned ObjectRef revision")
+        if self.anomaly_flag and not (self.anomaly_description or "").strip():
+            raise ValueError("标记为异常的曲线点必须说明异常原因")
         return self
 
 
