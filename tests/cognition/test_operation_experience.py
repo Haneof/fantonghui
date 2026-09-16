@@ -183,7 +183,7 @@ def test_accuracy_is_a_hard_gate_not_a_weighted_preference(tmp_path):
         distiller.distill_for_intent("对抗查询")
 
 
-def test_prior_legacy_receipts_and_old_table_are_forward_compatible(tmp_path):
+def test_unmeasured_claims_are_refused_and_old_table_is_forward_compatible(tmp_path):
     database = tmp_path / "legacy.db"
     with sqlite3.connect(database) as connection:
         connection.execute(
@@ -202,11 +202,14 @@ def test_prior_legacy_receipts_and_old_table_are_forward_compatible(tmp_path):
         )
 
     distiller = OperationExperienceDistiller(database)
-    prior = distiller.distill_for_intent("从未执行的意图")
-    assert prior.preferred_pathway is PathwayType.HIERARCHICAL_TOPO
-    assert prior.expected_accuracy == 1.0
-    assert prior.expected_tokens <= 500
-    assert prior.sample_size == 1
+    with pytest.raises(NoGoldenPathwayError, match="no measured pathway receipts"):
+        distiller.distill_for_intent("从未执行的意图")
+    with sqlite3.connect(database) as connection:
+        fabricated_rows = connection.execute(
+            "SELECT COUNT(*) FROM operation_experiences "
+            "WHERE intent_key = '从未执行的意图'"
+        ).fetchone()[0]
+    assert fabricated_rows == 0
 
     # The original public constructor did not expose exact IDs/output tokens.
     legacy = QueryExecutionReceipt(

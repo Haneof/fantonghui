@@ -311,17 +311,10 @@ class OperationExperienceDistiller:
         intent_key = self.normalize_intent(query_intent)
         receipts = self._load_receipts(intent_key)
         if not receipts:
-            prior = OptimalRetrievalStrategy(
-                query_intent=query_intent,
-                preferred_pathway=PathwayType.HIERARCHICAL_TOPO,
-                expected_tokens=150,
-                expected_latency_ms=20.0,
-                expected_accuracy=1.0,
-                pathway_steps=self.PRIOR_STEPS,
-                sample_size=1,
+            raise NoGoldenPathwayError(
+                "no measured pathway receipts exist; refusing to fabricate "
+                "token, latency, or accuracy claims"
             )
-            self._save_strategy(intent_key, prior)
-            return prior
 
         grouped: dict[PathwayType, list[QueryExecutionReceipt]] = defaultdict(list)
         for receipt in receipts:
