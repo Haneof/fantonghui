@@ -18,6 +18,7 @@ from .enums import (
     GoalStatus,
     KnowledgeState,
     ObjectType,
+    ProfileName,
     PredictionVerificationState,
     SummaryStatus,
     TaskState,
@@ -142,11 +143,30 @@ class Claim(WorldObject):
     support_evidence_set_refs: list[ObjectRef] = Field(default_factory=list)
     counter_evidence_set_refs: list[ObjectRef] = Field(default_factory=list)
     unknown_items: list[str] = Field(default_factory=list)
+    # R4-09.1（第 38 条追加，候选冻结）：来源信任分层——"平等"是记录权利平等，
+    # 不是行动授权平等。
+    source_trust: float = Field(default=1.0, ge=0.0, le=1.0)
+    corroboration_required: bool = False
 
     @model_validator(mode="after")
     def validate_asserted_at(self) -> "Claim":
         require_aware(self.asserted_at, "asserted_at")
         return self
+
+    @model_validator(mode="after")
+    def validate_trust_governance(self) -> "Claim":
+        # V31 契约层执法点：未获印证的第三方转述不得直接成为 FACT。
+        if self.corroboration_required and self.claim_type is ClaimType.FACT:
+            raise ValueError(
+                "corroboration_required=True 的转述类内容在印证前不得升为 FACT（R4-09.1）"
+            )
+        return self
+
+    @property
+    def may_drive_external_action(self) -> bool:
+        """C06 消费谓词（契约层给语义、执法在 M2+ 行动授权路径）。"""
+
+        return not self.corroboration_required
 
 
 class EvidenceSelector(BaseModel):
@@ -618,3 +638,135 @@ class AssemblyPolicy(WorldObject):
         if unknown:
             raise ValueError(f"section_token_caps references sections outside section_order: {unknown}")
         return self
+
+
+# ---------------------------------------------------------------------------
+# M0-030（R4-09.3）runtime_profile 双配置契约：virtual / band_v0。
+# 教义：profile 只改数字，不改代码路径——因此所有硬约束都写进同一个模型的
+# validator（结构性同路径），band_v0 逐数字"不弱于 virtual 默认"。
+# ---------------------------------------------------------------------------
+
+
+class IngestPolicy(BaseModel):
+    """C01 摄入硬约束（第 33 条）：不存大图 / 不存 50Hz 原始 / 心率平均线。"""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    hr_compression_window_seconds: int = Field(default=7200, ge=0)
+    imu_mode: Literal["macro_events_only", "raw_stream"] = "macro_events_only"
+    images_mode: Literal["semantic_text_only", "thumbnail_meta"] = "semantic_text_only"
+    compute_budget_us_per_ingest: int | None = None  # None=不限（virtual 可）
+    image_queue_depth: int = Field(default=8, ge=1)
+    frame_drop_must_record: bool = True
+
+
+class LatencyPolicy(BaseModel):
+    """C13 延迟预算：首字/同步召回；band_v0 附 TTS 分段硬线。"""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    first_token_budget_ms: int = Field(default=1000, ge=1)
+    recall_sync_budget_ms: int = Field(default=50, ge=1)
+    transport: Literal["mock_fixed_rtt", "real"] = "mock_fixed_rtt"
+    tts_max_sec_per_turn: int | None = None
+    tts_force_split_on_exceed: bool = True
+
+
+class StoragePolicy(BaseModel):
+    """C02 存储速率上限 + 33.5 归档硬线（tombstone 开关不是配置项）。"""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    raw_tier_days: int = Field(default=30, ge=1)
+    pruned_tombstone: bool = True
+    band_local_only: bool = False
+    ring_buffer_hours: int | None = None
+    max_commits_per_hour: int | None = None
+
+
+class RuntimeProfile(BaseModel):
+    """双 Profile 契约（设计书 §2.4）。不是世界对象——是配置，不进 registry。"""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    name: ProfileName
+    ingest: IngestPolicy = Field(default_factory=IngestPolicy)
+    latency: LatencyPolicy = Field(default_factory=LatencyPolicy)
+    storage: StoragePolicy = Field(default_factory=StoragePolicy)
+
+    @model_validator(mode="after")
+    def validate_profile_rules(self) -> "RuntimeProfile":
+        # 宪法硬线，与 profile 无关（两个名字都必须成立）：
+        if not self.storage.pruned_tombstone:
+            raise ValueError("pruned_tombstone=false 被第 33.5 条拒绝：tombstone 不可配置关闭")
+        if self.ingest.imu_mode != "macro_events_only":
+            raise ValueError("raw_stream IMU 被第 33 条摄入硬约束拒绝（两 profile 同判）")
+        if self.ingest.images_mode != "semantic_text_only":
+            raise ValueError("存大图/缩略图元数据被第 33 条摄入硬约束拒绝（两 profile 同判）")
+        if self.ingest.frame_drop_must_record is not True:
+            raise ValueError("丢帧必须写 Observation（数据覆盖异常）是路径不是数字，禁关")
+        if self.name is ProfileName.BAND_V0:
+            v = DEFAULT_VIRTUAL
+            if self.ingest.compute_budget_us_per_ingest is None:
+                raise ValueError("band_v0 必须声明每摄入算力预算（us）")
+            if self.ingest.image_queue_depth > 3:
+                raise ValueError("band_v0 图像队列深度上限 3")
+            if self.storage.ring_buffer_hours is None or self.storage.ring_buffer_hours > 48:
+                raise ValueError("band_v0 必须声明 ring_buffer_hours ≤ 48")
+            if not self.storage.band_local_only:
+                raise ValueError("band_v0 端侧语义文本+波形包络为 band_local_only 前提")
+            if self.storage.max_commits_per_hour is None or self.storage.max_commits_per_hour > 200_000:
+                raise ValueError("band_v0 必须声明存储速率上限（≤200k 修订/小时）")
+            if self.latency.tts_max_sec_per_turn is None or self.latency.tts_max_sec_per_turn > 20:
+                raise ValueError("band_v0 TTS ≤20s/轮且超限强制分段")
+            if not self.latency.tts_force_split_on_exceed:
+                raise ValueError("band_v0 tts_force_split_on_exceed 必须为真")
+            # "同款 + 更严"：逐数字不得弱于 virtual 默认。
+            pairs = (
+                ("hr_compression_window_seconds", self.ingest, v.ingest),
+                ("compute_budget_us_per_ingest", self.ingest, v.ingest, True),
+                ("image_queue_depth", self.ingest, v.ingest),
+                ("first_token_budget_ms", self.latency, v.latency),
+                ("recall_sync_budget_ms", self.latency, v.latency),
+                ("tts_max_sec_per_turn", self.latency, v.latency, True),
+                ("raw_tier_days", self.storage, v.storage),
+                ("ring_buffer_hours", self.storage, v.storage, True),
+                ("max_commits_per_hour", self.storage, v.storage, True),
+            )
+            for item in pairs:
+                field, a, b = item[0], item[1], item[2]
+                none_ok_lenient = len(item) > 3  # None 视为更严的场景不在此列
+                if getattr(a, field) is None:
+                    if not none_ok_lenient:
+                        raise ValueError(f"band_v0.{field} 不得为 None")
+                    continue
+                if getattr(b, field) is None:
+                    continue
+                if getattr(a, field) > getattr(b, field):
+                    raise ValueError(
+                        f"band_v0 只可更严：{field}={getattr(a, field)} > virtual 默认 {getattr(b, field)}"
+                    )
+        return self
+
+
+DEFAULT_VIRTUAL = RuntimeProfile(name=ProfileName.VIRTUAL)
+DEFAULT_BAND_V0 = RuntimeProfile(
+    name=ProfileName.BAND_V0,
+    ingest=IngestPolicy(
+        hr_compression_window_seconds=3600,
+        compute_budget_us_per_ingest=800,
+        image_queue_depth=3,
+    ),
+    latency=LatencyPolicy(first_token_budget_ms=1000, recall_sync_budget_ms=50,
+                          tts_max_sec_per_turn=20),
+    storage=StoragePolicy(raw_tier_days=30, band_local_only=True,
+                          ring_buffer_hours=48, max_commits_per_hour=100_000),
+)
+
+
+def resolve_runtime_profile(name: str) -> RuntimeProfile:
+    try:
+        parsed = ProfileName(name)
+    except ValueError as exc:
+        raise ValueError(f"未知 runtime_profile：{name!r}（合法值：virtual / band_v0）") from exc
+    return DEFAULT_BAND_V0 if parsed is ProfileName.BAND_V0 else DEFAULT_VIRTUAL

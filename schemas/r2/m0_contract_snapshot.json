@@ -142,6 +142,10 @@
       "falsified",
       "expired"
     ],
+    "aios_core.contracts.enums.ProfileName": [
+      "virtual",
+      "band_v0"
+    ],
     "aios_core.contracts.enums.SourceClass": [
       "user",
       "sensor",
@@ -260,7 +264,7 @@
     "aios_core.contracts.models.Action": "6f8059dfb163e2955aab6c89571d849a0acbe5383439d158dce4e0718dea705b",
     "aios_core.contracts.models.AssemblyPolicy": "e6cf9daad72af3d578be313774b54832acc95a7f29098e9f9a8ec785e2fc9a07",
     "aios_core.contracts.models.BudgetPolicy": "43f08498cb00be49444a148367cb54f8357c397b00725941bc209763812226e7",
-    "aios_core.contracts.models.Claim": "7b3f008d22cbc3ad10ccc5ac1edf788735dfbaa14fdb14b379951f5b866a40c8",
+    "aios_core.contracts.models.Claim": "6e498f51676981067e414c3254e49205b6cc81330a693d8fde5075d819cc31f9",
     "aios_core.contracts.models.CommunicationExperience": "9ba7def5f71b26b0076309a75901829b1da65b0fe1bcbb3fdaaf673c2d3c460e",
     "aios_core.contracts.models.Dependency": "2787b7a598f7396bba1888343b1be7eec01dde0437a3a9fe4127b0bf344fcf86",
     "aios_core.contracts.models.DimensionDefinition": "1b91ca9528916148f623da4697713f9aef5bc5a5698a1ef74a14f47a6d07ae47",
@@ -272,6 +276,8 @@
     "aios_core.contracts.models.EvidenceSelector": "27cfb93f96fd725b209f1afbd4a066e4f0b8d5dd98ee3b13fd5173c4cfab5d97",
     "aios_core.contracts.models.EvidenceSet": "30758dfa624fe67642cc2994c7b851fb1513a59cca34a1d961bb37db77f8d73c",
     "aios_core.contracts.models.Goal": "d4cc974eee21690f1901b5b2126b6001e65d3bf1b026183ba837d675a233c0f2",
+    "aios_core.contracts.models.IngestPolicy": "631a9e3bd515fbd8664aaf471a899b152d218934e5f1012ac4a267e44db458a5",
+    "aios_core.contracts.models.LatencyPolicy": "cf12d69f5f9e4a6ba633409f9c4072c0c77453b774b3f2cd163e758ae531bac1",
     "aios_core.contracts.models.LifeChapter": "5065bfe7d2e80de74cb3bf4ff6f6911c4a2f9afbfbd4a535e4614d5392140b20",
     "aios_core.contracts.models.Observation": "b58727fbd4b7b7c3a9984d0ff1742b56b42fb22967809e961362559c2c7561fc",
     "aios_core.contracts.models.OperationExperience": "64f1c968176fa6afce4e08d9ccd10a6ab79911daf6bc0c6ee371e5f72d0a092f",
@@ -279,7 +285,9 @@
     "aios_core.contracts.models.Prediction": "6c7d7fa795fae0bbd8b927f3c5006a83d96aabd874c2b128c96c73845532d537",
     "aios_core.contracts.models.Reinterpretation": "ea3f1d01ac76c7f171820f28bdb2aa69e3dfb3b2b4540382739982a9fa4e5fb0",
     "aios_core.contracts.models.Relation": "79683cad62623b65b6f47268540f7f156e629c915da19fd8f3b48dd9683be0e4",
+    "aios_core.contracts.models.RuntimeProfile": "ce7aa83d957c459ffcec62c668d4e10492d05ae498454437ba430b49f5f498e3",
     "aios_core.contracts.models.Session": "1a4d1d58deca8dc84bb1243f39ca28a6dc0a5ae70a93babffd35506f91d3f5d8",
+    "aios_core.contracts.models.StoragePolicy": "7bbf1d3a6cbd89fb628d3c9717c5fa0d53590f691f628737706b58d8e980ab7c",
     "aios_core.contracts.models.Summary": "5323db4cafe10d3bae0ec32a77104f14d56d0834d569463ffeaa90682a8a797c",
     "aios_core.contracts.models.Task": "36dfc7f08e2f41ade8a53bd781bc28f0590777e19efe9079563eb1ef5ebafe49",
     "aios_core.contracts.models.ToolProposal": "9ff91fa43ee8896cb1cc3bcb0a416b5c4730cae9edfdb17aa5a9e60e2b7862fa",

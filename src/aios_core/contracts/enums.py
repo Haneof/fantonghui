@@ -46,6 +46,13 @@ class SourceClass(StrEnum):
     SAFETY = "safety"
 
 
+class ProfileName(StrEnum):
+    """M0-030（R4-09.3）：runtime_profile 双配置。只改数字，不改代码路径。"""
+
+    VIRTUAL = "virtual"
+    BAND_V0 = "band_v0"
+
+
 class MaintenanceClass(StrEnum):
     """MAINTENANCE 写入必须声明的维护类别（R4-02）。"""
 

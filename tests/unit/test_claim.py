@@ -109,6 +109,9 @@ def test_c01_claim_schema():
     assert issubclass(Claim, WorldObject)
 
     fields = Claim.model_fields
+    # R4-09.1 批准漂移：source_trust/corroboration_required 为候选冻结新增可选字段
+    # （第 38 条字段表追加；语义见 tests/unit/test_r4_09_runtime_profile_and_trust.py）。
+    optional_trust_fields = ["source_trust", "corroboration_required"]
     required_claim_fields = [
         "claimant_id",
         "claim_type",
@@ -138,6 +141,8 @@ def test_c01_claim_schema():
         assert f in fields, f"missing Claim field {f}"
     for f in public_fields:
         assert f in fields, f"missing public field {f}"
+    for f in optional_trust_fields:
+        assert f in fields, f"missing R4-09.1 trust field {f}"
 
     claim = make_claim()
     assert claim.object_type == ObjectType.CLAIM

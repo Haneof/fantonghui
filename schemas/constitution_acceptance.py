@@ -197,9 +197,10 @@ CONSTITUTION_ACCEPTANCE: list[dict] = [
     {"id": "R4-08", "title": "影子双世界: 清洗组效用 >= 全留组 - eps 且存储下降", "articles": [33, 111],
      "module": ["C14"], "milestone": "M4", "status": "proposed_pending_R4",
      "tests": [], "planned": "tests/experiment/test_m3_shadow_worlds.py (M3-014)"},
-    {"id": "R4-09", "title": "注入防线: 第三方 REPORTED 不升 FACT 不动作", "articles": [19, 38],
-     "module": ["C06"], "milestone": "M4", "status": "proposed_pending_R4",
-     "tests": [], "planned": "tests/experiment/test_v31_injection.py (M4-006)"},
+    {"id": "R4-09", "title": "注入防线: 第三方 REPORTED 不升 FACT 不动作; runtime_profile 双配置(virtual/band_v0)决定摄入硬约束/延迟预算/存储速率",
+     "articles": [19, 38], "module": ["C06", "C01", "C13", "C14"], "milestone": "M4", "status": "proposed_pending_R4",
+     "tests": ["tests/unit/test_r4_09_runtime_profile_and_trust.py"],
+     "planned": "tests/experiment/test_v31_injection.py (M4-006); band_v0 一日回放冒烟 (M2 起每里程碑出口, T6)"},
 ]
 
 

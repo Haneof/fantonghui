@@ -524,3 +524,37 @@ harness"做成 **Gate 后一键可跑、Gate 前 CI 降规模常热** 的压测�
   `run_bench` 的 importlib 探针自动升级为计时点，报告格式不变）；
 - `plan_checks` 读 `aios_core.query.search.__file__` 源码对锁——打包安装
   （wheel 无 .py 源码）时该断言需改为对编译产物旁置文本；私有构建不受影响。
+
+## 2026-09-16 M0-030 runtime_profile 契约 + R4-09.1 Claim 信任字段（候选冻结批，M0′ 收官）
+
+### 背景与治理边界
+M0-030 是签核包 §1 复审块 B 里唯一"承诺范围内仍空白"的 M0′ 任务；动工依据
+即上批结尾自查所得。发现并补上第二处空白：**R4-09.1 的 Claim 信任字段此前
+从未落地**（第 38 条追加项，V31 的契约前提）——两缺口同批合拢，均按
+M0-023~028 既有候选冻结机制走（同 gate 串、同转正/驳回单步动作），不入
+M1 运行面。
+
+### 执行步骤
+1. `ProfileName{virtual,band_v0}` 入 enums；`IngestPolicy/LatencyPolicy/
+   StoragePolicy/RuntimeProfile` 入 models——**配置进快照冻结面**（40 模型），
+   profile 契约与对象契约同权受漂移守卫。
+2. "只改数字不改代码路径"写成结构：宪法硬线（tombstone 不可关/禁 raw IMU/
+   禁大图/丢帧必录）在 validator 里对**两个名字同判**；band_v0 逐数字 ≤
+   virtual 默认 + 四必填旋钮 + 队列深度 ≤3；`extra=forbid` 把"夹带新旋钮"
+   直接定义为路径变更并拒绝。
+3. R4-09.1：Claim +`source_trust`(0–1) +`corroboration_required`；validator
+   锁"未印证第三方转述禁升 FACT"（V31 契约执法点）；`may_drive_external_action`
+   谓词给 C06；`test_claim.py` 按批准漂移流程登记两字段。
+4. CAM R4-09 条目补件：modules 扩到 C06/C01/C13/C14（修改案影响模块面），
+   挂真实测试 `test_r4_09_runtime_profile_and_trust.py`；不新增子编号
+   （R4-01..09 恰集由 coverage 测试强制，编号通胀比缺件更糟）。
+5. 数值锚点闭环：raw_tier_days=30 正是 M1-019 施工图引用的默认、
+   recall_sync 50ms 与 G-M1P 同数、DEFAULT_BAND_V0 全字段对表设计书 §2.4 YAML。
+
+### 测试
+- 新 9 用例 + test_claim/snapshot/CAM/M0′ 契约 4 套件复跑绿；
+- 全量：**608 passed / 1 failed**（唯一失败仍既知环境项 b8）。
+
+### 已知限制
+- 运行面消费（C01 摄入、M2-018 预算、T6 冒烟 harness）全部 Gate/里程碑在后；
+- profile 数字属工程默认候选，签核可改数字不动形状（issue 内已写明复审面）。

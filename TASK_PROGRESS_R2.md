@@ -12,7 +12,7 @@
 
 | 里程碑 | 目标 | 状态 | 完成度 |
 |---|---|---|---|
-| M0 | 冻结世界契约与核心存储 | 进行中 — v2.0 契约集全绿 + **M0′ R4 候选契约层落地**；等待 R4 签核与 M0-022R 合并复审 | 16/22 FINAL PASS；5 项 REOPENED+PATCHED；M0-022 BLOCKED→待改签 022R；**M0′ 契约增量 6/8 候选冻结（M0-023~028），CAM M0-029 已交付，M0-030 待开工** |
+| M0 | 冻结世界契约与核心存储 | 进行中 — v2.0 契约集全绿 + **M0′ R4 候选契约层落地**；等待 R4 签核与 M0-022R 合并复审 | 16/22 FINAL PASS；5 项 REOPENED+PATCHED；M0-022 BLOCKED→待改签 022R；**M0′ 契约增量 8/8 候选冻结（M0-023~030），CAM M0-029 已交付** |
 | M1 | 可写、可查、可下钻的共同世界 | 未开始 / M0 Gate 前禁止启动 | 0/16 |
 | M2 | 主动运行闭环 | 未开始 | 0/15 |
 | M3 | 长期纠错与多尺度认知 | 未开始 | 0/11 |
@@ -55,7 +55,7 @@
 | M0-027 | Reinterpretation 契约冻结（R4-01） | **契约层已冻结（R4 候选）/ 待签核** | 同上 | M0-027_issue.md | M3-013 双透镜读面；撤销=MAINTENANCE |
 | M0-028 | BudgetPolicy/AssemblyPolicy 契约冻结 | **契约层已冻结（R4 候选）/ 待签核** | 同上 | M0-028_issue.md | MeteringRecord/网关执法=M2-018 |
 | M0-029 | CAM 宪法验收矩阵 + CI 映射 gate | **FINAL（本地实现层）** | tests/architecture/test_cam_coverage.py（7 用例） | schemas/constitution_acceptance.py | 55/55 项映射；R4 项批准前锁 proposed_pending_R4 |
-| M0-030 | runtime_profile（virtual/band_v0）契约 | **待开工** | — | R4 设计书 §2.4 | 依赖 R4-09 批准 |
+| M0-030 | runtime_profile（virtual/band_v0）契约 + R4-09.1 Claim 信任字段 | **候选契约已冻结** | 411 (9新+386复跑面) | `governance/issues/M0-030_issue.md` | 快照40模型含profile家族；转正随签核包§2第1步 |
 
 ## Latest Gate evidence
 
