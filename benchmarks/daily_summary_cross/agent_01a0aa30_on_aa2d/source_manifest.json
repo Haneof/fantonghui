@@ -1,0 +1,34 @@
+{
+  "source_branch": "arena/01a0aa2d-fantonghui",
+  "source_commit": "5edb86729e2b570ac22acef5731dfc32733af64f",
+  "source_path": "benchmarks/daily_summary/questions/questions_01a0aa2d-fantonghui.jsonl",
+  "source_git_blob": "7290ee00f2e5b33c928299d56f168c59dc2d95af",
+  "source_sha256": "26c3e18a778afa458503629167c07c2f3c5ad7804b31c6def8470ab0e9788661",
+  "solver_team": "01a0aa30",
+  "generator_agent": "01a0aa2d-fantonghui",
+  "questions": 10000,
+  "unique_persona_names": 10000,
+  "slice_counts": {
+    "sensor": 35172,
+    "mic": 52546,
+    "app": 45367
+  },
+  "blinding_allowlist": [
+    "question_id",
+    "generator_agent",
+    "exam_date",
+    "persona",
+    "cleaned_daily_stream"
+  ],
+  "removed_fields": [
+    "directional_ground_truth",
+    "archetype",
+    "trap",
+    "day_signature",
+    "difficulty"
+  ],
+  "blind_plain_sha256": "30338277977913a61f537fce6be171b25eccfef91a1627bc5c15f3cce3c04130",
+  "blind_archive_sha256": "966c97cbdebc19b19219471aa40205a418b644dad73a59bade064c3d06d8b5ef",
+  "reference_judge_sha256": "addb5316e3e9b533d349973864676f8dde266fdcc010d9d84c224e754d7ac078",
+  "notes": "Projection only; did not import opponent answers, generator, or solver. Ground truth is sealed outside solver input; original full paper can be reproduced from pinned Git commit."
+}

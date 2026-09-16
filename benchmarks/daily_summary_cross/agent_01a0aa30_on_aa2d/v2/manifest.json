@@ -1,0 +1,23 @@
+{
+  "questions": 10000,
+  "solver_version": "v2",
+  "solver_agent": "agent-solver-01a0aa30",
+  "generator_agent": "01a0aa2d-fantonghui",
+  "source_commit": "5edb86729e2b570ac22acef5731dfc32733af64f",
+  "source_manifest_sha256": "50d9cf95774898a8fd436f89f926c18de0fa07e39469cad78313ec6f6f561249",
+  "blind_archive_sha256": "966c97cbdebc19b19219471aa40205a418b644dad73a59bade064c3d06d8b5ef",
+  "solver_sha256": "86b3416a7ba7161a80fb2994b1d6ade4bdff0735c552ae6b928c12b60351318c",
+  "runner_sha256": "71dd899d78f3018c06bd2e121973b402f7c83bd34b08d6b312acd3dc6d06eebe",
+  "started_at": "2026-09-16T15:24:07.531888+00:00",
+  "finished_at": "2026-09-16T15:24:22.943436+00:00",
+  "wall_time_ms": 15411.541987999954,
+  "llm_calls": 0,
+  "world_calls": 0,
+  "maximum_total_summary_characters": 681,
+  "branch": "arena/01a0aa30-fantonghui",
+  "method": "deterministic rules; no runtime LLM or medical real-time claims",
+  "artifacts": {
+    "answers.jsonl.xz": "a96cdacff4f959006e44fb4ec01e81c93b8004345a2fa783babd3b83a5767391",
+    "audit.jsonl.xz": "07a3cf5576596c70b9319a556c41961af6d489e96d2e63341209da6f709f437a"
+  }
+}

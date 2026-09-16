@@ -1,0 +1,479 @@
+{
+  "solver_version": "v2",
+  "source_commit": "5edb86729e2b570ac22acef5731dfc32733af64f",
+  "answer_sha256": "a96cdacff4f959006e44fb4ec01e81c93b8004345a2fa783babd3b83a5767391",
+  "reference_judge_sha256": "addb5316e3e9b533d349973864676f8dde266fdcc010d9d84c224e754d7ac078",
+  "summary": {
+    "all": {
+      "questions": 10000,
+      "reference_mean_score": 51.161724,
+      "reference_passes": 72,
+      "reference_pass_rate": 0.0072,
+      "fatal_redline_questions": 0,
+      "mean_reference_evidence_coverage": 0.9504,
+      "reference_missing_evidence": 0,
+      "dimension_mean_scores": {
+        "global": 33.939174,
+        "health": 77.285909,
+        "social": 47.991651,
+        "emotion": 44.610854,
+        "finance": 100.0,
+        "career": 14.625145999999999
+      },
+      "errors": {
+        "ANCHOR_LITERAL_MISS": 76091,
+        "REFERENCE_REDLINE_MATCH": 0,
+        "UNCITED_REFERENCE_EVIDENCE": 5642,
+        "DIRECTION_LITERAL_MISS": 32758
+      }
+    },
+    "holdout": {
+      "questions": 7998,
+      "reference_mean_score": 51.098055763940984,
+      "reference_passes": 56,
+      "reference_pass_rate": 0.007001750437609402,
+      "fatal_redline_questions": 0,
+      "mean_reference_evidence_coverage": 0.9502792364757856,
+      "reference_missing_evidence": 0,
+      "dimension_mean_scores": {
+        "global": 33.87706301575394,
+        "health": 77.20095898974743,
+        "social": 47.98446986746686,
+        "emotion": 44.29284696174044,
+        "finance": 100.0,
+        "career": 14.714324831207803
+      },
+      "errors": {
+        "ANCHOR_LITERAL_MISS": 60888,
+        "REFERENCE_REDLINE_MATCH": 0,
+        "UNCITED_REFERENCE_EVIDENCE": 4518,
+        "DIRECTION_LITERAL_MISS": 26283
+      }
+    },
+    "development": {
+      "questions": 2002,
+      "reference_mean_score": 51.41607892107892,
+      "reference_passes": 16,
+      "reference_pass_rate": 0.007992007992007992,
+      "fatal_redline_questions": 0,
+      "mean_reference_evidence_coverage": 0.9508824508824509,
+      "reference_missing_evidence": 0,
+      "dimension_mean_scores": {
+        "global": 34.18730769230769,
+        "health": 77.62528471528472,
+        "social": 48.02033966033966,
+        "emotion": 45.881293706293704,
+        "finance": 100.0,
+        "career": 14.268876123876124
+      },
+      "errors": {
+        "ANCHOR_LITERAL_MISS": 15203,
+        "REFERENCE_REDLINE_MATCH": 0,
+        "UNCITED_REFERENCE_EVIDENCE": 1124,
+        "DIRECTION_LITERAL_MISS": 6475
+      }
+    }
+  },
+  "development_examples": {
+    "global": [
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00003",
+        "dimension": "global",
+        "reference_score": 56.67,
+        "missed_anchors": [
+          "高压"
+        ],
+        "uncited_reference_evidence": [],
+        "reference_evidence_missing_in_question": [],
+        "reference_evidence_coverage": 1.0,
+        "redline_strings": [],
+        "reference_core_plot": "双重受挫高压日：白天半年度绩效结果公布为C，晚间晚上父母催婚电话演变成激烈争吵",
+        "submission": "黄佑薇：工作受挫与人际冲突叠加，可能承受双重压力。事业：绩效C，需要绩效改进。人际：父母对婚育安排有催促和分歧，通话中断。财务：账户消息：股票账户今日浮亏6,000元，心情跟着K线走。健康：出现心率骤升记录，关联情境不等于医学因果。计划、付款承诺和他人的经历不得当作本人已完成的事实。"
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00008",
+        "dimension": "global",
+        "reference_score": 60.0,
+        "missed_anchors": [
+          "白天线上事故责任被算到头上",
+          "转折",
+          "情绪起伏"
+        ],
+        "uncited_reference_evidence": [],
+        "reference_evidence_missing_in_question": [],
+        "reference_evidence_coverage": 1.0,
+        "redline_strings": [],
+        "reference_core_plot": "转折起伏日：白天线上事故责任被算到头上，晚间结婚纪念日收到孔彤准备的惊喜晚餐；有资金进账",
+        "submission": "任澄婷：有起有伏、先抑后扬的一天。事业：事故责任受到追查，需要复盘，最终因果责任待核实。人际：与孔彤：伴侣布置餐桌并提到十年，疑似共同纪念场景。财务：账户消息：兼职稿费1,200元到账，副业开了个头。健康：出现心率骤升记录，关联情境不等于医学因果。计划、付款承诺和他人的经历不得当作本人已完成的事实。"
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00009",
+        "dimension": "global",
+        "reference_score": 73.33,
+        "missed_anchors": [
+          "白天负责项目按期上线零故障",
+          "情绪起伏"
+        ],
+        "uncited_reference_evidence": [],
+        "reference_evidence_missing_in_question": [],
+        "reference_evidence_coverage": 1.0,
+        "redline_strings": [],
+        "reference_core_plot": "转折起伏日：白天负责项目按期上线零故障，晚间好友开口借5万被婉拒；有刚性支出/资金压力",
+        "submission": "谢雪空：喜忧参半、先扬后抑的转折日。事业：项目上线零故障，项目组受到公开表扬。人际：朋友开口请求短期借款：5万，就周转两个月，咱俩什么交情……；朋友长时间沉默后挂断，关系显得紧张。财务：账户消息：转账借给好友10,000元应急，约定月底归还。健康：出现心率骤升记录，关联情境不等于医学因果。计划、付款承诺和他人的经历不得当作本人已完成的事实。"
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00010",
+        "dimension": "global",
+        "reference_score": 0.0,
+        "missed_anchors": [
+          "事业突破",
+          "感情升温",
+          "双喜临门"
+        ],
+        "uncited_reference_evidence": [],
+        "reference_evidence_missing_in_question": [],
+        "reference_evidence_coverage": 1.0,
+        "redline_strings": [],
+        "reference_core_plot": "双喜临门日：白天获季度创新奖，晚间晚间在江边餐厅求婚成功；有刚性支出/资金压力；情绪振奋幸福",
+        "submission": "郭思：事业推进与人际支持同向的一天。事业：获得创新奖，奖金待未来发放。人际：本人求婚，伴侣答应，求婚获得接受。财务：账户消息：信用卡自动还款3,200元扣款成功，本月现金流偏紧。计划、付款承诺和他人的经历不得当作本人已完成的事实。"
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00015",
+        "dimension": "global",
+        "reference_score": 60.0,
+        "missed_anchors": [
+          "白天季度方案汇报被领导当众否决",
+          "转折",
+          "情绪起伏"
+        ],
+        "uncited_reference_evidence": [],
+        "reference_evidence_missing_in_question": [],
+        "reference_evidence_coverage": 1.0,
+        "redline_strings": [],
+        "reference_core_plot": "转折起伏日：白天季度方案汇报被领导当众否决，晚间父母来城市看我；有刚性支出/资金压力",
+        "submission": "郝澈晴：有起有伏、先抑后扬的一天。事业：方案被批评并要求重做。人际：母亲做本人爱吃的饭菜，体现家庭关照：快趁热吃，你最爱吃的糖醋排骨。。财务：账户消息：违章罚款加保险续费共2,300元，计划外支出。健康：出现心率骤升记录，关联情境不等于医学因果。计划、付款承诺和他人的经历不得当作本人已完成的事实。"
+      }
+    ],
+    "social": [
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00003",
+        "dimension": "social",
+        "reference_score": 56.67,
+        "missed_anchors": [
+          "不欢而挂"
+        ],
+        "uncited_reference_evidence": [],
+        "reference_evidence_missing_in_question": [],
+        "reference_evidence_coverage": 1.0,
+        "redline_strings": [],
+        "reference_core_plot": "晚上父母催婚电话演变成激烈争吵，不欢而挂",
+        "submission": "父母对婚育安排有催促和分歧，通话中断；不能确定是催婚还是催生，也未见本人争吵的完整原话；妈妈：隔壁小张孩子都上幼儿园了！你到底怎么想的？；爸爸：我们还不是为你好——（电话挂断忙音）"
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00008",
+        "dimension": "social",
+        "reference_score": 50.0,
+        "missed_anchors": [
+          "纪念日惊喜"
+        ],
+        "uncited_reference_evidence": [],
+        "reference_evidence_missing_in_question": [],
+        "reference_evidence_coverage": 1.0,
+        "redline_strings": [],
+        "reference_core_plot": "结婚纪念日收到孔彤准备的惊喜晚餐，感动到红了眼",
+        "submission": "与孔彤：伴侣布置餐桌并提到十年，疑似共同纪念场景；原话：进门换鞋——看餐桌！十年了，笨蛋。"
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00009",
+        "dimension": "social",
+        "reference_score": 43.33,
+        "missed_anchors": [
+          "借钱5万",
+          "友谊裂痕"
+        ],
+        "uncited_reference_evidence": [],
+        "reference_evidence_missing_in_question": [],
+        "reference_evidence_coverage": 1.0,
+        "redline_strings": [],
+        "reference_core_plot": "好友开口借5万被婉拒，多年友谊出现裂痕",
+        "submission": "朋友开口请求短期借款：5万，就周转两个月，咱俩什么交情……；该对话本身未证明本人已出借或明确拒绝；朋友长时间沉默后挂断，关系显得紧张；未见明确绝交声明"
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00010",
+        "dimension": "social",
+        "reference_score": 0.0,
+        "missed_anchors": [
+          "求婚成功",
+          "赵麒辰"
+        ],
+        "uncited_reference_evidence": [],
+        "reference_evidence_missing_in_question": [],
+        "reference_evidence_coverage": 1.0,
+        "redline_strings": [],
+        "reference_core_plot": "晚间在江边餐厅求婚成功，赵麒辰红着眼答应了",
+        "submission": "本人求婚，伴侣答应，求婚获得接受；未见婚姻登记完成证据"
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00015",
+        "dimension": "social",
+        "reference_score": 0.0,
+        "missed_anchors": [
+          "父母来访",
+          "家乡菜"
+        ],
+        "uncited_reference_evidence": [],
+        "reference_evidence_missing_in_question": [],
+        "reference_evidence_coverage": 1.0,
+        "redline_strings": [],
+        "reference_core_plot": "父母来城市看我，做了一桌家乡菜，其乐融融",
+        "submission": "母亲做本人爱吃的饭菜，体现家庭关照：快趁热吃，你最爱吃的糖醋排骨。"
+      }
+    ],
+    "emotion": [
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00003",
+        "dimension": "emotion",
+        "reference_score": 56.67,
+        "missed_anchors": [
+          "崩溃"
+        ],
+        "uncited_reference_evidence": [],
+        "reference_evidence_missing_in_question": [],
+        "reference_evidence_coverage": 1.0,
+        "redline_strings": [],
+        "reference_core_plot": "情绪主基调「焦虑压抑」：白天工作受挫带来压力，晚间崩溃绝望",
+        "submission": "白天工作受挫，晚间关系也有冲突，可能焦虑、委屈与低落；缺少直接自述来确认具体强度。此为情境推测，不是精神疾病诊断。"
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00009",
+        "dimension": "emotion",
+        "reference_score": 70.0,
+        "missed_anchors": [],
+        "uncited_reference_evidence": [],
+        "reference_evidence_missing_in_question": [],
+        "reference_evidence_coverage": 1.0,
+        "redline_strings": [],
+        "reference_core_plot": "情绪主基调「先扬后抑」：白天事业好消息提振，晚间晚间失落",
+        "submission": "白天好消息可能令人振奋，晚间关系紧张可能失落；情绪有先扬后抑的迹象。此为情境推测，不是精神疾病诊断。"
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00010",
+        "dimension": "emotion",
+        "reference_score": 0.0,
+        "missed_anchors": [
+          "振奋",
+          "幸福"
+        ],
+        "uncited_reference_evidence": [],
+        "reference_evidence_missing_in_question": [],
+        "reference_evidence_coverage": 1.0,
+        "redline_strings": [],
+        "reference_core_plot": "情绪主基调「振奋欣喜」：白天事业好消息提振，晚间幸福满溢",
+        "submission": "工作好消息与关系支持并存，可能喜悦和满足；不能由此断言所有时刻都没有压力。此为情境推测，不是精神疾病诊断。"
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00020",
+        "dimension": "emotion",
+        "reference_score": 0.0,
+        "missed_anchors": [
+          "焦虑",
+          "委屈",
+          "崩溃"
+        ],
+        "uncited_reference_evidence": [],
+        "reference_evidence_missing_in_question": [],
+        "reference_evidence_coverage": 1.0,
+        "redline_strings": [],
+        "reference_core_plot": "情绪主基调「焦虑压抑」：白天工作受挫带来压力，晚间崩溃绝望",
+        "submission": "存在不确定安排，具体情绪有待本人陈述，不能仅凭心率推断全天情绪主基调。此为情境推测，不是精神疾病诊断。"
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00022",
+        "dimension": "emotion",
+        "reference_score": 0.0,
+        "missed_anchors": [
+          "委屈",
+          "感动"
+        ],
+        "uncited_reference_evidence": [],
+        "reference_evidence_missing_in_question": [],
+        "reference_evidence_coverage": 1.0,
+        "redline_strings": [],
+        "reference_core_plot": "情绪主基调「先抑后扬」：白天工作受挫带来压力，晚间被温暖抚平",
+        "submission": "存在不确定安排，具体情绪有待本人陈述，不能仅凭心率推断全天情绪主基调。此为情境推测，不是精神疾病诊断。"
+      }
+    ],
+    "career": [
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00003",
+        "dimension": "career",
+        "reference_score": 50.0,
+        "missed_anchors": [
+          "观察名单"
+        ],
+        "uncited_reference_evidence": [],
+        "reference_evidence_missing_in_question": [],
+        "reference_evidence_coverage": 1.0,
+        "redline_strings": [],
+        "reference_core_plot": "半年度绩效结果公布为C，进入改进观察名单",
+        "submission": "绩效C，需要绩效改进；绩效评级下达并要求提交改进计划；HR原话：半年度绩效结果：C。本周五前提交改进计划。；领导要求下周期改进表现，后续考核机制未提供；领导原话：下个周期盯紧点，别再踩线了。"
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00008",
+        "dimension": "career",
+        "reference_score": 0.0,
+        "missed_anchors": [
+          "背锅",
+          "书面检讨",
+          "全组复盘"
+        ],
+        "uncited_reference_evidence": [],
+        "reference_evidence_missing_in_question": [],
+        "reference_evidence_coverage": 1.0,
+        "redline_strings": [],
+        "reference_core_plot": "线上事故责任被算到头上，被要求写书面检讨并做全组复盘",
+        "submission": "事故责任受到追查，需要复盘，最终因果责任待核实；运维通知将事故操作记录指向本人账号并要求复盘；具体因果责任仍需核实；运维群原话：P2事故定责：操作记录指向你账号，明早十点复盘会。；要求明天提交检讨，检讨形式未明确；领导原话：检讨明天给我，该是谁的问题就是谁的问题。"
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00009",
+        "dimension": "career",
+        "reference_score": 50.0,
+        "missed_anchors": [
+          "老板表扬"
+        ],
+        "uncited_reference_evidence": [
+          "mic@18:05"
+        ],
+        "reference_evidence_missing_in_question": [],
+        "reference_evidence_coverage": 0.5,
+        "redline_strings": [],
+        "reference_core_plot": "负责项目按期上线零故障，大群被老板点名表扬",
+        "submission": "项目上线零故障，项目组受到公开表扬；项目按期上线并获项目组表扬；全员群原话：项目按期上线，运行零故障，特别表扬项目组！"
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00010",
+        "dimension": "career",
+        "reference_score": 50.0,
+        "missed_anchors": [
+          "奖金1万元"
+        ],
+        "uncited_reference_evidence": [],
+        "reference_evidence_missing_in_question": [],
+        "reference_evidence_coverage": 1.0,
+        "redline_strings": [],
+        "reference_core_plot": "获季度创新奖，奖金10,000元",
+        "submission": "获得创新奖，奖金待未来发放；入选创新奖，奖金预计随下月工资发放，今日到账未确认；HR原话：季度创新奖名单公示：恭喜！奖金随下月工资发放。"
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00015",
+        "dimension": "career",
+        "reference_score": 43.33,
+        "missed_anchors": [
+          "汇报被否",
+          "当众批评"
+        ],
+        "uncited_reference_evidence": [
+          "mic@13:58"
+        ],
+        "reference_evidence_missing_in_question": [],
+        "reference_evidence_coverage": 0.5,
+        "redline_strings": [],
+        "reference_core_plot": "季度方案汇报被领导当众否决，被批抓不住重点，限期重做",
+        "submission": "方案被批评并要求重做；方案遭领导否定并要求限期重做；领导原话：这个方案完全没抓到重点，重做，下周一给我。"
+      }
+    ],
+    "health": [
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00010",
+        "dimension": "health",
+        "reference_score": 0.0,
+        "missed_anchors": [
+          "体征平稳",
+          "慢跑3公里",
+          "晨脉70bpm"
+        ],
+        "uncited_reference_evidence": [
+          "sensor@19:48"
+        ],
+        "reference_evidence_missing_in_question": [],
+        "reference_evidence_coverage": 0.5,
+        "redline_strings": [],
+        "reference_core_plot": "全天体征平稳：晨脉70bpm，傍晚慢跑3公里，昨夜睡眠8小时16分，状态在线",
+        "submission": "晨起静息心率70bpm；昨夜睡眠8小时16分，深睡占比24%；入睡准备：今日步数4,697步，全天最高心率113bpm，久坐9小时"
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00046",
+        "dimension": "health",
+        "reference_score": 43.33,
+        "missed_anchors": [
+          "睡眠不足",
+          "倦怠"
+        ],
+        "uncited_reference_evidence": [],
+        "reference_evidence_missing_in_question": [],
+        "reference_evidence_coverage": 1.0,
+        "redline_strings": [],
+        "reference_core_plot": "昨夜仅睡6小时0分，全天倦怠，午后靠咖啡续命，静息心率偏高(76bpm)",
+        "submission": "晨起静息心率76bpm；昨夜睡眠6小时0分，深睡占比15%；入睡准备：今日步数5,032步，全天最高心率101bpm，久坐9小时"
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00049",
+        "dimension": "health",
+        "reference_score": 0.0,
+        "missed_anchors": [
+          "体征平稳",
+          "慢跑6公里",
+          "晨脉79bpm"
+        ],
+        "uncited_reference_evidence": [
+          "sensor@19:48"
+        ],
+        "reference_evidence_missing_in_question": [],
+        "reference_evidence_coverage": 0.5,
+        "redline_strings": [],
+        "reference_core_plot": "全天体征平稳：晨脉79bpm，傍晚慢跑6公里，昨夜睡眠6小时52分，状态在线",
+        "submission": "晨起静息心率79bpm；昨夜睡眠6小时52分，深睡占比22%；入睡准备：今日步数7,695步，全天最高心率113bpm，久坐7小时"
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00068",
+        "dimension": "health",
+        "reference_score": 43.33,
+        "missed_anchors": [
+          "睡眠不足",
+          "倦怠"
+        ],
+        "uncited_reference_evidence": [],
+        "reference_evidence_missing_in_question": [],
+        "reference_evidence_coverage": 1.0,
+        "redline_strings": [],
+        "reference_core_plot": "昨夜仅睡5小时8分，全天倦怠，午后靠咖啡续命，静息心率偏高(65bpm)",
+        "submission": "晨起静息心率65bpm；昨夜睡眠5小时8分，深睡占比21%；入睡准备：今日步数4,585步，全天最高心率115bpm，久坐9小时"
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00070",
+        "dimension": "health",
+        "reference_score": 0.0,
+        "missed_anchors": [
+          "体征平稳",
+          "慢跑3公里",
+          "晨脉72bpm"
+        ],
+        "uncited_reference_evidence": [
+          "sensor@19:48"
+        ],
+        "reference_evidence_missing_in_question": [],
+        "reference_evidence_coverage": 0.5,
+        "redline_strings": [],
+        "reference_core_plot": "全天体征平稳：晨脉72bpm，傍晚慢跑3公里，昨夜睡眠7小时52分，状态在线",
+        "submission": "已给出的日摘要心率平稳，不能替代完整健康检查；晨起静息心率72bpm；昨夜睡眠7小时52分，深睡占比15%；入睡准备：今日步数12,304步，全天最高心率97bpm，久坐8小时"
+      }
+    ]
+  },
+  "limitations": [
+    "Reference judge matches literal substrings, including redlines without negation scope; this is not semantic accuracy.",
+    "Empty answers and forged identities are rejected before the legacy judge to prevent its empty-substring perfect-score loophole.",
+    "Evidence coverage checks source citation, not full logical entailment or clinical causality.",
+    "Opponent labels can assert facts absent from or contradictory to the input. Scores are not altered to conceal this.",
+    "Only ID-disjoint development/holdout diagnostics; the same source templates may occur in both groups."
+  ]
+}

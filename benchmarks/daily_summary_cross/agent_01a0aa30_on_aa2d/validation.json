@@ -1,0 +1,25 @@
+{
+  "new_regression_cases": 20,
+  "isolated_committed_baseline_plus_changes": {
+    "pytest_passed": 1403,
+    "ast_files": 252,
+    "ast_hits": 0
+  },
+  "workspace_with_previous_uncommitted_work": {
+    "pytest_passed": 1432,
+    "ast_files": 255,
+    "ast_hits": 0
+  },
+  "python_version": "3.11.2",
+  "project_python_minimum_unchanged": ">=3.12",
+  "blind_projection_replay": "byte-identical questions archive and source manifest",
+  "runs_validated": [
+    "v1",
+    "v2"
+  ],
+  "run_question_counts": [
+    10000,
+    10000
+  ],
+  "validation_not_semantic_accuracy": true
+}

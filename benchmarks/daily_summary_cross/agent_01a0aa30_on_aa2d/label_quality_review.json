@@ -1,0 +1,181 @@
+{
+  "scope": "Post-freeze source/label diagnostic flags. These are requests for human review, not adjudicated error counts and not score overrides.",
+  "counts": {
+    "NONSPECIFIC_VS_NAMED_CRITICISM": 567,
+    "AFTERNOON_LABELLED_EVENING": 2236,
+    "REFUSAL_NOT_EXPLICITLY_EVIDENCED": 1278
+  },
+  "examples": {
+    "NONSPECIFIC_VS_NAMED_CRITICISM": [
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00001",
+        "reference_core_plot": "全员大会上被点名批评（实为流程问题），当众难堪",
+        "input_evidence": [
+          {
+            "t": "16:55",
+            "src": "mic",
+            "text": "有些组的数据管理一塌糊涂，我不点名，自己心里有数！",
+            "who": "领导（大会）"
+          }
+        ]
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00022",
+        "reference_core_plot": "全员大会上被点名批评（实为流程问题），当众难堪",
+        "input_evidence": [
+          {
+            "t": "10:05",
+            "src": "mic",
+            "text": "有些组的数据管理一塌糊涂，我不点名，自己心里有数！",
+            "who": "领导（大会）"
+          }
+        ]
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00028",
+        "reference_core_plot": "全员大会上被点名批评（实为流程问题），当众难堪",
+        "input_evidence": [
+          {
+            "t": "16:40",
+            "src": "mic",
+            "text": "有些组的数据管理一塌糊涂，我不点名，自己心里有数！",
+            "who": "领导（大会）"
+          }
+        ]
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00065",
+        "reference_core_plot": "全员大会上被点名批评（实为流程问题），当众难堪",
+        "input_evidence": [
+          {
+            "t": "10:55",
+            "src": "mic",
+            "text": "有些组的数据管理一塌糊涂，我不点名，自己心里有数！",
+            "who": "领导（大会）"
+          }
+        ]
+      }
+    ],
+    "AFTERNOON_LABELLED_EVENING": [
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00001",
+        "reference_core_plot": "晚间16:57心率由83骤升至134bpm（情绪性心动过速），持续约10分钟",
+        "input_evidence": [
+          {
+            "t": "16:57",
+            "src": "sensor",
+            "text": "心率由83bpm骤升至134bpm，持续约10分钟，血氧98%，判定情绪性心动过速"
+          }
+        ]
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00005",
+        "reference_core_plot": "晚间15:57心率由68骤升至124bpm（情绪性心动过速），持续约9分钟",
+        "input_evidence": [
+          {
+            "t": "15:57",
+            "src": "sensor",
+            "text": "心率由68bpm骤升至124bpm，持续约9分钟，血氧98%，判定情绪性心动过速"
+          }
+        ]
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00007",
+        "reference_core_plot": "晚间10:07心率由74骤升至120bpm（情绪性心动过速），持续约10分钟",
+        "input_evidence": [
+          {
+            "t": "10:07",
+            "src": "sensor",
+            "text": "心率由74bpm骤升至120bpm，持续约10分钟，血氧98%，判定情绪性心动过速"
+          }
+        ]
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00008",
+        "reference_core_plot": "晚间15:42心率由73骤升至128bpm（情绪性心动过速），持续约6分钟",
+        "input_evidence": [
+          {
+            "t": "15:42",
+            "src": "sensor",
+            "text": "心率由73bpm骤升至128bpm，持续约6分钟，血氧98%，判定情绪性心动过速"
+          }
+        ]
+      }
+    ],
+    "REFUSAL_NOT_EXPLICITLY_EVIDENCED": [
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00009",
+        "reference_core_plot": "好友开口借5万被婉拒，多年友谊出现裂痕",
+        "input_evidence": [
+          {
+            "t": "21:05",
+            "src": "mic",
+            "text": "5万，就周转两个月，咱俩什么交情……",
+            "who": "老友"
+          },
+          {
+            "t": "21:10",
+            "src": "mic",
+            "text": "（沉默十几秒）行，我知道了，先这样吧。（挂断）",
+            "who": "老友"
+          }
+        ]
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00014",
+        "reference_core_plot": "好友开口借5万被婉拒，多年友谊出现裂痕",
+        "input_evidence": [
+          {
+            "t": "19:40",
+            "src": "mic",
+            "text": "5万，就周转两个月，咱俩什么交情……",
+            "who": "老友"
+          },
+          {
+            "t": "19:45",
+            "src": "mic",
+            "text": "（沉默十几秒）行，我知道了，先这样吧。（挂断）",
+            "who": "老友"
+          }
+        ]
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00017",
+        "reference_core_plot": "好友开口借5万被婉拒，多年友谊出现裂痕",
+        "input_evidence": [
+          {
+            "t": "19:55",
+            "src": "mic",
+            "text": "5万，就周转两个月，咱俩什么交情……",
+            "who": "老友"
+          },
+          {
+            "t": "20:00",
+            "src": "mic",
+            "text": "（沉默十几秒）行，我知道了，先这样吧。（挂断）",
+            "who": "老友"
+          }
+        ]
+      },
+      {
+        "question_id": "Q_01a0aa2d-fantonghui_00023",
+        "reference_core_plot": "好友开口借5万被婉拒，多年友谊出现裂痕",
+        "input_evidence": [
+          {
+            "t": "21:25",
+            "src": "mic",
+            "text": "5万，就周转两个月，咱俩什么交情……",
+            "who": "老友"
+          },
+          {
+            "t": "21:30",
+            "src": "mic",
+            "text": "（沉默十几秒）行，我知道了，先这样吧。（挂断）",
+            "who": "老友"
+          }
+        ]
+      }
+    ]
+  },
+  "reference_scores_modified": false
+}

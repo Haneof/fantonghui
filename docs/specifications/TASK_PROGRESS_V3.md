@@ -273,3 +273,16 @@
 - 全部 10,000 份通过出版结构、时间、证据、现金/债务守恒和盲卷一致性校验；另全部通过 JSON Schema format 校验。只做出版 QA，不运行自答或自评分。
 - 新增 40 个工程测试；原提交基线加本次变更 **1,383 passed**、AST 248 文件 0 命中。当前含前轮未提交代码的工作区 **1,412 passed**，不混入本次提交测试口径。环境为 Python 3.11.2 兼容验证，未降低正式 >=3.12 要求。
 - 交付入口：[`benchmarks/daily_life_summary/README.md`](../../benchmarks/daily_life_summary/README.md)。生成器 `src/simulator/daily_life_exam.py`，正式 Schema `schemas/daily_life_exam.schema.json`。
+
+
+---
+
+## 更换对手题库实战：01a0aa30 → 01a0aa2d（2026-09-16）
+
+- 换用 `arena/01a0aa2d-fantonghui` 固定提交 `5edb86729e2b570ac22acef5731dfc32733af64f` 的日总结题库，不使用本战队自产卷，也不重复 agent-a9f6 清洗题。
+- 对手 10,000 人、133,085 条切片；先白名单剥离标答及 archetype/trap/day_signature/difficulty，再封存首轮答案，独立打开标答评分。未读取对手答卷、解题器或生成器。
+- 两轮均有完整 10,000 份六维答案及来源索引/哈希审计；v1 → v2 参考均分 **28.8315 → 51.1617**，最终 **72/10,000** 题通过，**仍未达参考门禁**。不得以已提交、测试通过或 95.04% 来源引用覆盖率冒充语义准确率。
+- 参考评分器按原字节保留，含子串与否定语境缺陷；另归档“不点名 vs 被点名”“下午误称晚间”“无明确拒借原话”等需人工复核问题，不改原分、不照抄无依据标答。
+- 新增确定性六维总结器、跨 Git 盲卷投影脚本、封存运行器、独立评分与 20 个工程测试。所有新认知只记今天，原题和已提交自产卷不修改；本轮未执行 SQL、真实硬件报警或 LLM API 调用。
+- 独立基线加本次变更 **1,403 passed**，AST 252 文件 0 命中；含前轮未提交清洗代码的当前工作区 **1,432 passed**。Python 3.11.2 兼容验证，正式 >=3.12 基线不变。
+- 交付入口：[`benchmarks/daily_summary_cross/README.md`](../../benchmarks/daily_summary_cross/README.md)。所有两轮答卷、参考评分、source manifest、代码快照和问题诊断均已保存。
