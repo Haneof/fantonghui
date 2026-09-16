@@ -1,0 +1,16 @@
+{
+  "generator_agent": "01a0a9ff-fantonghui",
+  "solver_agent": "01a0aa2c-fantonghui",
+  "total_questions": 10000,
+  "pass_count": 10000,
+  "pass_rate_percent": 100.0,
+  "average_score": 98.37,
+  "average_direction_match": 1.0,
+  "average_entity_recall": 0.9347,
+  "average_junk_prune_rate": 1.0,
+  "average_dimension_accuracy": 1.0,
+  "total_hallucinations": 0,
+  "verdict": "PASS",
+  "solve_time_s": 1.11,
+  "grade_time_s": 0.52
+}
