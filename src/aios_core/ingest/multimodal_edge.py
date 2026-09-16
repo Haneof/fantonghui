@@ -118,14 +118,50 @@ class VoiceprintProfile(BaseModel):
 
 
 class RawByteSink:
-    """Zero caller-owned writable frames and retain no raw payload reference."""
+    """Zero caller-owned writable frames and retain no raw payload reference.
 
-    __slots__ = ("_lock", "_purged_bytes", "_purged_frames")
+    Two different things happen to a frame, and conflating them would make the
+    privacy accounting lie:
+
+    * **zeroed** — the buffer was writable (``bytearray`` / writable
+      ``memoryview``), so its storage was actually overwritten with zeros
+      before the reference was dropped.  This is what red line 2 asks for.
+    * **released** — the buffer was immutable (``bytes`` / read-only
+      ``memoryview``).  Python cannot erase an immutable allocation from
+      inside this process, so all we did was drop our reference and leave
+      destruction to the caller/GC.  Counting that as "purged bytes" would
+      report destruction that never happened.
+
+    ``purged_*`` remains the total (kept for backwards compatibility);
+    ``zeroed_*`` and ``released_*`` split it honestly.  ``retained_byte_count``
+    is always 0 either way: this component never keeps a reference.
+    """
+
+    __slots__ = (
+        "_lock",
+        "_purged_bytes",
+        "_purged_frames",
+        "_released_bytes",
+        "_released_frames",
+        "_zeroed_bytes",
+        "_zeroed_frames",
+    )
 
     def __init__(self) -> None:
         self._lock = RLock()
         self._purged_frames = 0
         self._purged_bytes = 0
+        self._zeroed_frames = 0
+        self._zeroed_bytes = 0
+        self._released_frames = 0
+        self._released_bytes = 0
+
+    @staticmethod
+    def _is_erasure_capable(raw_bytes: bytes | bytearray | memoryview) -> bool:
+        """Writable storage is the only kind this process can actually erase."""
+        if isinstance(raw_bytes, bytearray):
+            return True
+        return isinstance(raw_bytes, memoryview) and not raw_bytes.readonly
 
     def purge(self, raw_bytes: bytes | bytearray | memoryview) -> None:
         if not isinstance(raw_bytes, (bytes, bytearray, memoryview)):
@@ -133,10 +169,17 @@ class RawByteSink:
         byte_count = (
             raw_bytes.nbytes if isinstance(raw_bytes, memoryview) else len(raw_bytes)
         )
+        erasable = self._is_erasure_capable(raw_bytes)
         EdgeMultimodalCleaner._zero_mutable_buffer(raw_bytes)
         with self._lock:
             self._purged_frames += 1
             self._purged_bytes += byte_count
+            if erasable:
+                self._zeroed_frames += 1
+                self._zeroed_bytes += byte_count
+            else:
+                self._released_frames += 1
+                self._released_bytes += byte_count
 
     @property
     def purged_frame_count(self) -> int:
@@ -147,6 +190,34 @@ class RawByteSink:
     def purged_byte_count(self) -> int:
         with self._lock:
             return self._purged_bytes
+
+    @property
+    def zeroed_frame_count(self) -> int:
+        """Frames whose storage was actually overwritten with zeros."""
+        with self._lock:
+            return self._zeroed_frames
+
+    @property
+    def zeroed_byte_count(self) -> int:
+        with self._lock:
+            return self._zeroed_bytes
+
+    @property
+    def released_frame_count(self) -> int:
+        """Immutable frames: reference dropped, storage **not** erased here.
+
+        A non-zero value means the device adapter handed us ``bytes``.  Edge
+        capture paths should hand over ``bytearray``/``memoryview`` so that
+        red line 2's "physical deletion" is actually achievable; this counter
+        is what makes the gap observable instead of hidden inside a total.
+        """
+        with self._lock:
+            return self._released_frames
+
+    @property
+    def released_byte_count(self) -> int:
+        with self._lock:
+            return self._released_bytes
 
     @property
     def retained_byte_count(self) -> Literal[0]:
@@ -258,26 +329,34 @@ class VoiceprintLSHEngine:
         if not 0 <= max_hamming_distance <= cls.LSH_DIMENSIONS:
             raise ValueError("max_hamming_distance must be between 0 and 128")
 
-        enrollments: list[tuple[str, str]] = []
+        enrollments: list[tuple[str, int]] = []
         for entity_id, feature_hash in enrolled_entity_hashes.items():
             if not isinstance(entity_id, str) or not entity_id.strip():
                 raise ValueError("enrolled entity_id must be a non-blank string")
-            cls.hamming_distance(feature_hash, feature_hash)
-            enrollments.append((entity_id, feature_hash))
+            # Parse once per enrollment. The previous shape re-parsed both
+            # 32-char hex strings on **every** comparison, i.e. O(profiles x
+            # enrollments) `int()` calls for values that never change inside
+            # the loop (measured: 1M comparisons = 748.6 ms; see the as-built
+            # probe's E9 gate). Validation semantics are unchanged: a malformed
+            # enrollment hash still raises here, before any profile is touched.
+            enrollments.append((entity_id, cls._parse_hash(feature_hash)))
 
         bound: list[VoiceprintProfile] = []
         for item in profiles:
             profile = VoiceprintProfile.model_validate(item)
-            cls.hamming_distance(profile.feature_hash, profile.feature_hash)
+            # Parsed before the early-exit checks so that a malformed hash on an
+            # already-bound/tombstoned profile still fails closed, as before.
+            profile_bits = cls._parse_hash(profile.feature_hash)
             if profile.entity_id is not None or profile.is_tombstone or not enrollments:
                 bound.append(profile)
                 continue
             ranked = sorted(
                 (
-                    cls.hamming_distance(profile.feature_hash, feature_hash),
-                    entity_id,
+                    # .bit_count() 不可省：省了就变成"按 XOR 数值大小排序"，
+                    # 与海明距离毫无关系（本轮真的犯过这个错，靠下面的 parity 测试抓住）
+                    ((profile_bits ^ enrollment_bits).bit_count(), entity_id)
+                    for entity_id, enrollment_bits in enrollments
                 )
-                for entity_id, feature_hash in enrollments
             )
             nearest_distance, nearest_entity_id = ranked[0]
             nearest_is_unique = len(ranked) == 1 or ranked[1][0] != nearest_distance
@@ -287,15 +366,27 @@ class VoiceprintLSHEngine:
         return bound
 
     @staticmethod
+    def _parse_hash(value: str) -> int:
+        """Validate a 32-hex (128-bit) LSH hash and return its integer form.
+
+        Hoisting the parse out of comparison loops is what makes
+        :meth:`bind_nearest_entities` linear in ``P x E`` integer XORs instead
+        of ``P x E`` string parses.  Error messages are byte-identical to the
+        previous ``hamming_distance`` validation so callers see no change.
+        """
+        if len(value) != 32:
+            raise ValueError("LSH hash must encode exactly 128 bits")
+        try:
+            return int(value, 16)
+        except ValueError as exc:
+            raise ValueError("LSH hash must be hexadecimal") from exc
+
+    @staticmethod
     def hamming_distance(left_hash: str, right_hash: str) -> int:
-        for value in (left_hash, right_hash):
-            if len(value) != 32:
-                raise ValueError("LSH hash must encode exactly 128 bits")
-            try:
-                int(value, 16)
-            except ValueError as exc:
-                raise ValueError("LSH hash must be hexadecimal") from exc
-        return (int(left_hash, 16) ^ int(right_hash, 16)).bit_count()
+        engine = VoiceprintLSHEngine
+        left = engine._parse_hash(left_hash)
+        right = engine._parse_hash(right_hash)
+        return (left ^ right).bit_count()
 
     @staticmethod
     @lru_cache(maxsize=1)

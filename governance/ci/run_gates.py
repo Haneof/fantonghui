@@ -23,6 +23,11 @@ CG-4 探针 CI 档实跑：`--scale 100k` 当场跑一遍，要求 exit 0、全�
      `gates_not_applicable` 只含 G2b 绝对超门断言，并复核 I7 非空转断言。
 CG-5 数字可追溯：归档 1M 工件的每个数值事实必须能在设计书正文定位（豁免表显式登记）；
      且**已被取代的旧运行值**（superseded_values）不得再出现在正文里（防数字回潮）。
+CG-6 交付物存在性（V3G-003）：派工单注册表声明的"核心交付源码"必须存在且行数 ≥ min_lines；
+     缺口总数对 gate_baseline.cg6_deliverables.cg6_missing_max 做棘轮（只许减少）。
+     blocking=false 时只计数不阻断——真实缺口存在时阻断会挡住所有其他工作，故先棘轮、补齐后翻阻断。
+CG-1 另对 as-built 审计工件做**双向溯源**：探针脚本哈希 + 被测源码哈希（subject_sha256）都必须对得上；
+     被测代码一旦变更，旧审计工件即失效，不得继续用它的数字下结论（铁律 2 第四元）。
 
 退出码：0 = 无 hard fail；1 = 有 hard fail；2 = 环境/文件错误。
 只用标准库（本沙箱 `pip install` 受 PEP 668 阻断，CI 门不得依赖第三方包）。
@@ -62,6 +67,18 @@ BOOK = REPO / ("reviews/architecture/AIOS_Core_重构设计书_独立首席架�
 ART_1M = ARCH_EVIDENCE / "verify_reconstruction_design_1m_result.json"
 ART_CI = ARCH_EVIDENCE / "verify_reconstruction_design_100k_result.json"
 BASELINE = REPO / "governance/ci/gate_baseline.json"
+# as-built 审计探针：审计工件的溯源要**双向**校验（探针脚本 + 被测源码），
+# 因为"被测代码改了但审计工件没重跑"与"探针改了但工件没重跑"同样是溯源断裂。
+AUDIT_PROBE = ARCH_EVIDENCE / "verify_landed_m1_017_cjk.py"
+AUDIT_ARTIFACTS = [ARCH_EVIDENCE / "verify_landed_m1_017_cjk_1m_result.json",
+                   ARCH_EVIDENCE / "verify_landed_m1_017_cjk_100k_result.json",
+                   ARCH_EVIDENCE / "verify_landed_m1_017_cjk_10k_result.json",
+                   ARCH_EVIDENCE / "verify_landed_m1_001r_edge_result.json"]
+# 刻意**不**把 *_PREFIX_historical_result.json 放进 AUDIT_ARTIFACTS：它的 subject_sha256
+# 指向修复前的源码字节状态（工作树中已不存在），双向溯源必然不符。它作为 HISTORICAL 证据
+# 进 SHA256SUMS（防篡改），但不参与"当前代码"的溯源校验——这正是三态规则里"历史运行"的处置方式。
+HISTORICAL_AUDIT_ARTIFACTS = [ARCH_EVIDENCE / "verify_landed_m1_001r_edge_PREFIX_historical_result.json"]
+DISPATCH_REGISTRY = REPO / "governance/dispatches/TASK_DISPATCH_REGISTRY.md"
 CI_EVIDENCE = REPO / "governance/ci/evidence"
 
 RC_RE = re.compile(r"\bRC-(\d{3})\b")
@@ -86,6 +103,22 @@ MANIFEST_FILES = [
     "governance/ci/negative_self_test.py",
     "governance/ci/gate_baseline.json",
     "governance/ci/governance-gates.workflow.yml",
+    # --- as-built 审查（第一批派工交付）证据：探针 + 100k/1M 工件 + 审查报告 ---
+    "reviews/architecture/evidence/verify_landed_m1_017_cjk.py",
+    "reviews/architecture/evidence/verify_landed_m1_017_cjk_1m_result.json",
+    "reviews/architecture/evidence/verify_landed_m1_017_cjk_1m.log",
+    "reviews/architecture/evidence/verify_landed_m1_017_cjk_100k_result.json",
+    "reviews/architecture/evidence/verify_landed_m1_017_cjk_100k.log",
+    "reviews/architecture/evidence/verify_landed_m1_017_cjk_10k_result.json",
+    "reviews/architecture/evidence/verify_landed_m1_017_cjk_10k.log",
+    "reviews/architecture/AIOS_Core_as_built_审查报告_第一批派工交付_2026-09-16.md",
+    # --- as-built 审查（M1-001R 端侧摄入与声纹 TTL）证据 ---
+    "reviews/architecture/evidence/verify_landed_m1_001r_edge.py",
+    "reviews/architecture/evidence/verify_landed_m1_001r_edge_result.json",
+    "reviews/architecture/evidence/verify_landed_m1_001r_edge.log",
+    "reviews/architecture/evidence/verify_landed_m1_001r_edge_PREFIX_historical_result.json",
+    "reviews/architecture/evidence/verify_landed_m1_001r_edge_PREFIX_historical.log",
+    "reviews/architecture/AIOS_Core_as_built_审查报告_M1_001R_端侧摄入与声纹TTL_2026-09-16.md",
 ]
 # 自测结果 JSON 同样**不进清单**：它由自测自身重写，被哈希就会形成"写→不符→再写"的自指回路。
 # 它作为运行记录入库（内容字节确定性，便于 diff），完整性由 git 与 PROVENANCE.json 保证。
@@ -110,6 +143,7 @@ REG_MANIFEST_FILES = [
     "evidence/negative_self_test_2026-09-16.log",
     "evidence/check_run_2026-09-16_v0.3.1.log",
     "evidence/check_run_2026-09-16_v0.3.1.json",
+    "evidence/pytest_environment_ruling_2026-09-16.log",
 ]
 
 
@@ -176,6 +210,25 @@ class Report:
 # --------------------------------------------------------------------------- #
 # CG-1 工件完整性与溯源
 # --------------------------------------------------------------------------- #
+AUDIT_SCALE_SUFFIXES = ("_1m", "_100k", "_50k", "_10k")
+
+
+def _resolve_audit_probe(art: Path, prov: dict) -> tuple[Path | None, str]:
+    """定位一份审计工件的**own** 探针脚本（显式自述优先，文件名约定兜底）。"""
+    rel = prov.get("probe_script")
+    if rel:
+        cand = REPO / rel
+        return (cand, "provenance.probe_script") if cand.exists() else (None, "provenance.probe_script")
+    name = art.name
+    stem = name[: -len("_result.json")] if name.endswith("_result.json") else art.stem
+    for suffix in AUDIT_SCALE_SUFFIXES:
+        if stem.endswith(suffix):
+            stem = stem[: -len(suffix)]
+            break
+    cand = art.parent / f"{stem}.py"
+    return (cand, "filename_convention") if cand.exists() else (None, "filename_convention")
+
+
 def cg1_provenance(rep: Report) -> dict:
     out: dict = {"sums_files": 0, "sums_ok": 0, "artifacts": []}
     sums = [REG_EVIDENCE / "SHA256SUMS", ARCH_EVIDENCE / "verify_reconstruction_design_SHA256SUMS"]
@@ -239,7 +292,119 @@ def cg1_provenance(rep: Report) -> dict:
                              f"该工件不得作为文档数字来源（铁律 2 第四元）")
         if not data.get("all_gates_pass"):
             rep.fail("CG-1", f"归档工件的门未全绿：{art.name}")
+    # 审计工件（as-built 审查）：不要求 all_gates_pass —— 审计探针 exit=1 表示"发现未达标项"，
+    # 那是**结论**而不是**门失败**。但溯源必须成立：探针脚本哈希 + 被测源码哈希都要对得上。
+    out["audit_artifacts"] = []
+    for art in AUDIT_ARTIFACTS:
+        if not art.exists():
+            rep.fail("CG-1", f"缺少 as-built 审计工件：{art.name}")
+            continue
+        try:
+            data = json.loads(art.read_text(encoding="utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            rep.fail("CG-1", f"审计工件不可解析：{art.name}: {type(exc).__name__}: {exc}")
+            continue
+        prov = data.get("provenance") or {}
+        # 每份审计工件对**它自己那支探针**负责（本轮踩坑：曾把所有审计工件都拿去比
+        # M1-017 那支探针的哈希，于是 M1-001R 的工件被误判为"溯源断裂"）。
+        # 解析顺序：① provenance.probe_script 显式自述（新探针必须写）；
+        #           ② 文件名约定 verify_landed_<mod>[_<scale>]_result.json → verify_landed_<mod>.py
+        #              （旧工件没有 probe_script 字段，用约定兜底，避免为了加字段而重跑 1M 档）。
+        probe_path, probe_source = _resolve_audit_probe(art, prov)
+        if probe_path is None:
+            rep.fail("CG-1", f"无法定位审计工件的探针脚本：{art.name}"
+                             f"（provenance.probe_script={prov.get('probe_script')!r}，"
+                             f"文件名约定也未命中）⇒ 该工件不可溯源")
+            continue
+        audit_probe_sha = sha256_file(probe_path)
+        rec = {"artifact": art.name, "sha256": sha256_file(art),
+               "probe_script": str(probe_path.relative_to(REPO)),
+               "probe_script_resolved_by": probe_source,
+               "probe_version": prov.get("probe_version"),
+               "script_sha256_in_artifact": prov.get("script_sha256"),
+               "script_sha256_actual": audit_probe_sha,
+               "subject": prov.get("subject_under_test"),
+               "subject_sha256_in_artifact": prov.get("subject_sha256"),
+               "all_gates_pass": data.get("all_gates_pass"),
+               "failed_gates": sorted(k for k, v in (data.get("gates") or {}).items() if not v)}
+        subj = prov.get("subject_under_test")
+        if subj:
+            sp = REPO / subj
+            rec["subject_sha256_actual"] = sha256_file(sp) if sp.exists() else "MISSING"
+            if not sp.exists():
+                rep.fail("CG-1", f"审计工件指向的被测源码不存在：{subj}（{art.name}）")
+            elif rec["subject_sha256_actual"] != prov.get("subject_sha256"):
+                rep.fail("CG-1", f"审计溯源断裂：{subj} 已被修改（工件记 {str(prov.get('subject_sha256'))[:12]}…，"
+                                 f"现为 {str(rec['subject_sha256_actual'])[:12]}…）⇒ {art.name} 的实测数不再描述当前代码。"
+                                 f"处置：重跑审计探针，或把该工件显式标注为历史运行；**不得**沿用旧数字下结论")
+        if prov.get("script_sha256") != audit_probe_sha:
+            rep.fail("CG-1", f"审计探针溯源断裂：{art.name} 由 {str(prov.get('script_sha256'))[:12]}… 产出，"
+                             f"当前探针 {probe_path.name} 为 {audit_probe_sha[:12]}… ⇒ 探针改动后未重跑")
+        out["audit_artifacts"].append(rec)
+
     rep.sections["CG-1"] = out
+    return out
+
+
+# --------------------------------------------------------------------------- #
+# CG-6 派工单交付物存在性门（V3G-003）
+# --------------------------------------------------------------------------- #
+def cg6_deliverables(rep: Report) -> dict:
+    """派发索引自称"唯一派发索引"，就必须与仓库对得上。
+
+    只做两件不需要人类判断的事：① 声明的交付源码是否存在；② 存在的话行数是否 ≥ 下限（防空文件充数）。
+    本轮**不阻断**（blocking=false）：当前仓库确有 2 项缺失，直接 hard fail 会让所有其他工作被这道门挡住；
+    改为**计数 + 棘轮**（cg6_missing_max），与治理债同一套逻辑 —— 缺失数只许减少，增加即 fail。
+    等 3号/4号补齐或注册表改标 NOT_DELIVERED 后，把 blocking 翻成 true。
+    """
+    if not DISPATCH_REGISTRY.exists():
+        rep.note("CG-6 跳过：缺少派工单注册表")
+        return {"skipped": True}
+    try:
+        base = json.loads(BASELINE.read_text(encoding="utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        base = {}
+    cfg = base.get("cg6_deliverables", {})
+    min_lines = int(cfg.get("min_lines", 50))
+    blocking = bool(cfg.get("blocking", False))
+    cap = cfg.get("cg6_missing_max")
+    text = DISPATCH_REGISTRY.read_text(encoding="utf-8")
+    row_re = re.compile(r"^\|\s*\*\*(\d+号提示词)\*\*\s*\|(.*)$")
+    path_re = re.compile(r"`((?:src|tests)/[^`]+\.py)`")
+    rows, missing, thin = [], [], []
+    for line in text.splitlines():
+        m = row_re.match(line.strip())
+        if not m:
+            continue
+        agent, rest = m.group(1), m.group(2)
+        for rel in path_re.findall(rest):
+            p = REPO / rel
+            n = 0
+            if p.exists():
+                try:
+                    n = len(p.read_text(encoding="utf-8", errors="replace").splitlines())
+                except OSError:
+                    n = -1
+            rec = {"agent": agent, "path": rel, "exists": p.exists(), "lines": n,
+                   "min_lines": min_lines}
+            rows.append(rec)
+            if not p.exists():
+                missing.append(f"{agent}:{rel}")
+            elif 0 <= n < min_lines:
+                thin.append(f"{agent}:{rel}={n}行")
+    bad = missing + thin
+    if blocking and bad:
+        rep.fail("CG-6", f"派工单声明的交付物缺失/过薄：{', '.join(bad)}")
+    elif bad:
+        rep.note(f"CG-6（非阻断，计数+棘轮）：交付物缺失 {len(missing)} 项、低于 {min_lines} 行 {len(thin)} 项："
+                 f"{', '.join(bad)} ⇒ 见 V3G-003")
+    if isinstance(cap, int) and len(bad) > cap:
+        rep.fail("CG-6", f"交付物缺口棘轮被突破：当前 {len(bad)} > baseline {cap}"
+                         f"（缺失数只许减少；补齐交付或把注册表改标 NOT_DELIVERED 后下调 baseline）")
+    out = {"registry": str(DISPATCH_REGISTRY.relative_to(REPO)), "declared": len(rows),
+           "rows": rows, "missing": missing, "thin": thin, "min_lines": min_lines,
+           "blocking": blocking, "cg6_missing_max": cap, "gap_count": len(bad)}
+    rep.sections["CG-6"] = out
     return out
 
 
@@ -672,6 +837,7 @@ def main() -> int:
     if args.write_baseline:
         write_baseline(rep)
     cg5_traceability(rep)
+    cg6_deliverables(rep)
     if not args.no_provenance_write:
         write_provenance(rep)
     wall = round(time.time() - t0, 1)
@@ -698,7 +864,9 @@ def main() -> int:
         print("=" * 78)
         print(f"CG-1 工件溯源 : {rep.sections.get('CG-1', {}).get('sums_ok', 0)}/"
               f"{rep.sections.get('CG-1', {}).get('sums_files', 0)} 哈希核对通过；"
-              f"{len(rep.sections.get('CG-1', {}).get('artifacts', []))} 个工件已绑定脚本哈希")
+              f"{len(rep.sections.get('CG-1', {}).get('artifacts', []))} 个设计探针工件 + "
+              f"{len(rep.sections.get('CG-1', {}).get('audit_artifacts', []))} 份 as-built 审计工件"
+              f"（探针哈希 + 被测源码哈希双向溯源）已核对")
         c2 = rep.sections.get("CG-2", {})
         print(f"CG-2 编号门   : checker={c2.get('gate')} registry={c2.get('registry_version')} "
               f"RC 条目 {c2.get('rc_entries')} / alias {c2.get('aliases')}")

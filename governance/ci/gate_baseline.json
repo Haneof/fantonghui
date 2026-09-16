@@ -56,5 +56,12 @@
   "quoted_label_allowlist": {
     "RC-099": "负向自测 S4 的注入示例（'设计书在断言位引用一个不存在的号'），非本仓库号；见 governance/ci/negative_self_test.py"
   },
-  "quoted_label_allowlist_note": "清单只登记**文档正文当前确实以字面量提及**的未注册号。S9 场景在仓库副本里注入 `RC-098` 并删掉其允许条目，因此真清单不需要为它留位置。"
+  "quoted_label_allowlist_note": "清单只登记**文档正文当前确实以字面量提及**的未注册号。S9 场景在仓库副本里注入 `RC-098` 并删掉其允许条目，因此真清单不需要为它留位置。",
+  "cg6_deliverables": {
+    "min_lines": 50,
+    "blocking": false,
+    "cg6_missing_max": 2,
+    "semantics": "CG-6 交付物存在性门（V3G-003）。blocking=false：当前仓库确有 2 项派工单交付物缺失（summaries/pyramid_aggregator.py、query/hyperlink_traverser.py），直接 hard fail 会挡住所有其他工作；故先『计数 + 棘轮』：缺口数只许减少（cg6_missing_max），增加即 fail。补齐交付或把派工单注册表改标 NOT_DELIVERED 后，把 blocking 翻成 true 并下调 cg6_missing_max",
+    "rule": "缺失数与过薄数之和 ≤ cg6_missing_max；min_lines 防止用空文件/占位 pass 充数"
+  }
 }

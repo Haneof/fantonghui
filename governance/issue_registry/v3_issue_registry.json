@@ -1,5 +1,5 @@
 {
-  "registry_version": "0.3.2-PROPOSAL",
+  "registry_version": "0.3.4-PROPOSAL",
   "status": "PROPOSAL — 待项目总工程师逐号裁决后升格为唯一真源；在此之前 CI 门保持红色",
   "generated_by": "reviews/architecture/AIOS_V3_UNIFIED_BACKLOG_AND_AS_BUILT_VERIFICATION_2026-09-16.md §9.2/§9.3 + reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3（RC-001~RC-041，41 条提案号）",
   "generated_at_commit": "00adf2b",
@@ -12,7 +12,7 @@
       "冻结基线号段不进争用区，只登记不重排"
     ],
     "R4_prefix": {
-      "V3G-": "审计发现(gap)号",
+      "V3G-": "审计发现(gap)号；0.3.3 起启用 V3G-001~008（as-built 审查报告）；gap 通过 traces_to 关联 Issue，不改 Issue 语义",
       "M*-***": "工程任务(Issue)号",
       "TS-": "测试场景",
       "ACC-": "v3.0 工程验收门",
@@ -47,13 +47,14 @@
         "alias_rule": "若 RC 标签的 slug 与既有提案号相同 ⇒ 判定为**同语义收敛**，不发新号：在既有号上登记 aliases/spec_ref/source_docs；若 gate 判断不同 ⇒ 登记 gate_disputes（status=OPEN）由治理方裁决。本轮 41 个 RC 标签 = 11 个 alias（收敛） + 30 个新语义键。",
         "alias_count": 11
       }
-    }
+    },
+    "R8_as_built_audit": "as-built 审查规则（0.3.3 新增，V3G 系列适用）：①**不读文档自述，只读仓库现状 + 现场实测**；②任何性能结论必须绑定四元组（规模档 + fixture + profile + 工件哈希），未绑定即判不可判定；③审计探针 exit=1 表示『发现未达标项』，是结论不是门失败，故审计工件**不适用** all_gates_pass 强制；④被测源码一旦变更，旧审计工件即失效（CG-1 双向溯源会 fail），必须重跑或显式标注为历史运行；⑤未实测的模块不下任何结论。"
   },
   "environment": {
-    "note": "§9.5-4：解释器与依赖版本必须由 CI 固定，禁止文档各写一个数",
+    "note": "§9.5-4：解释器与依赖版本必须由 CI 固定，禁止文档各写一个数。0.3.3：pytest 收集数争议已用实测工件裁决（见 pytest_static_count.authoritative_ruling）",
     "sandbox_python3": "3.11.2",
     "declared_target_python": "3.12 (P1 头部声明)",
-    "pydantic": "本沙箱不可安装(PEP 668)",
+    "pydantic": "可用 `pip install --break-system-packages pydantic` 安装（实测 2.13.5）；旧记录『不可安装(PEP 668)』已过时并作废",
     "pytest_static_count": {
       "def_test": 456,
       "unit": 432,
@@ -65,7 +66,22 @@
         "P2": "558 passed",
         "P3": "418+15 全绿待签 (=433)"
       },
-      "verdict": "两个数字口径不同(全仓收集 vs unit def 数)，本沙箱无 pytest 无法裁定 ⇒ 以 NUMCI-001 入库的 --collect-only 工件为准"
+      "verdict": "两个数字口径不同(全仓收集 vs unit def 数)，本沙箱无 pytest 无法裁定 ⇒ 以 NUMCI-001 入库的 --collect-only 工件为准",
+      "authoritative_ruling": {
+        "ruled_at_commit": "7ad5df9",
+        "collected_total": 650,
+        "unit": 626,
+        "integration": 4,
+        "architecture": 20,
+        "run_with_pythonpath_src": "650 passed in 26.84s",
+        "run_without_pythonpath": "1 failed, 649 passed in 26.12s",
+        "artifact": "governance/issue_registry/evidence/pytest_environment_ruling_2026-09-16.log",
+        "verdict": "历史值 558(P2) 与 433(P3) 在 7ad5df9 均已过期；权威值 = 650 collected / 650 passed。唯一失败 test_b8_cross_process_unordered_collection_exact_replay_is_stable 是**测试夹具环境依赖缺陷**（子进程 fork 裸 /usr/bin/python3 -c，pytest 的 pythonpath 插件不传给子进程），非产品逻辑缺陷；修复 = subprocess.run(..., env={**os.environ,'PYTHONPATH': str(REPO/'src')})",
+        "pitfalls": [
+          "pyproject addopts 已含 -q，命令行再传 -q 会叠加成 -qq 并**吞掉汇总行**",
+          "requires-python>=3.12 而沙箱 Python 3.11.2 ⇒ 本地无法 pip install -e .，须用 PYTHONPATH=src 等价替代"
+        ]
+      }
     }
   },
   "frozen_baseline": [
@@ -1617,6 +1633,325 @@
       "key_outputs": "§4.3 的 12 条断言：静默正确性、零误触、反谄媚、反说教、召回正确性、不空转、四步序发生、口径正确、水位可见、预算可对账、传播有界、派生可重建",
       "note": "重构设计书提案号（RC = Reconstruction）。编号权不在文档：本号仅供文档内引用，裁决后由 registry 按 R3_alloc 发正式 M* 号；RC 号永不进冻结基线、永不复用。 收敛类：新语义键（五套方案无同 slug 声明）。",
       "convergence_class": "NEW_SEMANTIC_KEY"
+    },
+    {
+      "id": "V3G-001",
+      "slug": "as-built-cjk-co-search-over-gate",
+      "milestone": "M1",
+      "gate": "Gate1",
+      "status": "OPEN",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_as_built_审查报告_第一批派工交付_2026-09-16.md（as-built 审查报告，2026-09-16）"
+      ],
+      "semantics": "已落地 CJK 多词共搜在线路径 1M 档超门：co_search p95 382.074 ms（7.64×）、co_search_scored(limit=200) 543.899 ms（10.9×）、partial_search 740.660 ms（14.8×）；门 = p95 ≤ 50 ms",
+      "note": "机理 = EXPLAIN QUERY PLAN 的 `USE TEMP B-TREE FOR GROUP BY`：PK(term,entity_id,occurred_at) 的索引序无法服务 GROUP BY entity_id，1M 档约 78 万行命中被逐行插入临时 B-tree，成本与结果集大小无关；LIMIT 不救场（ORDER BY 须先完成全量分组）。同 schema 换计划（选择性升序两两求交 + LIMIT 早停，选择性走 planner 缓存）实测 2.744 ms = 139×。派工单 L14 明文规定了这条被驳回的 SQL 并断言『毫秒级』但未绑定规模档 ⇒ 根因在派单，不在实现方手艺。",
+      "traces_to": [
+        "M1-018",
+        "M1-021",
+        "M1-017"
+      ],
+      "evidence": [
+        "reviews/architecture/evidence/verify_landed_m1_017_cjk_1m_result.json → q1_as_built / q3_drop_in_plans",
+        "reviews/architecture/evidence/verify_landed_m1_017_cjk_100k_result.json（100k 档 scored 57.128 / partial 73.387 ms 已超门）",
+        "reviews/architecture/evidence/verify_landed_m1_017_cjk_10k_result.json（10k 档全部达标 ⇒ 规模敏感度 ×10/数量级）"
+      ],
+      "priority": "P0",
+      "fix": "在线路径 co_search_topk()（早停）；原 SQL 移入 co_search_exhaustive() 仅限后台，docstring 标注 1M p95 382 ms；两者都必须存在",
+      "acceptance": "co_search_topk([妈妈,生日,礼物], k=200) p95 ≤ 50 ms @1M 且 hits > 0",
+      "forbidden": [
+        "删除穷尽交集能力",
+        "每次查询现算 COUNT(*) 做选择性（实测 68.604 ms 超门）",
+        "把门限放宽到 500 ms"
+      ],
+      "probe": {
+        "script": "reviews/architecture/evidence/verify_landed_m1_017_cjk.py",
+        "probe_version": "1.1.0",
+        "script_sha256_prefix": "a3388fa1ee27",
+        "subject_sha256_prefix": "09b4a1e625f9",
+        "note": "三份工件（10k/100k/1m）同一 script_sha256；CG-1 校验探针哈希 + 被测源码哈希双向溯源"
+      }
+    },
+    {
+      "id": "V3G-002",
+      "slug": "as-built-index-many-memory-unbounded",
+      "milestone": "M1",
+      "gate": "Gate1",
+      "status": "OPEN",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_as_built_审查报告_第一批派工交付_2026-09-16.md（as-built 审查报告，2026-09-16）"
+      ],
+      "semantics": "index_many() 先把全部 postings 物化进 Python list 再单事务 executemany ⇒ 峰值 RSS = O(总 postings)；1M 实体（29,018,442 行）实测被 OOM-kill（SIGKILL/exit 137）",
+      "note": "200k 实体对照实验（子进程干净峰值 RSS）：单批 1,019.1 MB vs 分批 25k 390.2 MB（-61.7%），耗时不增反降 1.5%（28,013.8 → 27,590.9 ms，抖动内）。线性外推 1M 单批 ≈ 5.1 GB > 容器 3.9 GB，与实测 OOM 一致。端侧可用 RAM 更小 ⇒ 任何批量重建索引都会 OOM；而『派生物必须可重建』（设计书铁律 1 第③类）因此事实上不成立。",
+      "traces_to": [
+        "M1-018",
+        "M1-017",
+        "RC-016"
+      ],
+      "evidence": [
+        "reviews/architecture/evidence/verify_landed_m1_017_cjk_1m_result.json → q0_ingest_memory",
+        "reviews/architecture/evidence/verify_landed_m1_017_cjk_1m.log（首次 1M 运行 exit=137 的记录见审查报告 §3.4）"
+      ],
+      "priority": "P0",
+      "fix": "index_many 内部按 ≤2 万行/事务流式 executemany，接受 generator，签名与语义不变",
+      "acceptance": "peak_rss(chunked) < peak_rss(single_batch) @200k，且 1M 建索引 exit=0",
+      "forbidden": [
+        "用巨型单事务换原子性（应由批次水位表保证）",
+        "要求调用方先物化全量 list"
+      ]
+    },
+    {
+      "id": "V3G-003",
+      "slug": "dispatch-deliverables-missing",
+      "milestone": "NUMCI",
+      "gate": "Gate0",
+      "status": "OPEN",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_as_built_审查报告_第一批派工交付_2026-09-16.md（as-built 审查报告，2026-09-16）"
+      ],
+      "semantics": "两张派工单声明的核心交付物在仓库中不存在：summaries/pyramid_aggregator.py（3号/M1-010R）、query/hyperlink_traverser.py（4号/M1-012R）；全仓 grep hyperlink|traverser|超链接 = 0 命中",
+      "note": "派发索引自称『唯一派发索引』却与仓库不符 ⇒ 任何基于该台账的进度汇报（M1 完成 5/5）为假。反向也失真：cockpit/pipeline.py(443)、world/fact_immutability_ledger.py(338)、wake/dispatcher.py(84)、contracts/safety_bypass.py(65) 已落地但台账无对应工单（有货无单 4 项）。",
+      "traces_to": [
+        "M1-018",
+        "NUMCI-001"
+      ],
+      "evidence": [
+        "find src -name '*.py' 清单（审查报告 §1）",
+        "governance/dispatches/TASK_DISPATCH_REGISTRY.md L7~L8"
+      ],
+      "priority": "P0",
+      "fix": "新增 CG-6 交付物存在性门：解析注册表『核心交付源码』列，逐条 Path.exists() + 行数下限；缺项 hard fail",
+      "acceptance": "CG-6 在当前仓库必须报出这 2 项缺失（负向自测），补齐后转绿",
+      "forbidden": [
+        "用空文件/占位 pass 充数（故必须设行数下限）"
+      ]
+    },
+    {
+      "id": "V3G-004",
+      "slug": "dispatch-issue-number-collision",
+      "milestone": "NUMCI",
+      "gate": "Gate0",
+      "status": "OPEN",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_as_built_审查报告_第一批派工交付_2026-09-16.md（as-built 审查报告，2026-09-16）"
+      ],
+      "semantics": "派工单号位与 registry slug 整条链错位一格：2号 CJK 共搜占用 M1-017（真实语义 = simulated-edge-reduction-pipeline），5号 老王案回溯标注占用 M1-018（真实语义 = chinese-hybrid-co-search-engine）；M1-001R/M1-010R/M1-012R 为未注册号，其中 3号/4号连 slug 都不在 registry",
+      "note": "违反 R3_alloc『一个号只能有一个 slug』『改语义 = 发新号 + 旧号标 SUPERSEDED_BY』。后果是验收标准张冠李戴：M1-018 的『中文共搜 p95』被拿去验收双时态标注，M1-017 的『端侧降采样』被拿去验收 CJK 索引 ⇒ V3G-001 那 442.532 ms 在错误号位下没有任何门会拦。正确归属：CJK 共搜 → M1-018(RC-014) + 别名投影 M1-021；回溯标注 → M3-012(+M0-031/RC-004/RC-020)；端侧摄入+声纹 → M1-017(+RC-016)；金字塔与超链接穿透 → registry 无 slug，须先发号。",
+      "traces_to": [
+        "M1-017",
+        "M1-018",
+        "M1-021",
+        "M3-012",
+        "M0-031",
+        "RC-013",
+        "RC-014"
+      ],
+      "evidence": [
+        "registry issues[] 与派工单标题行逐条对照（审查报告 §2.1 表）"
+      ],
+      "priority": "P0",
+      "fix": "号位回归 registry 语义；R 后缀号发正式号或标 PROVISIONAL；金字塔/超链接穿透先注册 slug 再发号",
+      "acceptance": "检查器 slug↔号 双向唯一，RULE_A = 0，且无同号异义",
+      "forbidden": [
+        "就地修改已注册号的语义",
+        "为消除冲突而新造未登记前缀"
+      ]
+    },
+    {
+      "id": "V3G-005",
+      "slug": "dispatch-missing-slug-and-scope-blindspot",
+      "milestone": "NUMCI",
+      "gate": "Gate0",
+      "status": "OPEN",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_as_built_审查报告_第一批派工交付_2026-09-16.md（as-built 审查报告，2026-09-16）"
+      ],
+      "semantics": "5/5 派工单缺 slug 与 source_docs（grep -c slug 全为 0）违反 R6_dispatch；且 governance/dispatches/ 不在 scope_docs ⇒ CG-2 检查器结构性看不见派工单里的号位冲突",
+      "note": "这解释了当前门状态（CONFLICT 39 / UNREGISTERED 0）为何没抓到 V3G-004：不是门太松，是门没看见那份文件。若 R6 被执行，2号工单带上 slug chinese-hybrid-co-search-engine 时冲突会在派单当场暴露。",
+      "traces_to": [
+        "NUMCI-001",
+        "M1-017",
+        "M1-018"
+      ],
+      "evidence": [
+        "grep -c slug governance/dispatches/TASK_DISPATCH_AGENT_*.md → 0,0,0,0,0",
+        "registry scope_docs（9 项，无 dispatches）"
+      ],
+      "priority": "P0",
+      "fix": "派工单模板加强制 6 字段（slug/source_docs/规模档/门限/实测工件路径/绝对禁止）；governance/dispatches/*.md 纳入 scope_docs",
+      "acceptance": "纳管后 UNREGISTERED 回落 0（发号后），gate_baseline 棘轮随之下调",
+      "forbidden": [
+        "为让 CI 变绿而放宽 gate_baseline.json 棘轮"
+      ],
+      "pending_action": "本轮**刻意未**把 governance/dispatches/ 与 as-built 审查报告加入 scope_docs：纳管当天 UNREGISTERED 会从 0 升到 ≥3，债务棘轮（只许减少）会 hard fail。正确顺序是『同一次提交里发号 + 改号位 + 下调棘轮』，需要治理方裁决号位后才能执行，故登记为待办而非既成事实。"
+    },
+    {
+      "id": "V3G-006",
+      "slug": "dispatch-perf-claims-without-scale",
+      "milestone": "NUMCI",
+      "gate": "Gate0",
+      "status": "OPEN",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_as_built_审查报告_第一批派工交付_2026-09-16.md（as-built 审查报告，2026-09-16）"
+      ],
+      "semantics": "派工单性能承诺全部未绑定规模档：『毫秒级』（2号 L14）、『≤45ms』（3号）、『25ms 内』（4号）——无实体数、无 postings 密度、无 profile、无实测工件路径 ⇒ 不可判定",
+      "note": "这是 V3G-001 的直接成因：派工单把一条未经规模验证的 SQL 写成强制指令（『执行 SQL … 毫秒级求交集！』），实现方越忠实结果越糟。设计书铁律 2 要求每个数字绑定四元组，派工单是这条铁律唯一没有覆盖到的文档类型。",
+      "traces_to": [
+        "M1-018",
+        "NUMCI-001"
+      ],
+      "evidence": [
+        "派工单 2号 L14 / 3号背景段 / 4号背景段"
+      ],
+      "priority": "P1",
+      "fix": "所有性能承诺改写为四元组（规模档 + 门限 + profile + 实测工件路径）；派工单可给候选实现但必须附该规模档实测数",
+      "acceptance": "检查器：派工单出现 ms/毫秒级 却无规模档字段 ⇒ fail",
+      "forbidden": [
+        "无规模档的『毫秒级』『秒级』字样",
+        "把未验证假设写成强制指令"
+      ]
+    },
+    {
+      "id": "V3G-007",
+      "slug": "alias-coverage-gap-constitution-89-2",
+      "milestone": "M1",
+      "gate": "Gate1",
+      "status": "OPEN",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_as_built_审查报告_第一批派工交付_2026-09-16.md（as-built 审查报告，2026-09-16）"
+      ],
+      "semantics": "宪法 §89.2 要求全局索引深度覆盖『…标签、别名』，实测双缺位：查询 母亲 命中 10,990 = 字面含 母亲 的实体数（完全相等），查询 妈妈 命中 333,334 ⇒ 别名召回缺失 96.7%",
+      "note": "归属：别名归一主责在 4号工单（承诺『王叔/老王八蛋 自动链接归一』）而该工单未交付（V3G-003）；registry 里另有专号 M1-021 keyword-alias-inverted-projection 既未派单也未实现；2号 CJK 倒排未被要求做别名归一（不算失职），但 Entity.aliases 已在 contracts/models.py:42 存在而写入侧不消费 ⇒ 数据模型有能力、索引未接线。§89.2 因此在两个模块各自『合规』、系统层面不成立。",
+      "traces_to": [
+        "M1-021",
+        "M1-018",
+        "RC-014",
+        "RC-010"
+      ],
+      "evidence": [
+        "reviews/architecture/evidence/verify_landed_m1_017_cjk_1m_result.json → q2_alias"
+      ],
+      "priority": "P1",
+      "fix": "index_many 写入前做 canonical = alias_resolver.resolve(entity)，别名词元与主体词元写入同一张倒排表（term=别名, entity_id=主体），并保留来源标记以便 explain 归因",
+      "acceptance": "V3G-007-ACC：对每对别名 (母亲,妈妈)，co_search_topk([母亲]) hits ≥ 0.5 × co_search_topk([妈妈]) hits；且 recall(alias) ⊇ recall(literal)",
+      "forbidden": [
+        "把别名做成查询时字符串替换（绕过索引且无法 explain 归因）"
+      ]
+    },
+    {
+      "id": "V3G-008",
+      "slug": "as-built-index-bloat-and-explain-online-cost",
+      "milestone": "M1",
+      "gate": "Gate1",
+      "status": "OPEN",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_as_built_审查报告_第一批派工交付_2026-09-16.md（as-built 审查报告，2026-09-16）"
+      ],
+      "semantics": "索引膨胀无上限：一元+二元重叠分词且无每对象 cap ⇒ 29.02 postings/实体，1M 实体 = 4,219 MB（对照设计书词典优先 + cap=8 的 6.26 行/对象，4.6×），摄入 5,662 实体/s；另 explain() 自身 1M p95 = 57.566 ms > 50 ms 门",
+      "note": "大量一元词（今/天/气）在中文里几乎无检索价值却占约一半空间，并直接拉长枢纽词 postings ⇒ 放大 V3G-001 的临时 B-tree 成本。端侧存储与摄入内存都撑不住 4.6× 密度，故 cap 从『优化』升级为『必要条件』。explain() 有诊断价值但必须离线：禁止在线路径顺手 explain。",
+      "traces_to": [
+        "M1-018",
+        "M1-021",
+        "RC-010"
+      ],
+      "evidence": [
+        "reviews/architecture/evidence/verify_landed_m1_017_cjk_1m_result.json → build / q1_as_built.explain_call"
+      ],
+      "priority": "P2",
+      "fix": "一元词只保留词典命中；每对象 postings cap（默认 8~16，按对象类型分档，触发时按 词典命中 > 二元 > 频次 保留）；explain() docstring 首行标 OFFLINE ONLY",
+      "acceptance": "postings_per_entity ≤ 12 @1M 且 two_char_recall > 0（I7 不许因 cap 变空转）；在线调用图不含 explain",
+      "forbidden": [
+        "靠调高门限达标",
+        "cap 导致 2 字词召回归零（静默空转）"
+      ]
+    },
+    {
+      "id": "V3G-009",
+      "slug": "as-built-raw-byte-sink-accounting-conflation",
+      "milestone": "M1",
+      "gate": "Gate1",
+      "status": "OPEN",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_as_built_审查报告_M1_001R_端侧摄入与声纹TTL_2026-09-16.md §2"
+      ],
+      "semantics": "RawByteSink 把『仅释放引用』（不可变 bytes）计入 purged_byte_count ⇒ 以『物理删除原始大图字节』为最高红线的模块，其隐私计量声称销毁了并未销毁的字节",
+      "note": "Python bytes 不可变、进程内无法擦除；实现方在 docstring 中已诚实声明该限制（加分项），但把两种结果混进同一计数器使该限制在**指标层面消失**。缺陷性质 = 无法自证满足红线，而非未满足红线。修复保持 purged_* 为总量（向后兼容），新增 zeroed_*/released_*；released_frame_count > 0 即『设备适配层交了 bytes』的可观测告警。",
+      "traces_to": [
+        "M1-017",
+        "RC-016"
+      ],
+      "priority": "P1",
+      "resolution": "FIXED_IN_BRANCH（本会话分支；推送待 GitHub 重连）",
+      "implemented_by": [
+        "src/aios_core/ingest/multimodal_edge.py: RawByteSink._is_erasure_capable / zeroed_* / released_*"
+      ],
+      "acceptance": "探针门 E4：不可变 bytes 只增 released_*，bytearray/可写 memoryview 只增 zeroed_*，purged_* == zeroed_* + released_*，retained_byte_count 恒 0；单测 test_raw_byte_sink_separates_zeroed_from_released_accounting 等 3 条",
+      "forbidden": [
+        "把 released 计入 zeroed（等于宣称完成了不可能的擦除）",
+        "删除 purged_* 总量字段（破坏既有调用方）"
+      ],
+      "evidence": [
+        "reviews/architecture/evidence/verify_landed_m1_001r_edge_result.json → e_sink_accounting",
+        "reviews/architecture/evidence/verify_landed_m1_001r_edge_PREFIX_historical_result.json（HISTORICAL：修复前 zeroed_*/released_* 不存在）"
+      ]
+    },
+    {
+      "id": "V3G-010",
+      "slug": "as-built-voiceprint-bind-repeated-hex-parsing",
+      "milestone": "M1",
+      "gate": "Gate1",
+      "status": "OPEN",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_as_built_审查报告_M1_001R_端侧摄入与声纹TTL_2026-09-16.md §3"
+      ],
+      "semantics": "bind_nearest_entities 在 O(profiles × enrollments) 每次比较里重复 int(hex,16) 解析两个 32 字符哈希；2,000×500 = 100 万次比较实测 748.6 ms（0.749 µs/次）",
+      "note": "解析结果在循环内是不变量。修复：新增 _parse_hash（校验+转 int，错误文案与原 hamming_distance 逐字相同），登记侧与 profile 侧各解析一次，循环内只做 ^ 与 .bit_count() ⇒ 204.3 ms（0.204 µs/次）= 3.66×，bound_count 前后同为 969（语义 parity）。预算 500 ms 的依据：绑定在端侧冷启动/新登记路径，穿戴级 ARM 通常再慢 3~10 倍，748.6 ms 会变成可感知的启动卡顿。**附带发现（更重要）**：修复第一版漏写 .bit_count()，把排序依据从海明距离变成 XOR 数值大小，300 个 profile 中 178 个绑定结果改变，而 650 个既有测试全绿放行 ⇒ 既有测试只钉住 fail-closed 分支，未钉住『成功绑定』正路。已补行为差分测试（与优化前形状逐一对照）。",
+      "traces_to": [
+        "M1-017",
+        "RC-016"
+      ],
+      "priority": "P2",
+      "resolution": "FIXED_IN_BRANCH（本会话分支；推送待 GitHub 重连）",
+      "implemented_by": [
+        "src/aios_core/ingest/multimodal_edge.py: VoiceprintLSHEngine._parse_hash / bind_nearest_entities"
+      ],
+      "acceptance": "探针门 E9：2,000×500 ≤ 500 ms 且 bound_count 与修复前一致；单测 test_bind_nearest_entities_optimization_preserves_exact_behaviour（五分支）+ test_bind_nearest_entities_at_scale_matches_reference_and_stays_bounded（300×200 与基准逐一相同）",
+      "forbidden": [
+        "用『只测新实现』代替与旧实现的行为差分",
+        "改动 hamming_distance 的公开语义或报错文案",
+        "省略 .bit_count()（本轮真实犯过：XOR 数值排序 ≠ 海明距离）"
+      ],
+      "evidence": [
+        "reviews/architecture/evidence/verify_landed_m1_001r_edge_result.json → e_bind",
+        "reviews/architecture/evidence/verify_landed_m1_001r_edge_PREFIX_historical_result.json → e_bind（748.6 ms / bound_count 969）"
+      ]
+    },
+    {
+      "id": "V3G-011",
+      "slug": "voiceprint-180day-dual-semantics-unratified",
+      "milestone": "M1",
+      "gate": "Gate1",
+      "status": "OPEN",
+      "source_docs": [
+        "reviews/architecture/AIOS_Core_as_built_审查报告_M1_001R_端侧摄入与声纹TTL_2026-09-16.md §4",
+        "governance/dispatches/TASK_DISPATCH_AGENT_1_M1_001R.md §1.4"
+      ],
+      "semantics": "『180 天』在同一模块内存在两套口径：VoiceprintLifecycleManager 严格 > 180d，VoiceprintTTLStateMachine 包含 >= 180d；边界日（正好 180 天）给出相反的隐私结论",
+      "note": "两者各有测试钉住、docstring 主动声明差异 ⇒ 有意共存而非疏忽，但共存意味着同一份档案走不同路径在边界日结论相反。工单/宪法红线 3 字面为『超过 180 天』（= 严格 >），而 >= 更早删除、隐私更保守。**审查方不擅自统一**：改成 >= 会改变 Manager 既有验收断言，改成 > 会削弱 StateMachine 的隐私保守性。建议：对外验收与法条口径用 > 180d，端侧自动清理用 >= 180d 偏保守，但两者必须写进同一份契约并标明权威口径。探针门 E7 只断言『分歧被显式测出并记录』，不裁判谁对——防止下一次重构有人顺手统一到错的一边。",
+      "traces_to": [
+        "M1-017",
+        "RC-016",
+        "M0-031"
+      ],
+      "priority": "P1",
+      "resolution": "OPEN_NEEDS_GOVERNANCE_RULING（需治理方指定唯一权威口径）",
+      "acceptance": "治理方裁决后：两条路径的边界日行为一致，或差异被写进同一份契约文档并标明权威口径；探针 E7 相应改为断言裁决后的口径",
+      "forbidden": [
+        "在无裁决的情况下『顺手统一』任一侧",
+        "删除钉住各自口径的既有测试"
+      ],
+      "evidence": [
+        "reviews/architecture/evidence/verify_landed_m1_001r_edge_result.json → e_voiceprint_lifecycle.boundary_180d_divergence"
+      ]
     }
   ],
   "open_conflicts": [

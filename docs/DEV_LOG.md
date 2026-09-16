@@ -666,3 +666,142 @@ M0-001 状态 CONDITIONAL PASS，禁止进入 M0-002，修正两个问题并制�
   没有削弱任何断言**。
 - 待办（需要有 `workflows` 权限的人）：`cp governance/ci/governance-gates.workflow.yml
   .github/workflows/governance-gates.yml` 并提交。
+
+### 2026-09-16 追记 3：as-built 审查（第一批派工交付）⇒ V3G-001~008 + 六道门 + 环境争议裁决
+
+**做了什么**：不再审查文档，改为审查**仓库现状 + 现场实测**。对象是合并进来的第一批派工交付
+（`governance/dispatches/` 的 5 张工单）。报告：`reviews/architecture/AIOS_Core_as_built_审查报告_第一批派工交付_2026-09-16.md`；
+registry → **`0.3.3-PROPOSAL`**，新增审计发现号 `V3G-001 ~ V3G-008`（`traces_to` 关联 Issue）与规则 `R8_as_built_audit`。
+
+- **交付完整性**：5 张派工单**只交付 3 张**。`summaries/pyramid_aggregator.py`（3号）与 `query/hyperlink_traverser.py`（4号）
+  **在仓库里不存在**（全仓 grep `hyperlink|traverser|超链接` = 0 命中），而派工单注册表自称"唯一派发索引"并把它们列为
+  "核心交付源码"⇒ 台账失真（`V3G-003`）。反向也失真：`cockpit/pipeline.py`(443)、`world/fact_immutability_ledger.py`(338)、
+  `wake/dispatcher.py`(84)、`contracts/safety_bypass.py`(65) 已落地但台账无对应工单。
+- **号位治理**：整条派工链**错位一格**（`V3G-004`）。registry 里 `M1-017`=`simulated-edge-reduction-pipeline`、
+  `M1-018`=`chinese-hybrid-co-search-engine`(RC-014)；而 2号工单把 CJK 共搜挂到 `M1-017`、5号工单把老王案回溯标注挂到 `M1-018`。
+  正确归属：CJK 共搜 → `M1-018` + 别名投影 `M1-021`；回溯标注 → `M3-012`(+`M0-031`/`RC-004`/`RC-020`)；端侧摄入+声纹 → `M1-017`(+`RC-016`)；
+  金字塔与超链接穿透在 registry **连 slug 都没有**。另：5/5 派工单 `grep -c slug` = **0**（违反 R6_dispatch），
+  且 `governance/dispatches/` **不在 `scope_docs`** ⇒ CG-2 结构性看不见这些冲突（`V3G-005`）。
+- **性能实测**（新探针 `reviews/architecture/evidence/verify_landed_m1_017_cjk.py` v1.1.0，直接 import 被测类；
+  10k/100k/1M 三份工件 + 日志已入 SHA256SUMS；1M 实体、枢纽词覆盖 33%、门 p95 ≤ 50 ms）：
+  `co_search` **382.074 ms（超门 7.64×）**、`co_search_scored(limit=200)` **543.899 ms（10.9×）**、
+  `partial_search(min_matched=2)` **740.660 ms（14.8×）**；低频词对 6.690 ms 达标 ⇒ 缺陷是**超节点求交无早停**，
+  而宪法举的例子（`[妈妈,生日,礼物]`）全是超节点，**最坏情况就是主用例**。
+  机理证据：`EXPLAIN QUERY PLAN` 第二行 `USE TEMP B-TREE FOR GROUP BY`（PK 按 term 优先，`GROUP BY entity_id` 用不上索引序，
+  1M 档约 78 万行命中被逐行插入临时 B-tree，**成本与结果集大小无关**）。`LIMIT 200` 不救场反而更慢（543.899 > 382.074）。
+  规模敏感度 **×10/数量级**（3.488 → 38.147 → 382.074 ms）；100k 档 `co_search` 是 38.1 ms —— **看起来达标**，
+  这再次证明发布门必须跑 1M（若只在 CI 档跑，7.64× 的线上事故会被绿灯放行）。
+  **同 schema 换计划**（选择性升序两两求交 + LIMIT 早停）实测 **2.744 ms = 139×**；实体锚定 18.548 ms；
+  而"每次现算 `COUNT(*)` 选择性" = 55.836 ms **超门 1.12×** ⇒ 选择性**必须**走 planner 缓存（这条要写进规约，否则会被"优化"回去）。
+- **摄入内存无界**（`V3G-002`，P0）：`index_many()` 先把全部 postings 物化进 Python list 再单事务 executemany ⇒
+  峰值 RSS = O(总量)。**1M 档建索引实测被 OOM-kill（SIGKILL / exit 137）**；200k 对照实验（子进程干净峰值 RSS）：
+  单批 **1,019.1 MB** vs 分批 **390.2 MB**（−61.7%），耗时不增反降 1.5% ⇒ 分批免费。改分批后 1M 跑通：
+  建索引 176.6 s、5,662 实体/s、29,018,442 行、**4,219.3 MB**、29.02 行/实体（对照设计书 cap=8 的 6.26 行/对象 = **4.6×**）。
+- **宪法 §89.2 别名覆盖**（`V3G-007`）：查 `母亲` 命中 **10,990**（= 字面含"母亲"的实体数，完全相等），查 `妈妈` 命中 **333,334**
+  ⇒ 别名召回缺失 **96.7%**。归属：别名归一主责在 4号工单（未交付），registry 里另有专号 `M1-021` 既未派单也未实现，
+  `Entity.aliases` 字段存在（`contracts/models.py:42`）但索引写入侧不消费 ⇒ **两个模块各自"合规"、系统层面不成立**。
+- **派工单是本次事故的根因，不是实现方手艺**：2号工单 L14 **明文规定**了那条被 1M 实测驳回的
+  `GROUP BY … HAVING COUNT(DISTINCT term)` SQL 并断言"毫秒级求交集！"，却未绑定规模档/profile/工件路径（`V3G-006`）。
+  实现方越忠实，结果越糟。修法见报告 §5.1：派工单模板强制 6 字段（slug / source_docs / 规模档 / 门限 / 实测工件路径 / 绝对禁止）。
+- **门升级为六道**：新增 **CG-6 交付物存在性门**（`blocking=false` + 棘轮 `cg6_missing_max=2`；`min_lines=50` 防空文件充数），
+  以及 **CG-1 的双向溯源**（审计工件的 `subject_sha256` 必须等于当前被测源码哈希）。负向自测扩到 **14 场景 14/14 命中**
+  （新增 S11 篡改审计工件 / S12 改被测源码不重跑 / S13 多声明一个不存在的交付物）。实跑 `VERDICT = PASS`，
+  治理债棘轮保持 `CONFLICT 39 / UNRATIFIED 21 / GATE_DISPUTE 2` 不变（本轮**没有**放宽任何棘轮）。
+- **两次被自己的门抓到**（记录以免重犯）：① 我给探针打了 v1.1.0 补丁后，100k 工件仍是 v1.0.0 产出 ⇒ CG-1 报"溯源断裂"，
+  重跑三档才一致；② 我把 `HISTORICAL-RUN-VALUES` 哨兵区从"包住 §3.7.2~§3.7.4 三整节"收紧到"只包 §3.7.2 漂移披露表"
+  （占比 4.68% → **0.94%**，原先离 5% 闸门只剩 287 字符余量），结果 S6 行里的旧值字面量落到区外 ⇒ CG-5 报"数字回潮"。
+  处置是**删掉那个字面量**，而**不是**给 CG-5 加代码跨度掩码——那等于给"把旧数字包进反引号继续用"开后门。
+  CG-3 与 CG-5 的掩码策略因此**故意不同**，理由已写进设计书 §3.7.4。
+- **自测临时树必须"派生复制"**：S0 对照两次假失败——先是清单新增的审计工件没被复制，后是派工单声明的交付源码没被复制
+  （CG-6 在树里把**存在的**交付物也判缺失，缺口 2 变 4，棘轮被虚假突破）。修法不是补手抄清单，而是让 `build_tree()`
+  从两份 `SHA256SUMS` + 派工单注册表 + 审计工件的 `subject_under_test` **派生**复制集合。
+- **NUMCI-001 环境争议已裁决**（本沙箱 `pip` 可用了，`--break-system-packages`）：`pytest --collect-only` = **650**
+  （unit 626 / integration 4 / architecture 20）；`PYTHONPATH=src` 下 **650 passed in 26.84 s**；不设则 **1 failed, 649 passed**。
+  历史值 **558（P2）与 433（P3）均已过期**。唯一失败 `test_b8_cross_process_unordered_collection_exact_replay_is_stable`
+  是**夹具环境依赖缺陷**（fork 裸 `/usr/bin/python3 -c`，pytest 的 `pythonpath=["src"]` 插件不传给子进程），非产品逻辑缺陷；
+  修法 = `subprocess.run(..., env={**os.environ, "PYTHONPATH": str(REPO/"src")})`。
+  另：`pip install -e ".[dev]"` 在本沙箱**失败**（`requires-python>=3.12` vs Python 3.11.2）⇒ 本地验证只能用 `PYTHONPATH=src` 等价替代；
+  踩坑：`addopts` 已含 `-q`，命令行再传 `-q` 会叠加成 `-qq` 并**吞掉汇总行**。
+  工件：`governance/issue_registry/evidence/pytest_environment_ruling_2026-09-16.log`（已入 registry 清单）。
+- **下一轮**（本轮**不下结论**，因为没实测）：`ingest/multimodal_edge.py`(555)、`world/retrospective_annotation.py`(621)、
+  `world/fact_immutability_ledger.py`(338)、`cockpit/pipeline.py`(443)、`wake/dispatcher.py`(84)、`contracts/safety_bypass.py`(65)。
+
+### 2026-09-16 追记 4：领单 M1-001R（端侧多模态摄入 + 声纹 180 天 TTL）⇒ 交付成立，2 缺陷已修，1 项待裁决
+
+**任务来源**：《AIOS 3.0 工程指令 · 1号 Agent 任务书》。三点必须记录在案：
+① 本会话被平台固定绑定 `arena/01a0a631-fantonghui`，**不能**创建/推送工单要求的 `arena/agent-01-m1-001r`；
+② `gh auth status` 报 `GH_TOKEN is no longer valid` ⇒ **本轮推送失败**（上一轮的 `f2dddbf` 也仍未推送）；
+③ `M1-001R` 的交付物**已在仓库中**（前一轮 1号战队落地，555 行），故本轮工作性质是
+**按三条违宪红线逐条实测验收 + 补缺口**，而不是从零实现。另：`M1-001R` 是未注册号，registry 正主为
+`M1-017 simulated-edge-reduction-pipeline` + `RC-016`（见追记 3 的 `V3G-004`）。
+
+- **裁定：交付成立。** 新探针 `reviews/architecture/evidence/verify_landed_m1_001r_edge.py`（v1.3.0，10 道门）
+  **10/10 通过**。红线 1：画质 < 0.4 丢弃、**0.4 本身保留**（与工单字面一致），非法画质值 fail-closed 抛错。
+  红线 2：输出模型**类型上不可能**持有字节（`Literal[False]` + before-validator + `extra="forbid"` + `frozen`），
+  可变帧在**成功/丢弃/非法**三条路径都被真擦除（擦除在 `finally`）。
+  红线 3：未绑定陌生声纹 > 180 天墓碑召回 **1.0**（10,000/10,000），已绑定实体误伤 **0**（0/2,000），输入不被就地改写。
+- **实测数字**（工单里"50ms 初筛""128 维 LSH"第一次成为可判定命题）：单帧清洗含 2 MB 擦除 p95 **0.173 ms**
+  （**289× 余量**）；LSH 单次哈希 **0.797 ms**；10 万档案 sweep **437.408 ms** / advance **550.465 ms**；
+  声纹绑定 2,000×500 = 100 万次比较 **204.3 ms**。
+- **`V3G-009`（P1，已修）隐私计量撒谎**：`RawByteSink.purge()` 对**不可变 `bytes`** 也累加 `purged_byte_count`。
+  Python 的 `bytes` 进程内无法擦除（实现方 docstring 已诚实声明，加分项），但把"真擦除"与"只丢引用"混进同一计数器，
+  就让这个客观限制**在指标层面消失**：一个以"物理删除原始大图字节"为最高红线的模块，对外报"已销毁 2,000,000 字节"，
+  其中 1,000,000 字节原封不动。修复保留 `purged_*` 为总量（向后兼容），新增 `zeroed_*` / `released_*`；
+  `released_frame_count > 0` 从此是"设备适配层交了 `bytes`"的可观测告警。**教训：合规类指标必须能自证区分度。**
+- **`V3G-010`（P2，已修）循环内不变量**：`bind_nearest_entities` 每次比较都 `int(hex,16)` 解析两个 32 字符哈希
+  ⇒ 748.6 ms；新增 `_parse_hash`（校验+转 int，错误文案与原 `hamming_distance` **逐字相同**）把解析提到循环外
+  ⇒ **204.3 ms（3.66×）**，`bound_count` 前后同为 **969**（语义 parity）。
+  **本轮最重要的教训是我自己犯的错**：第一版"优化"漏写 `.bit_count()`，排序依据从海明距离变成 XOR 数值大小，
+  300 个 profile 里 **178 个绑定结果改变**，而 **650 个既有测试全绿放行**——既有测试钉住了 fail-closed 分支
+  （并列 ⇒ 不绑）与格式校验，**没有任何测试钉住"成功绑定"这条正路**。
+  ⇒ 新规约：对"只改性能不改语义"的重构，验收断言必须是**与旧实现的行为差分**（保留旧形状的参考实现逐一对照），
+  不是新实现的自证测试。已按此补测。
+- **`V3G-011`（P1，不擅自修）"180 天"双口径**：Manager 严格 `> 180d`、StateMachine 包含 `>= 180d`，
+  边界日给出**相反**的隐私结论；两者各有测试钉住、docstring 主动声明 ⇒ 有意共存。审查方**不裁判**
+  （改任一侧都有真实代价），登记为治理裁决项；探针门 E7 只断言"分歧被显式测出并记录"。**分歧可以存在，不可以没人知道。**
+- **测试**：`tests/unit/test_m1_001r_edge_cleaner.py` 22 → **41 个用例**；全仓 **650 → 669 passed，0 failed**。
+  新增覆盖：sink 计量区分度 ×3、绑定**行为差分** ×2（含 300×200 规模档 + 250 ms 宽松上界防抖动）、
+  畸形哈希分层 fail-closed ×3、`hamming_distance` 契约不变 ×1、2 MB 帧 50 ms 预算 ×1、
+  以及**钉住既有宽松行为** ×2（`int(v,16)` 接受 `0x` 前缀与下划线 ⇒ 收紧属契约变更，须显式决定）。
+- **门与自测**：CG-1 曾把所有审计工件拿去和**同一支**探针比哈希（M1-001R 工件被误判"溯源断裂"）⇒
+  改为**按工件解析各自的探针**（`provenance.probe_script` 显式自述优先，文件名约定兜底，旧工件不必重跑 1M）。
+  负向自测新增 **S14**（改 `multimodal_edge.py` ⇒ 只判该模块工件失效，`cjk_inverted_index.py` 的**不得**被牵连），
+  为此给框架加了 `expect_absent` **双面断言**能力——只做正向断言的话，"把全部工件一律判失效"这种粗暴实现也能通过自测。
+  自测 **11 → 15 场景，15/15 命中**；`run_gates.py` 实跑 **VERDICT = PASS**（41/41 哈希、4 份审计工件双向溯源），
+  治理债棘轮未放宽。registry → **`0.3.4-PROPOSAL`**（+`V3G-009/010/011`）。设计书 += §3.7.6。
+- **如实记录的两处"不支撑"**：① E11 实测 4,000 帧 × 512 KB 流式摄入，可擦除与不可擦除路径峰值 RSS
+  **完全相同**（268.6 MB vs 268.6 MB）⇒ 擦除的价值在**取证面**（冷内存/swap/core dump/崩溃残留），**不在省内存**；
+  ② E5 的 0.173 ms 只覆盖"清洗 + 擦除"，**不含**上游轻量模型的画质评估与 caption 生成——
+  工单"端侧 50ms 初筛"若指含模型的端到端初筛，本模块无法裁定，需模型侧另立 profile 与工件。
+
+### 追记5（2026-09-16，提交前）：沙箱历史重置 + 远端分叉的**零删除**合并处置
+
+- **现象**：本轮开工时发现沙箱被重建——**工作区文件全部保留，但 git 历史被重置回基线 `cd8bb29`**，
+  上一轮的 `f2dddbf`（第一批 as-built 审查）已不在历史中；本轮成果被压成挂在基线上的**单个提交**。
+  同时 `git push` 首次不再报认证失败（令牌已刷新），而是报 **non-fast-forward**：远端本分支已前进到 `43aed08`。
+- **风险判定（关键）**：远端那 6 个新提交是**其他号位的产品交付**（`dimensions/evolution_guard.py`、
+  `scheduler/conditional_engine.py`、`simulation/headless_life_driver.py`、`wake/cooldown_queue.py` + 5 个测试文件）。
+  若按"本地为准"直接推（或强推），会**删除他们 9 个文件、约 3,455 行**已落地代码。这是本轮最需要避开的事故。
+- **处置（先查证，后动手）**：
+  1. `git ls-remote` 确认远端真实 tip（本地 fetch refspec 只跟踪 `aios-2.0`，看不见本分支 ⇒ 必须显式 `git fetch origin <branch>`）；
+  2. `git merge-base --is-ancestor 7ad5df9 FETCH_HEAD` = **YES** ⇒ 远端含我此前全部工作，非历史重写；
+  3. `git diff --name-status HEAD FETCH_HEAD` 三分类：**A（远端独有）9 个 / M（双方都改）13 个 / D（我独有）15 个**；
+  4. 对 13 个 M 文件追查"他们是否也改过"：`git diff --stat 7ad5df9 FETCH_HEAD -- <这些路径>` **输出为空**
+     ⇒ 他们 6 个提交**只碰自己的 9 个新文件**，我的 M 版本是严格超集，取我的一方不会覆盖任何人的工作；
+  5. `git reset --soft FETCH_HEAD`（HEAD 移到他们的 tip，索引/工作区保留我的内容）
+     + `git checkout FETCH_HEAD -- <9 个文件>`（把他们的交付取回工作区）；
+  6. 校验暂存区 = **15 A + 13 M + 0 D**（删除数为 0 是本次合并的硬性验收条件）。
+- **合并树全量验证**：`tests/`（不含 integration）**699 passed**（我的 669 + 他们新增 30）、`tests/simulation` **6 passed**
+  ⇒ 合计 **705 passed**；六道门 **VERDICT = PASS**（41/41 哈希、治理债棘轮未放宽）；负向自测 **15/15**。
+- **顺带的只读交叉扫描（不改他人代码）**：用 CG-6 同类陷阱清单扫他们 4 个新模块 ⇒
+  **未见** `.bit_count()` 位运算哈希误用、`int(x,16)` 宽松解析、`datetime.utcnow()` 弃用调用。
+  `evolution_guard.py:142` 的 `!= timedelta(days=30)` 经查上下文是**故意的设计不变量**
+  （`model_validator` 强制 trial 窗口精确 30 天，两侧均为 UTC-aware datetime），**不作为缺陷上报**——
+  记录于此以免后续审查者重复起疑。
+- **教训（可泛化）**：沙箱可能在轮次之间**保留文件、丢弃 git 历史**；此时"本地领先"的假象最危险。
+  推送前的正确顺序永远是 `ls-remote → 显式 fetch 本分支 → merge-base 判祖先 → name-status 三分类 →
+  确认 0 删除 → 再推`。任何情况下**不 `push -f`**。
+- **待审积压更新**：已落地但尚未做 as-built 审查的模块由 6 个增至 **10 个**（新增 `evolution_guard.py`、
+  `conditional_engine.py`、`headless_life_driver.py`、`cooldown_queue.py`；`M1-018` 已有其号位自建的独立门禁复核测试，
+  但仍缺架构侧 as-built 报告）；另有 **2 项交付物缺失**未变（`summaries/pyramid_aggregator.py`、
+  `query/hyperlink_traverser.py` ⇒ `V3G-003`）。

@@ -1,7 +1,7 @@
 {
   "generated_by": "governance/ci/run_gates.py",
   "git": {
-    "commit": "6e43d5d40fcd2d7ac66a27c344045c93901e9af1",
+    "commit": "43aed08b3f19f1dd03c0cad9edddf63ee89673ee",
     "dirty": true
   },
   "rule": "引用任何数字前先核 script_sha256 与本文件登记值一致；不一致 ⇒ 按统一母表 §9.4 降级为『可复现但未取证』，不得写进 Issue 验收。脚本改动后旧工件即失去溯源，必须重跑或显式标注为历史运行。",
@@ -18,12 +18,12 @@
   },
   "book": {
     "path": "reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md",
-    "sha256": "92b301b5040d5cd6f9936e93c9a6763cc5ea5ca0b1c3f9a44958f0177c13d479"
+    "sha256": "7ee8b52318d59a20d94302da2c275097a69efd1ccec4a139b6a6f8da6c24e0ed"
   },
   "registry": {
     "path": "governance/issue_registry/v3_issue_registry.json",
-    "sha256": "beea16cffc5524d2c008de4b66b25c7c11f7ae4c1005df68e55390d1e38ff3ac",
-    "version": "0.3.2-PROPOSAL"
+    "sha256": "4186714ec2c09f07c1f61367e0020e405ffb70bcdfc60b42cc54d3924bb5551c",
+    "version": "0.3.4-PROPOSAL"
   },
   "artifacts": [
     {
@@ -60,6 +60,101 @@
       "path": "reviews/architecture/evidence/verify_design_ddl.py",
       "sha256": "1087345b696d9306542cd29497f7078dbc4e23f03de70ba1592753a72ea55bc1",
       "bytes": 1848
+    },
+    {
+      "path": "reviews/architecture/evidence/verify_landed_m1_001r_edge.log",
+      "sha256": "4bd8df2eeb7710eea10b2d2a65e1e23f6a6a63d662f0657680af2bf22f0d0ad2",
+      "bytes": 9335
+    },
+    {
+      "path": "reviews/architecture/evidence/verify_landed_m1_001r_edge.py",
+      "sha256": "14137b0eef528e422cb0f61408e2ebbbffc4647211de5e58c6f07d6dfaac8573",
+      "bytes": 29621
+    },
+    {
+      "path": "reviews/architecture/evidence/verify_landed_m1_001r_edge_PREFIX_historical.log",
+      "sha256": "ff0d5f0a3226a5e8e7dfc2f0e8185468c4925cd886c2a91e0547919f237b17b0",
+      "bytes": 8686
+    },
+    {
+      "path": "reviews/architecture/evidence/verify_landed_m1_001r_edge_PREFIX_historical_result.json",
+      "sha256": "289a4d891f13d3d3b52ce32ac7e91f3b7d6e1116ba6b84035b4defbb276f7f83",
+      "bytes": 8614,
+      "produced_by": {
+        "probe_version": "1.0.0",
+        "script_sha256": "5aa18ec0d53deb3fcf771bde7cc6f623eb5d093781404e910ab1d55c596f558d",
+        "scale": null,
+        "ci_scale": null,
+        "gate_applicability": null
+      }
+    },
+    {
+      "path": "reviews/architecture/evidence/verify_landed_m1_001r_edge_result.json",
+      "sha256": "76d3e0e8382423bf6d16616b7be589386a1549237bfefce0aa08a9ae01346d99",
+      "bytes": 8579,
+      "produced_by": {
+        "probe_version": "1.3.0",
+        "script_sha256": "14137b0eef528e422cb0f61408e2ebbbffc4647211de5e58c6f07d6dfaac8573",
+        "scale": null,
+        "ci_scale": null,
+        "gate_applicability": null
+      }
+    },
+    {
+      "path": "reviews/architecture/evidence/verify_landed_m1_017_cjk.py",
+      "sha256": "a3388fa1ee2792affccbeb4009546f753e6f0168bd9ab918f96aa4b8597daba7",
+      "bytes": 24163
+    },
+    {
+      "path": "reviews/architecture/evidence/verify_landed_m1_017_cjk_100k.log",
+      "sha256": "0be503e127a5563b7ce565f36eef0eb22b80599bae3cce962ebfa36347c6aeec",
+      "bytes": 6332
+    },
+    {
+      "path": "reviews/architecture/evidence/verify_landed_m1_017_cjk_100k_result.json",
+      "sha256": "902f7f9b08b6326e60cdf7ba24a60052b157545492afa2588813bd0da4c63281",
+      "bytes": 5777,
+      "produced_by": {
+        "probe_version": "1.1.0",
+        "script_sha256": "a3388fa1ee2792affccbeb4009546f753e6f0168bd9ab918f96aa4b8597daba7",
+        "scale": null,
+        "ci_scale": null,
+        "gate_applicability": null
+      }
+    },
+    {
+      "path": "reviews/architecture/evidence/verify_landed_m1_017_cjk_10k.log",
+      "sha256": "9dd814e25ae59e614d76ddd45e3458e8dbbadee3e4f5983075c02d4f1df0f869",
+      "bytes": 6734
+    },
+    {
+      "path": "reviews/architecture/evidence/verify_landed_m1_017_cjk_10k_result.json",
+      "sha256": "03b4f90acfac0e885a727a720953313de24fc818c0255c415feea3567a82b381",
+      "bytes": 6233,
+      "produced_by": {
+        "probe_version": "1.1.0",
+        "script_sha256": "a3388fa1ee2792affccbeb4009546f753e6f0168bd9ab918f96aa4b8597daba7",
+        "scale": null,
+        "ci_scale": null,
+        "gate_applicability": null
+      }
+    },
+    {
+      "path": "reviews/architecture/evidence/verify_landed_m1_017_cjk_1m.log",
+      "sha256": "602a9afa41b60fe8838da6de4336e35e74667009df468613941e4b765d3877ab",
+      "bytes": 6361
+    },
+    {
+      "path": "reviews/architecture/evidence/verify_landed_m1_017_cjk_1m_result.json",
+      "sha256": "986062efddff7930f12d70df490b45eb98f2f44ea9ca692501150236463e0750",
+      "bytes": 5802,
+      "produced_by": {
+        "probe_version": "1.1.0",
+        "script_sha256": "a3388fa1ee2792affccbeb4009546f753e6f0168bd9ab918f96aa4b8597daba7",
+        "scale": null,
+        "ci_scale": null,
+        "gate_applicability": null
+      }
     },
     {
       "path": "reviews/architecture/evidence/verify_reconstruction_design.py",
@@ -138,6 +233,11 @@
       "path": "governance/issue_registry/evidence/negative_self_test_2026-09-16.log",
       "sha256": "c3e52bb3ff81f3a213267090fc4cf913a1333d1afd8bb5457bbf19d9bbc8fb15",
       "bytes": 1891
+    },
+    {
+      "path": "governance/issue_registry/evidence/pytest_environment_ruling_2026-09-16.log",
+      "sha256": "6468c83b3c7b95cf7009d8fd68e013d6409bd1ba2cd4ce56c6f8add6352e8d31",
+      "bytes": 2276
     }
   ]
 }

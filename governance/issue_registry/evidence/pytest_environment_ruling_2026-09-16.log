@@ -1,0 +1,32 @@
+# NUMCI-001 环境争议裁决工件：pytest 收集数 / 全量运行 / Python 版本门槛
+# 生成时间(UTC): 2026-09-15T22:53:49Z  | 仓库: 7ad5df9  | 分支: arena/01a0a631-fantonghui
+# 环境: Python 3.11.2 | pytest 9.1.1 | pydantic 2.13.5 | sqlite 3.40.1 | Linux 6.1.158+
+# pyproject: requires-python >=3.12 | pytest addopts "-q" | pytest pythonpath=["src"]
+# 命令: 收集 = python3 -m pytest --collect-only -q --color=no（addopts 已含 -q ⇒ 实际 -qq，输出 per-file 计数）   运行 = python3 -m pytest --tb=no --color=no -p no:cacheprovider
+# 注: 不要额外传 -q —— addopts 已含 -q，叠加成 -qq 会**吞掉汇总行**（本轮踩过）
+
+## A. 收集数（裁决 registry 中 558 vs 433 的历史争议）
+  全仓总计          : 650
+  tests/unit        : 626
+  tests/integration : 4
+  tests/architecture: 20
+  裁决: 历史值 558（TASK_PROGRESS_R2）与 433（V3 台账）在本 commit **均已过期**；当前权威值 = 上述总计。
+
+## B. 包安装路径
+ERROR: Package 'aios-core' requires a different Python: 3.11.2 not in '>=3.12'
+  裁决: 沙箱 Python 3.11.2 **不满足** requires-python>=3.12 ⇒ 本环境无法 pip install -e .；
+        .github/workflows/ci.yml 用 3.12 可安装 ⇒ CI 路径成立，本地裁决路径不成立（环境级差异，非产品缺陷）。
+
+## C. 全量运行 — 设 PYTHONPATH=src
+650 passed in 26.84s
+
+## D. 全量运行 — 不设 PYTHONPATH（依赖 pytest pythonpath 插件）
+FAILED tests/unit/test_m0_gate_fourth_followup.py::test_b8_cross_process_unordered_collection_exact_replay_is_stable
+1 failed, 649 passed in 26.12s
+
+## E. 唯一失败的定性
+  失败项: tests/unit/test_m0_gate_fourth_followup.py::test_b8_cross_process_unordered_collection_exact_replay_is_stable
+  机理: 该用例 fork 裸 /usr/bin/python3 -c 子进程；pytest 的 pythonpath 插件只影响**本进程** sys.path，
+        不会传给子进程 ⇒ 子进程 import aios_core 失败。设 PYTHONPATH=src 后全绿（见 C）。
+  定性: **测试夹具环境依赖缺陷**（P2），非产品逻辑缺陷；CI 里因已 pip install -e . 而不显现。
+  修复建议: subprocess.run(..., env={**os.environ, 'PYTHONPATH': str(REPO/'src')})，使该用例自洽、不依赖调用者环境。

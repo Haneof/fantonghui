@@ -1,0 +1,159 @@
+{
+  "probe_version": "1.1.0",
+  "profile": {
+    "co_search_p95_ms": 50.0,
+    "cjk_bigram_min_recall": 1,
+    "manifest_top_k": 200
+  },
+  "scale": {
+    "entities": 100000
+  },
+  "build": {
+    "ingest_mode": "chunked index_many(chunk=25000)",
+    "index_many_and_analyze_ms": 12825.5,
+    "ingest_entities_per_sec": 7797.0,
+    "postings_rows": 2905960,
+    "postings_per_entity": 29.06,
+    "db_size_mb": 411.3,
+    "hub_entities_with_妈妈": 33334,
+    "alias_fixture_entities": 1099,
+    "note": "as-built 索引侧同时产出一元词与二元词且**无每对象 postings 上限**；对照：设计书 §3.5-B 的词典优先 + cap=8 方案为 6.26 postings/对象"
+  },
+  "q0_ingest_memory": {
+    "n_entities": 100000,
+    "chunk": 25000,
+    "measurements": {
+      "single_batch": {
+        "mode": "single_batch",
+        "n": 100000,
+        "peak_rss_mb": 527.3,
+        "ingest_wall_ms": 13277.9,
+        "postings_rows": 2883626
+      },
+      "chunked": {
+        "mode": "chunked",
+        "n": 100000,
+        "peak_rss_mb": 384.8,
+        "ingest_wall_ms": 13551.8,
+        "postings_rows": 2883626
+      }
+    },
+    "applicable": true,
+    "not_applicable_reason": null,
+    "single_batch_peak_rss_mb": 527.3,
+    "chunked_peak_rss_mb": 384.8,
+    "batching_reduces_peak_rss": true,
+    "as_built_index_many_is_memory_unbounded": true,
+    "oom_observed_at_1m": "本探针 --scale 1m 首次运行在**建索引阶段**被 SIGKILL(exit 137)，容器 RAM 3.9 GB；改为分批喂入后才跑通 ⇒ 1M 档 as-built 单批摄入不可行",
+    "fix": "index_many 内部按固定缓冲（建议 ≤2 万行/事务）流式 executemany，使峰值 RSS = O(chunk)；并接受 generator 而非 list，避免调用方也要先物化全量"
+  },
+  "q1_as_built": {
+    "query_trio": [
+      "妈妈",
+      "生日",
+      "礼物"
+    ],
+    "co_search_unbounded": {
+      "p50_ms": 34.133,
+      "p95_ms": 38.147,
+      "hits": 1666,
+      "under_gate": true
+    },
+    "co_search_scored_limit_k": {
+      "k": 200,
+      "p50_ms": 50.199,
+      "p95_ms": 57.128,
+      "hits": 200,
+      "under_gate": false,
+      "note": "ORDER BY latest DESC + LIMIT：仍须先完成全量 GROUP BY 才能排序"
+    },
+    "partial_search_min2": {
+      "p95_ms": 73.387,
+      "under_gate": false
+    },
+    "rare_pair": {
+      "terms": [
+        "体检",
+        "复诊"
+      ],
+      "p95_ms": 0.665,
+      "under_gate": true
+    },
+    "explain_call": {
+      "p95_ms": 5.812
+    },
+    "two_char_recall": 25000,
+    "query_plan_group_by": [
+      "SEARCH topological_cjk_terms USING COVERING INDEX sqlite_autoindex_topological_cjk_terms_1 (term=?)",
+      "USE TEMP B-TREE FOR GROUP BY"
+    ],
+    "gate_ms": 50.0
+  },
+  "q2_alias": {
+    "query_母亲_hits": 1099,
+    "query_妈妈_hits": 33334,
+    "literal_母亲_entities": 1099,
+    "alias_normalized": false,
+    "verdict": "索引**未做别名归一**：查询'母亲'只命中字面含'母亲'的实体，而含'妈妈'的枢纽实体全部漏召。宪法 §89.2 要求全局索引深度覆盖『关键词、人物、地点、物品、关系、事件、标签、**别名**』",
+    "contract_note": "Entity 契约已有 `aliases: list[str]`（src/aios_core/contracts/models.py:42），但倒排索引写入侧未消费它 ⇒ 数据模型有能力、索引未接线"
+  },
+  "q3_drop_in_plans": {
+    "same_schema": true,
+    "topk_early_termination": {
+      "p50_ms": 1.83,
+      "p95_ms": 1.893,
+      "hits_capped_at_k": 66,
+      "under_gate": true
+    },
+    "entity_anchored_rare": {
+      "p95_ms": 1.862,
+      "under_gate": true
+    },
+    "selectivity_live_cost_p95_ms": 5.185,
+    "selectivity_source": "planner 缓存（每摄入批次刷新一次）；上项为**若每次查询现算 COUNT(*)** 的代价，用于说明为何不能用现算选择性做在线路径",
+    "semantics_note": "drop-in 返回的是**有界 top-K 交集**（受 LIMIT 早停约束），不是穷尽交集；hits 少于 as-built 属预期。前台驾驶舱只需 top-K 指针（§3.5-C），穷尽交集留给后台批处理/审计路径",
+    "note": "**不改表、不改分词器、不改写入路径**，只把求交从『全量 GROUP BY + HAVING』换成『选择性升序两两求交 + LIMIT 早停』/『实体锚定预过滤』。这证明 as-built 超标是**查询计划问题**，不是 schema 或分词方案问题"
+  },
+  "gates": {
+    "L1_cjk_recall_nonzero": true,
+    "L2_as_built_co_search_under_gate": true,
+    "L3_as_built_scored_topk_under_gate": false,
+    "L4_alias_coverage_per_constitution_89_2": false,
+    "L5_drop_in_plan_under_gate": true,
+    "L6_index_bloat_documented": true,
+    "L7_ingest_memory_bounded_by_batching": true
+  },
+  "gate_count": 7,
+  "gate_count_not_applicable": 0,
+  "passed": 5,
+  "all_gates_pass": false,
+  "summary": {
+    "as_built_p95_ms": 38.147,
+    "as_built_scored_p95_ms": 57.128,
+    "drop_in_p95_ms": 1.893,
+    "gate_ms": 50.0,
+    "as_built_over_gate_factor": 0.76,
+    "drop_in_speedup": 20.2,
+    "alias_query_hits": 1099,
+    "hub_query_hits": 33334
+  },
+  "provenance": {
+    "probe_version": "1.1.0",
+    "script_sha256": "a3388fa1ee2792affccbeb4009546f753e6f0168bd9ab918f96aa4b8597daba7",
+    "subject_under_test": "src/aios_core/query/cjk_inverted_index.py",
+    "subject_sha256": "09b4a1e625f9ead495016441149643a27bf65c12acfc4a4802f90ec083ffe467",
+    "python": "3.11.2",
+    "sqlite": "3.40.1",
+    "disclaimer": "合成数据 + 容器文件系统；数字用于**计划间相对比较与门限可达性证明**，不是产品 SLO 承诺"
+  },
+  "environment": {
+    "scale": "100k",
+    "repeat": 100,
+    "wall_ms": 56937.5,
+    "python": "3.11.2",
+    "sqlite": "3.40.1",
+    "platform": "Linux-6.1.158+-x86_64-with-glibc2.36"
+  }
+}
+
+JSON_SUMMARY {"scale": "100k", "gates": {"L1_cjk_recall_nonzero": true, "L2_as_built_co_search_under_gate": true, "L3_as_built_scored_topk_under_gate": false, "L4_alias_coverage_per_constitution_89_2": false, "L5_drop_in_plan_under_gate": true, "L6_index_bloat_documented": true, "L7_ingest_memory_bounded_by_batching": true}, "summary": {"as_built_p95_ms": 38.147, "as_built_scored_p95_ms": 57.128, "drop_in_p95_ms": 1.893, "gate_ms": 50.0, "as_built_over_gate_factor": 0.76, "drop_in_speedup": 20.2, "alias_query_hits": 1099, "hub_query_hits": 33334}}

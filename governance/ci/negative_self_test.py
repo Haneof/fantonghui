@@ -17,6 +17,12 @@ S5  把 baseline 的 CONFLICT 调低 ⇒ CG-2 治理债棘轮被突破
 S6  哨兵区外写回旧运行值        ⇒ CG-5 数字回潮
 S7  删掉 HISTORICAL 哨兵        ⇒ CG-5 缺哨兵（无法区分披露与回潮）
 S8  收紧探针门限使采纳计划超门  ⇒ CG-4 探针门失败（50k 档实跑）
+S9  字面量提及未注册号且允许清单里没有它 ⇒ CG-3
+S10 扩大哨兵区以掩盖数字回潮    ⇒ CG-5 哨兵区 >5% 全文
+S11 篡改 as-built 审计工件字节  ⇒ CG-1 哈希不符（审计工件同样受清单保护）
+S12 改**被测源码**但不重跑审计  ⇒ CG-1 审计溯源断裂（subject_sha256 不符）
+S13 派工单注册表多声明一个不存在的交付物 ⇒ CG-6 交付物缺口棘轮被突破
+S14 改 M1-001R 被测源码 ⇒ 只有该模块的审计工件失效，M1-017 的不得被牵连（expect_absent）
 
 只用标准库。运行：`python3 governance/ci/negative_self_test.py`（约 1 分钟，含一次 50k 探针实跑）
 """
@@ -59,6 +65,68 @@ def scope_docs() -> list[str]:
     return list(reg.get("scope_docs", []))
 
 
+def manifest_targets() -> list[str]:
+    """复制集合**从两份 SHA256SUMS 派生**，而不是手抄一份文件清单。
+
+    手抄清单会随证据增加而漏项（本轮就漏了 as-built 审计探针与三份审计工件，
+    导致对照场景 S0 因为"清单条目指向不存在的文件"而假失败）。派生 = 自维护。
+    """
+    out: list[str] = []
+    sums = [(f"{EV_REL}/verify_reconstruction_design_SHA256SUMS", ""),
+            ("governance/issue_registry/evidence/SHA256SUMS", "governance/issue_registry")]
+    for rel_sums, root in sums:
+        p = REPO / rel_sums
+        if not p.exists():
+            continue
+        for line in p.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            rel = line.partition("  ")[2].strip()
+            for cand in ([rel, f"{root}/{rel}"] if root else [rel]):
+                if (REPO / cand).exists():
+                    out.append(cand)
+                    break
+    return sorted(set(out))
+
+
+def audit_subjects(dst: Path) -> list[str]:
+    """审计工件的 `provenance.subject_under_test` 指向被测源码 ⇒ 必须一并复制，
+    否则 CG-1 的双向溯源在临时树里只能报"文件不存在"，测不出真正的"源码已变更"。"""
+    out = []
+    for art in sorted((dst / EV_REL).glob("verify_landed_*_result.json")):
+        try:
+            prov = json.loads(art.read_text(encoding="utf-8")).get("provenance") or {}
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            continue
+        subj = prov.get("subject_under_test")
+        if subj and (REPO / subj).exists():
+            out.append(subj)
+    return sorted(set(out))
+
+
+DISPATCH_REL = "governance/dispatches/TASK_DISPATCH_REGISTRY.md"
+
+
+def dispatch_deliverables() -> list[str]:
+    """CG-6 的输入集合 = 派工单注册表声明的交付源码。
+
+    不复制它们，临时树里"存在的交付物"也会被判缺失（本轮 S0 因此假失败：真实缺口 2 项，
+    树里报 4 项 ⇒ 棘轮被虚假突破）。与 manifest_targets() 同理：**派生，不手抄**。
+    """
+    import re as _re
+    p = REPO / DISPATCH_REL
+    if not p.exists():
+        return []
+    row = _re.compile(r"^\|\s*\*\*\d+号提示词\*\*\s*\|")
+    path = _re.compile(r"`((?:src|tests)/[^`]+\.py)`")
+    out = []
+    for line in p.read_text(encoding="utf-8").splitlines():
+        if row.match(line.strip()):
+            out.extend(path.findall(line))
+    return sorted({r for r in out if (REPO / r).exists()})
+
+
 def build_tree(dst: Path) -> None:
     if dst.exists():
         shutil.rmtree(dst)
@@ -72,11 +140,20 @@ def build_tree(dst: Path) -> None:
         if src.exists():
             out.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(src, out)
-    for rel in COPY_FILES:
+    for rel in COPY_FILES + manifest_targets() + dispatch_deliverables():
         src, out = REPO / rel, dst / rel
         out.parent.mkdir(parents=True, exist_ok=True)
         if src.exists():
             shutil.copy2(src, out)
+    for rel in audit_subjects(dst):
+        src, out = REPO / rel, dst / rel
+        out.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, out)
+    # 派工单注册表：CG-6 的输入（在 governance/ 下，已整棵复制；此处仅确保存在）
+    disp = DISPATCH_REL
+    if not (dst / disp).exists() and (REPO / disp).exists():
+        (dst / disp).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(REPO / disp, dst / disp)
 
 
 def run(tree: Path, *extra: str) -> tuple[int, dict]:
@@ -94,9 +171,15 @@ def run(tree: Path, *extra: str) -> tuple[int, dict]:
 SCENARIOS: list[tuple[str, str, str, callable]] = []
 
 
-def scenario(name: str, expect: str, skip_probe: bool = True):
+def scenario(name: str, expect: str, skip_probe: bool = True, expect_absent: str = ""):
+    """expect_absent：断言失败列表里**不得**出现的片段。
+
+    有些门的正确性不只体现为"该报的报了"，还体现为"不该报的没报"
+    （S14：改了 A 模块的源码，只允许 A 的审计工件失效，B 的必须继续有效）。
+    只做正向断言的话，"把所有工件都判失效"这种粗暴实现也能通过自测。
+    """
     def deco(fn):
-        SCENARIOS.append((name, expect, fn, skip_probe))
+        SCENARIOS.append((name, expect, fn, skip_probe, expect_absent))
         return fn
     return deco
 
@@ -195,6 +278,44 @@ def s10(tree: Path) -> None:
     f.write_text(t[:i] + marker + t[i:], encoding="utf-8")
 
 
+@scenario("S11 篡改 as-built 审计工件字节", "哈希不符")
+def s11(tree: Path) -> None:
+    f = tree / f"{EV_REL}/verify_landed_m1_017_cjk_1m_result.json"
+    b = bytearray(f.read_bytes())
+    b[-3] = (b[-3] + 1) % 256
+    f.write_bytes(bytes(b))
+
+
+@scenario("S12 改被测源码但不重跑审计（审计溯源断裂）", "审计溯源断裂")
+def s12(tree: Path) -> None:
+    """这一条是**新门的新风险**：别人修了 `cjk_inverted_index.py`（比如真的把 V3G-001 修好了），
+    旧审计工件里的 442/382 ms 就不再描述当前代码。若门不拦，就会出现
+    "拿着旧实测数继续下结论"——正是铁律 2 要禁止的事。"""
+    f = tree / "src/aios_core/query/cjk_inverted_index.py"
+    f.write_text(f.read_text(encoding="utf-8") + "\n# patched by fix\n", encoding="utf-8")
+
+
+@scenario("S13 派工单多声明一个不存在的交付物（CG-6 棘轮）", "交付物缺口棘轮被突破")
+def s13(tree: Path) -> None:
+    f = tree / "governance/dispatches/TASK_DISPATCH_REGISTRY.md"
+    t = f.read_text(encoding="utf-8")
+    row = ("| **9号提示词** | `TASK_DISPATCH_AGENT_9_M9_999.md` | `M9-999` 虚构工单 | "
+           "`arena/agent-09` | `src/aios_core/does_not_exist_probe.py` |\n")
+    f.write_text(t.rstrip("\n") + "\n" + row, encoding="utf-8")
+
+
+@scenario("S14 改 M1-001R 被测源码（多支探针须按工件各自溯源）",
+          "multimodal_edge.py 已被修改",
+          expect_absent="cjk_inverted_index.py 已被修改")
+def s14(tree: Path) -> None:
+    """这一条钉的是**我自己刚犯过的错**：CG-1 曾把所有审计工件都拿去和 M1-017 那支探针比哈希，
+    于是 M1-001R 的工件被误判"溯源断裂"。修好之后必须有断言防止回潮，而且要断言两面：
+    ① 改 A 模块 ⇒ A 的工件必须失效；② B 模块的工件**不得**被牵连。"""
+    f = tree / "src/aios_core/ingest/multimodal_edge.py"
+    f.write_text(f.read_text(encoding="utf-8") + "\n# patched by another agent\n",
+                 encoding="utf-8")
+
+
 def main() -> int:
     if not RUNNER.exists():
         print(f"FATAL: 找不到 runner {RUNNER}", file=sys.stderr)
@@ -202,25 +323,31 @@ def main() -> int:
     root = Path("/tmp/aios_gate_selftest")
     results = []
     t_start = time.time()
-    for name, expect, fn, skip in SCENARIOS:
+    for name, expect, fn, skip, expect_absent in SCENARIOS:
         tree = root / f"case_{name.split()[0]}"
         build_tree(tree)
         fn(tree)
         args = ["--skip-probe"] if skip else ["--scale", "50k"]
         code, data = run(tree, *args)
         fails = data.get("hard_failures", [])
+        absent_hit = [f for f in fails if expect_absent and expect_absent in f]
         if expect == "":
             ok = code == 0 and not fails
         else:
-            ok = code == 1 and any(expect in f for f in fails)
+            ok = code == 1 and any(expect in f for f in fails) and not absent_hit
         if expect == "" and not ok:
             print("      对照场景未通过 ⇒ 临时树环境不完整，后续场景无意义，早停。")
             print("      完整失败列表：" + json.dumps(fails, ensure_ascii=False)[:800])
         results.append({"scenario": name, "expected_marker": expect or "(PASS)",
+                        "expected_absent_marker": expect_absent or None,
                         "exit": code, "hard_failures": len(fails),
                         "first_failures": fails[:3], "verdict": "PASS" if ok else "FAIL"})
-        print(f"[{'✅' if ok else '❌'}] {name}: exit={code} hard={len(fails)} "
-              f"{'命中「' + expect + '」' if expect and ok else ('对照通过' if not expect and ok else '未按预期')}")
+        verdict_txt = ("对照通过" if not expect and ok else
+                       ("未按预期" if not ok else
+                        f"命中「{expect}」" + (f"、且未误报「{expect_absent}」" if expect_absent else "")))
+        print(f"[{'✅' if ok else '❌'}] {name}: exit={code} hard={len(fails)} {verdict_txt}")
+        if absent_hit:
+            print(f"      - 不该报却报了：{absent_hit[0][:160]}")
         for f in fails[:3]:
             print(f"      - {f[:180]}")
     wall = round(time.time() - t_start, 1)
@@ -244,8 +371,8 @@ def main() -> int:
             print(f"  ✗ {r['scenario']} 期望 {r['expected_marker']} 实际 exit={r['exit']} "
                   f"hard={r['hard_failures']}")
         return 1
-    print("结论：CG-1（哈希+溯源）/ CG-2（棘轮）/ CG-3（文档↔registry）/ CG-4（探针门）/ "
-          "CG-5（数字回潮+哨兵）**全部会开火**。")
+    print("结论：CG-1（哈希+双向溯源）/ CG-2（治理债棘轮）/ CG-3（文档↔registry）/ "
+          "CG-4（探针门）/ CG-5（数字回潮+哨兵）/ CG-6（交付物缺口棘轮）**全部会开火**。")
     return 0
 
 
