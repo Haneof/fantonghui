@@ -1,0 +1,62 @@
+{
+  "generator_agent": "agent-aa2c",
+  "question_bank_type": "full_daily_multidim_summary_10k",
+  "timestamp_utc": "2026-09-16T12:40:00Z",
+  "total_questions": 10000,
+  "file_size_mb": 74.32,
+  "questions_path": "benchmarks/daily_summary/questions/questions_agent_aa2c_10k.jsonl",
+  "gender_distribution": {
+    "男": 5747,
+    "女": 4253
+  },
+  "top_cities": [
+    [
+      "深圳",
+      991
+    ],
+    [
+      "北京",
+      689
+    ],
+    [
+      "成都",
+      675
+    ],
+    [
+      "广州",
+      645
+    ],
+    [
+      "南昌",
+      355
+    ],
+    [
+      "大连",
+      352
+    ],
+    [
+      "合肥",
+      351
+    ],
+    [
+      "重庆",
+      350
+    ],
+    [
+      "苏州",
+      348
+    ],
+    [
+      "西安",
+      345
+    ]
+  ],
+  "compliance_assertions": {
+    "covers_six_dimensions": true,
+    "has_direction_anchors": true,
+    "has_acceptable_synonyms": true,
+    "has_redline_forbidden": true,
+    "deterministic_reproducible": true,
+    "seed": 20260916
+  }
+}
