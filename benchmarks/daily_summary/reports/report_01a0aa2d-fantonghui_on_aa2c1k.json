@@ -1,0 +1,49 @@
+{
+ "solver_agent": "01a0aa2d-fantonghui",
+ "bank_tag": "aa2c1k",
+ "n_questions": 1000,
+ "train_n": 800,
+ "heldout_n": 200,
+ "classes_calibrated": 119,
+ "before_zero_shot_baseline": {
+  "direction_hit_by_dim": {
+   "global": 0.0027,
+   "dim:health": 0.0133,
+   "dim:social": 0.0047,
+   "dim:emotion": 0.0,
+   "dim:finance": 0.0154,
+   "dim:career": 0.0
+  },
+  "avg_direction_coverage": 0.006,
+  "redline_violations": 0,
+  "n": 1000
+ },
+ "after_calibrated_full": {
+  "direction_hit_by_dim": {
+   "global": 0.7597,
+   "dim:health": 0.7589,
+   "dim:social": 0.9853,
+   "dim:emotion": 0.9008,
+   "dim:finance": 0.945,
+   "dim:career": 0.959
+  },
+  "avg_direction_coverage": 0.8848,
+  "redline_violations": 7,
+  "n": 1000
+ },
+ "after_calibrated_heldout": {
+  "direction_hit_by_dim": {
+   "global": 0.727,
+   "dim:health": 0.7228,
+   "dim:social": 0.9714,
+   "dim:emotion": 0.8938,
+   "dim:finance": 0.8972,
+   "dim:career": 0.9428
+  },
+  "avg_direction_coverage": 0.8592,
+  "redline_violations": 2,
+  "n": 200
+ },
+ "solver_wall_s": 63.4,
+ "answers_file": "benchmarks/daily_summary/answers/ans_01a0aa2d-fantonghui_on_aa2c1k.jsonl"
+}
