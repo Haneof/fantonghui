@@ -1,0 +1,580 @@
+{
+  "artifacts": {
+    "diagnosis": "reports/benchmarks/AIOS_全生命周期心智瓶颈与缺陷诊断书_2026-09-16.md",
+    "evidence_json": "reports/benchmarks/aios_full_pipeline_bench_2026-09-16.json",
+    "stress_report": "reports/benchmarks/AIOS_全流程海量盲测与极限压测报告_2026-09-16.md",
+    "tool_proposals": "reports/benchmarks/AIOS_新机制发明与新工具提议_2026-09-16.md"
+  },
+  "benchmark_version": "3.0.0",
+  "bottleneck_diagnosis": {
+    "durable_write_ratio": 0.0024476926174102566,
+    "highest_distortion_risk": "cross-modal EventAnchor interpretation: alignment proves co-occurrence, not causality; confidence and counter-evidence lifecycle remain mandatory",
+    "io_hotspot": "CJK topological postings",
+    "io_posting_rows": 3768716,
+    "largest_observed_p99_ms": 303.691801,
+    "largest_p99_stage": "S2",
+    "mechanism_limit": "the synthetic semantic adjudicator supplies structured labels; model calibration and real-world sensor drift need separate validation",
+    "slowest_stage": "S3",
+    "slowest_stage_wall_ms": 41564.880602,
+    "token_hotspot": "cockpit_manifests_conservative_upper_bound",
+    "token_measurements_utf8_bytes": {
+      "actionable_advice_serialization": 2122,
+      "cockpit_manifests_conservative_upper_bound": 11420
+    }
+  },
+  "gates": [
+    {
+      "gate_id": "SCALE-1M",
+      "iron_law": null,
+      "measured": {
+        "generated": 1000000
+      },
+      "passed": true,
+      "requirement": "official run generates at least 1,000,000 records"
+    },
+    {
+      "gate_id": "S1-EDGE-COMPACTION",
+      "iron_law": 4,
+      "measured": {
+        "edge_image_raw_purged": true,
+        "key_evidence_retention": 1.0,
+        "raw_payloads_retained": 0,
+        "write_ratio": 0.0024476926174102566
+      },
+      "passed": true,
+      "requirement": "no raw payload retention, bounded writes, and 100% key-evidence retention"
+    },
+    {
+      "gate_id": "S1-DAILY-PRUNE-TTL",
+      "iron_law": 4,
+      "measured": {
+        "ambient_deleted": 109807,
+        "core_voiceprint_retained": true,
+        "voiceprint_tombstoned": true
+      },
+      "passed": true,
+      "requirement": "ambient noise is physically purged and unbound voiceprint expires at 180 days"
+    },
+    {
+      "gate_id": "S2-LOSSLESS-DRILL",
+      "iron_law": null,
+      "measured": {
+        "break_rate": 0.0,
+        "path": [
+          "summary_year_2023_b5993f04fd00",
+          "summary_quarter_2023-Q4_196ee0734e19",
+          "summary_month_2023-10_84b25566a7d1",
+          "summary_week_2023-10-W1_876f8b416b21",
+          "summary_day_2023-10-01_701dc05dd183",
+          "obs_bfd16650401aacd3eec4af71"
+        ],
+        "path_nodes": 6
+      },
+      "passed": true,
+      "requirement": "year-to-observation pointer chain has zero breakage"
+    },
+    {
+      "gate_id": "S3-COSEARCH-RESONANCE",
+      "iron_law": null,
+      "measured": {
+        "exact_retrieval": true,
+        "expected_hits": 4,
+        "query_terms": [
+          "合伙",
+          "借贷",
+          "争执",
+          "银行流水"
+        ],
+        "resonance_candidates": 5,
+        "search_hits": 4
+      },
+      "passed": true,
+      "requirement": "strict multi-keyword query and cross-modal synthesis both produce evidence pointers"
+    },
+    {
+      "gate_id": "S3-EVENT-LIFECYCLE",
+      "iron_law": null,
+      "measured": {
+        "event_versions": 14,
+        "evidence_refs_resolve": true,
+        "stale_direct_count": 2,
+        "statuses": [
+          "active",
+          "candidate",
+          "merged",
+          "rejected",
+          "resolved",
+          "revised",
+          "split"
+        ],
+        "traversal_depth": 1
+      },
+      "passed": true,
+      "requirement": "append-only event revisions cover candidate/active/resolved/revised/merged/split and single-hop stale propagation"
+    },
+    {
+      "gate_id": "S4-DERIVATIVE-INFLECTION",
+      "iron_law": null,
+      "measured": {
+        "inflections": [
+          21,
+          22,
+          23,
+          24
+        ],
+        "points": 35
+      },
+      "passed": true,
+      "requirement": "velocity/acceleration and an inflection are computed in cognition"
+    },
+    {
+      "gate_id": "S4-DIMENSION-TRIPLE-GATE",
+      "iron_law": 5,
+      "measured": {
+        "low_accuracy_state": "EXPIRED",
+        "premature_activation_blocked": true,
+        "qualified_state": "ACTIVE",
+        "quota_blocked": true,
+        "sporadic_blocked": true
+      },
+      "passed": true,
+      "requirement": "3-day cross-domain, full 30-day trial, and daily reflection quota are all enforced"
+    },
+    {
+      "gate_id": "S4-LIFE-CHAPTER",
+      "iron_law": null,
+      "measured": {
+        "normalized_shift": 1.0,
+        "persistent_points": 60
+      },
+      "passed": true,
+      "requirement": "persistent baseline rupture archives the old life chapter"
+    },
+    {
+      "gate_id": "S5-HISTORY-IMMUTABLE",
+      "iron_law": 2,
+      "measured": {
+        "delete_blocked": true,
+        "hash_after": "458cefc0c9df812dd2d3c0530d94b5e0cd84979beeeaf1ca16149a3d4a6dbb8c",
+        "hash_before": "458cefc0c9df812dd2d3c0530d94b5e0cd84979beeeaf1ca16149a3d4a6dbb8c",
+        "ledger_intact": true,
+        "update_blocked": true
+      },
+      "passed": true,
+      "requirement": "historical SHA-256 is unchanged and SQL UPDATE/DELETE are blocked"
+    },
+    {
+      "gate_id": "S5-DUAL-LENS-SINGLE-HOP",
+      "iron_law": 2,
+      "measured": {
+        "annotated_overlays": 1,
+        "as_known_overlays": 0,
+        "depth": 1,
+        "llm_recompute_requests": 0,
+        "projection_scan_reduction": 0.9606078784243152,
+        "same_historical_facts": true,
+        "stale_count": 3
+      },
+      "passed": true,
+      "requirement": "today's overlay changes annotated view only, with constant-depth invalidation and zero LLM recompute"
+    },
+    {
+      "gate_id": "S6-EVIDENCE-BOUND-ADVICE",
+      "iron_law": 1,
+      "measured": {
+        "advice_count": 3,
+        "all_pointers_resolved": true,
+        "evidence_pointer_count": 8
+      },
+      "passed": true,
+      "requirement": "three actionable advices resolve every pinned causal ObjectRef"
+    },
+    {
+      "gate_id": "S6-GOAL-TASK-DECOUPLING",
+      "iron_law": null,
+      "measured": {
+        "goal_abandoned": true,
+        "goal_versions": 2,
+        "task_cancelled": true,
+        "task_versions": 2
+      },
+      "passed": true,
+      "requirement": "denied inferred goal is abandoned, downstream task cancelled, and correction recorded"
+    },
+    {
+      "gate_id": "S7-COMMUNICATION-LEARNING",
+      "iron_law": null,
+      "measured": {
+        "action_count": 72,
+        "avoided_styles": 6,
+        "interval_after": 120,
+        "interval_before": 15,
+        "style_accuracy": 1.0
+      },
+      "passed": true,
+      "requirement": "feedback—not a preset output rule—selects style and lengthens interruption spacing after resistance"
+    },
+    {
+      "gate_id": "S7-PERSONA-BOUNDARIES",
+      "iron_law": 1,
+      "measured": {
+        "lecture_blocked": true,
+        "questionnaire_blocked": true,
+        "sycophancy_blocked": true
+      },
+      "passed": true,
+      "requirement": "sycophancy, teacher-like lecturing, and questionnaire UI are blocked"
+    },
+    {
+      "gate_id": "S8-P0-HARD-BYPASS",
+      "iron_law": 3,
+      "measured": {
+        "hardware_dispatched": true,
+        "p0_cockpit_accesses": 0,
+        "p0_llm_calls": 0,
+        "p0_p99_ms": 0.010455,
+        "world_bypassed": true
+      },
+      "passed": true,
+      "requirement": "P0 dispatch P99 <=50ms with zero cognition/LLM/world access"
+    },
+    {
+      "gate_id": "S8-COCKPIT-DIALOGUE",
+      "iron_law": 1,
+      "measured": {
+        "archived_turns": 4,
+        "dormant_tokens": 0,
+        "four_step_order": true,
+        "level1_model_calls": 0,
+        "manifests": 10,
+        "max_manifest_tokens": 1142,
+        "rolling_turns": 6,
+        "sentence_counts": [
+          1,
+          1,
+          2,
+          1,
+          1,
+          1,
+          2,
+          1,
+          2,
+          1
+        ]
+      },
+      "passed": true,
+      "requirement": "single-shot four-step cockpit, zero-token dormant lane, six-turn window, and 1-3 sentence dialogue"
+    }
+  ],
+  "generated_at": "2026-09-16T12:00:00Z",
+  "generated_sample_count": 1000000,
+  "limitations": [
+    "This is a deterministic Linux synthetic-world benchmark; it does not prove physical wearable feasibility.",
+    "Structured semantic/risk labels emulate upstream model adjudication; no production LLM quality claim is made.",
+    "Process RSS includes Python, SQLite, and prior test-run allocations; it is not a per-module heap profile.",
+    "Latency measurements describe this sandbox and are not a production service-level guarantee."
+  ],
+  "official_scale_reached": true,
+  "requested_sample_count": 1000000,
+  "seed": 10552624,
+  "stages": [
+    {
+      "input_count": 1000000,
+      "latency_p50_ms": 0.01060640185546875,
+      "latency_p95_ms": 0.011149263427734375,
+      "latency_p99_ms": 0.016552521728515623,
+      "measurements": {
+        "ambient_deleted": 109807,
+        "durable_observations": 125919,
+        "high_frequency_write_ratio": 0.0024476926174102566,
+        "key_evidence_retention_ratio": 1.0,
+        "normalized_generator_entropy": 0.999979089952633,
+        "raw_sensor_points": 22889312
+      },
+      "name": "百万级摄入、清洗与边缘提纯",
+      "output_count": 125919,
+      "peak_rss_bytes": 157769728,
+      "rss_after_bytes": 155168768,
+      "rss_before_bytes": 36495360,
+      "stage_id": "S1",
+      "throughput_per_second": 86443.97744656989,
+      "wall_time_ms": 11568.185888
+    },
+    {
+      "input_count": 125919,
+      "latency_p50_ms": 0.011073,
+      "latency_p95_ms": 303.691801,
+      "latency_p99_ms": 303.691801,
+      "measurements": {
+        "drill_path_depth": 5,
+        "evidence_chain_break_rate": 0.0,
+        "lossless_verified": true,
+        "summary_nodes": 1329,
+        "year_roots": 4
+      },
+      "name": "五级时间金字塔与无损下钻",
+      "output_count": 1329,
+      "peak_rss_bytes": 176676864,
+      "rss_after_bytes": 166334464,
+      "rss_before_bytes": 155168768,
+      "stage_id": "S2",
+      "throughput_per_second": 293225.52831663133,
+      "wall_time_ms": 429.42714
+    },
+    {
+      "input_count": 125919,
+      "latency_p50_ms": 0.6490140320000001,
+      "latency_p95_ms": 10.604045,
+      "latency_p99_ms": 13.210183,
+      "measurements": {
+        "co_occurrence_edges": 0,
+        "co_search_exact": true,
+        "direct_stale_count": 2,
+        "distinct_entities": 69938,
+        "distinct_terms": 1099,
+        "event_evidence_refs_resolve": true,
+        "event_statuses": [
+          "active",
+          "candidate",
+          "merged",
+          "rejected",
+          "resolved",
+          "revised",
+          "split"
+        ],
+        "event_versions": 14,
+        "evidence_sets": 5,
+        "expected_co_search_hits": 4,
+        "index_db_bytes": 728272896,
+        "invalidation_depth": 1,
+        "postings_rows": 3768716,
+        "query_p99_ms": 13.210183,
+        "resonance_candidates": 5,
+        "strict_co_search_hits": 4
+      },
+      "name": "多维共振、事件合成与生命周期",
+      "output_count": 24,
+      "peak_rss_bytes": 207532032,
+      "rss_after_bytes": 207532032,
+      "rss_before_bytes": 166334464,
+      "stage_id": "S3",
+      "throughput_per_second": 3029.4565550596362,
+      "wall_time_ms": 41564.880602
+    },
+    {
+      "input_count": 125919,
+      "latency_p50_ms": 22.596968,
+      "latency_p95_ms": 22.596968,
+      "latency_p99_ms": 22.596968,
+      "measurements": {
+        "derivative_points": 35,
+        "inflection_count": 4,
+        "life_chapter_shift": 1.0,
+        "low_accuracy_state": "EXPIRED",
+        "low_prediction_accuracy": 0.1,
+        "premature_activation_blocked": true,
+        "quota_blocked": true,
+        "sporadic_blocked": true,
+        "valid_dimension_state": "ACTIVE",
+        "valid_prediction_accuracy": 0.8
+      },
+      "name": "认知导数、维度门槛与人生相变",
+      "output_count": 37,
+      "peak_rss_bytes": 207532032,
+      "rss_after_bytes": 207532032,
+      "rss_before_bytes": 207532032,
+      "stage_id": "S4",
+      "throughput_per_second": 5572384.755335317,
+      "wall_time_ms": 22.596968
+    },
+    {
+      "input_count": 125919,
+      "latency_p50_ms": 102.935636,
+      "latency_p95_ms": 102.935636,
+      "latency_p99_ms": 102.935636,
+      "measurements": {
+        "annotated_overlays": 1,
+        "as_known_overlays": 0,
+        "historical_hash_unchanged": true,
+        "llm_recompute_requests": 0,
+        "projection_scan_reduction": 0.9606078784243152,
+        "single_hop_depth": 1,
+        "single_hop_stale_count": 3,
+        "sql_delete_blocked": true,
+        "sql_update_blocked": true
+      },
+      "name": "历史回溯与单跳雪崩隔离",
+      "output_count": 5,
+      "peak_rss_bytes": 207532032,
+      "rss_after_bytes": 207532032,
+      "rss_before_bytes": 207532032,
+      "stage_id": "S5",
+      "throughput_per_second": 1223278.9818289946,
+      "wall_time_ms": 102.935636
+    },
+    {
+      "input_count": 125919,
+      "latency_p50_ms": 23.767632,
+      "latency_p95_ms": 23.767632,
+      "latency_p99_ms": 23.767632,
+      "measurements": {
+        "advice_context_bytes": 2122,
+        "advice_count": 3,
+        "all_pointers_resolved": true,
+        "derived_task_cancelled": true,
+        "evidence_pointer_count": 8,
+        "inferred_goal_abandoned": true
+      },
+      "name": "证据绑定建议与目标任务解耦",
+      "output_count": 3,
+      "peak_rss_bytes": 207532032,
+      "rss_after_bytes": 207532032,
+      "rss_before_bytes": 207532032,
+      "stage_id": "S6",
+      "throughput_per_second": 5297919.456174683,
+      "wall_time_ms": 23.767632
+    },
+    {
+      "input_count": 72,
+      "latency_p50_ms": 0.740356,
+      "latency_p95_ms": 0.740356,
+      "latency_p99_ms": 0.740356,
+      "measurements": {
+        "action_log_count": 72,
+        "action_log_intact": true,
+        "avoided_style_count": 6,
+        "interval_after_rejection_minutes": 120,
+        "interval_before_rejection_minutes": 15,
+        "learned_style_accuracy": 1.0,
+        "lecture_blocked": true,
+        "questionnaire_blocked": true,
+        "sycophancy_blocked": true
+      },
+      "name": "AI 行动日志与沟通策略演进",
+      "output_count": 72,
+      "peak_rss_bytes": 207532032,
+      "rss_after_bytes": 207532032,
+      "rss_before_bytes": 207532032,
+      "stage_id": "S7",
+      "throughput_per_second": 97250.5119158891,
+      "wall_time_ms": 0.740356
+    },
+    {
+      "input_count": 110,
+      "latency_p50_ms": 0.005064,
+      "latency_p95_ms": 0.006555,
+      "latency_p99_ms": 0.010455,
+      "measurements": {
+        "archived_turn_count": 4,
+        "dialogue_sentence_counts": [
+          1,
+          1,
+          2,
+          1,
+          1,
+          1,
+          2,
+          1,
+          2,
+          1
+        ],
+        "dormant_projection_tokens": 0,
+        "four_step_order_valid": true,
+        "level1_model_calls": 0,
+        "manifest_count": 10,
+        "max_manifest_tokens": 1142,
+        "p0_cockpit_accesses": 0,
+        "p0_llm_calls": 0,
+        "p0_p50_ms": 0.005064,
+        "p0_p95_ms": 0.006555,
+        "p0_p99_ms": 0.010455,
+        "rolling_turn_count": 6
+      },
+      "name": "单次驾驶舱、P0 硬旁路与十轮对话",
+      "output_count": 10,
+      "peak_rss_bytes": 207532032,
+      "rss_after_bytes": 207532032,
+      "rss_before_bytes": 207532032,
+      "stage_id": "S8",
+      "throughput_per_second": 54855.64736396174,
+      "wall_time_ms": 2.005263
+    }
+  ],
+  "title": "《AIOS 全流程海量盲测与极限压测报告》",
+  "tool_proposals": [
+    {
+      "capability_gap": "High-rate physical and multimodal streams need bounded online compaction without losing anomalous or causally linked evidence.",
+      "created_by": "massive_life_bench",
+      "current_limitations": [
+        "fixed time buckets over-read stable periods",
+        "media adjudication labels are supplied by an upstream classifier"
+      ],
+      "expected_benefit": "Reduce durable sensor writes by orders of magnitude while preserving 100% of classifier-marked key evidence and zero raw media payloads.",
+      "learned_at": "2026-09-16T12:00:00Z",
+      "metadata": {},
+      "object_id": "tool_proposal_adaptive_temporal_compressor_v1",
+      "object_type": "tool_proposal",
+      "occurred": {
+        "end": null,
+        "precision": "unknown",
+        "start": null,
+        "timezone_name": null,
+        "unknown": true
+      },
+      "proposed_interface": {
+        "finalize": "() -> (observations, CompressionReceipt)",
+        "ingest": "TemporalSample -> CompressedObservation | None",
+        "space_complexity": "O(active buckets + retained evidence)"
+      },
+      "recorded_at": "2026-09-16T12:00:00Z",
+      "revision": 1,
+      "source_refs": [],
+      "status": "active",
+      "subject_id": "aios_core",
+      "use_cases": [
+        "50Hz IMU macro-state extraction without point-wise database writes",
+        "two-hour stable heart-rate aggregation with anomaly feature retention",
+        "caption/transcript-only media persistence and raw-buffer zeroization"
+      ],
+      "validation_plan": "Stream at least 1,000,000 adversarial records; assert no one-for-one 50Hz writes, raw-buffer purge, anomaly retention, and evidence recall."
+    },
+    {
+      "capability_gap": "Retrospective discoveries need a current annotated view without rewriting or recursively recomputing historical facts.",
+      "created_by": "massive_life_bench",
+      "current_limitations": [
+        "in-memory implementation is process-local",
+        "very dense per-entity history may need an interval tree"
+      ],
+      "expected_benefit": "Preserve byte-identical history while reducing reads to the selected entity/time projection and making knowledge-time semantics explicit.",
+      "learned_at": "2026-09-16T12:00:00Z",
+      "metadata": {},
+      "object_id": "tool_proposal_dual_lens_projection_v1",
+      "object_type": "tool_proposal",
+      "occurred": {
+        "end": null,
+        "precision": "unknown",
+        "start": null,
+        "timezone_name": null,
+        "unknown": true
+      },
+      "proposed_interface": {
+        "annotated": "(entity, valid_time, now) -> EpistemicProjection",
+        "append_fact": "ImmutableProjectionFact -> None",
+        "append_overlay": "ProjectionOverlay -> None",
+        "as_known": "(entity, valid_time, cutoff) -> EpistemicProjection"
+      },
+      "recorded_at": "2026-09-16T12:00:00Z",
+      "revision": 1,
+      "source_refs": [],
+      "status": "active",
+      "subject_id": "aios_core",
+      "use_cases": [
+        "AsKnown historical truth at an earlier knowledge cutoff",
+        "current annotated interpretation over identical fact hashes",
+        "entity/time bounded virtual projection without history duplication"
+      ],
+      "validation_plan": "Seal historical hashes, append a present-day overlay, compare both lenses, and prove only direct consumers are invalidated."
+    }
+  ],
+  "verdict": "PASS"
+}
