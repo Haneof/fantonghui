@@ -361,3 +361,28 @@ M0-001 状态 CONDITIONAL PASS，禁止进入 M0-002，修正两个问题并制�
 ### 测试
 - 103 passed + 15 reference
 
+
+## 2026-09-16 M0′ R4 候选契约层冻结 + CAM 验收矩阵上线（首席架构师工件批）
+
+### 背景
+《AIOS宪法v3.0》与工程账本（宪法 v2.0 基线）漂移（详见 `reviews/AIOS宪法v3.0_首席评审报告_2026-09-15.md` 与《AIOS_Core_工程重构与任务拆分设计书_R4_首席架构师版.md》第一部分）。本次落地 R4 修改案的**契约层**与治理闸门，运行面按设计书排期留在 M1/M2/M3。
+
+### 执行步骤
+1. `contracts/enums.py`：ObjectType +6（prediction/life_chapter/reinterpretation/communication_experience/budget_policy/assembly_policy）；新增 SourceClass、MaintenanceClass、PredictionVerificationState、AnnotationSlot、UserReaction、BudgetScope、BudgetOnExceed 七个枚举。
+2. `contracts/operations.py`：OperationRequest 增加 `source_class`（默认 ai_cognition，兼容既有调用方）与 `maintenance_class`，after-validator 冻结互斥语义（M0-023 契约核心）。
+3. `contracts/models.py`：新增 Prediction（第 53 条 reasoning 空白拒写 + verdict 态强制 actual_outcome_ref + source_claim_ref 强制 pinned）、LifeChapter（sealed 必携 sealed_reason）、Reinterpretation（R4-01：target_ref 强制 pinned，历史节点零改写形态）、CommunicationExperience、BudgetPolicy（至少一个封顶）、AssemblyPolicy（section caps 只能引用 order 内层；数据源白名单字段）。
+4. `contracts/registry.py`：注册表同步（既有"注册表↔枚举全双射否则启动失败"守卫自动强制）。
+5. `contracts/ids.py`：新对象 ID 前缀（prd/lfc/rip/cxp/bgp/asp），同步 `test_ids.py` 冻结映射与 `test_operations.py` 的 OperationRequest 字段冻结集——两处均按"批准漂移"流程显式更新。
+6. 快照再生成：`schemas/r2/m0_contract_snapshot.json`，`gate_version=M0-R2+R4-delta-candidate`（R4 批准→改串转正；驳回→revert delta 再生成；两种动作都不触碰既有 22 任务文本）。
+7. 新增 `tests/unit/test_m0_prime_contracts.py`（12 用例，全绿）。
+8. CAM 治理件：`schemas/constitution_acceptance.py`（第 114 条 46 项 + R4 提案 9 项 = 55 项全量映射，21 项 contract_frozen 强制引用真实测试文件）+ `tests/architecture/test_cam_coverage.py`（7 用例：宪法原文实时解析防"账本自嗨"）。
+9. `governance/issues/M0-023..028_issue.md`：六份 §110 规范 Issue 正文（契约层交付状态 + 遗留工作精确切分）。
+10. 台账修正：README/TASK_PROGRESS 宪法基线行 v2.0→v3.0(+R4 待批准)；设计书 D4 勘误（Summary/OpExp/ToolProposal 实际已在 M0 registry，真实缺口 4 项——审查自身也被账本纠正，如实记录）。
+
+### 测试
+- 本地（沙箱 py3.11.2）：`586 passed / 1 failed`；唯一失败为既知环境项 `test_b8_cross_process_unordered_collection_exact_replay_is_stable`（改动前同样失败；CI 3.12.14 基线记录为全绿）。
+- CAM：`tests/architecture/test_cam_coverage.py` 7/7。
+
+### 已知限制
+- 本批为**候选契约**：R4 修改案未经 architect-01/chief-01 签核前，禁止在 M1 运行面上依赖新对象做业务承诺。
+- world_commits 加列与触发豁免过滤器属 M1/M2 任务，本批刻意未动存储层——契约先行、执法随后是设计书 §1.4 的明示顺序。
