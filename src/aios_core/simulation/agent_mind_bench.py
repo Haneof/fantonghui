@@ -1430,13 +1430,14 @@ class AgentMindArena:
                         f"arena anomaly {domain}",
                     )
                 )
-            return (
+            try:
                 HighOrderDimensionDistiller(machine).distill(
                     dimension_name,
                     now,
                 )
-                is not None
-            )
+            except ValueError:
+                return False
+            return True
 
         domains = (
             ("heart_rate", "sleep", "billing")

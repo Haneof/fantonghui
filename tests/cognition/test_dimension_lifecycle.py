@@ -12,8 +12,11 @@ from aios_core.cognition.dimension_engine import (
     DimensionLifecycleStateMachine,
     DimensionOverlayOperator,
     DimensionStatus,
+    DimensionTrialExpiredError,
     Entity,
     HighOrderDimensionDistiller,
+    QuotaExceededBlockError,
+    UnsupportedHighOrderDimensionError,
 )
 
 NOW = datetime(2026, 9, 16, 12, 0, tzinfo=UTC)
@@ -96,7 +99,7 @@ def test_thirty_day_prediction_trial_and_daily_reflection_are_hard_gates():
         successful_prediction=True,
         prediction_id="prediction_burnout_day15",
     )
-    with pytest.raises(ValueError, match="Threshold 3"):
+    with pytest.raises(QuotaExceededBlockError, match="Threshold 3"):
         machine.reflect_and_validate(
             state.name,
             reflection_time + timedelta(hours=1),
@@ -121,8 +124,44 @@ def test_elapsed_time_alone_cannot_replace_prediction_validation():
     machine = DimensionLifecycleStateMachine()
     _seed_three_day_streak(machine)
     machine.propose_dimension("DIM_CREDIT_RISK", NOW)
-    with pytest.raises(ValueError, match="Prediction validation"):
+    with pytest.raises(DimensionTrialExpiredError, match="below 70%"):
         machine.attempt_register("DIM_CREDIT_RISK", NOW + timedelta(days=31))
+    assert machine.dimensions["DIM_CREDIT_RISK"].status is DimensionStatus.EXPIRED
+
+
+def test_prediction_accuracy_below_seventy_percent_expires_candidate():
+    machine = DimensionLifecycleStateMachine()
+    _seed_three_day_streak(machine)
+    state = machine.propose_dimension("DIM_CREDIT_RISK", NOW)
+    for day in range(1, 11):
+        machine.reflect_and_validate(
+            state.name,
+            NOW + timedelta(days=day),
+            successful_prediction=day == 1,
+            prediction_id=f"prediction-{day}",
+        )
+    assert state.prediction_accuracy == pytest.approx(0.1)
+    with pytest.raises(DimensionTrialExpiredError, match="EXPIRED"):
+        machine.attempt_register(state.name, NOW + timedelta(days=30))
+    assert state.status is DimensionStatus.EXPIRED
+    with pytest.raises(ValueError, match="not in CANDIDATE"):
+        machine.reflect_and_validate(state.name, NOW + timedelta(days=31), True)
+
+
+def test_prediction_accuracy_at_seventy_percent_can_register():
+    machine = DimensionLifecycleStateMachine()
+    _seed_three_day_streak(machine)
+    state = machine.propose_dimension("DIM_CREDIT_RISK", NOW)
+    for day in range(1, 11):
+        machine.reflect_and_validate(
+            state.name,
+            NOW + timedelta(days=day),
+            successful_prediction=day <= 7,
+            prediction_id=f"prediction-{day}",
+        )
+    assert state.prediction_accuracy == pytest.approx(0.7)
+    machine.attempt_register(state.name, NOW + timedelta(days=30))
+    assert state.status is DimensionStatus.REGISTERED
 
 
 def test_reflection_quota_is_global_not_one_per_candidate():
@@ -133,7 +172,7 @@ def test_reflection_quota_is_global_not_one_per_candidate():
 
     when = NOW + timedelta(days=5)
     machine.reflect_and_validate("DIM_BURNOUT_RISK", when, True)
-    with pytest.raises(ValueError, match="Threshold 3"):
+    with pytest.raises(QuotaExceededBlockError, match="Threshold 3"):
         machine.reflect_and_validate("DIM_CREDIT_RISK", when, True)
     assert machine.dimensions["DIM_CREDIT_RISK"].predictions_attempted == 0
 
@@ -151,13 +190,14 @@ def test_high_order_distiller_is_allowlisted_and_domain_specific():
         )
     distiller = HighOrderDimensionDistiller(machine)
 
-    assert distiller.distill("DIM_RANDOM_STORY", NOW) is None
+    with pytest.raises(UnsupportedHighOrderDimensionError):
+        distiller.distill("DIM_RANDOM_STORY", NOW)
     burnout = distiller.distill("DIM_BURNOUT_RISK", NOW)
-    assert burnout is not None
     assert burnout.status is DimensionStatus.CANDIDATE
 
     # Credit risk requires finance + social, not merely a generic streak.
-    assert distiller.distill("DIM_CREDIT_RISK", NOW) is None
+    with pytest.raises(ValueError, match="Threshold 1"):
+        distiller.distill("DIM_CREDIT_RISK", NOW)
 
 
 def test_registered_overlay_is_append_only_and_externally_read_only():

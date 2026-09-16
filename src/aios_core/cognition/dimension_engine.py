@@ -9,6 +9,7 @@ rewrites historical world objects.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime, timedelta
 from enum import StrEnum
@@ -23,7 +24,20 @@ class DimensionStatus(StrEnum):
     PROPOSED = "proposed"
     CANDIDATE = "candidate"
     REGISTERED = "registered"
+    EXPIRED = "expired"
     REJECTED = "rejected"
+
+
+class QuotaExceededBlockError(ValueError):
+    """The single global reflection slot for this UTC day was consumed."""
+
+
+class DimensionTrialExpiredError(ValueError):
+    """A candidate failed its predictive trial and is permanently expired."""
+
+
+class UnsupportedHighOrderDimensionError(ValueError):
+    """The distiller received a label outside its closed allowlist."""
 
 
 class HighOrderDimension(StrEnum):
@@ -226,6 +240,13 @@ class DimensionState:
     anomaly_domains: frozenset[str] = field(default_factory=frozenset)
     anomaly_event_ids: tuple[str, ...] = ()
     registered_at: datetime | None = None
+    expired_at: datetime | None = None
+
+    @property
+    def prediction_accuracy(self) -> float:
+        if self.predictions_attempted == 0:
+            return 0.0
+        return self.predictions_validated / self.predictions_attempted
 
 
 class DimensionLifecycleStateMachine:
@@ -233,6 +254,7 @@ class DimensionLifecycleStateMachine:
 
     REQUIRED_ANOMALY_DAYS: ClassVar[int] = 3
     TRIAL_DURATION: ClassVar[timedelta] = timedelta(days=30)
+    MIN_PREDICTION_ACCURACY: ClassVar[float] = 0.70
 
     def __init__(self, detector: CrossDimensionalAnomalyDetector | None = None) -> None:
         self._dimensions: dict[str, DimensionState] = {}
@@ -296,9 +318,21 @@ class DimensionLifecycleStateMachine:
             assert state.proposal_time is not None
             if now < _utc(state.proposal_time):
                 raise ValueError("reflection cannot precede candidate proposal")
+            elapsed = now - _utc(state.proposal_time)
+            if elapsed >= self.TRIAL_DURATION:
+                if state.prediction_accuracy < self.MIN_PREDICTION_ACCURACY:
+                    self._expire(state, now)
+                    raise DimensionTrialExpiredError(
+                        "Threshold 2 prediction trial expired below 70% accuracy"
+                    )
+                raise ValueError(
+                    "30-day prediction trial is closed; register before reflecting again"
+                )
             quota_day = now.date()
             if quota_day in self._reflection_quota_days:
-                raise ValueError("Threshold 3 (Daily reflection quota of 1) exceeded.")
+                raise QuotaExceededBlockError(
+                    "Threshold 3 (Daily reflection quota of 1) exceeded."
+                )
             normalized_prediction_id = prediction_id or (
                 f"{normalized_name}:{quota_day.isoformat()}"
             )
@@ -346,17 +380,46 @@ class DimensionLifecycleStateMachine:
                     f"Cannot register dimension '{normalized_name}'. Threshold 2 "
                     f"(30-day trial period) not met. Current days: {completed_days}"
                 )
-            if state.predictions_validated <= 0:
-                raise ValueError(
+            if state.prediction_accuracy < self.MIN_PREDICTION_ACCURACY:
+                self._expire(state, now)
+                raise DimensionTrialExpiredError(
                     f"Cannot register dimension '{normalized_name}'. Threshold 2 "
-                    "(Prediction validation) not met."
+                    "prediction accuracy below 70%; candidate is EXPIRED."
                 )
             object.__setattr__(state, "status", DimensionStatus.REGISTERED)
             object.__setattr__(state, "registered_at", now)
             return state
 
+    def advance_time(
+        self,
+        name: str,
+        current_time: datetime,
+    ) -> DimensionState:
+        """Advance one candidate to EXPIRED when its 30-day trial failed."""
+
+        normalized_name = self._normalize_name(name)
+        now = _utc(current_time)
+        with self._lock:
+            state = self._dimensions.get(normalized_name)
+            if state is None:
+                raise ValueError(f"Dimension '{normalized_name}' not found.")
+            if state.status is not DimensionStatus.CANDIDATE:
+                return state
+            assert state.proposal_time is not None
+            if (
+                now - _utc(state.proposal_time) >= self.TRIAL_DURATION
+                and state.prediction_accuracy < self.MIN_PREDICTION_ACCURACY
+            ):
+                self._expire(state, now)
+            return state
+
     def reflection_quota_used(self, when: datetime) -> bool:
         return _utc(when).date() in self._reflection_quota_days
+
+    @staticmethod
+    def _expire(state: DimensionState, when: datetime) -> None:
+        object.__setattr__(state, "status", DimensionStatus.EXPIRED)
+        object.__setattr__(state, "expired_at", when)
 
     def _candidate(self, name: str) -> DimensionState:
         state = self._dimensions.get(name)
@@ -410,30 +473,32 @@ class HighOrderDimensionDistiller:
         self,
         name: str,
         current_time: datetime,
-    ) -> DimensionState | None:
+    ) -> DimensionState:
         normalized = DimensionLifecycleStateMachine._normalize_name(name)
         definition = self.DEFINITIONS.get(normalized)
         if definition is None:
-            return None
-        try:
-            return self.state_machine.propose_dimension(
-                normalized,
-                current_time,
-                required_domains=definition.required_domains,
+            raise UnsupportedHighOrderDimensionError(
+                f"unsupported high-order dimension: {normalized}"
             )
-        except ValueError:
-            return None
+        return self.state_machine.propose_dimension(
+            normalized,
+            current_time,
+            required_domains=definition.required_domains,
+        )
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, init=False)
 class Entity:
     id: str
     _dimension_tags: set[str] = field(default_factory=set, repr=False)
     target_kind: str = field(default="entity", init=False)
 
-    def __post_init__(self) -> None:
-        if not isinstance(self.id, str) or not self.id.strip():
+    def __init__(self, id: str, tags: Iterable[str] = ()) -> None:
+        if not isinstance(id, str) or not id.strip():
             raise ValueError("entity id must not be blank")
+        self.id = id
+        self._dimension_tags = set(tags)
+        self.target_kind = "entity"
 
     @property
     def tags(self) -> frozenset[str]:
