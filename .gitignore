@@ -59,3 +59,7 @@ data/
 # Env & secrets
 .env
 .env.*
+
+# 数据清洗竞技场：对手题库/标答体积巨大且属于对手分支产物，按 Dispatch #11 现场跨 Git 拉取，不入库。
+benchmarks/data_cleaning/questions/*.jsonl
+benchmarks/data_cleaning/ground_truth/*.jsonl

@@ -1,5 +1,8 @@
 # 进化报告：Solver 01a0aa2c-fantonghui（通用数据清洗与事实提纯器 v1→v5）
 
+> 本文件为第一轮（v1→v5 通用提纯器，覆盖 5 个题库）；第二轮针对 agent-11 题库的深度提纯与上限归因见 `evolution_01a0aa2c-fantonghui_on_agent-11.md`。
+
+
 > 求解器：`src/aios_core/ingest/purifier_01a0aa2c_fantonghui.py`（+ 知识库 `purifier_kb_01a0aa2c.json`）
 > 做题规模：41,000 道（5 个对手题库全量，1 对多交叉，无自做）
 > 阅卷：`DirectionalSemanticMatcher`（方向容差，`scripts/eval_cleaning_arena.py`）
