@@ -85,6 +85,39 @@ def fetch_opponent_bank(branch: str, path: str, dest: Path) -> Path:
     return dest
 
 
+def load_ground_truth(path: Path) -> Dict[str, Dict[str, Any]]:
+    """加载独立标答文件（题目与标答分文件的对手卷，如 agent-a9f6）。"""
+    truth: Dict[str, Dict[str, Any]] = {}
+    with path.open("r", encoding="utf-8") as handle:
+        for line in handle:
+            line = line.strip()
+            if not line:
+                continue
+            record = json.loads(line)
+            truth[str(record.get("question_id"))] = {
+                "ground_truth_facts": record.get("ground_truth_facts", []),
+                "ground_truth_junk_ids": record.get("ground_truth_junk_ids", []),
+            }
+    return truth
+
+
+def merge_ground_truth(
+    questions: Sequence[Dict[str, Any]], truth: Mapping[str, Mapping[str, Any]]
+) -> Tuple[List[Dict[str, Any]], int]:
+    """把独立标答挂回题目（仅阅卷端使用；做题端仍由 strip_ground_truth 盲化）。"""
+    merged: List[Dict[str, Any]] = []
+    attached = 0
+    for question in questions:
+        record = dict(question)
+        if not record.get("ground_truth_facts"):
+            payload = truth.get(str(record.get("question_id")))
+            if payload:
+                record.update(payload)
+                attached += 1
+        merged.append(record)
+    return merged, attached
+
+
 def load_bank(path: Path) -> List[Dict[str, Any]]:
     questions: List[Dict[str, Any]] = []
     with path.open("r", encoding="utf-8") as handle:
@@ -475,6 +508,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--branch", default=TARGET_A_BRANCH, help="对手战队分支")
     parser.add_argument("--path", default=TARGET_A_PATH, help="对手题库文件路径")
     parser.add_argument("--generator", default="agent-11", help="出题战队标识")
+    parser.add_argument("--gt", type=Path, default=None, help="独立标答 JSONL（题目与标答分文件的对手卷）")
     parser.add_argument("--limit", type=int, default=0, help="仅跑前 N 题（0 = 全量）")
     parser.add_argument("--answers", type=Path, default=None, help="答卷输出 JSONL")
     parser.add_argument("--report", type=Path, default=None, help="阅卷报告输出 JSON")
@@ -488,9 +522,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     bank_path = args.bank or fetch_opponent_bank(args.branch, args.path, Path("/tmp/aios_arena") / Path(args.path).name)
     raw = bank_path.read_bytes()
+    gt_sha256: Optional[str] = None
     questions = load_bank(bank_path)
     if args.limit:
         questions = questions[: args.limit]
+    if args.gt is not None:
+        gt_raw = args.gt.read_bytes()
+        gt_sha256 = hashlib.sha256(gt_raw).hexdigest()
+        questions, attached = merge_ground_truth(questions, load_ground_truth(args.gt))
+        print(f"[gt] 独立标答已挂回阅卷端：{attached}/{len(questions)} 题", file=sys.stderr)
     assert_cross_team_provenance(args.generator, args.branch)
 
     provenance = BankProvenance(
@@ -498,6 +538,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         source_branch=args.branch,
         source_path=args.path,
         bank_sha256=hashlib.sha256(raw).hexdigest(),
+        ground_truth_sha256=gt_sha256,
         question_count=len(questions),
         fetched_at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     )

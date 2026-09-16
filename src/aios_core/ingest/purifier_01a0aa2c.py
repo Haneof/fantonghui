@@ -119,6 +119,7 @@ class BankProvenance:
     bank_sha256: str
     question_count: int
     fetched_at: str
+    ground_truth_sha256: Optional[str] = None
 
     def as_dict(self) -> Dict[str, Any]:
         return {
