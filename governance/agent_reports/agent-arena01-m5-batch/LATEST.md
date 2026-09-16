@@ -7,6 +7,12 @@
 - 派单要求切 `arena/agent-XX-...` 支线：按 Arena 会话铁律，本会话固定在
   `arena/01a0a700-fantonghui`，不建同名支线；全部按 `*_arena01` 独立命名落位。
 
+## 事故备注（同日 2）
+- 推送前发现 `68bf8f1 chore(mainline)` 以 1:1 主链路快照为名删除了本线 M2 批次
+  6 个交付文件（scheduler/wake/dimensions/simulation 模块与其测试）。该快照
+  与本批 push 自动合并后，本批已按不覆盖铁律将这 6 个文件从 `e7bc0c2` 逐字节
+  恢复回树（纯新增 A，不触碰任何既有文件），双线重新共存。
+
 ## Agent-06 / M5-SEARCH（tests/cognition/test_operation_experience_arena01.py，4/4）
 - `src/aios_core/query/search_arena01.py`：`MultidimensionalSearchBus`（Dimension/
   Claim/Entity/Annotation/Observation 联合，CJK 双字窗确定性切词、AND 求交）；
