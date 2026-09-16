@@ -747,3 +747,76 @@ R4 程序未死，坐标系必须重写——继续装作主线未动 = 把十�
   无独立用例（不可构造）；
 - 本实现仍为内存态聚合器，与 SQLiteWorldStore/检索核的世界接线属后续工单
   （金字塔→`search_occurred` 水位联动、summary 对象是否入世界契约需在 V3 侧裁决）。
+
+## 2026-09-16 工单 #11（MASS-CLEAN-ARENA 数据清洗大考）出题侧交付：七维全人生谱系高熵题库
+
+### 分支程序说明
+任务书要求 `arena/cleaning-10k-agent-<id>`；Arena 平台将本会话硬绑定在
+`arena/01a0a9fd-fantonghui`（禁止创建/推送他支），工单内容在本分支完整执行，
+协调侧对本分支 head fast-forward/rename 收编即可，commit 语义不变。
+出题战队编号取 `agent-01a0a9fd`（与会话分支同源，避免与 `agent-01`~`agent-30` 撞号）。
+
+### 交付物
+| 类别 | 路径 |
+| --- | --- |
+| 七维因子库（纯数据） | `src/aios_core/simulation/life_spectrum_factor_banks.py` |
+| 出题引擎 V2（确定性） | `src/aios_core/simulation/life_spectrum_question_generator.py`（`FullLifeSpectrumQuestionGenerator`，包级已导出） |
+| 交付脚本（明文/gzip/审计） | `scripts/plan_scripts/generate_life_spectrum_bank.py` |
+| 题库 1 万（明文） | `benchmarks/data_cleaning/questions/questions_agent-01a0a9fd.jsonl` |
+| 标答 1 万（明文） | `benchmarks/data_cleaning/ground_truth/gt_agent-01a0a9fd.jsonl` |
+| 题库/标答 3 万（gzip） | `..._agent-01a0a9fd_30k.jsonl.gz` |
+| 审计报告 / 清单 / 字段字典 | `benchmarks/data_cleaning/reports/` |
+| 行为契约测试（13 例） | `tests/simulation/test_life_spectrum_question_generator.py` |
+
+### 审计结论（同参同种子可一键复算）
+| 指标 | 1 万题明文 | 3 万题全量 |
+| --- | --- | --- |
+| 因子签名唯一率 | 10000/10000 | 30000/30000 |
+| 核心事实文本唯一率 | 10000/10000 | 30000/30000 |
+| CleaningQuestion 契约非法行 | 0 | 0 |
+| 自洽性问题（垃圾 ID 越界 / 溯源缺失 / 词簇不足 6 / 非法声纹） | 0 | 0 |
+| 认知域配比 | 5 域各 2000（20%） | 5 域各 6000（20%） |
+| 数据流聚焦配比 | sensor 3000 / mic 3000 / 声纹 2000 / APP 1500 / 对话 500 | 按 3 倍等比 |
+| 难度配比 | EASY 1500 / MEDIUM 4000 / HARD 3000 / ADVERSARIAL 1500 | 按 3 倍等比 |
+| 平均标答事实数 / 垃圾占比 | 3.112 / 45.79% | 3.114 / 45.78% |
+| 声纹规模区间 | 3~24 人 | 3~24 人 |
+| 生成耗时 | 4.07s | 21.13s |
+| SHA256（题 / 标答） | `843f0e13…96d8` / `392f027d…d29c` | `15692dfb…1793` / `e3701343…b1e0` |
+
+陷阱八类全命中（T01~T08），方言 14 类、身份 50 位、事件族 60 个全覆盖。
+
+### 与远端 V1 试点实现的关系（同分支已并入，互不覆盖）
+分支上先有 V1 试点：`life_spectrum_question_engine.SevenDimensionalQuestionEngine` +
+`question_generator.SevenDimensionQuestionGenerator`（15 位身份 / T01~T04 陷阱 /
+1,000 题，交付 `questions_agent-01.jsonl`）。本批 V2 在 V1 之上把七维真正铺满
+（50 位身份 / 60 个事件族 / T01~T08），并解决三类 V1 未覆盖的问题：
+逐题必有维度七、波形异常事实归属与优先级、整卷级事实去重。两个引擎并存且命名不再冲突
+（V2 类名 `FullLifeSpectrumQuestionGenerator`，V1 的 `LifeSpectrumQuestionGenerator`
+别名保持原语义），新出题一律走 V2。
+
+### 契约对齐
+协议模块新增的 `factor_ids`（七维因子编号）已作为 V2 的因子落盘字段，
+键名 `demographic / core_event / core_event_secondary / sensor / acoustic /
+linguistic / speaker_topology / trap / focus_stream / domain / slots`。
+
+### 关键设计裁决
+1. **维度七强制参与**：陷阱从"高难度专属"改为逐题必备，难度只调整陷阱池的恶意程度
+   （EASY 只放先承认后反悔 / 撤回 / 阴阳条款；HARD 起引入碰瓷与语音克隆），
+   杜绝"某题只含六个维度"的合规瑕疵；
+2. **波形异常事实升级**：冲击坠落 / 恶性心律失常 / 窦性停搏三类事实优先级仅次于主事件
+   （P0 安全证据），且恒归属 `dim:health`——主事件发生在职场或家庭时不得把它错记成别维；
+3. **整卷级事实去重护栏**：同卷内事实描述唯一，靠确定性重渲染（补一句"记录视角"旁证），
+   同参重跑逐字节一致；
+4. **紧凑键名 + 字段字典**：五大数据流为自由结构（契约 `Dict[str, Any]`），
+   键名以 `sid/spk/db/junk/mid/uid` 等紧凑形式落盘以控体积，语义映射见
+   `reports/question_schema_agent-01a0a9fd.json`；
+5. **数据不入 Git**：题库+标答合计 111.6 MB（含 3 万题压缩包 41.9 MB），
+   已写入 `.gitignore`，由脚本同参同种子 25 秒内复现；小体积报告与清单随仓库提交。
+
+### 已知限制与下一阶段
+- 本工作区仅存在 `aios-2.0` 与本会话分支，其他战队的 `arena/*` 分支不可 fetch，
+  故本批只完成出题侧（角色一）；跨 Git 1 对多做题与方向性阅卷（角色二/三）
+  待其他战队分支可读后执行。协议侧 `DirectionalSemanticMatcher` 与
+  "自出自做一票否决"已有 3 例回归覆盖；
+- 身份—事件双向适配表（`FAMILY_AGE_WINDOW` / `FAMILY_VOCATION`）按需迭代，
+  例如医患冲突已限定医护身份、返聘教授不再落入职称评审。

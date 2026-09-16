@@ -180,3 +180,20 @@ graph TD
 - 垃圾数据必须物理标记删除（铁律四）；
 - 严禁留任何空占位符！
 ```
+
+---
+
+## 附录 A · 出题侧交付回执（战队 `agent-01a0a9fd`）
+
+| 项 | 结果 |
+| --- | --- |
+| 分支 | `arena/01a0a9fd-fantonghui`（Arena 会话硬绑定分支；工单要求的 `arena/cleaning-10k-agent-01a0a9fd` 由协调侧 fast-forward/rename 收编） |
+| 题库（明文，题量红线） | `benchmarks/data_cleaning/questions/questions_agent-01a0a9fd.jsonl` · 10,000 题 · SHA256 `843f0e13975f9c5cf7e30212ca36bc5ee467f1a873ac1cc9207f0146110696d8` |
+| 标答（明文） | `benchmarks/data_cleaning/ground_truth/gt_agent-01a0a9fd.jsonl` · 10,000 条 · SHA256 `392f027df0012e9b752f5d1e19b63bd00c8e9763d5126fba69913c829de9d29c` |
+| 全量加量包（gzip） | `questions_agent-01a0a9fd_30k.jsonl.gz`（30,000 题，34.8 MB，SHA256 `15692dfbce8098718b2b7abd89959a76a91203e2e19ecd7a970cb6b26e021793`）+ `gt_agent-01a0a9fd_30k.jsonl.gz`（7.2 MB）；前 1 万行与明文件逐字节一致 |
+| 契约合规 | 40,000 行全量过 `CleaningQuestion` 校验（含协议新增的 `factor_ids` 七维因子编号字段），非法行 0；自洽性审计问题 0 |
+| 唯一性 | 因子签名唯一率 100%，核心事实文本唯一率 100%（同参同种子逐字节可复现） |
+| 配比 | 五认知域各 20%（红线 15%）；数据流 sensor 30% / mic 30% / 声纹 20% / APP 15% / 对话 5%；难度 EASY 15% / MEDIUM 40% / HARD 30% / ADVERSARIAL 15% |
+| 数据流落盘说明 | 题目体积较大，题库与标答不入 Git（见 `.gitignore`），由 `scripts/plan_scripts/generate_life_spectrum_bank.py` 同参同种子 25 秒内复现；审计报告、清单与字段字典随仓库提交 |
+| 引擎说明 | 本批为 V2 全谱系引擎 `FullLifeSpectrumQuestionGenerator`；分支上 V1 试点实现（`SevenDimensionQuestionGenerator` / 1,000 题 `questions_agent-01.jsonl`）保留不复用 |
+| 下一阶段 | 跨 Git 1 对多做题与方向性阅卷待其他战队分支可读后执行（本工作区仅 `aios-2.0` 与本分支） |

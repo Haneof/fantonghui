@@ -59,3 +59,13 @@ data/
 # Env & secrets
 .env
 .env.*
+
+# 数据清洗大考（Dispatch #11）：生成的大体量题库与标答不入 Git，
+# 由 scripts/plan_scripts/generate_life_spectrum_bank.py 同参同种子一键复现（约 25 秒）。
+# 小体积的审计报告、清单与字段字典仍随仓库提交。
+benchmarks/data_cleaning/questions/*.jsonl
+benchmarks/data_cleaning/questions/*.jsonl.gz
+benchmarks/data_cleaning/ground_truth/*.jsonl
+benchmarks/data_cleaning/ground_truth/*.jsonl.gz
+benchmarks/data_cleaning/answers/*.jsonl
+benchmarks/data_cleaning/answers/*.jsonl.gz

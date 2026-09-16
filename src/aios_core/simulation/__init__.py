@@ -12,6 +12,10 @@ __all__ = [
     'QuestionGenerator',
     'SevenDimensionQuestionGenerator',
     'generate_cleaning_dataset',
+    'FullLifeSpectrumQuestionGenerator',
+    'audit_questions',
+    'validate_question',
+    'factor_inventory',
 ]
 
 
@@ -24,7 +28,24 @@ def __getattr__(name: str):
         'QuestionGenerator',
         'SevenDimensionQuestionGenerator',
         'generate_cleaning_dataset',
+        'FullLifeSpectrumQuestionGenerator',
+        'audit_questions',
+        'validate_question',
+        'factor_inventory',
     }:
+        if name in {'FullLifeSpectrumQuestionGenerator', 'audit_questions', 'validate_question', 'factor_inventory'}:
+            from .life_spectrum_question_generator import (
+                FullLifeSpectrumQuestionGenerator,
+                audit_questions,
+                factor_inventory,
+                validate_question,
+            )
+            return {
+                'FullLifeSpectrumQuestionGenerator': FullLifeSpectrumQuestionGenerator,
+                'audit_questions': audit_questions,
+                'validate_question': validate_question,
+                'factor_inventory': factor_inventory,
+            }[name]
         from .question_generator import (
             CleaningQuestionGenerator,
             HighEntropyQuestionGenerator,

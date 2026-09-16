@@ -1,0 +1,77 @@
+{
+ "question_id": "题目唯一编号 Q_<generator_agent>_<00001..>",
+ "generator_agent": "出题战队编号（答题端严禁 solver_agent == generator_agent）",
+ "timestamp_utc": "虚拟事件发生时间（ISO 8601，UTC）",
+ "difficulty": "EASY / MEDIUM / HARD / ADVERSARIAL",
+ "persona_tag": "维度一佩戴者身份标签（编号_身份_年龄_主诉）",
+ "factor_ids": {
+  "demographic": "维度一 D01..D50 佩戴者身份",
+  "core_event": "维度二主事件族（H/F/S/C/L + 两位编号）",
+  "core_event_secondary": "维度二次事件族（跨域叠加，可为空串）",
+  "sensor": "维度三传感器波形 S00..S06",
+  "acoustic": "维度四声学拓扑 A01..A12",
+  "linguistic": "维度五方言包（可叠加修辞陷阱，如 shaanxi+argot_hidden）",
+  "speaker_topology": "维度六声纹拓扑规模（3~24）",
+  "trap": "维度七对抗陷阱 T01..T08（恒有，T00 保留位）",
+  "focus_stream": "本题主打数据流：sensor / mic / voiceprint / app / dialogue",
+  "domain": "主事件所属认知域 dim:health / dim:finance / dim:social / dim:career / dim:life",
+  "slots": "本题随机槽位指纹（金额|日期|城市），用于唯一性审计"
+ },
+ "sensor_stream": {
+  "sample_id": "传感器样本 ID（也是事实溯源可用 ID）",
+  "profile": "波形模板编号",
+  "raw_imu_g_force": "IMU 合加速度多点采样（G）",
+  "heart_rate_bpm": "心率",
+  "hr_rest_bpm/hr_max_bpm": "阵发性心动过速的静息值与峰值（S03）",
+  "pvc_burst_count": "室性早搏阵发次数",
+  "sinus_pause_s": "窦性停搏秒数（S04）",
+  "baro_hpa/baro_drop_hpa": "气压计读数与骤降幅度（S05）",
+  "impact_peak_g/post_impact_still_s": "冲击峰值与坠落后静止时长（S01）",
+  "false_impact_note": "伪冲击判据说明（S02）",
+  "cadence_spm/motion_state": "步频与运动状态（S06）",
+  "spO2_pct/ambient_temp_c/gps_loc": "血氧 / 环境温度 / 定位",
+  "counter_evidence": "陷阱反证（如假摔无冲击波峰），系统侧证据"
+ },
+ "mic_stream[]": {
+  "sid": "片段 ID（垃圾剪枝以该 ID 为准）",
+  "spk": "声纹标识 spk_*（背景陌生人片段即铁律四垃圾）",
+  "db": "环境声压级 dB",
+  "text": "转写文本（方言已转写为首通话）",
+  "junk": "出题方标注的垃圾标记（ground_truth_junk_ids 为权威判定）",
+  "overlap": "重叠说话人标识（抢话场景）",
+  "dialect": "方言来源说明"
+ },
+ "voiceprint_cluster": {
+  "user": "佩戴者声纹 ID",
+  "detected": "全部检出说话人（3~24）",
+  "key": "关键交互人声纹（佩戴者与事件相关方）",
+  "overlap": "发生重叠抢话的片段 ID",
+  "detected_only": "仅检出无有效语音片段的说话人（不得作为证据引用）"
+ },
+ "app_message_stream[]": {
+  "mid": "消息 ID（垃圾剪枝以该 ID 为准）",
+  "app": "应用名（WeChat / Alipay / Email / HospitalApp / 法院/银行/平台等）",
+  "sender": "发送者（人或系统通知）",
+  "text": "消息正文",
+  "junk": "出题方标注的垃圾标记",
+  "role": "counter 表示该消息是陷阱反证"
+ },
+ "user_dialogue_stream[]": {
+  "uid": "原话 ID（垃圾剪枝以该 ID 为准）",
+  "text": "佩戴者原话 / 自言自语",
+  "scene": "场景描述",
+  "junk": "出题方标注的垃圾标记",
+  "rhet": "修辞类型（口嗨吹牛 / 反讽 / 自杀隐喻 / ...）"
+ },
+ "ground_truth_facts[]": {
+  "fact_id": "事实编号",
+  "dimension_id": "认知维度归属",
+  "semantic_intent": "语义意图方向（UPPER_SNAKE）",
+  "anchor_entities": "实体锚点（人名/金额/机构）",
+  "directional_keywords": "方向性同义词簇（≥6 个，命中任一即方向相符）",
+  "core_content": "基准事实描述（方向正确即可得分，严禁字面抠字）",
+  "source_ref_id": "不可篡改的原始证据片段 ID",
+  "confidence": "出题方置信度（恒为 1.0）"
+ },
+ "ground_truth_junk_ids": "必须被物理剪枝的垃圾片段 ID 列表（铁律四）"
+}
