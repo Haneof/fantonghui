@@ -815,7 +815,7 @@ def pack_relationship_rupture(rng: random.Random, p: Persona, t: int) -> Pack:
     )
     emotion = FactSpec(
         dim="dim:emotion", intent="VERBAL_VENT", core=f"遭遇{other}提出分手，情绪遭受重大打击",
-        anchors=(), keywords=("崩溃", "绝望", "委屈", "难受", "情绪低落", "痛苦", "心如刀割"),
+        anchors=(other,), keywords=("崩溃", "绝望", "委屈", "难受", "情绪低落", "痛苦", "心如刀割"),
         red_lines=("心情愉快", "兴奋庆祝", "毫无波澜"), source_tag="rupture",
     )
     return Pack([sl], [social, emotion], {
@@ -841,7 +841,8 @@ def pack_breakup_message(rng: random.Random, p: Persona, t: int) -> Pack:
     )
     emotion = FactSpec(
         dim="dim:emotion", intent="VERBAL_VENT", core="被分手导致当日情绪低落、心理受创",
-        anchors=(), keywords=("崩溃", "绝望", "委屈", "难过", "情绪低落", "痛苦"), red_lines=("心情愉快", "兴奋庆祝"),
+        anchors=(other,), keywords=("崩溃", "绝望", "委屈", "难过", "情绪低落", "痛苦"),
+        red_lines=("心情愉快", "兴奋庆祝"),
         source_tag="breakup_msg",
     )
     return Pack([sl], [social, emotion], {
@@ -998,12 +999,14 @@ def pack_real_resignation(rng: random.Random, p: Persona, t: int) -> Pack:
         "physiological_context": {"hr_bpm": p.hr_base + rng.randint(2, 12), "spo2_percent": rng.randint(96, 99)},
         "note": "无发泄类虚词，含明确时间与行动承诺",
     })
+    resign_anchor = "辞职信" if "辞职信" in text else "辞呈"
     fact = FactSpec(
         dim="dim:career", intent="REAL_RESIGNATION", core="佩戴者明确作出真实辞职决定，并给出递辞呈的时间",
-        anchors=(), keywords=("辞职", "离职决定", "辞呈", "不干了", "解除劳动关系", "真辞职"),
+        anchors=(resign_anchor, "这个月干完就走" if "这个月干完就走" in text else "下周就递辞呈"),
+        keywords=("辞职", "离职决定", "辞呈", "不干了", "解除劳动关系", "真辞职"),
         red_lines=("当成情绪发泄剪掉", "误判为玩笑"), source_tag="resign",
     )
-    return Pack([sl], [fact], {"dim:career": {"points": ["作出真实辞职决定（含时间承诺）"], "anchors": [],
+    return Pack([sl], [fact], {"dim:career": {"points": ["作出真实辞职决定（含时间承诺）"], "anchors": [resign_anchor],
                                               "evidence": ["resign"]}},
                 "独处时作出真实辞职决定")
 
@@ -1019,12 +1022,14 @@ def pack_real_medical_intent(rng: random.Random, p: Persona, t: int) -> Pack:
         "snr_db": round(rng.uniform(9.0, 18.0), 1), "is_self_talk": True,
         "physiological_context": {"hr_bpm": p.hr_base + rng.randint(3, 14), "spo2_percent": rng.randint(95, 99)},
     })
+    symptom = "咳嗽" if "咳嗽" in text else "疼"
     fact = FactSpec(
         dim="dim:health", intent="REAL_MEDICAL_INTENT", core="佩戴者明确表达真实就医计划（挂号就诊），属真实健康诉求",
-        anchors=(), keywords=("就医", "看病", "挂号", "去医院", "就诊计划", "真实诉求"),
+        anchors=(symptom, "挂号" if "挂号" in text else "去医院"),
+        keywords=("就医", "看病", "挂号", "去医院", "就诊计划", "真实诉求"),
         red_lines=("当成口头禅剪掉", "误判为抱怨"), source_tag="medical_intent",
     )
-    return Pack([sl], [fact], {"dim:health": {"points": ["明确表达真实就医计划"], "anchors": [],
+    return Pack([sl], [fact], {"dim:health": {"points": ["明确表达真实就医计划"], "anchors": [symptom],
                                               "evidence": ["medical_intent"]}},
                 "明确表达真实就医诉求")
 

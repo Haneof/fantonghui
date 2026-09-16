@@ -18,7 +18,7 @@
  },
  "anchor": {
   "facts": 26511,
-  "anchors": 42028,
+  "anchors": 43252,
   "unrecoverable": 0,
   "anchor_recoverability": 1.0,
   "samples": []
@@ -64,7 +64,7 @@
  },
  "solvability": {
   "sampled": 5000,
-  "elapsed_s": 2.39,
+  "elapsed_s": 2.42,
   "by_modality": {
    "app": {
     "questions": 721,
@@ -128,18 +128,18 @@
    "app": {
     "questions": 721,
     "direction_match_rate": 0.9968,
-    "entity_recall_rate": 0.894,
+    "entity_recall_rate": 0.9684,
     "junk_prune_rate": 1.0,
-    "mean_final_score": 97.19,
-    "pass_rate": 0.9598,
+    "mean_final_score": 99.05,
+    "pass_rate": 0.9903,
     "hallucination_count": 0
    },
    "mic": {
     "questions": 1493,
-    "direction_match_rate": 0.9774,
-    "entity_recall_rate": 0.9136,
+    "direction_match_rate": 0.9759,
+    "entity_recall_rate": 0.9443,
     "junk_prune_rate": 1.0,
-    "mean_final_score": 96.71,
+    "mean_final_score": 97.4,
     "pass_rate": 0.9069,
     "hallucination_count": 0
    },
@@ -155,9 +155,9 @@
    "utt": {
     "questions": 253,
     "direction_match_rate": 1.0,
-    "entity_recall_rate": 0.8406,
+    "entity_recall_rate": 0.9822,
     "junk_prune_rate": 1.0,
-    "mean_final_score": 96.02,
+    "mean_final_score": 99.55,
     "pass_rate": 1.0,
     "hallucination_count": 0
    },
@@ -172,11 +172,11 @@
    }
   },
   "overall": {
-   "direction_match_rate": 0.9867,
-   "entity_recall_rate": 0.9391,
+   "direction_match_rate": 0.9863,
+   "entity_recall_rate": 0.9662,
    "junk_prune_rate": 1.0,
-   "mean_final_score": 97.81,
-   "pass_rate": 0.9482,
+   "mean_final_score": 98.47,
+   "pass_rate": 0.9526,
    "hallucination_count": 0
   },
   "_note": "上限探针：只读端侧标注与证据文本，事实条数按标答条数封顶、剪枝按标答垃圾集合给满；用于回答「本卷标答是否可被端侧信息命中」，不是任何战队的竞赛答卷，也不计入竞技场成绩。"
