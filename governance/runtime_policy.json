@@ -1,0 +1,12 @@
+{
+  "policy_id": "aios-runtime-token-budget-v1",
+  "issued_by": "首席架构部",
+  "scope": "虚拟人连续仿真与线上运行时全局长上下文预算",
+  "monthly_token_budget": 2554000,
+  "single_shot_cockpit_budget": 1500,
+  "rules": [
+    "任何 30 天连续仿真运行完毕后，全局消耗 Token 总量必须严格受控于 monthly_token_budget 之内",
+    "DORMANT 任务与深睡静默队列严禁灌入 LLM Prompt（0 Token 隐形）",
+    "单看板装配一律执行 single_shot_cockpit_budget 物理截断"
+  ]
+}
