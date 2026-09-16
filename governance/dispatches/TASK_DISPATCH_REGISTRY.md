@@ -14,3 +14,4 @@
 | **8号提示词** | [`TASK_DISPATCH_AGENT_8_M5_RAPPORT_MIRROR.md`](./TASK_DISPATCH_AGENT_8_M5_RAPPORT_MIRROR.md) | `M5-003` AI自身维度总结与羁绊镜面 | `arena/agent-08-m5-rapport-mirror` | `src/aios_core/cognition/self_reflection.py` |
 | **9号提示词** | [`TASK_DISPATCH_AGENT_9_M5_SYMBIOTIC_ADVISOR.md`](./TASK_DISPATCH_AGENT_9_M5_SYMBIOTIC_ADVISOR.md) | `M5-004` 共生决策辅助与行动推演 | `arena/agent-09-m5-action-advisor` | `src/aios_core/cognition/symbiotic_advisor.py` |
 | **10号提示词** | [`TASK_DISPATCH_AGENT_10_M5_AGENT_ARENA.md`](./TASK_DISPATCH_AGENT_10_M5_AGENT_ARENA.md) | `M5-005` 独立Agent战训考场诊断器 | `arena/agent-10-m5-agent-arena` | `src/aios_core/simulation/agent_mind_bench.py` |
+| **11号总工令** | [`TASK_DISPATCH_MASSIVE_DATA_CLEANING_ARENA_10K.md`](./TASK_DISPATCH_MASSIVE_DATA_CLEANING_ARENA_10K.md) | `MASS-CLEAN-ARENA` 全兵团数据清洗出题与交叉做题大考（每人1万题） | `arena/agent-*-cleaning-10k` | `benchmarks/data_cleaning/dataset_cleaning_10k.jsonl` + `src/aios_core/ingest/llm_data_purifier.py` |
