@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from aios_core.ingest.multimodal_edge import (
+from aios_core.ingest.multimodal_edge_m1r import (
     QUALITY_DROP_THRESHOLD,
     EdgeMultimodalCleaner,
     ImageMetadata,
