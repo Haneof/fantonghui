@@ -1,0 +1,10 @@
+{
+ "generator_agent": "fantonghui",
+ "source_branch": "arena/01a0aa2e-fantonghui",
+ "source_path": "benchmarks/data_cleaning/questions/questions_fantonghui.jsonl",
+ "bank_sha256": "3e17532326d4f1b7676eca4deca0373afdade53755cd945d4de9c1a005af548e",
+ "question_count": 10000,
+ "fetched_at": "2026-09-16T15:22:13Z",
+ "solver_agent": "01a0aa2c-fantonghui",
+ "solver_branch": "arena/01a0aa2c-fantonghui"
+}

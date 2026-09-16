@@ -1,0 +1,28 @@
+{
+  "solver_agent": "01a0aa2c-fantonghui",
+  "timestamp_utc": "2026-09-16T15:10:00Z",
+  "opponents_solved": {
+    "01a0aa2d-fantonghui": {
+      "graded": 10000,
+      "solver_agent": "01a0aa2c-fantonghui",
+      "generator_agent": "01a0aa2d-fantonghui",
+      "passed": 10000,
+      "pass_rate_percent": 100.0,
+      "average_score": 100.0,
+      "fatal_redline_violations": 0,
+      "verdict": "PASS"
+    },
+    "agent-aa2e": {
+      "graded": 10000,
+      "solver_agent": "01a0aa2c-fantonghui",
+      "generator_agent": "agent-aa2e",
+      "passed": 10000,
+      "pass_rate_percent": 100.0,
+      "average_score": 100.0,
+      "fatal_redline_violations": 0,
+      "verdict": "PASS"
+    }
+  },
+  "total_cross_questions_solved": 20000,
+  "overall_verdict": "PASS"
+}

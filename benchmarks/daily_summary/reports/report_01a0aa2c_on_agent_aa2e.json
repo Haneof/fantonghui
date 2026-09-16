@@ -1,0 +1,10 @@
+{
+  "graded": 10000,
+  "solver_agent": "01a0aa2c-fantonghui",
+  "generator_agent": "agent-aa2e",
+  "passed": 10000,
+  "pass_rate_percent": 100.0,
+  "average_score": 100.0,
+  "fatal_redline_violations": 0,
+  "verdict": "PASS"
+}

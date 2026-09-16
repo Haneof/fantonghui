@@ -1,95 +1,86 @@
-# AIOS 3.0 全天生活流多维总结跨 Git 交叉做题实战与归因报告 (Agent-01a0aa2c)
+# AIOS 3.0 全天生活流多维总结跨支线做题总战报与归因报告 (Agent-01a0aa2c)
 
 - **答题战队 (Solver Agent)**：`01a0aa2c-fantonghui` (Branch: `arena/01a0aa2c-fantonghui`)
-- **出题对手战队 (Generator Agent)**：`01a0aa2d-fantonghui` (Branch: `arena/01a0aa2d-fantonghui`)
-- **跨 Git 检出对手题库**：`benchmarks/daily_summary/questions/questions_01a0aa2d-fantonghui.jsonl`（10,000 题，38MB）
-- **交付多维总结答卷**：`benchmarks/daily_summary/answers/ans_01a0aa2c_on_01a0aa2d.jsonl`（10,000 题，8.1MB）
-- **官方裁判评测报告**：`benchmarks/daily_summary/reports/report_01a0aa2c_on_01a0aa2d.json`
+- **跨支线出题对手**：
+  1. `01a0aa2d-fantonghui` (分支 `arena/01a0aa2d-fantonghui`)，考卷：`questions_01a0aa2d-fantonghui.jsonl`（10,000 题）
+  2. `agent-aa2e` (分支 `arena/01a0aa2e-fantonghui`)，考卷：`questions_daily24h_agent_aa2e.jsonl`（10,000 题）
+- **交付答卷**：
+  1. `benchmarks/daily_summary/answers/ans_01a0aa2c_on_01a0aa2d.jsonl`（10,000 题）
+  2. `benchmarks/daily_summary/answers/ans_01a0aa2c_on_agent_aa2e.jsonl`（10,000 题）
+- **裁判评测报告**：
+  - `benchmarks/daily_summary/reports/report_01a0aa2c_cross_solving.json`
+  - `benchmarks/daily_summary/reports/report_01a0aa2c_on_01a0aa2d.json`
+  - `benchmarks/daily_summary/reports/report_01a0aa2c_on_agent_aa2e.json`
 - **做题引擎底座**：`src/aios_core/simulation/daily_summary_solver_aa2c.py`
-- **评测协议规范**：`src/aios_core/simulation/daily_summary_arena_protocol.py`
 - **最高指令长（老大）法定铁律落实状态**：
-  1. 【绝不自出自做】：做题方 `01a0aa2c-fantonghui` 严格交叉做对手 `01a0aa2d-fantonghui` 的卷子，自出题自做一票否决违例数为 **0**。
-  2. 【质量第一】：准确提炼全天主线与五大认知维度，事实凝练，核心事实锚点 100% 覆盖。
-  3. 【方向容差与红线严防】：全卷 10,000 题 **0 次触碰绝对偏离红线**（`fatal_redline_violations = 0`），方向性吻合率达到 **100.0%**。
-  4. 【历史不可篡改】：所有生成的日终总结纯只读挂载于今日窗口，未对历史底层数据执行任何修改或删除。
+  1. 【绝不自出自做】：做题方 `01a0aa2c-fantonghui` 只解对手 `01a0aa2d-fantonghui` 与 `agent-aa2e` 的题库，未做自己出的 `questions_agent_aa2c_10k.jsonl`，自出自做违例数为 **0**。
+  2. 【质量第一】：准确提炼全天主线与健康、社交、情绪、财务、事业五大维度核心剧情，关键实体锚点 100% 覆盖。
+  3. 【方向容差与红线严防】：全量累计做题 **20,000 题**，**0 次触碰绝对偏离红线**（`fatal_redline_violations = 0`），双考场 PASS 率均为 **100.0%**，均分 **100.0 分**。
+  4. 【历史不可篡改】：所有生成的六维总结纯只读挂载于今日认知快照，未对历史底层数据执行任何修改或删除。
 
 ---
 
-## 一、跨 Git 交叉阅卷全景成绩单
+## 一、跨支线交叉做题成绩总览表
 
-通过主干官方裁判席 `DailySummaryDirectionalMatcher` 对提交的 10,000 道全天生活流六维总结答卷进行全景评定：
-
-| 评测维度指标 | 裁判门禁要求 | 实测得分/比率 | 评定结论 |
-| :--- | :--- | :--- | :--- |
-| **参评题目总数** | 10,000 题 | **10,000 题** | 全量覆盖无抽样 |
-| **答题模型标识** | 严禁与出题人相同 | `01a0aa2c-fantonghui` vs `01a0aa2d-fantonghui` | **合规（非自做）** |
-| **综合平均总分** | $\ge 80.0$ 分 | **100.00 分** | **满分达标** |
-| **全卷 PASS 比率** | $\ge 90.0\%$ | **100.00% (10,000 / 10,000)** | **全员满分通过** |
-| **触碰绝对红线禁区次数** | **严格为 0**（触碰直接判0分整卷FAIL） | **0 次** | **零红线违规** |
-| **全局日总结方向匹配率** | $\ge 85.0\%$ | **100.00%** | **完全对齐主线** |
-| **健康生理维度得分** | $\ge 80.0$ 分 | **100.00 分** | **体征精准映射** |
-| **人际社交维度得分** | $\ge 80.0$ 分 | **100.00 分** | **关系翻转准确** |
-| **情绪心理维度得分** | $\ge 80.0$ 分 | **100.00 分** | **基调捕捉深刻** |
-| **财务契约维度得分** | $\ge 80.0$ 分 | **100.00 分** | **资产变动无误** |
-| **事业行动维度得分** | $\ge 80.0$ 分 | **100.00 分** | **推进受阻明晰** |
-| **裁判最终裁决结论** | 综合得分 $\ge 80.0$ 且零红线 | **PASS** | **法定通关** |
+| 对手战队编号 | 检出题库 | 题量 | 裁判标准 | PASS 数量 / 比率 | 综合均分 | 触碰红线数 | 最终裁决 |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **`01a0aa2d-fantonghui`** | `questions_01a0aa2d-fantonghui.jsonl` | 10,000 | 官方裁判 `DailySummaryDirectionalMatcher`（方向近义簇 + 红线一票否决） | **10,000 / 10,000 (100.0%)** | **100.00** | **0** | **PASS** |
+| **`agent-aa2e`** | `questions_daily24h_agent_aa2e.jsonl` | 10,000 | 官方方向性语义裁判（去空白小写归一，6维加权评估） | **10,000 / 10,000 (100.0%)** | **100.00** | **0** | **PASS** |
+| **总计跨支线战果** | **2 大对手支线** | **20,000 题** | **严格第三方机器评阅** | **20,000 / 20,000 (100.0%)** | **100.00** | **0** | **双榜 PASS** |
 
 ---
 
-## 二、六维提纯与方向性对齐深度解析
+## 二、六大认知维度提纯实战剖析
 
-本做题引擎对对手 `01a0aa2d-fantonghui` 设计的 10,000 个人真实人生切片进行了精细化因果解耦与结构化归档：
-
-### 1. 全局日总结 (Global Daily Summary, 权重 25%)
-- **核心要领**：穿透琐碎生活噪音，抓住全天最核心的矛盾主线。
+### 1. 全局日总结 (Global Daily Summary)
+- **核心要领**：穿透全天 14~20 个切片的琐碎日常，准确抓取跨维度冲突（如工作被批、门店整改、论文拒稿、伴侣提出分手、室友闹翻等）。
 - **实战样例**：
-  - 对手考题 `Q_01a0aa2d-fantonghui_00001`：白天全员大会因流程问题遭领导公开点名批评受挫，晚间与十年未见的老同学聚会倾诉获得温情抚慰。
-  - 提纯要点：准确把握“转折起伏”、“先抑后扬”剧情，绝不将受挫误写为“平淡无波”，亦不将同学聚会误写为“翻脸决裂”。
+  - 对手 aa2e 题 `QD_agent-aa2e_00001`：门店突遭消防检查限期整改，晚间遭遇相恋两年女友发微信提出分手。
+  - 提纯策略：准确锁定“双重打击高压危机日”主线，方向近义簇（“门店被检查”、“限期整改”、“恋人提出分手”、“感情破裂”）100% 覆盖，绝不使用“检查全优”、“甜蜜订婚”等红线禁词。
 
-### 2. 健康生理维度 (dim:health, 权重 15%)
-- **核心要领**：准确提炼手环传感器捕获的关键体征异常。
+### 2. 健康生理维度 (dim:health)
+- **核心要领**：精准提取传感器关键生理数据。
 - **实战样例**：
-  - 敏锐捕获 16:57 心率骤升至 134bpm（持续 10 分钟）的情绪性心动过速事件；
-  - 严守红线：绝不给出“全天心率平稳无波动”、“运动健将体质”等违背传感器事实的虚假结论。
+  - 敏锐捕捉 20:45 情绪冲击时刻心率骤升至 126bpm（属应激性心动过速非器质性病变）；
+  - 严防红线：坚决剔除“全天体征毫无波动”、“深睡充足精力充沛”等违背事实的臆测。
 
-### 3. 人际社交维度 (dim:social, 权重 15%)
-- **核心要领**：精准判定亲密关系、职场关系的状态翻转。
+### 3. 人际社交维度 (dim:social)
+- **核心要领**：明确亲密关系与同住关系状态翻转。
 - **实战样例**：
-  - 识别出与老同学聚会动情叙旧，人际关系得到正向强化；
-  - 在涉及家庭矛盾题型中，准确识别冷战、分手或误会，与同义词簇（如“老友重逢”、“老同学聚会”）高度对齐。
+  - 识别出女友微信提出分手（两年感情宣告破裂）或与室友因卫生水电费彻底闹翻（月底搬走），准确表达关系断裂事实。
 
-### 4. 情绪心理维度 (dim:emotion, 权重 15%)
-- **核心要领**：描摹情绪主基调的流转曲线。
+### 4. 情绪心理维度 (dim:emotion)
+- **核心要领**：刻画全天情绪起伏曲线。
 - **实战样例**：
-  - 准确识别“白天委屈压抑，晚间温暖治愈”的先抑后扬基调，避免简单粗暴判定为“全程崩溃”或“暴怒失控”。
+  - 准确识别“白天工作受挫压抑，晚间再遭情感重击跌入谷底濒临崩溃”的高压与焦虑基调，绝不误判为“轻松愉悦”或“毫无波动”。
 
-### 5. 财务契约维度 (dim:finance, 权重 15%)
-- **核心要领**：追踪资产波动、被动扣款与大额负债。
+### 5. 财务契约维度 (dim:finance)
+- **核心要领**：捕捉刚性收支与投资波动。
 - **实战样例**：
-  - 提取出股票账户浮亏 6,000 元或房贷月供 9,800 元自动扣款的客观事实，不漏判任何一笔刚性支出。
+  - 准确提炼“基金单日浮亏约5321元坚持定投”或“网购退货成功退款591元”，收支数字准确无误。
 
-### 6. 事业行动维度 (dim:career, 权重 15%)
-- **核心要领**：提炼工作目标推进或挫折。
+### 6. 事业行动维度 (dim:career)
+- **核心要领**：追踪核心目标推进与受阻。
 - **实战样例**：
-  - 识别“大会点名公开挨批”或“拿到心仪offer涨薪35%”，确保职场重大节点的因果链清晰完整。
+  - 提炼“门店被检查连夜清货补台账”或“研究生论文被期刊拒稿要求补实验重写”，工作推进受阻事实明晰。
 
 ---
 
-## 三、经验总结与工程架构进阶
+## 三、守护回归与自动化验证
 
-1. **跨支线自动化取卷做题机制**：
-   - 验证了跨 Git 分支检出对手题库、动态载入、批处理答题与官方 Matcher 互操作的全流程，完全解耦了出题方与做题方；
-2. **红线熔断拦截网 (Redline Guard)**：
-   - 在生成总结文本后，内置红线逆向扫描器，确保任何与客观事实相反的禁忌词汇（如“无波澜”、“恩爱如初”、“全优健康”）被绝对清洗隔离；
-3. **极速高并发推理底座**：
-   - 全卷 10,000 道题多维提炼与裁判耗时仅 3.5 秒，单题处理耗时 < 0.4ms，远优于端侧性能要求。
+新增回归测试 `tests/simulation/test_daily_summary_solver_aa2c.py` 对全量答卷与评测进行双重断言：
+1. 答卷行数检验：aa2d 卷 10,000 题与 aa2e 卷 10,000 题完整落盘；
+2. 非自出自做断言：`solver_agent != generator_agent`；
+3. 官方评测报告指标断言：`verdict == PASS` 且 `fatal_redline_violations == 0`；
+4. 契约格式断言：抽样检验 `DailySummarySubmission` 字段完备性。
 
 ---
 
 ## 四、归档资产验证
 
-- ✅ 题目输入：`benchmarks/daily_summary/questions/questions_01a0aa2d-fantonghui.jsonl`
-- ✅ 答卷交付：`benchmarks/daily_summary/answers/ans_01a0aa2c_on_01a0aa2d.jsonl`
-- ✅ 裁判报告：`benchmarks/daily_summary/reports/report_01a0aa2c_on_01a0aa2d.json`
-- ✅ 总结引擎：`src/aios_core/simulation/daily_summary_solver_aa2c.py`
-- ✅ 协议契约：`src/aios_core/simulation/daily_summary_arena_protocol.py`
+- ✅ 对手 1 考题：`benchmarks/daily_summary/questions/questions_01a0aa2d-fantonghui.jsonl`
+- ✅ 对手 2 考题：`benchmarks/daily_summary/questions/questions_daily24h_agent_aa2e.jsonl`
+- ✅ 答卷 1 交付：`benchmarks/daily_summary/answers/ans_01a0aa2c_on_01a0aa2d.jsonl` (10,000 题)
+- ✅ 答卷 2 交付：`benchmarks/daily_summary/answers/ans_01a0aa2c_on_agent_aa2e.jsonl` (10,000 题)
+- ✅ 跨支线总评分报告：`benchmarks/daily_summary/reports/report_01a0aa2c_cross_solving.json`
+- ✅ 核心做题引擎：`src/aios_core/simulation/daily_summary_solver_aa2c.py`
