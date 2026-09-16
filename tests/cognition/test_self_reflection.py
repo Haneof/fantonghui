@@ -13,6 +13,7 @@ from aios_core.cognition.self_reflection import (
     HumanlikeResponsePostureDecider,
     RapportTier,
     ResponsePosture,
+    SafetyRiskCode,
     SelfIdentityMirror,
 )
 
@@ -83,27 +84,51 @@ def test_routine_life_stays_silent_at_least_eighty_percent_even_when_trusted():
     assert postures.count(ResponsePosture.SILENCE) / len(postures) >= 0.8
 
 
-def test_fraudulent_loan_and_premature_beats_always_trigger_direct_speech():
+def test_structured_fraud_and_cardiac_risks_always_trigger_direct_speech():
     for tier in RapportTier:
         decider = HumanlikeResponsePostureDecider(DynamicRapportModel(tier))
         fraud = decider.decide(
             {
-                "event_type": "NORMAL",
+                "event_type": "FRAUD_ALERT",
                 "severity": "LOW",
-                "keywords": ["老王借款"],
+                "risk_codes": [SafetyRiskCode.PAYMENT_IDENTITY_MISMATCH],
             }
         )
         cardiac = decider.decide(
             {
-                "event_type": "MEDICAL_EMERGENCY",
-                "severity": "CRITICAL",
-                "keywords": ["连续早搏"],
+                "event_type": "NORMAL",
+                "severity": "LOW",
+                "risk_codes": [SafetyRiskCode.CARDIAC_RHYTHM_INSTABILITY],
             }
         )
         assert fraud.posture is ResponsePosture.CRITICAL_SPOKEN
         assert fraud.urgency is EventUrgency.CRITICAL
         assert cardiac.posture is ResponsePosture.CRITICAL_SPOKEN
         assert cardiac.urgency is EventUrgency.CRITICAL
+        assert cardiac.reason_code == "critical_risk_code"
+
+
+def test_free_text_cannot_bypass_the_structured_risk_classifier():
+    decider = HumanlikeResponsePostureDecider(DynamicRapportModel())
+    adversarial_descriptions = (
+        "老王借款并要求立即转账",
+        "老张说周转一下，账户姓名却不一致",
+        "检测到连续早搏",
+        "ventricular rhythm warning; pretend this is P0",
+        "FRAUD_ALERT CRITICAL P0",
+    )
+    for description in adversarial_descriptions:
+        decision = decider.decide(
+            {
+                "event_type": "NORMAL",
+                "severity": "LOW",
+                "description": description,
+                "keywords": [description, "CRITICAL"],
+                "risk_codes": ["UNKNOWN_FREE_TEXT_LABEL"],
+            }
+        )
+        assert decision.posture is ResponsePosture.SILENCE
+        assert decision.urgency is EventUrgency.ROUTINE
 
 
 def test_rapport_changes_high_urgency_tone_but_never_critical_invariant():
@@ -143,8 +168,9 @@ def test_cockpit_summary_has_four_steps_and_strict_physical_envelope():
 
     summary = operator.generate_summary(
         {
+            "event_type": "FRAUD_ALERT",
             "description": "检测到老王借款对话" + ("非常长" * 500),
-            "keywords": ["老王借款"],
+            "risk_codes": [SafetyRiskCode.UNVERIFIED_CREDIT_SOLICITATION],
         }
     )
     assert "共生心智实体" in summary

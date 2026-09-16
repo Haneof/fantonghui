@@ -8,7 +8,7 @@ life remains quiet even for a trusted companion.
 from __future__ import annotations
 
 import math
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import IntEnum, StrEnum
 from threading import RLock
@@ -33,6 +33,15 @@ class EventUrgency(IntEnum):
     IMPORTANT = 1
     HIGH = 2
     CRITICAL = 3
+
+
+class SafetyRiskCode(StrEnum):
+    """Machine-classified risk categories accepted by the posture boundary."""
+
+    UNVERIFIED_CREDIT_SOLICITATION = "UNVERIFIED_CREDIT_SOLICITATION"
+    PAYMENT_IDENTITY_MISMATCH = "PAYMENT_IDENTITY_MISMATCH"
+    CARDIAC_RHYTHM_INSTABILITY = "CARDIAC_RHYTHM_INSTABILITY"
+    ACUTE_PHYSIOLOGICAL_DANGER = "ACUTE_PHYSIOLOGICAL_DANGER"
 
 
 @dataclass(frozen=True, slots=True)
@@ -220,14 +229,13 @@ class HumanlikeResponsePostureDecider:
     _IMPORTANT_EVENT_TYPES: ClassVar[frozenset[str]] = frozenset(
         {"IMPORTANT_REMINDER", "DEADLINE", "MEDICATION_REMINDER"}
     )
-    _CRITICAL_SIGNALS: ClassVar[tuple[str, ...]] = (
-        "老王借款",
-        "借款诈骗",
-        "合同诈骗",
-        "连续早搏",
-        "早搏",
-        "premature ventricular",
-        "fraud alert",
+    _CRITICAL_RISK_CODES: ClassVar[frozenset[SafetyRiskCode]] = frozenset(
+        {
+            SafetyRiskCode.UNVERIFIED_CREDIT_SOLICITATION,
+            SafetyRiskCode.PAYMENT_IDENTITY_MISMATCH,
+            SafetyRiskCode.CARDIAC_RHYTHM_INSTABILITY,
+            SafetyRiskCode.ACUTE_PHYSIOLOGICAL_DANGER,
+        }
     )
     _SEVERITIES: ClassVar[MappingProxyType] = MappingProxyType(
         {
@@ -249,15 +257,15 @@ class HumanlikeResponsePostureDecider:
             raise TypeError("event_context must be a mapping")
         event_type = self._normalize_scalar(event_context.get("event_type", "TRIVIAL"))
         severity = self._normalize_scalar(event_context.get("severity", "LOW"))
-        text = self._context_text(event_context)
+        risk_codes = self._parse_risk_codes(event_context.get("risk_codes", ()))
         tier = self.rapport_model.current_tier
 
         if event_type in self._CRITICAL_EVENT_TYPES:
             urgency = EventUrgency.CRITICAL
             reason = "critical_event_type"
-        elif any(signal.casefold() in text for signal in self._CRITICAL_SIGNALS):
+        elif risk_codes & self._CRITICAL_RISK_CODES:
             urgency = EventUrgency.CRITICAL
-            reason = "critical_causal_signal"
+            reason = "critical_risk_code"
         else:
             urgency = self._SEVERITIES.get(severity, EventUrgency.ROUTINE)
             if event_type in self._IMPORTANT_EVENT_TYPES:
@@ -317,19 +325,20 @@ class HumanlikeResponsePostureDecider:
     def _normalize_scalar(value: Any) -> str:
         return value.strip().upper() if isinstance(value, str) else ""
 
-    @classmethod
-    def _context_text(cls, event_context: Mapping[str, Any]) -> str:
-        parts: list[str] = []
-        for field_name in ("description", "event_type", "severity"):
-            value = event_context.get(field_name)
-            if isinstance(value, str):
-                parts.append(value)
-        keywords = event_context.get("keywords", ())
-        if isinstance(keywords, str):
-            parts.append(keywords)
-        elif isinstance(keywords, Sequence):
-            parts.extend(value for value in keywords if isinstance(value, str))
-        return " ".join(parts).casefold()
+    @staticmethod
+    def _parse_risk_codes(value: Any) -> frozenset[SafetyRiskCode]:
+        raw_codes = (value,) if isinstance(value, (str, SafetyRiskCode)) else value
+        if not isinstance(raw_codes, (tuple, list, set, frozenset)):
+            return frozenset()
+        parsed: set[SafetyRiskCode] = set()
+        for raw_code in raw_codes:
+            try:
+                parsed.add(SafetyRiskCode(raw_code))
+            except (TypeError, ValueError):
+                # Posture is not a natural-language risk classifier. Unknown or
+                # malformed labels fail closed to their separately declared urgency.
+                continue
+        return frozenset(parsed)
 
 
 class CockpitSelfSummaryOperator:
