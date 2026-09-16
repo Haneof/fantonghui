@@ -1,0 +1,1009 @@
+"""SIM-001 · 预算封套判决门与纵向退化守卫 —— 门禁测试
+
+四道门，每道都必须是**可以失败**的：
+
+1. 预算封套 —— ``token_budget`` 的十二个子系统上限 + 日上限 + 月上限，含政策自己的
+   零基闭合式（``$closure_note`` 记载 v1.0.0 曾被判决门抓住 4,000 token 漂移）。
+2. 纵向退化守卫 —— 25 项法定不变量、四种趋势语义、7 日均值平滑、30 虚拟日窗口；
+   窗口不足**不判决**，缺指标**即失败**（不静默跳过）。
+3. CI 运行时预算 —— ``ci_runtime_minutes_max_mock_adapter = 15``。
+4. 确定性 —— ``deterministic_seed_required``：同一 seed 跑两次比摘要。
+
+另有一组"敏感度证明"测试：并行线驱动器把 ``raw_bytes_resident`` / ``deadlocks``
+硬编码为 0，其测试断言 ``== 0`` 因此**永远为真**。本文件用 AST 取证这一点，并证明
+本模块的对应测量（驻留探针、线程增量、确定性门）在真的出事时**会变红** —— 一个只会
+返回期望值的测量不是测量。
+"""
+
+from __future__ import annotations
+
+import ast
+import random
+import threading
+from dataclasses import dataclass, fields
+from datetime import datetime, timezone
+from pathlib import Path
+
+import pytest
+
+from aios_core.simulation import envelope_verdict_gate as evg
+from aios_core.simulation import headless_life_driver as driver
+from aios_core.simulation.envelope_verdict_gate import (
+    PROPOSED_SIM_SUBSYSTEM_MAPPING,
+    PROPOSED_TREND_SEMANTICS,
+    SMOOTHING_DAYS,
+    VIRTUAL_DAYS_REQUIRED,
+    DegradationGuard,
+    DeterminismGate,
+    InvariantVerdict,
+    ResidencyProbe,
+    RuntimeBudgetGate,
+    SimVerdict,
+    SimVerdictGateError,
+    TokenEnvelopeGate,
+    TokenViolation,
+    build_verdict,
+    load_degradation_policy,
+    load_runtime_policy,
+    load_token_budget_policy,
+    measure_thread_delta,
+    validate_policy_section,
+)
+from aios_core.simulation.headless_life_driver import SimReport, TokenMeter
+
+MODULE_SOURCE = Path(evg.__file__).read_text(encoding="utf-8")
+DRIVER_SOURCE = Path(driver.__file__).read_text(encoding="utf-8")
+#: 驱动器源码去掉模块 docstring 之后的部分（用于取证"承诺只写在文档里"）。
+DRIVER_BODY = DRIVER_SOURCE.split('"""', 2)[2]
+
+ROOT = load_runtime_policy()
+TB = ROOT["token_budget"]
+DG = ROOT["degradation_invariants"]
+SUBSYSTEMS = TB["subsystems"]
+MONTHLY_CAP = TB["monthly_total_cap"]
+DAILY_CAP = TB["daily_total_cap"]
+INVARIANTS = {i["metric_id"]: i for i in DG["invariants"]}
+
+
+def healthy_guard() -> DegradationGuard:
+    """一个"健康的虚拟人"：25 项指标 30 天全部平稳为 0。"""
+    guard = DegradationGuard()
+    for metric_id in guard.metric_ids:
+        for day in range(VIRTUAL_DAYS_REQUIRED):
+            guard.record_day(metric_id=metric_id, day=day, value=0.0)
+    return guard
+
+
+def constant_guard(metric_id: str, value: float) -> DegradationGuard:
+    guard = healthy_guard()
+    for day in range(VIRTUAL_DAYS_REQUIRED):
+        guard._series[metric_id][day] = value
+    return guard
+
+
+def ramp_guard(metric_id: str, start: float, stop: float) -> DegradationGuard:
+    """线性上升的指标（用来触发趋势违例）。"""
+    guard = healthy_guard()
+    for day in range(VIRTUAL_DAYS_REQUIRED):
+        guard._series[metric_id][day] = start + (stop - start) * day / 29.0
+    return guard
+
+
+# ---------------------------------------------------------------------------
+# A · 政策绑定
+# ---------------------------------------------------------------------------
+
+
+class TestPolicyBinding:
+    def test_policy_file_is_the_single_authority(self):
+        assert evg._POLICY_PATH.exists()
+        assert evg._POLICY_PATH.parent.name == "governance"
+
+    def test_zero_base_closure_holds(self):
+        """政策 ``$closure_note``：十二个子系统之和必须精确等于 monthly_total_cap。"""
+        total = sum(v["monthly_cap"] for v in SUBSYSTEMS.values())
+        assert total == MONTHLY_CAP == 2554000
+        assert len(SUBSYSTEMS) == 12
+        assert TokenEnvelopeGate().audit()["zero_base_closure_holds"] is True
+
+    def test_a_broken_closure_is_refused_with_the_drift_amount(self):
+        """v1.0.0 曾把合计凑成 2,550,000 而被判决门抓住 4,000 token 漂移。
+
+        判决门的第一道检查就是这条闭合式 —— 它必须在**读政策时**就炸，
+        而不是等到某个子系统超支时才被发现。
+        """
+        drifted = dict(TB)
+        drifted["monthly_total_cap"] = 2550000
+        with pytest.raises(SimVerdictGateError) as info:
+            load_token_budget_policy({"token_budget": drifted})
+        assert "4000" in str(info.value) or "+4000" in str(info.value)
+        assert "零基闭合" in str(info.value)
+
+    def test_measurement_window_is_legally_fixed(self):
+        assert DG["measurement"] == "compressed_30_virtual_days"
+        assert VIRTUAL_DAYS_REQUIRED == 30
+        drifted = dict(DG)
+        drifted["measurement"] = "compressed_7_virtual_days"
+        with pytest.raises(SimVerdictGateError, match="compressed_30_virtual_days"):
+            load_degradation_policy({"degradation_invariants": drifted})
+
+    def test_sampling_and_smoothing_are_legally_fixed(self):
+        assert DG["sampling"] == "daily"
+        assert DG["smoothing"] == "7_day_moving_average"
+        assert SMOOTHING_DAYS == 7
+        for key, bad in (("sampling", "hourly"), ("smoothing", "3_day_moving_average")):
+            drifted = dict(DG)
+            drifted[key] = bad
+            with pytest.raises(SimVerdictGateError):
+                load_degradation_policy({"degradation_invariants": drifted})
+
+    def test_deterministic_seed_is_legally_required(self):
+        assert DG["deterministic_seed_required"] is True
+        drifted = dict(DG)
+        drifted["deterministic_seed_required"] = False
+        with pytest.raises(SimVerdictGateError, match="法定值"):
+            load_degradation_policy({"degradation_invariants": drifted})
+        with pytest.raises(SimVerdictGateError):
+            DeterminismGate(degradation_policy=drifted)
+
+    def test_every_invariant_is_complete_and_uses_a_registered_trend(self):
+        assert len(DG["invariants"]) == 25
+        for spec in DG["invariants"]:
+            assert set(spec) >= {"metric_id", "trend", "tolerance", "severity"}
+            assert spec["trend"] in PROPOSED_TREND_SEMANTICS
+            assert spec["severity"] in ("warning", "blocker")
+
+    def test_all_four_trend_semantics_are_exercised_by_the_law(self):
+        """四种趋势语义都在法定清单里出现，所以四种判据都必须实现。"""
+        used = {spec["trend"] for spec in DG["invariants"]}
+        assert used == set(PROPOSED_TREND_SEMANTICS)
+
+    def test_an_unregistered_trend_is_refused(self):
+        drifted = dict(DG)
+        items = [dict(i) for i in DG["invariants"]]
+        items[0]["trend"] = "improving"
+        drifted["invariants"] = items
+        with pytest.raises(SimVerdictGateError, match="未登记"):
+            load_degradation_policy({"degradation_invariants": drifted})
+
+    def test_an_illegal_severity_is_refused(self):
+        drifted = dict(DG)
+        items = [dict(i) for i in DG["invariants"]]
+        items[0]["severity"] = "fatal"
+        drifted["invariants"] = items
+        with pytest.raises(SimVerdictGateError, match="severity"):
+            load_degradation_policy({"degradation_invariants": drifted})
+
+    def test_an_incomplete_invariant_is_refused(self):
+        drifted = dict(DG)
+        items = [dict(i) for i in DG["invariants"]]
+        del items[3]["tolerance"]
+        drifted["invariants"] = items
+        with pytest.raises(SimVerdictGateError, match="tolerance"):
+            load_degradation_policy({"degradation_invariants": drifted})
+
+    def test_empty_invariant_list_is_refused(self):
+        drifted = dict(DG)
+        drifted["invariants"] = []
+        with pytest.raises(SimVerdictGateError, match="不得为空"):
+            load_degradation_policy({"degradation_invariants": drifted})
+
+    def test_injected_sections_are_validated_like_the_file(self):
+        """注入路径不得享受弱校验（M2-005R 栽过的真 bug）。"""
+        with pytest.raises(SimVerdictGateError):
+            TokenEnvelopeGate(token_budget_policy={"monthly_total_cap": 1})
+        with pytest.raises(SimVerdictGateError):
+            DegradationGuard(degradation_policy={"measurement": "x"})
+
+    def test_validate_policy_section_rejects_a_non_object(self):
+        with pytest.raises(SimVerdictGateError, match="必须是对象"):
+            validate_policy_section("token_budget", "nope", required_fields=())
+
+    def test_no_legal_number_is_copied_into_the_module_code(self):
+        """AST 取数字字面量，不用字符串匹配（docstring 引用法定数字是正当的）。"""
+        tree = ast.parse(MODULE_SOURCE)
+        literals = {
+            n.value for n in ast.walk(tree)
+            if isinstance(n, ast.Constant) and isinstance(n.value, (int, float))
+        }
+        legal = {MONTHLY_CAP, DAILY_CAP} | {v["monthly_cap"] for v in SUBSYSTEMS.values()}
+        assert not (literals & legal), f"代码硬编码了法定数字 {sorted(literals & legal)}"
+        assert literals, "AST 判据失效：应当数得出数字字面量"
+
+    def test_proposed_semantics_are_marked_as_not_yet_ratified(self):
+        assert "提案" in MODULE_SOURCE
+        assert "尚未入法" in MODULE_SOURCE
+        assert "PROPOSED" in MODULE_SOURCE
+
+
+# ---------------------------------------------------------------------------
+# B · 门 1：预算封套
+# ---------------------------------------------------------------------------
+
+
+class TestTokenEnvelopeGate:
+    def test_caps_are_read_from_policy(self):
+        gate = TokenEnvelopeGate()
+        assert gate.monthly_total_cap == MONTHLY_CAP
+        assert gate.daily_total_cap == DAILY_CAP
+        assert gate.subsystem_caps == {k: v["monthly_cap"] for k, v in SUBSYSTEMS.items()}
+
+    def test_unknown_subsystem_is_refused(self):
+        """fail-closed：记账到不存在的子系统 = 给超支开一条改名即可绕过的后门。"""
+        gate = TokenEnvelopeGate()
+        with pytest.raises(SimVerdictGateError, match="未知子系统"):
+            gate.record(day=0, subsystem="make_up_a_name", tokens=1)
+
+    def test_every_token_meter_bucket_maps_to_a_legal_subsystem(self):
+        """本模块的映射提案必须覆盖并行线 ``TokenMeter`` 的**全部**记账桶。
+
+        少一个桶，那部分花费就永远进不了封套判决 —— 而这恰好是最容易发生的遗漏，
+        因为漏掉的桶不会报错，只会安静地不计费。
+        """
+        buckets = {f.name for f in fields(TokenMeter)}
+        assert set(PROPOSED_SIM_SUBSYSTEM_MAPPING) == buckets
+        gate = TokenEnvelopeGate()
+        for target in PROPOSED_SIM_SUBSYSTEM_MAPPING.values():
+            assert target in gate.subsystem_caps
+
+    def test_a_token_meter_can_be_paid_into_the_envelope(self):
+        meter = TokenMeter(
+            manifest_tokens=4000, caption_tokens=2000, claim_tokens=3000, retro_tokens=1000
+        )
+        gate = TokenEnvelopeGate()
+        for bucket in fields(TokenMeter):
+            gate.record(
+                day=0,
+                subsystem=PROPOSED_SIM_SUBSYSTEM_MAPPING[bucket.name],
+                tokens=getattr(meter, bucket.name),
+            )
+        assert gate.spent() == meter.total == 10000
+        assert gate.verdict() is True
+
+    @pytest.mark.parametrize("subsystem", sorted(SUBSYSTEMS))
+    def test_every_subsystem_cap_is_within_the_monthly_envelope(self, subsystem):
+        assert SUBSYSTEMS[subsystem]["monthly_cap"] <= MONTHLY_CAP
+
+    @pytest.mark.parametrize("subsystem", sorted(SUBSYSTEMS))
+    def test_spending_exactly_the_cap_is_not_a_violation(self, subsystem):
+        """边界：恰好等于上限合法，多一个 token 才违例。
+
+        **必须按日铺开**：把整月配额记在一天会先触发日上限（85134），
+        那测的就不是子系统上限了。这本身也是个发现 —— 多个子系统的月帽
+        远大于日帽，所以任何子系统都不可能在一天内花完一个月的额度。
+        """
+        cap = SUBSYSTEMS[subsystem]["monthly_cap"]
+        per_day, remainder = divmod(cap, VIRTUAL_DAYS_REQUIRED)
+        gate = TokenEnvelopeGate()
+        for day in range(VIRTUAL_DAYS_REQUIRED):
+            gate.record(
+                day=day, subsystem=subsystem,
+                tokens=per_day + (remainder if day == 0 else 0),
+            )
+        assert gate.spent(subsystem) == cap
+        assert gate.violations() == ()
+        assert gate.headroom(subsystem) == 0
+        gate.record(day=1, subsystem=subsystem, tokens=1)
+        found = gate.violations()
+        assert len(found) == 1
+        assert found[0].legal_cap == cap
+        assert found[0].scope == "subsystem_monthly"
+        assert gate.headroom(subsystem) == -1
+        assert cap // VIRTUAL_DAYS_REQUIRED <= DAILY_CAP
+
+    def test_heartbeat_cap_matches_its_policy_basis_arithmetic(self):
+        """政策 basis 散文的算术锚：240 次/月 × (1-0.8) × 750 = 36000。
+
+        散文不进生产代码解析（与 M2-001/M3-001R 同一手法），但它证明取消率 0.8 是
+        预算闭合的承重参数。另注意浮点陷阱：1-0.8 == 0.19999999999999996，
+        故必须用 round 而非 int 截断。
+        """
+        share = ROOT["heartbeat"]["gate_cancel_target_share"]
+        assert round(240 * (1 - share) * 750) == SUBSYSTEMS["heartbeat"]["monthly_cap"] == 36000
+
+    def test_dimension_cap_matches_its_policy_basis_arithmetic(self):
+        assert 10 * 3000 == SUBSYSTEMS["dimension"]["monthly_cap"] == 30000
+
+    def test_several_subsystem_caps_close_on_their_basis_arithmetic(self):
+        """多项 basis 散文可精确复算 —— 说明这些上限是**推导值**而非凑数。"""
+        assert 30 * (400 + 150) * 30 == SUBSYSTEMS["conversation.fast"]["monthly_cap"]
+        assert 60 * 200 * 30 == SUBSYSTEMS["extract"]["monthly_cap"]
+        assert (4 * 1800 * 30) + (48 * 2500) + (12 * 4000) == SUBSYSTEMS["summary"]["monthly_cap"]
+        assert 60 * 2500 == SUBSYSTEMS["event"]["monthly_cap"]
+        assert 20 * 1500 == SUBSYSTEMS["prediction"]["monthly_cap"]
+        assert 30 * 3000 == SUBSYSTEMS["reflection"]["monthly_cap"]
+        assert 10 * 3000 == SUBSYSTEMS["dimension"]["monthly_cap"]
+
+    def test_deep_conversation_cap_covers_its_basis_with_headroom(self):
+        """``conversation.deep`` 的 basis 是"封顶 8K/次、3 次/日"，但同句还写了
+        "用户显式要求深度复盘才放开到 100K" —— 故上限**大于**基线算术是有意留的余量，
+        不能按相等断言。这条测试把"为什么这里不相等"钉住，避免后人误判为漂移。
+        """
+        basis_spend = 3 * 8000 * 30
+        assert SUBSYSTEMS["conversation.deep"]["monthly_cap"] >= basis_spend
+        assert "放开到 100K" in SUBSYSTEMS["conversation.deep"]["basis"]
+
+    def test_daily_total_cap_is_enforced(self):
+        gate = TokenEnvelopeGate()
+        gate.record(day=3, subsystem="conversation.fast", tokens=DAILY_CAP)
+        assert gate.violations() == ()
+        gate.record(day=3, subsystem="extract", tokens=1)
+        found = gate.violations()
+        assert any(v.scope == "daily_total" and v.day == 3 for v in found)
+
+    def test_daily_cap_times_thirty_exceeds_the_monthly_cap(self):
+        """**真实政策发现**：85134 × 30 = 2,554,020 > 2,554,000，多出 20 token。
+
+        也就是说日上限连乘满 30 天会比月上限宽松，真正绑定的是月帽。两条上限并非
+        互相推导（月帽是 12 个子系统的零基闭合值，日帽是独立给的），所以这类 20 token
+        量级的缝隙会一直存在。后果不严重，但**判决门必须两道都查**：只查日上限的话，
+        一个天天贴着 85134 花的虚拟人会在第 30 天冲破月帽而一路绿灯。
+        """
+        assert DAILY_CAP * VIRTUAL_DAYS_REQUIRED == 2554020
+        assert DAILY_CAP * VIRTUAL_DAYS_REQUIRED - MONTHLY_CAP == 20
+
+    def test_a_virtual_day_at_the_daily_cap_breaks_the_monthly_cap(self):
+        """承上：天天恰好花到日上限（合法），第 30 天必然冲破月帽。"""
+        gate = TokenEnvelopeGate()
+        per_day = DAILY_CAP
+        for day in range(VIRTUAL_DAYS_REQUIRED):
+            # 拆成两个子系统记，避免单个子系统月帽先被触发
+            gate.record(day=day, subsystem="conversation.deep", tokens=per_day - 1200)
+            gate.record(day=day, subsystem="extract", tokens=1200)
+        assert gate.spent() == per_day * VIRTUAL_DAYS_REQUIRED == MONTHLY_CAP + 20
+        found = gate.violations()
+        assert any(v.scope == "monthly_total" for v in found)
+        assert not any(v.scope == "daily_total" for v in found), "每天都没超日上限"
+
+    def test_monthly_total_cap_is_enforced_on_a_controllable_policy(self):
+        """用小数字的注入政策把月帽判据单独钉住（真实政策的三个上限互相纠缠）。"""
+        tiny = {
+            "monthly_total_cap": 100,
+            "daily_total_cap": 4,
+            "subsystems": {
+                "conversation.fast": {"monthly_cap": 60},
+                "extract": {"monthly_cap": 40},
+            },
+        }
+        gate = TokenEnvelopeGate(token_budget_policy=tiny)
+        assert gate.audit()["zero_base_closure_holds"] is True
+        for day in range(VIRTUAL_DAYS_REQUIRED):
+            gate.record(day=day, subsystem="conversation.fast", tokens=2)
+            gate.record(day=day, subsystem="extract", tokens=2)
+        assert gate.spent() == 120
+        found = gate.violations()
+        # conversation.fast 恰好 60 == 上限（不违例）；extract 60 > 40（违例）；
+        # 月度 120 > 100（违例）；每天 4 == 日上限（不违例）。
+        assert [(v.scope, v.subsystem) for v in found] == [
+            ("subsystem_monthly", "extract"),
+            ("monthly_total", "*"),
+        ]
+        assert not any(v.scope == "daily_total" for v in found)
+
+    def test_violations_returns_all_of_them_not_just_the_first(self):
+        gate = TokenEnvelopeGate()
+        for day, name in enumerate(("heartbeat", "dimension", "prediction")):
+            gate.record(day=day, subsystem=name, tokens=SUBSYSTEMS[name]["monthly_cap"] + 1)
+        found = gate.violations()
+        assert len(found) == 3, "应当恰好三条子系统违例，且未连带触发日上限"
+        assert all(v.scope == "subsystem_monthly" for v in found)
+        assert {v.subsystem for v in found} == {"heartbeat", "dimension", "prediction"}
+
+    def test_negative_tokens_are_refused(self):
+        gate = TokenEnvelopeGate()
+        with pytest.raises(SimVerdictGateError, match="不得为负"):
+            gate.record(day=0, subsystem="extract", tokens=-1)
+
+    def test_days_outside_the_legal_window_are_refused(self):
+        gate = TokenEnvelopeGate()
+        for bad in (-1, VIRTUAL_DAYS_REQUIRED, 999):
+            with pytest.raises(SimVerdictGateError, match="法定窗口"):
+                gate.record(day=bad, subsystem="extract", tokens=1)
+
+    def test_violation_cites_the_legal_cap(self):
+        """违例不引用法定上限就无法复核 —— 这是审计的最小信息量要求。"""
+        violation = TokenViolation(
+            day=2, subsystem="heartbeat", tokens=40000, legal_cap=36000,
+            scope="subsystem_monthly",
+        )
+        payload = violation.to_audit()
+        assert payload["legal_cap"] == 36000
+        assert payload["overage"] == 4000
+        assert payload["scope"] == "subsystem_monthly"
+
+    def test_audit_is_json_serializable(self):
+        import json
+
+        gate = TokenEnvelopeGate()
+        gate.record(day=0, subsystem="heartbeat", tokens=99999)
+        text = json.dumps(gate.audit(), ensure_ascii=False)
+        assert json.loads(text)["verdict"] == "FAIL"
+
+
+# ---------------------------------------------------------------------------
+# C · 门 2：纵向退化守卫
+# ---------------------------------------------------------------------------
+
+
+class TestDegradationGuard:
+    def test_all_twenty_five_legal_invariants_are_registered(self):
+        guard = DegradationGuard()
+        assert len(guard.metric_ids) == 25
+        assert set(guard.metric_ids) == set(INVARIANTS)
+
+    def test_the_five_degradations_named_by_the_policy_are_all_measurable(self):
+        """政策 ``$comment`` 点名的五种退化，每一种都必须有对应的法定指标。
+
+        这五种退化的共同点是"快照式测试下表现为'这一轮指标还行'，只在趋势上可见"。
+        若其中一种在指标清单里缺席，它就会正好发生在没人测的那一项上。
+        """
+        named = {
+            "STALE 累积": "debt.stale_object_count",
+            "复核队列增长": "debt.review_queue_oldest_age_days",
+            "维度棘轮": "debt.dimension_active_count",
+            "召回率随规模下降": "retrieval.golden_recall",
+            "打扰率随自信上升": "intrusion.unnecessary_rate_7d_ma",
+        }
+        for description, metric_id in named.items():
+            assert metric_id in INVARIANTS, f"{description} 缺少法定指标 {metric_id}"
+
+    def test_a_healthy_thirty_day_life_passes_every_invariant(self):
+        guard = healthy_guard()
+        verdicts = guard.render()
+        assert len(verdicts) == 25
+        assert all(v.passed for v in verdicts)
+        assert guard.blockers() == ()
+        assert guard.audit()["blockers"] == 0
+
+    def test_an_insufficient_window_refuses_to_render_a_verdict(self):
+        """窗口不足**不判决**：用 10 天的趋势冒充 30 天的结论，正是快照式测试的错法。"""
+        guard = DegradationGuard()
+        for metric_id in guard.metric_ids:
+            for day in range(10):
+                guard.record_day(metric_id=metric_id, day=day, value=0.0)
+        with pytest.raises(SimVerdictGateError, match="compressed_30_virtual_days"):
+            guard.render()
+
+    def test_a_short_window_still_reports_per_invariant_when_explicitly_asked(self):
+        guard = DegradationGuard()
+        for metric_id in guard.metric_ids:
+            for day in range(10):
+                guard.record_day(metric_id=metric_id, day=day, value=0.0)
+        verdicts = guard.render(require_full_window=False)
+        assert all(not v.passed for v in verdicts)
+        assert all("数据不全" in v.reason for v in verdicts)
+
+    def test_a_single_missing_metric_fails_rather_than_being_skipped(self):
+        """缺指标即失败，不静默跳过 —— 少一条数据不是少一行输出，是少一个判决。"""
+        guard = healthy_guard()
+        guard._series["retrieval.golden_recall"].pop(17)
+        with pytest.raises(SimVerdictGateError, match="数据不足"):
+            guard.render()
+        verdicts = guard.render(require_full_window=False)
+        failed = [v for v in verdicts if not v.passed]
+        assert len(failed) == 1
+        assert failed[0].metric_id == "retrieval.golden_recall"
+        assert INVARIANTS["retrieval.golden_recall"]["severity"] == "blocker"
+        assert failed[0].blocks is True
+
+    def test_duplicate_daily_record_is_refused(self):
+        guard = DegradationGuard()
+        guard.record_day(metric_id="debt.stale_object_count", day=0, value=1.0)
+        with pytest.raises(SimVerdictGateError, match="重复记账"):
+            guard.record_day(metric_id="debt.stale_object_count", day=0, value=2.0)
+
+    def test_unknown_metric_is_refused(self):
+        guard = DegradationGuard()
+        with pytest.raises(SimVerdictGateError, match="未知指标"):
+            guard.record_day(metric_id="help.made_up_metric", day=0, value=1.0)
+
+    def test_days_outside_the_window_are_refused(self):
+        guard = DegradationGuard()
+        with pytest.raises(SimVerdictGateError, match="法定窗口"):
+            guard.record_day(metric_id="debt.stale_object_count", day=30, value=1.0)
+
+    def test_the_seven_day_average_produces_no_point_before_day_seven(self):
+        guard = healthy_guard()
+        ma = guard.moving_average("debt.stale_object_count")
+        assert len(ma) == VIRTUAL_DAYS_REQUIRED - SMOOTHING_DAYS + 1 == 24
+
+    def test_non_decreasing_violation_is_detected(self):
+        spec = INVARIANTS["retrieval.golden_recall"]
+        assert spec["trend"] == "non_decreasing"
+        guard = ramp_guard("retrieval.golden_recall", 0.9, 0.5)  # 召回率随规模下降
+        verdict = next(v for v in guard.render() if v.metric_id == "retrieval.golden_recall")
+        assert verdict.passed is False
+        assert spec["severity"] == "blocker"
+        assert verdict.blocks is True
+        assert verdict.final_ma < verdict.baseline
+
+    def test_non_increasing_violation_is_detected(self):
+        spec = INVARIANTS["intrusion.unnecessary_rate_7d_ma"]
+        assert spec["trend"] == "non_increasing"
+        guard = ramp_guard("intrusion.unnecessary_rate_7d_ma", 0.01, 0.30)  # 打扰率随自信上升
+        verdict = next(
+            v for v in guard.render()
+            if v.metric_id == "intrusion.unnecessary_rate_7d_ma"
+        )
+        assert verdict.passed is False
+        assert verdict.worst > 0
+
+    def test_bounded_violation_is_detected(self):
+        """``cost.tokens_per_virtual_day`` tolerance=0.15：相对基线涨幅超 15% 即违例。"""
+        spec = INVARIANTS["cost.tokens_per_virtual_day"]
+        assert spec["trend"] == "bounded" and spec["severity"] == "blocker"
+        guard = healthy_guard()
+        for day in range(VIRTUAL_DAYS_REQUIRED):
+            guard._series["cost.tokens_per_virtual_day"][day] = 1000.0 + 20.0 * day
+        verdict = next(
+            v for v in guard.render() if v.metric_id == "cost.tokens_per_virtual_day"
+        )
+        assert verdict.passed is False
+        assert verdict.blocks is True
+        assert "1.15" in verdict.reason or "基线" in verdict.reason
+
+    def test_a_bounded_rise_within_tolerance_passes(self):
+        guard = healthy_guard()
+        for day in range(VIRTUAL_DAYS_REQUIRED):
+            guard._series["cost.tokens_per_virtual_day"][day] = 1000.0 + 1.0 * day
+        verdict = next(
+            v for v in guard.render() if v.metric_id == "cost.tokens_per_virtual_day"
+        )
+        # 末日 1029 相对基线（前 7 日均值 1003）涨幅约 2.6% < 15%
+        assert verdict.passed is True
+
+    def test_zero_tolerance_bounded_metrics_must_stay_at_zero(self):
+        """tolerance=0 且基线=0 的计数型指标退化为"必须恒为 0"，
+        与政策别处给出的绝对判据（如 fixed_rhythm_bomb_count_under_7d_stable_data=0、
+        false_playback_without_epoch=0）一致 —— 这条自洽性是提案解释的主要依据。
+        """
+        for metric_id, spec in INVARIANTS.items():
+            if spec["trend"] == "bounded" and spec["tolerance"] == 0:
+                guard = healthy_guard()
+                guard._series[metric_id][20] = 1.0  # 只要有一天冒出 1 次
+                verdict = next(v for v in guard.render() if v.metric_id == metric_id)
+                assert verdict.passed is False, f"{metric_id} 应当零容忍"
+                assert spec["severity"] == "blocker"
+
+    def test_flat_violation_is_detected(self):
+        spec = INVARIANTS["latency.legal_first_token_p95_ms"]
+        assert spec["trend"] == "flat" and spec["tolerance"] == 0.2
+        guard = healthy_guard()
+        for day in range(VIRTUAL_DAYS_REQUIRED):
+            guard._series["latency.legal_first_token_p95_ms"][day] = 800.0 + 20.0 * day
+        verdict = next(
+            v for v in guard.render() if v.metric_id == "latency.legal_first_token_p95_ms"
+        )
+        assert verdict.passed is False
+        assert verdict.blocks is True
+
+    def test_flat_metric_with_zero_baseline_must_not_move(self):
+        spec = INVARIANTS["integrity.tombstone_lookup_hit_rate"]
+        assert spec["trend"] == "flat" and spec["tolerance"] == 0.0
+        guard = healthy_guard()
+        guard._series["integrity.tombstone_lookup_hit_rate"][29] = 0.001
+        verdict = next(
+            v for v in guard.render() if v.metric_id == "integrity.tombstone_lookup_hit_rate"
+        )
+        assert verdict.passed is False
+
+    def test_warning_severity_does_not_block_but_is_recorded(self):
+        spec = INVARIANTS["debt.stale_object_count"]
+        assert spec["severity"] == "warning"
+        guard = ramp_guard("debt.stale_object_count", 10.0, 500.0)
+        verdict = next(v for v in guard.render() if v.metric_id == "debt.stale_object_count")
+        assert verdict.passed is False
+        assert verdict.blocks is False, "warning 级违例不得阻断判决门"
+        assert guard.audit()["warnings"] >= 1
+        assert guard.blockers() == () or all(v.metric_id != "debt.stale_object_count" for v in guard.blockers())
+
+    def test_blocker_and_warning_are_distinguished_by_the_law_not_by_us(self):
+        severities = {spec["severity"] for spec in DG["invariants"]}
+        assert severities == {"warning", "blocker"}
+        blockers = [m for m, s in INVARIANTS.items() if s["severity"] == "blocker"]
+        assert len(blockers) > 10
+
+    def test_the_dimension_ratchet_is_a_legally_tracked_degradation(self):
+        """维度棘轮（M3-001R 的对手指标）必须在退化清单里，否则托管白做。"""
+        spec = INVARIANTS["debt.dimension_active_count"]
+        assert spec["trend"] == "bounded"
+        assert spec["tolerance"] == 0.2
+        guard = ramp_guard("debt.dimension_active_count", 8.0, 40.0)
+        verdict = next(
+            v for v in guard.render() if v.metric_id == "debt.dimension_active_count"
+        )
+        assert verdict.passed is False
+
+    def test_audit_is_json_serializable(self):
+        import json
+
+        payload = json.loads(json.dumps(healthy_guard().audit(), ensure_ascii=False))
+        assert payload["invariants_total"] == 25
+        assert payload["passed"] == 25
+        assert payload["measurement"] == "compressed_30_virtual_days"
+
+
+# ---------------------------------------------------------------------------
+# D · 门 3/4：CI 运行时预算与确定性
+# ---------------------------------------------------------------------------
+
+
+class TestRuntimeAndDeterminism:
+    def test_ci_ceiling_comes_from_policy(self):
+        gate = RuntimeBudgetGate()
+        assert gate.minutes_max == DG["ci_runtime_minutes_max_mock_adapter"] == 15
+        assert gate.seconds_max == 900.0
+
+    def test_runtime_boundary(self):
+        gate = RuntimeBudgetGate()
+        assert gate.check(900.0) is True
+        assert gate.check(900.001) is False
+        assert gate.remaining_seconds(60.0) == 840.0
+
+    def test_negative_wall_clock_is_refused(self):
+        with pytest.raises(SimVerdictGateError, match="不得为负"):
+            RuntimeBudgetGate().check(-1.0)
+
+    def test_enforce_raises_above_the_ceiling(self):
+        gate = RuntimeBudgetGate()
+        gate.enforce(12.0)
+        with pytest.raises(SimVerdictGateError, match="法定上限"):
+            gate.enforce(1000.0)
+
+    def test_the_driver_own_wall_clock_bound_is_within_the_ci_ceiling(self):
+        """并行线测试自设的墙钟上界（120s）必须落在法定 15 分钟之内。
+
+        两个数字来自不同地方（他们的测试 vs 政策），一致性不是自动的：若有人把仿真
+        放大到 40 天，120s 的自设界仍可能通过，而法定界已经被冲破。
+        """
+        sibling = Path(__file__).parent / "test_30day_headless_life_simulation.py"
+        assert sibling.exists()
+        assert "wall_seconds < 120.0" in sibling.read_text(encoding="utf-8")
+        assert RuntimeBudgetGate().check(120.0) is True
+        assert RuntimeBudgetGate().seconds_max == 900.0
+
+    def test_determinism_passes_for_a_seeded_run(self):
+        def run_once():
+            rng = random.Random(20260916)
+            return {"series": [round(rng.gauss(70, 5), 6) for _ in range(20)]}
+
+        digest = DeterminismGate().verify(run_once)
+        assert len(digest) == 64
+
+    def test_determinism_detects_a_wall_clock_dependency(self):
+        """**敏感度证明**：混入墙钟就必须变红，否则这道门等于没有。"""
+
+        def run_once():
+            return {"t": datetime.now(timezone.utc).timestamp()}
+
+        with pytest.raises(SimVerdictGateError, match="非确定性"):
+            DeterminismGate().verify(run_once)
+
+    def test_determinism_detects_an_unseeded_rng(self):
+        def run_once():
+            return {"v": random.random()}
+
+        with pytest.raises(SimVerdictGateError, match="非确定性"):
+            DeterminismGate().verify(run_once)
+
+    def test_determinism_requires_at_least_two_runs(self):
+        with pytest.raises(SimVerdictGateError, match="两次"):
+            DeterminismGate().verify(lambda: {}, runs=1)
+
+    def test_the_driver_is_seeded_by_default(self):
+        """并行线驱动器默认带 seed（``deterministic_seed_required`` 已满足）。"""
+        assert driver.HeadlessLifeDriver()._rng.getstate() == random.Random(
+            20260916
+        ).getstate()
+
+    def test_digest_is_stable_across_key_order(self):
+        gate = DeterminismGate()
+        assert gate.digest({"a": 1, "b": 2}) == gate.digest({"b": 2, "a": 1})
+
+
+# ---------------------------------------------------------------------------
+# E · 可失败的测量（对照并行线的自证常量）
+# ---------------------------------------------------------------------------
+
+
+class TestMeasurementsThatCanFail:
+    def test_evidence_the_driver_self_certifies_its_hygiene_constants(self):
+        """**取证（AST，不代改他人文件）**：驱动器把 ``raw_bytes_resident`` 与
+        ``deadlocks`` 直接赋值为字面量 0。
+
+        于是 ``assert report.raw_bytes_resident == 0`` 与 ``assert report.deadlocks == 0``
+        **永远为真**：若原始字节真的驻留、真的死锁，报告照样写 0。这是最危险的一类
+        假绿 —— 它披着"结构性自证"的外衣，却对现实零敏感度。
+        """
+        tree = ast.parse(DRIVER_SOURCE)
+        hardcoded = [
+            (node.targets[0].attr, node.lineno)
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Assign)
+            and len(node.targets) == 1
+            and isinstance(node.targets[0], ast.Attribute)
+            and node.targets[0].attr in ("raw_bytes_resident", "deadlocks")
+            and isinstance(node.value, ast.Constant)
+            and node.value.value == 0
+        ]
+        assert len(hardcoded) == 2, (
+            f"并行线已改为真实测量（找到 {hardcoded}），本取证需重新评估"
+        )
+        # 且这两处赋值发生在 run() 内部，即每一步都被覆写成 0
+        assert any(lineno > 200 for _, lineno in hardcoded)
+
+    def test_evidence_the_driver_never_reads_the_policy(self):
+        """**取证**：驱动器源码去掉模块 docstring 之后，对 ``token_budget`` /
+        ``monthly_total_cap`` / ``runtime_policy`` 的引用数为 **0**。
+
+        docstring 承诺"月度总量对 governance/runtime_policy.json 的
+        monthly_total_cap=2,554,000 可复算"，但代码不读政策 —— 承诺写在文档里而
+        机制不在代码里，换个测试就没了。
+        """
+        for token in ("runtime_policy", "monthly_total_cap", "governance/", "token_budget"):
+            assert token not in DRIVER_BODY, f"{token} 出现在 docstring 之外的代码里"
+        assert "monthly_total_cap" in DRIVER_SOURCE  # 只在 docstring 里
+        assert "token_budget" not in DRIVER_SOURCE   # 连 docstring 都没提
+
+    def test_residency_probe_reports_zero_for_a_clean_product(self):
+        probe = ResidencyProbe(min_bytes=1024)
+        assert probe.scan({"caption": "一只猫趴在桌上", "tags": ["cat"]}) == 0
+
+    def test_residency_probe_finds_a_leaked_raw_payload(self):
+        """**敏感度证明**：真的泄漏时探针必须报出来（自证常量做不到这一点）。"""
+        probe = ResidencyProbe(min_bytes=1024)
+        product = {"observations": [{"caption": "x", "raw": bytes(4096)}]}
+        assert probe.scan(product) == 1
+        with pytest.raises(SimVerdictGateError, match="C01 铁律违例"):
+            probe.assert_clean(product)
+
+    def test_residency_probe_scans_nested_dataclasses(self):
+        @dataclass
+        class Obs:
+            caption: str
+            payload: bytes
+
+        probe = ResidencyProbe(min_bytes=1024)
+        assert probe.scan([Obs("x", bytes(2048))], label="batch") == 1
+        assert probe.observations[0]["label"].endswith("payload")
+
+    def test_residency_probe_respects_the_threshold(self):
+        probe = ResidencyProbe(min_bytes=1024)
+        assert probe.scan({"small": bytes(16)}) == 0
+        assert probe.scan({"big": bytes(1024)}) == 1
+
+    def test_residency_probe_survives_a_self_referential_structure(self):
+        """深度上限防病态自引用结构导致无限递归（探针自己挂掉就测不出任何东西）。"""
+        probe = ResidencyProbe(min_bytes=1024)
+        cyclic: dict = {"name": "loop"}
+        cyclic["self"] = cyclic
+        assert probe.scan(cyclic) == 0
+
+    def test_residency_probe_rejects_a_non_positive_threshold(self):
+        with pytest.raises(SimVerdictGateError, match="必须为正"):
+            ResidencyProbe(min_bytes=0)
+
+    def test_thread_delta_measures_zero_for_a_single_threaded_run(self):
+        with measure_thread_delta() as measurement:
+            sum(range(1000))
+        assert measurement.result.delta == 0
+
+    def test_thread_delta_detects_a_spawned_thread(self):
+        """**敏感度证明**：若哪天有人加了一条后台线程，这里会立刻变红。
+
+        驱动器的"单线程无锁 ⇒ deadlock 没有物理载体"论证本身成立，但写成常量赋值
+        之后，这个前提一旦被人破坏就再也不会被发现。
+        """
+        started = threading.Event()
+        stop = threading.Event()
+
+        def worker() -> None:
+            started.set()
+            stop.wait(5.0)
+
+        with measure_thread_delta() as measurement:
+            thread = threading.Thread(target=worker, daemon=True)
+            thread.start()
+            assert started.wait(5.0), "工作线程未启动，测量无意义"
+        stop.set()
+        thread.join(5.0)
+        assert measurement.result.delta >= 1
+
+    def test_a_slots_dataclass_payload_is_still_detected(self):
+        """并行线 ``SimReport`` 是 ``slots=True`` 的 dataclass，**没有 ``__dict__``**。
+
+        只靠 ``vars()`` 遍历会静默漏掉它的全部字段 —— 探针必须自己避免犯它要抓的错。
+        """
+        assert not hasattr(SimReport(), "__dict__")
+        probe = ResidencyProbe(min_bytes=1024)
+        assert probe.scan(SimReport(token_meter=TokenMeter(caption_tokens=10))) == 0
+
+        @dataclass(slots=True, frozen=True)
+        class Slotted:
+            caption: str
+            smuggled: bytes
+
+        assert probe.scan(Slotted("x", bytes(8192))) == 1
+
+    @pytest.mark.parametrize("shape", ["dict", "list", "dataclass", "slots_dataclass",
+                                       "slots_class", "plain_object"])
+    def test_every_container_shape_is_traversed(self, shape):
+        """**四种遍历分支互为冗余纵深，但覆盖面必须穷尽**所有对象形态。
+
+        变异测试发现：单独拆掉 dataclass 分支不会漏报（非 slots 对象走 __dict__、
+        slots 对象走 __slots__，两者已穷尽形态）—— 那是等价变异，不是漏洞。本测试把
+        这个结论钉成显式覆盖面：无论哪条分支干活，六种形态都必须被抓到。
+        """
+        payload = bytes(4096)
+
+        @dataclass
+        class Plain:
+            raw: bytes
+
+        @dataclass(slots=True, frozen=True)
+        class Slotted:
+            raw: bytes
+
+        class SlotsOnly:
+            __slots__ = ("raw",)
+
+            def __init__(self, raw):
+                self.raw = raw
+
+        class Ordinary:
+            def __init__(self, raw):
+                self.raw = raw
+
+        containers = {
+            "dict": {"obs": {"raw": payload}},
+            "list": [{"raw": payload}],
+            "dataclass": Plain(payload),
+            "slots_dataclass": Slotted(payload),
+            "slots_class": SlotsOnly(payload),
+            "plain_object": Ordinary(payload),
+        }
+        probe = ResidencyProbe(min_bytes=1024)
+        assert probe.scan(containers[shape], label=shape) == 1, f"{shape} 形态漏报"
+
+    def test_a_driver_report_can_be_probed_instead_of_trusted(self):
+        """与 ``assert report.raw_bytes_resident == 0`` 的区别在于：这条断言**可以**失败。"""
+        report = SimReport(token_meter=TokenMeter(caption_tokens=10))
+        probe = ResidencyProbe(min_bytes=1024)
+        assert probe.scan(report, label="SimReport") == 0
+        probe.assert_clean(report, label="SimReport")  # 不抛
+
+
+# ---------------------------------------------------------------------------
+# F · 汇总判决
+# ---------------------------------------------------------------------------
+
+
+class TestSimVerdict:
+    def _all_green(self) -> SimVerdict:
+        envelope = TokenEnvelopeGate()
+        for day in range(VIRTUAL_DAYS_REQUIRED):
+            envelope.record(day=day, subsystem="conversation.fast", tokens=1000)
+        return build_verdict(
+            envelope=envelope,
+            guard=healthy_guard(),
+            runtime=RuntimeBudgetGate(),
+            wall_seconds=42.0,
+            determinism_digest="a" * 64,
+            thread_delta=0,
+            raw_byte_payloads=0,
+        )
+
+    def test_all_four_gates_green_yields_pass(self):
+        verdict = self._all_green()
+        assert verdict.passed is True
+        assert verdict.invariants_total == 25
+        assert verdict.to_audit()["verdict"] == "PASS"
+
+    def test_an_envelope_violation_fails_the_verdict(self):
+        envelope = TokenEnvelopeGate()
+        envelope.record(day=0, subsystem="heartbeat", tokens=SUBSYSTEMS["heartbeat"]["monthly_cap"] + 1)
+        verdict = build_verdict(
+            envelope=envelope,
+            guard=healthy_guard(),
+            runtime=RuntimeBudgetGate(),
+            wall_seconds=1.0,
+            determinism_digest="a" * 64,
+            thread_delta=0,
+            raw_byte_payloads=0,
+        )
+        assert verdict.passed is False
+        assert len(verdict.envelope_violations) == 1
+
+    def test_a_degradation_blocker_fails_the_verdict(self):
+        verdict = build_verdict(
+            envelope=TokenEnvelopeGate(),
+            guard=ramp_guard("retrieval.golden_recall", 0.9, 0.4),
+            runtime=RuntimeBudgetGate(),
+            wall_seconds=1.0,
+            determinism_digest="a" * 64,
+            thread_delta=0,
+            raw_byte_payloads=0,
+        )
+        assert verdict.passed is False
+        assert any(v.metric_id == "retrieval.golden_recall" for v in verdict.degradation_blockers)
+
+    def test_a_degradation_warning_alone_does_not_fail_the_verdict(self):
+        """warning 与 blocker 的区别必须真的体现在判决上，否则严重度分级是装饰。"""
+        verdict = build_verdict(
+            envelope=TokenEnvelopeGate(),
+            guard=ramp_guard("debt.stale_object_count", 10.0, 900.0),
+            runtime=RuntimeBudgetGate(),
+            wall_seconds=1.0,
+            determinism_digest="a" * 64,
+            thread_delta=0,
+            raw_byte_payloads=0,
+        )
+        assert verdict.degradation_warnings
+        assert not verdict.degradation_blockers
+        assert verdict.passed is True
+
+    def test_running_over_the_ci_ceiling_fails_the_verdict(self):
+        verdict = build_verdict(
+            envelope=TokenEnvelopeGate(),
+            guard=healthy_guard(),
+            runtime=RuntimeBudgetGate(),
+            wall_seconds=1200.0,
+            determinism_digest="a" * 64,
+            thread_delta=0,
+            raw_byte_payloads=0,
+        )
+        assert verdict.passed is False
+        assert verdict.runtime_within_budget is False
+
+    def test_a_thread_leak_fails_the_verdict(self):
+        verdict = build_verdict(
+            envelope=TokenEnvelopeGate(),
+            guard=healthy_guard(),
+            runtime=RuntimeBudgetGate(),
+            wall_seconds=1.0,
+            determinism_digest="a" * 64,
+            thread_delta=2,
+            raw_byte_payloads=0,
+        )
+        assert verdict.passed is False
+
+    def test_a_raw_byte_leak_fails_the_verdict(self):
+        verdict = build_verdict(
+            envelope=TokenEnvelopeGate(),
+            guard=healthy_guard(),
+            runtime=RuntimeBudgetGate(),
+            wall_seconds=1.0,
+            determinism_digest="a" * 64,
+            thread_delta=0,
+            raw_byte_payloads=1,
+        )
+        assert verdict.passed is False
+
+    def test_a_missing_determinism_digest_fails_the_verdict(self):
+        """没跑过确定性门 ≠ 通过确定性门。"""
+        verdict = build_verdict(
+            envelope=TokenEnvelopeGate(),
+            guard=healthy_guard(),
+            runtime=RuntimeBudgetGate(),
+            wall_seconds=1.0,
+            determinism_digest=None,
+            thread_delta=0,
+            raw_byte_payloads=0,
+        )
+        assert verdict.passed is False
+
+    def test_verdict_audit_is_json_serializable(self):
+        import json
+
+        payload = json.loads(json.dumps(self._all_green().to_audit(), ensure_ascii=False))
+        assert payload["invariants_total"] == 25
+        assert payload["envelope_violations"] == []
+        assert payload["determinism_digest"] == "a" * 64
+
+    def test_invariant_verdict_audit_carries_the_reason(self):
+        """判决不带理由就无法复核，与"违例不引法定上限"是同一类缺陷。"""
+        verdict = healthy_guard().render()[0]
+        assert isinstance(verdict, InvariantVerdict)
+        payload = verdict.to_audit()
+        assert payload["reason"]
+        assert payload["trend"] in PROPOSED_TREND_SEMANTICS
