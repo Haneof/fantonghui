@@ -19,6 +19,14 @@ from .multimodal_edge import (
     VoiceprintTTLRegistry,
     assess_image_quality,
 )
+from .universal_edge_purifier import (
+    ContextualDensityGate,
+    HierarchicalEntityResolver,
+    P0BypassDetector,
+    SensorCrossValidator,
+    UniversalEdgePurifierV3,
+    VoiceprintAndJunkPruner,
+)
 
 __all__ = [
     "FEATURE_DIM",
@@ -31,4 +39,10 @@ __all__ = [
     "VoiceprintProfile",
     "VoiceprintTTLRegistry",
     "assess_image_quality",
+    "UniversalEdgePurifierV3",
+    "P0BypassDetector",
+    "VoiceprintAndJunkPruner",
+    "SensorCrossValidator",
+    "ContextualDensityGate",
+    "HierarchicalEntityResolver",
 ]
