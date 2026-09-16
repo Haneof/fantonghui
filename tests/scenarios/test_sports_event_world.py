@@ -192,7 +192,6 @@ GATE = "POST_GATE_48H 出口判据落地后摘除本标记（XPASS 翻红即到�
 
 
 class TestPartB:
-    @pytest.mark.xfail(strict=True, reason=f"world_at(view=AS_KNOWN|ANNOTATED) 双透镜读面未接线：{GATE}")
     def test_dual_lens_fork_on_correction(self, tmp_path):
         r = build_sports_world(tmp_path / "w.db")
         from aios_core.world import view_at  # Gate B2 交付
@@ -203,7 +202,6 @@ class TestPartB:
         with pytest.raises(ValueError, match="cutoff"):
             view_at(r["store"], at=T0 + timedelta(days=1), view="AS_KNOWN", pin_revision=0)
 
-    @pytest.mark.xfail(strict=True, reason=f"检索核视图感知（M1-012 服务层）未接线：{GATE}")
     def test_search_annotated_sees_pe_test_known_does_not(self, tmp_path):
         db = tmp_path / "w.db"
         r = build_sports_world(db)
@@ -213,7 +211,6 @@ class TestPartB:
         back = idx.co_search(["体育测试"], view="AS_KNOWN", as_of=T0)
         assert now.hits and not back.hits
 
-    @pytest.mark.xfail(strict=True, reason=f"HotCard 管道（M1-020/020a-d）未实现：{GATE}")
     def test_hot_card_regenerates_after_correction_old_pointers_hold(self, tmp_path):
         db = tmp_path / "w.db"
         r = build_sports_world(db)
@@ -224,7 +221,6 @@ class TestPartB:
         assert "体育测试" in json.dumps(new, ensure_ascii=False)
         assert old["digest"]["recent_event"]["object_id"] == "event_sports_meeting"  # 旧卡 pin 仍可解析
 
-    @pytest.mark.xfail(strict=True, reason=f"world.prune 提交口（M1-019/019b）未实现：{GATE}")
     def test_pruned_cheer_audio_still_pinned_resolvable(self, tmp_path):
         db = tmp_path / "w.db"
         r = build_sports_world(db)

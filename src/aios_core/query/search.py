@@ -113,6 +113,14 @@ def _extent_us(payload: dict, object_type: str) -> tuple[int | None, int | None]
             extent = candidate
             break
     if extent is None:
+        for fallback_key in ("learned_at", "recorded_at"):
+            val = payload.get(fallback_key)
+            if isinstance(val, str):
+                try:
+                    us = int(as_utc(datetime.fromisoformat(val), "extent").timestamp() * 1_000_000)
+                    return us, us
+                except (ValueError, TypeError):
+                    pass
         return None, None
 
     def _us(value: Any) -> int | None:
@@ -193,6 +201,9 @@ class WorldSearchIndex:
                     entity_object_id TEXT NOT NULL,
                     PRIMARY KEY(alias_norm, entity_object_id)
                 );
+                CREATE TABLE IF NOT EXISTS search_tombstones(
+                    object_id TEXT PRIMARY KEY
+                );
                 CREATE TABLE IF NOT EXISTS search_meta(
                     key TEXT PRIMARY KEY,
                     value TEXT NOT NULL
@@ -210,6 +221,7 @@ class WorldSearchIndex:
                 DROP TABLE IF EXISTS search_occurred;
                 DROP TABLE IF EXISTS search_doc;
                 DROP TABLE IF EXISTS search_alias;
+                DROP TABLE IF EXISTS search_tombstones;
                 DROP TABLE IF EXISTS search_meta;
                 """
             )
@@ -294,6 +306,11 @@ class WorldSearchIndex:
         for text in texts:
             tokens |= tokens_for(text)
 
+        revision_kind = row.get("revision_kind", "content")
+        if revision_kind == "tombstone":
+            conn.execute("INSERT OR REPLACE INTO search_tombstones(object_id) VALUES(?)", (object_id,))
+            return
+
         tokens.add(_id_token("sub", subject_id))
         for ref_id in _iter_ref_ids(payload):
             tokens.add(_id_token("ref", ref_id))
@@ -356,6 +373,9 @@ class WorldSearchIndex:
         time_range: tuple[datetime, datetime] | None = None,
         limit: int = 50,
         strict_freshness: bool = False,
+        view: str = "ANNOTATED",
+        as_of: datetime | None = None,
+        include_tombstones: bool = True,
     ) -> SearchPage:
         if not keywords or any(not kw.strip() for kw in keywords):
             raise ValueError("co_search requires non-blank keywords (第 89 条共现,不是单点通配)")
@@ -402,14 +422,70 @@ class WorldSearchIndex:
                                   index_watermark=wm, ambiguous_keywords=ambiguous)
             page = self._finalize(conn, candidates, keywords, per_kw,
                                   subject=subject, time_range=time_range, limit=limit,
-                                  lag=current - wm, current=current, wm=wm, ambiguous=ambiguous)
+                                  lag=current - wm, current=current, wm=wm, ambiguous=ambiguous,
+                                  view=view, as_of=as_of, include_tombstones=include_tombstones)
         return page
 
     def _finalize(
         self, conn: sqlite3.Connection, candidates: set[tuple[str, int]], keywords: list[str],
         per_kw: list[dict[tuple[str, int], int]], *, subject: str | None, time_range, limit: int,
         lag: int, current: int, wm: int, ambiguous: dict[str, list[str]],
+        view: str = "ANNOTATED", as_of: datetime | None = None, include_tombstones: bool = True,
     ) -> SearchPage:
+        if not include_tombstones:
+            tombstones = {
+                r[0] for r in conn.execute("SELECT object_id FROM search_tombstones").fetchall()
+            }
+            if hasattr(self._store, "is_latest_pruned"):
+                def _is_pruned_or_refs_pruned(oid: str, rev: int) -> bool:
+                    if oid in tombstones or self._store.is_latest_pruned(oid):
+                        return True
+                    try:
+                        p = self._store.get_payload(oid, revision=rev)
+                        for ref_id in _iter_ref_ids(p):
+                            if ref_id in tombstones or self._store.is_latest_pruned(ref_id):
+                                return True
+                            if ref_id.startswith("evidence_"):
+                                try:
+                                    ev_p = self._store.get_payload(ref_id)
+                                    for m in ev_p.get("member_refs", []):
+                                        if isinstance(m, dict):
+                                            mid = m.get("object_id")
+                                            if mid and (mid in tombstones or self._store.is_latest_pruned(mid)):
+                                                return True
+                                except Exception:
+                                    pass
+                    except Exception:
+                        pass
+                    return False
+                candidates = {c for c in candidates if not _is_pruned_or_refs_pruned(c[0], c[1])}
+            else:
+                candidates = {c for c in candidates if c[0] not in tombstones}
+
+        if view == "AS_KNOWN" and as_of is not None:
+            as_of_us = int(as_utc(as_of, "as_of").timestamp() * 1_000_000)
+            valid_candidates = set()
+            for oid, rev in candidates:
+                row = conn.execute(
+                    "SELECT occurred_start_us FROM search_occurred WHERE object_id=? AND revision=?",
+                    (oid, rev),
+                ).fetchone()
+                if row and row["occurred_start_us"] is not None:
+                    if row["occurred_start_us"] <= as_of_us:
+                        valid_candidates.add((oid, rev))
+                else:
+                    try:
+                        p = self._store.get_payload(oid, revision=rev)
+                        lat = p.get("learned_at")
+                        if lat:
+                            l_us = int(as_utc(datetime.fromisoformat(lat), "lat").timestamp() * 1_000_000)
+                            if l_us <= as_of_us:
+                                valid_candidates.add((oid, rev))
+                        else:
+                            valid_candidates.add((oid, rev))
+                    except Exception:
+                        valid_candidates.add((oid, rev))
+            candidates = valid_candidates
         pairs = sorted(candidates)
         # 50 万修订下的物理计划纪律（G-M1P/T2-I 禁扫描）：候选对经临时表
         # WITHOUT ROWID 主键 join，杜绝行值 IN 退化为 SCAN search_occurred。

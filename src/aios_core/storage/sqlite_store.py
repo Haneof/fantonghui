@@ -235,6 +235,7 @@ class SQLiteWorldStore:
         with self._connection() as conn:
             # M0-023：迁移必须先于任何引用 source_class 的 DDL（旧库上建部分索引会炸）。
             self._ensure_source_class_schema(conn)
+            self._ensure_revision_kind_schema(conn)
             conn.executescript(
                 """
                 CREATE TABLE IF NOT EXISTS world_meta (
@@ -266,6 +267,7 @@ class SQLiteWorldStore:
                     learned_at TEXT NOT NULL,
                     recorded_at TEXT NOT NULL,
                     payload_json TEXT NOT NULL,
+                    revision_kind TEXT NOT NULL DEFAULT 'content',
                     PRIMARY KEY(object_id, revision),
                     FOREIGN KEY(world_revision) REFERENCES world_commits(world_revision)
                 );
@@ -372,6 +374,32 @@ class SQLiteWorldStore:
                     sort_keys=True,
                 ),
             ),
+        )
+
+
+    def _ensure_revision_kind_schema(self, conn: sqlite3.Connection) -> None:
+        """M1-019 runtime layer: support tombstone revision kind and cold archive."""
+        try:
+            cols_obj = {row[1] for row in conn.execute("PRAGMA table_info(object_revisions)")}
+            if cols_obj and "revision_kind" not in cols_obj:
+                conn.execute(
+                    "ALTER TABLE object_revisions ADD COLUMN revision_kind TEXT NOT NULL DEFAULT 'content'"
+                )
+        except sqlite3.OperationalError:
+            pass  # Race condition with concurrent connection
+
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS cold_archive (
+                object_id TEXT NOT NULL,
+                revision INTEGER NOT NULL,
+                payload_json TEXT NOT NULL,
+                archived_at TEXT NOT NULL,
+                authz_ref TEXT NOT NULL,
+                reason TEXT,
+                PRIMARY KEY(object_id, revision)
+            )
+            """
         )
 
     def commit_source_class(self, world_revision: int) -> str | None:
@@ -1148,3 +1176,111 @@ class SQLiteWorldStore:
                     },
                 )
             return dict(row)
+
+
+    def prune(
+        self,
+        object_id: str,
+        *,
+        authz_ref: str,
+        reason: str,
+    ) -> None:
+        """M1-019 prune submission: append tombstone revision and archive cold payload."""
+        with self._connection() as conn:
+            self._ensure_revision_kind_schema(conn)
+            row = conn.execute(
+                """
+                SELECT revision, object_type, subject_id, learned_at, payload_json
+                FROM object_revisions
+                WHERE object_id = ?
+                ORDER BY revision DESC LIMIT 1
+                """,
+                (object_id,),
+            ).fetchone()
+            if row is None:
+                raise StoreError(
+                    ErrorCode.NOT_FOUND,
+                    f"object {object_id} not found to prune",
+                    context={"object_id": object_id},
+                )
+            cur_rev = int(row["revision"])
+            obj_type = str(row["object_type"])
+            subj_id = str(row["subject_id"])
+            learned_at = str(row["learned_at"])
+            payload_json = str(row["payload_json"])
+
+            now = canonical_utc_iso(utc_now(), "archived_at")
+
+            # 1. Store in cold archive
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO cold_archive (object_id, revision, payload_json, archived_at, authz_ref, reason)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (object_id, cur_rev, payload_json, now, authz_ref, reason),
+            )
+
+            # 2. Advance global world revision with maintenance commit
+            cur_world_rev = conn.execute(
+                "SELECT value FROM world_meta WHERE key='world_revision'"
+            ).fetchone()[0]
+            new_world_rev = int(cur_world_rev) + 1
+            op_id = f"op_prune_{object_id}_{new_world_rev}"
+
+            conn.execute(
+                """
+                INSERT INTO world_commits (world_revision, committed_at, operation_id, session_id, reason, source_class)
+                VALUES (?, ?, ?, NULL, ?, 'maintenance')
+                """,
+                (new_world_rev, now, op_id, reason),
+            )
+            conn.execute(
+                "UPDATE world_meta SET value=? WHERE key='world_revision'",
+                (str(new_world_rev),),
+            )
+
+            # 3. Append tombstone revision to object_revisions
+            new_obj_rev = cur_rev + 1
+            tombstone_payload = json.dumps(
+                {
+                    "pruned": True,
+                    "reason": reason,
+                    "authz_ref": authz_ref,
+                    "previous_revision": cur_rev,
+                    "object_id": object_id,
+                }
+            )
+            conn.execute(
+                """
+                INSERT INTO object_revisions (
+                    object_id, revision, object_type, subject_id, world_revision,
+                    learned_at, recorded_at, payload_json, revision_kind
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'tombstone')
+                """,
+                (
+                    object_id,
+                    new_obj_rev,
+                    obj_type,
+                    subj_id,
+                    new_world_rev,
+                    learned_at,
+                    now,
+                    tombstone_payload,
+                ),
+            )
+            conn.commit()
+
+    def is_latest_pruned(self, object_id: str) -> bool:
+        """Return True if the newest revision of object_id is a tombstone."""
+        with self._connection() as conn:
+            cols = {r[1] for r in conn.execute("PRAGMA table_info(object_revisions)")}
+            if "revision_kind" not in cols:
+                return False
+            row = conn.execute(
+                "SELECT revision_kind FROM object_revisions WHERE object_id=? ORDER BY revision DESC LIMIT 1",
+                (object_id,),
+            ).fetchone()
+            if row is None:
+                return False
+            return str(row["revision_kind"]) == "tombstone"

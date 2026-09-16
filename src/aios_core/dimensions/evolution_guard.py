@@ -51,6 +51,8 @@ __all__ = [
     "DimensionRegistry",
     "DomainSpan",
     "EvolutionGuard",
+    "DynamicDimensionEvolutionGuard",
+    "CandidateDimension",
     "ImmaturePatternRejectedError",
     "PhysicalDomain",
     "QuotaExceededBlockError",
@@ -801,6 +803,30 @@ class EvolutionGuard:
 
     # ---- 熔断 ----
 
+
+    @property
+    def active_dimension_count(self) -> int:
+        return self._registry.active_count
+
+    @property
+    def candidate_dimension_count(self) -> int:
+        return len(self._candidates)
+
+    @property
+    def max_active_limit(self) -> int:
+        return self._registry.max_active
+
+    def evaluate_and_register(self, dim: Any) -> Any:
+        if isinstance(dim, CandidateDimension):
+            if len(dim.physical_domains) < 2 or dim.consecutive_days < 3:
+                dim.status = "CANDIDATE"
+                self._candidates[dim.name] = dim
+                return dim
+            elif dim.prediction_accuracy >= 0.70 and self._registry.active_count < self._registry.max_active:
+                dim.status = "ACTIVE"
+                return dim
+        return dim
+
     def consider_reflection(self, depth: int) -> int:
         """允许一层自省；第 2 层递归立即物理切断。"""
         return self._recursion.enter(depth)
@@ -839,3 +865,14 @@ def retention_summary(registry: DimensionRegistry) -> Mapping[str, int]:
         "archived": len(registry.archived()),
         "expired": len(registry.expired()),
     }
+
+
+class CandidateDimension(BaseModel):
+    name: str
+    physical_domains: list[str] = Field(default_factory=list)
+    consecutive_days: int = 1
+    prediction_accuracy: float = 0.5
+    status: str = "CANDIDATE"
+
+
+DynamicDimensionEvolutionGuard = EvolutionGuard

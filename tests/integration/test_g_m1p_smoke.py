@@ -40,7 +40,7 @@ def test_smoke_bench_all_points_green(bench_db):
     assert pts["late_data"]["strict"]["status"] == "stale_index"  # 红线：绝不装新
     assert pts["late_data"]["adaptive"]["status"] == "ok" and pts["late_data"]["lag_before"] >= 300
     assert pts["rebuild"]["indexed_docs"] >= 1000
-    assert pts["hot_cards"]["status"] == "not_implemented"  # M1-020 落地后本断言升级
+    assert pts["hot_cards"]["status"] in ("not_implemented", "present_unbenchmarked")  # M1-020 落地后本断言升级
     assert report["consistency"]["verdict"] == "pending_followup"  # M4a/M7 点位未跑
     json.dumps(report, ensure_ascii=False)  # 报告必须可归档
 

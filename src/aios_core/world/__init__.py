@@ -35,3 +35,6 @@ __all__ = [
     "RetrospectiveAnnotation",
     "SingleHopCascadeIsolator",
 ]
+
+from .view_lens import view_at
+__all__.append('view_at')
