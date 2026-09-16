@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import json
+import sqlite3
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -709,20 +710,22 @@ class TopologicalDrillDownExecutor(RetrievalPathwayExecutor):
         truncated = False
         depth = 0
         while frontier and depth < intent.evidence_horizon:
+            # 层内批读：一层节点的载荷与入边指针环各只打一次 SQL
+            payloads = _load_payloads(self.store.db_path, frontier)
+            inbound_ring = self.index.ring_adjacency(frontier, limit=intent.ladder_fanout)
             nxt: List[str] = []
             for node in frontier:
-                try:
-                    payload = self.store.get_payload(node)
-                except Exception:
+                payload = payloads.get(node)
+                if payload is None:
                     continue
                 expanded += 1
                 # 出边：载荷自带 ObjectRef
                 neighbours = set(_iter_payload_refs(payload))
-                # 入边：倒排投递表里引用了本节点指针的对象
-                inbound = self.index.search_mind(entity_id=node, limit=intent.ladder_fanout)
-                if len(inbound.hits) >= intent.ladder_fanout:
+                # 入边：倒排投递表里引用了本节点指针的对象（同层一次批读）
+                inbound = inbound_ring.get(node, [])
+                if len(inbound) >= intent.ladder_fanout:
                     truncated = True
-                neighbours.update(hit.object_id for hit in inbound.hits)
+                neighbours.update(inbound)
                 for nb in sorted(neighbours):
                     if nb not in visited:
                         visited.add(nb)
@@ -755,10 +758,10 @@ class TopologicalDrillDownExecutor(RetrievalPathwayExecutor):
         """
         ranked: List[Tuple[int, int, str]] = []
         role_index: Dict[str, str] = {}
+        payloads = _load_payloads(self.store.db_path, list(visited))
         for oid in visited:
-            try:
-                payload = self.store.get_payload(oid)
-            except Exception:
+            payload = payloads.get(oid)
+            if payload is None:
                 continue
             role = str(payload.get("object_type", "unknown"))
             role_index[oid] = role
@@ -769,7 +772,7 @@ class TopologicalDrillDownExecutor(RetrievalPathwayExecutor):
         slices: List[Tuple[str, str]] = []
         used = 0
         for _, _, oid in ranked:
-            payload = self.store.get_payload(oid)
+            payload = payloads[oid]
             text = _compact_slice(payload)
             cost = SingleHitTokenGuard.measure(text)
             if used + cost > intent.token_budget:
@@ -814,6 +817,41 @@ class TopologicalDrillDownExecutor(RetrievalPathwayExecutor):
             truncated=truncated,
             causal_skeleton_complete=skeleton_complete,
         )
+
+
+def _load_payloads(db_path: str, object_ids: Sequence[str]) -> Dict[str, dict]:
+    """同层一次批读对象载荷：逐条 ``get_payload`` 会各开一条 SQLite 连接。
+
+    「分级下钻」的延迟应当由 SQL 次数决定，而不是由节点数决定；本函数把
+    一层节点压成一次查询（每个对象取最新 revision，语义与 ``get_payload``
+    的无参口径一致）。
+    """
+
+    ids = [str(i) for i in object_ids]
+    if not ids:
+        return {}
+    out: Dict[str, dict] = {}
+    conn = sqlite3.connect(db_path)
+    try:
+        conn.row_factory = sqlite3.Row
+        for start in range(0, len(ids), 400):
+            chunk = ids[start:start + 400]
+            placeholders = ", ".join("?" for _ in chunk)
+            rows = conn.execute(
+                f"SELECT object_id, revision, payload_json FROM object_revisions "
+                f"WHERE object_id IN ({placeholders}) ORDER BY revision ASC",
+                chunk,
+            ).fetchall()
+            for row in rows:
+                try:
+                    payload = json.loads(row["payload_json"])
+                except (TypeError, ValueError):
+                    continue
+                if isinstance(payload, dict):
+                    out[str(row["object_id"])] = payload
+    finally:
+        conn.close()
+    return out
 
 
 def _iter_payload_refs(payload: Mapping[str, Any]) -> Iterator[str]:
