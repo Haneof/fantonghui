@@ -1,0 +1,184 @@
+{
+ "contract": {
+  "checked": 10000,
+  "failures": [],
+  "difficulty_mix": {
+   "HARD": 3500,
+   "EASY": 1500,
+   "MEDIUM": 3500,
+   "ADVERSARIAL": 1500
+  },
+  "modality_mix": {
+   "mic": 3000,
+   "sensor": 3000,
+   "app": 1500,
+   "voiceprint": 2000,
+   "utt": 500
+  }
+ },
+ "anchor": {
+  "facts": 26511,
+  "anchors": 42028,
+  "unrecoverable": 0,
+  "anchor_recoverability": 1.0,
+  "samples": []
+ },
+ "leak": {
+  "visible_ground_truth_hits": {},
+  "id_shapes": {
+   "q_#a#aa#c-mic-#": 46618,
+   "q_#a#aa#c-app-#": 66185,
+   "q_#a#aa#c-utt-#": 45924,
+   "q_#a#aa#c-sen-#": 28981,
+   "q_#a#aa#c-voi-#": 108181
+  },
+  "structural_id_leak_accuracy": 0.4988
+ },
+ "directional": {
+  "dim_blocks": 50000,
+  "missing_dim_blocks": {},
+  "blocks_without_synonyms": 0,
+  "blocks_without_red_lines": 0,
+  "key_event_blocks": 15461,
+  "calm_baseline_blocks": 34539,
+  "storylines": {
+   "白天工作受挫被当众否决，晚间亲密关系破裂，身心处于极度高压": 1653,
+   "债务催收与账单压力叠加，夜间因焦虑失眠": 1568,
+   "真实入账与冒充诈骗话术同日出现，考验真假资金信息分辨": 1537,
+   "全天声纹聚类完成本人与核心亲友绑定，同时出现多方工作会议": 1368,
+   "通勤途中发生真实跌倒并在噪声中呼救，需紧急识别": 1301,
+   "白天下达危急值通知，晚间出现嘴硬否认的隐性心血管危象": 1109,
+   "合作签约定档并收到绩效奖金，事业推进顺利但伴随保密约束": 561,
+   "慢病复诊与用药管理贯穿全天，家人陪伴照护": 561,
+   "长辈托付身后安排与子女学业问题同日压来，家庭责任加重": 342
+  }
+ },
+ "geometry": {
+  "slices": 295889,
+  "junk_slices": 241647,
+  "junk_ratio": 0.8167,
+  "day_window_violations": 0,
+  "empty_questions": 0,
+  "duplicate_ids": 0,
+  "slices_per_question": 29.59
+ },
+ "solvability": {
+  "sampled": 5000,
+  "elapsed_s": 2.39,
+  "by_modality": {
+   "app": {
+    "questions": 721,
+    "direction_match_rate": 0.0,
+    "entity_recall_rate": 0.0,
+    "junk_prune_rate": 0.5123,
+    "mean_final_score": 12.81,
+    "pass_rate": 0.0,
+    "hallucination_count": 0
+   },
+   "mic": {
+    "questions": 1493,
+    "direction_match_rate": 0.1019,
+    "entity_recall_rate": 0.0936,
+    "junk_prune_rate": 0.5196,
+    "mean_final_score": 20.43,
+    "pass_rate": 0.0013,
+    "hallucination_count": 0
+   },
+   "sensor": {
+    "questions": 1541,
+    "direction_match_rate": 0.1096,
+    "entity_recall_rate": 0.0912,
+    "junk_prune_rate": 0.5199,
+    "mean_final_score": 20.76,
+    "pass_rate": 0.0,
+    "hallucination_count": 0
+   },
+   "utt": {
+    "questions": 253,
+    "direction_match_rate": 0.0,
+    "entity_recall_rate": 0.0,
+    "junk_prune_rate": 0.501,
+    "mean_final_score": 12.52,
+    "pass_rate": 0.0,
+    "hallucination_count": 0
+   },
+   "voiceprint": {
+    "questions": 992,
+    "direction_match_rate": 0.1895,
+    "entity_recall_rate": 0.1895,
+    "junk_prune_rate": 0.544,
+    "mean_final_score": 27.81,
+    "pass_rate": 0.0,
+    "hallucination_count": 0
+   }
+  },
+  "overall": {
+   "direction_match_rate": 0.1018,
+   "entity_recall_rate": 0.0936,
+   "junk_prune_rate": 0.5225,
+   "mean_final_score": 20.49,
+   "pass_rate": 0.0004,
+   "hallucination_count": 0
+  },
+  "_note": "该实测由本战队参考清洗器在盲化输入上执行，属出卷侧可解性质检，不作为竞技场提交。"
+ },
+ "ceiling": {
+  "sampled": 5000,
+  "by_modality": {
+   "app": {
+    "questions": 721,
+    "direction_match_rate": 0.9968,
+    "entity_recall_rate": 0.894,
+    "junk_prune_rate": 1.0,
+    "mean_final_score": 97.19,
+    "pass_rate": 0.9598,
+    "hallucination_count": 0
+   },
+   "mic": {
+    "questions": 1493,
+    "direction_match_rate": 0.9774,
+    "entity_recall_rate": 0.9136,
+    "junk_prune_rate": 1.0,
+    "mean_final_score": 96.71,
+    "pass_rate": 0.9069,
+    "hallucination_count": 0
+   },
+   "sensor": {
+    "questions": 1541,
+    "direction_match_rate": 0.9803,
+    "entity_recall_rate": 0.9619,
+    "junk_prune_rate": 1.0,
+    "mean_final_score": 98.06,
+    "pass_rate": 0.9409,
+    "hallucination_count": 0
+   },
+   "utt": {
+    "questions": 253,
+    "direction_match_rate": 1.0,
+    "entity_recall_rate": 0.8406,
+    "junk_prune_rate": 1.0,
+    "mean_final_score": 96.02,
+    "pass_rate": 1.0,
+    "hallucination_count": 0
+   },
+   "voiceprint": {
+    "questions": 992,
+    "direction_match_rate": 1.0,
+    "entity_recall_rate": 1.0,
+    "junk_prune_rate": 1.0,
+    "mean_final_score": 100.0,
+    "pass_rate": 1.0,
+    "hallucination_count": 0
+   }
+  },
+  "overall": {
+   "direction_match_rate": 0.9867,
+   "entity_recall_rate": 0.9391,
+   "junk_prune_rate": 1.0,
+   "mean_final_score": 97.81,
+   "pass_rate": 0.9482,
+   "hallucination_count": 0
+  },
+  "_note": "上限探针：只读端侧标注与证据文本，事实条数按标答条数封顶、剪枝按标答垃圾集合给满；用于回答「本卷标答是否可被端侧信息命中」，不是任何战队的竞赛答卷，也不计入竞技场成绩。"
+ }
+}
