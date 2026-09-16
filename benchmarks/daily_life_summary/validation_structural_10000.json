@@ -1,0 +1,39 @@
+{
+  "verdict": "PASS",
+  "questions": 10000,
+  "distinct_people": 10000,
+  "totals": {
+    "slices": 1770653,
+    "transactions": 46018,
+    "anchors": 60000
+  },
+  "checked": [
+    "XZ integrity",
+    "SHA-256",
+    "exact blind/answer separation",
+    "six dimensions",
+    "evidence references",
+    "24h timestamps",
+    "cash and debt reconciliation"
+  ],
+  "generator_agent": "daily-examiner-01a0aa30",
+  "seed": 2026091603,
+  "unique_names": 10000,
+  "unique_streams_after_masking_names_and_numbers": 10000,
+  "distinct_outcome_combinations": 3550,
+  "minimum_slices": 151,
+  "maximum_slices": 202,
+  "code_sha256": {
+    "daily_life_exam.py": "a121b93bc709a9e1cc8e77e057e355ebaded58c2f9a4911dc6080ea1e344b4ea",
+    "daily_life_catalog.py": "bb7858095bfd48e55b7fdc44525d1b603e794b6e89f0b60eeab55ec360f88dd2"
+  },
+  "validation_scope": "Publication invariants, not self-solving or an independent natural-language entailment score.",
+  "tests": {
+    "new_publication_cases": 40,
+    "base_plus_this_task_passed": 1383,
+    "workspace_including_prior_uncommitted_work_passed": 1412,
+    "python": "3.11.2",
+    "ast_base_plus_this_task_files": 248,
+    "ast_violations": 0
+  }
+}

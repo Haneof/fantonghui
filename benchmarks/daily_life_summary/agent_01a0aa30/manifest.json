@@ -1,0 +1,171 @@
+{
+  "schema_version": "1.0.0",
+  "generator_agent": "daily-examiner-01a0aa30",
+  "synthetic": true,
+  "seed": 2026091603,
+  "person_count": 10000,
+  "question_count": 10000,
+  "unique_names": 10000,
+  "unique_content_streams": 10000,
+  "unique_streams_after_masking_names_and_numbers": 10000,
+  "distinct_outcome_combinations": 3550,
+  "outcome_combination_space": 3840,
+  "totals": {
+    "slices": 1770653,
+    "transactions": 46018,
+    "anchors": 60000,
+    "ordinary_slices": 1519445
+  },
+  "minimum_slices": 151,
+  "maximum_slices": 202,
+  "coverage": "24h per person; overnight 00:00–07:00, dense daytime, tail 23:30–24:00",
+  "dimensions": [
+    "global_daily_summary",
+    "dim:health",
+    "dim:social",
+    "dim:emotion",
+    "dim:finance",
+    "dim:career"
+  ],
+  "facets": {
+    "career": {
+      "rescheduled": 1316,
+      "revise": 1263,
+      "scope": 1217,
+      "cancelled": 1238,
+      "declined_extra": 1258,
+      "credited": 1247,
+      "recovered": 1224,
+      "offer_pending": 1237
+    },
+    "social": {
+      "friend_boundary": 1289,
+      "breakup": 1301,
+      "parent_pending": 1247,
+      "support": 1244,
+      "care_shared": 1241,
+      "coworker_apology": 1207,
+      "reconciled": 1247,
+      "housing_pending": 1224
+    },
+    "health": {
+      "stable": 1711,
+      "stress_recovered": 1688,
+      "short_sleep": 1635,
+      "exercise": 1685,
+      "stress_persistent": 1638,
+      "off_wrist_artifact": 1643
+    },
+    "finance": {
+      "incoming_settled": 1036,
+      "loan_taken": 995,
+      "refund_settled": 992,
+      "refund_pending": 982,
+      "loan_declined": 1036,
+      "repay_partial": 1026,
+      "fraud_prevented": 987,
+      "repay_full": 1024,
+      "repair_paid": 945,
+      "incoming_promised": 977
+    },
+    "occupation": {
+      "农产品经营者": 439,
+      "配送调度员": 405,
+      "仓储盘点员": 402,
+      "平面设计师": 427,
+      "设备检修员": 421,
+      "社区护士": 451,
+      "公交车务员": 393,
+      "自由译者": 414,
+      "园艺技术员": 422,
+      "社区文员": 436,
+      "房产经纪人": 457,
+      "维修店经营者": 411,
+      "软件测试员": 404,
+      "小学教师": 426,
+      "会计助理": 363,
+      "影像剪辑师": 406,
+      "社会工作者": 406,
+      "图书管理员": 425,
+      "健身教练": 409,
+      "研究生": 407,
+      "独立木工": 408,
+      "舞台灯光师": 439,
+      "电商客服": 422,
+      "餐饮店长": 407
+    },
+    "city": {
+      "绵阳": 258,
+      "洛阳": 254,
+      "宁波": 252,
+      "太原": 272,
+      "苏州": 268,
+      "宜昌": 299,
+      "大连": 238,
+      "柳州": 256,
+      "厦门": 234,
+      "杭州": 240,
+      "南宁": 264,
+      "泉州": 260,
+      "合肥": 240,
+      "长沙": 253,
+      "上海": 234,
+      "郑州": 236,
+      "济南": 235,
+      "贵阳": 257,
+      "深圳": 258,
+      "海口": 244,
+      "广州": 237,
+      "武汉": 261,
+      "银川": 244,
+      "昆明": 236,
+      "成都": 259,
+      "西安": 244,
+      "长春": 249,
+      "兰州": 224,
+      "温州": 226,
+      "青岛": 275,
+      "赣州": 262,
+      "重庆": 230,
+      "福州": 232,
+      "芜湖": 259,
+      "北京": 240,
+      "南京": 270,
+      "湛江": 275,
+      "哈尔滨": 265,
+      "石家庄": 228,
+      "沈阳": 232
+    },
+    "modalities": {
+      "SENSOR": 66654,
+      "APP": 734353,
+      "MIC": 665067,
+      "USER_NOTE": 304579
+    }
+  },
+  "format": "UTF-8 JSON Lines compressed with XZ; each full line is one standard JSON object with the four requested fields",
+  "validation": "structural/time/provenance/accounting invariants only; no solver or self-scoring",
+  "generation_limits": "Template-composed fictional lives, not collected real people and not 10,000 independent hand-written plots. Numeric, persona, temporal, dialogue and outcome combinations vary.",
+  "code_sha256": {
+    "daily_life_exam.py": "a121b93bc709a9e1cc8e77e057e355ebaded58c2f9a4911dc6080ea1e344b4ea",
+    "daily_life_catalog.py": "bb7858095bfd48e55b7fdc44525d1b603e794b6e89f0b60eeab55ec360f88dd2"
+  },
+  "artifacts": {
+    "example_person_00001.json": {
+      "sha256": "8094942acd49a018bea8ab18aad69ec3ae9bb431d8b3da9c9e034bca6ba8b1a4",
+      "bytes": 82195
+    },
+    "exams_10000_people.jsonl.xz": {
+      "sha256": "237c20a478d12275f0da34fa295a20a46ec19f9c3f3f399f62a70a9507c8437f",
+      "bytes": 27486720
+    },
+    "ground_truth_10000_people.jsonl.xz": {
+      "sha256": "32cb8b3e5688da828595901effce5409ca977dedc7e5c7a1458b57bd58f41e4b",
+      "bytes": 3807256
+    },
+    "questions_10000_people.blind.jsonl.xz": {
+      "sha256": "ccb3e05265e3a64718de8d3f36d9fb7d5b775d19cc8d6b20655d0e249c983895",
+      "bytes": 23098340
+    }
+  }
+}

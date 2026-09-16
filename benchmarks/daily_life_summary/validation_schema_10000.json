@@ -1,0 +1,13 @@
+{
+  "verdict": "PASS",
+  "check": "Draft 2020-12 JSON Schema plus format validation of every full record",
+  "exam_count": 10000,
+  "slice_count": 1770653,
+  "archive_sha256": "237c20a478d12275f0da34fa295a20a46ec19f9c3f3f399f62a70a9507c8437f",
+  "schema_sha256": "0180b8c6ddc4c579a7f04fb62739c9d9a5dbda25a03f09b8b2303d17ee59d1f9",
+  "validator_sha256": "ab8b9ca0a4028a8bed97fb45d10a01cd88dbf888fd0ef09f096a7db828d85b9b",
+  "python_version": "3.11.2",
+  "jsonschema_version": "4.26.0",
+  "completed_at": "2026-09-16T14:52:57.895371+00:00",
+  "limits": "Contract validation, not evidence entailment, independent authorship or solver performance."
+}

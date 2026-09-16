@@ -1,0 +1,2155 @@
+{
+  "question_id": "DAY_daily-examiner-01a0aa30_00001",
+  "persona": {
+    "person_id": "PERSON_00001",
+    "name": "赵安宇",
+    "synthetic": true,
+    "age": 46,
+    "gender": "男",
+    "occupation": "农产品经营者",
+    "city": "绵阳",
+    "timezone": "Asia/Shanghai",
+    "date": "2026-07-24",
+    "day_start": "2026-07-24T00:00:00+08:00",
+    "day_end_exclusive": "2026-07-25T00:00:00+08:00",
+    "day_type": "本人的排班或任务日，不以自然周末推断休假",
+    "household_context": "独居，家人异地",
+    "interest": "看纪录片",
+    "contacts": [
+      {
+        "name": "李博桐",
+        "role": "采购联系人"
+      },
+      {
+        "name": "杨可竹",
+        "role": "朋友"
+      },
+      {
+        "name": "张光乐",
+        "role": "日常工作联系人"
+      }
+    ],
+    "accounting_scope": "本题给出的人民币活期账户与个人借款本金，账本完整；不推断其他资产或第三人账户",
+    "starting_context": {
+      "task": "安排温室蔬菜供货",
+      "deliverable": "供货计划",
+      "cash_balance_cents": 2646900,
+      "loan_principal_cents": 0
+    }
+  },
+  "cleaned_daily_stream": [
+    {
+      "slice_id": "SL_00001_6737",
+      "timestamp": "2026-07-24T00:00:00+08:00",
+      "end_timestamp": "2026-07-24T07:00:00+08:00",
+      "modality": "SENSOR",
+      "speaker_or_source": "手环睡眠摘要",
+      "location": "家中",
+      "content": "夜间睡眠监测到晨起结束：有效睡眠443分钟，清醒27分钟；统计窗含前夜入睡部分。",
+      "measurements": {
+        "sleep_minutes": 443,
+        "awake_minutes": 27,
+        "measurement_start": "2026-07-23T23:10:00+08:00",
+        "measurement_end": "2026-07-24T07:00:00+08:00"
+      }
+    },
+    {
+      "slice_id": "SL_00001_8204",
+      "timestamp": "2026-07-24T07:05:00+08:00",
+      "end_timestamp": "2026-07-24T07:06:00+08:00",
+      "modality": "SENSOR",
+      "speaker_or_source": "手环PPG摘要",
+      "location": "家中",
+      "content": "晨起静坐心率74bpm，测量接触有效，没有运动。",
+      "measurements": {
+        "heart_rate_bpm": 74,
+        "motion": "seated",
+        "signal_valid": true
+      }
+    },
+    {
+      "slice_id": "SL_00001_1965",
+      "timestamp": "2026-07-24T07:12:00+08:00",
+      "end_timestamp": "2026-07-24T07:13:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "银行日初快照",
+      "location": "家中",
+      "content": "本题账户日初余额26469.00元；个人借款本金0.00元。",
+      "measurements": {
+        "cash_balance_cents": 2646900,
+        "loan_principal_cents": 0
+      }
+    },
+    {
+      "slice_id": "SL_00001_7395",
+      "timestamp": "2026-07-24T07:15:00+08:00",
+      "end_timestamp": "2026-07-24T07:16:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "群里有人分享周末电影，我只点开看了一眼。"
+    },
+    {
+      "slice_id": "SL_00001_9926",
+      "timestamp": "2026-07-24T07:19:00+08:00",
+      "end_timestamp": "2026-07-24T07:20:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "家中",
+      "content": "群里有人分享社区旧物修复，我只点开看了一眼。"
+    },
+    {
+      "slice_id": "SL_00001_7947",
+      "timestamp": "2026-07-24T07:23:00+08:00",
+      "end_timestamp": "2026-07-24T07:24:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "群里有人分享宠物领养，我只点开看了一眼。"
+    },
+    {
+      "slice_id": "SL_00001_7157",
+      "timestamp": "2026-07-24T07:27:00+08:00",
+      "end_timestamp": "2026-07-24T07:28:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "家中",
+      "content": "家人问今天几点回，我说要看安排，有变化再联系。"
+    },
+    {
+      "slice_id": "SL_00001_1856",
+      "timestamp": "2026-07-24T07:31:00+08:00",
+      "end_timestamp": "2026-07-24T07:32:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "家中",
+      "content": "我把门卡放回原处，出门前再检查一遍。"
+    },
+    {
+      "slice_id": "SL_00001_2534",
+      "timestamp": "2026-07-24T07:39:00+08:00",
+      "end_timestamp": "2026-07-24T07:40:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "家中",
+      "content": "家人问今天几点回，我说要看安排，有变化再联系。"
+    },
+    {
+      "slice_id": "SL_00001_9495",
+      "timestamp": "2026-07-24T07:43:00+08:00",
+      "end_timestamp": "2026-07-24T07:44:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "天气预报说本市多云，我带了折叠伞。"
+    },
+    {
+      "slice_id": "SL_00001_5919",
+      "timestamp": "2026-07-24T07:47:00+08:00",
+      "end_timestamp": "2026-07-24T07:48:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "家中",
+      "content": "出门前核对门锁，钥匙放在外袋。"
+    },
+    {
+      "slice_id": "SL_00001_4962",
+      "timestamp": "2026-07-24T07:51:00+08:00",
+      "end_timestamp": "2026-07-24T07:52:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "日历提醒整理蓝色文件夹，这只是普通提醒，没有新增工作承诺。"
+    },
+    {
+      "slice_id": "SL_00001_1263",
+      "timestamp": "2026-07-24T07:55:00+08:00",
+      "end_timestamp": "2026-07-24T07:56:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人账户银行已入账回执",
+      "location": "家中",
+      "content": "早餐支付成功，扣款18.00元，此条为实际交易而非优惠宣传。",
+      "transaction": {
+        "transaction_id": "TX_00001_01",
+        "amount_cents": -1800,
+        "currency": "CNY",
+        "status": "SETTLED",
+        "category": "ordinary_expense"
+      }
+    },
+    {
+      "slice_id": "SL_00001_2802",
+      "timestamp": "2026-07-24T07:59:00+08:00",
+      "end_timestamp": "2026-07-24T08:00:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "日历提醒整理蓝色文件夹，这只是普通提醒，没有新增工作承诺。"
+    },
+    {
+      "slice_id": "SL_00001_7513",
+      "timestamp": "2026-07-24T08:03:00+08:00",
+      "end_timestamp": "2026-07-24T08:04:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "通勤路线",
+      "content": "日历提醒整理水杯，这只是普通提醒，没有新增工作承诺。"
+    },
+    {
+      "slice_id": "SL_00001_5295",
+      "timestamp": "2026-07-24T08:07:00+08:00",
+      "end_timestamp": "2026-07-24T08:08:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "通勤路线",
+      "content": "日历提醒整理充电线，这只是普通提醒，没有新增工作承诺。"
+    },
+    {
+      "slice_id": "SL_00001_9489",
+      "timestamp": "2026-07-24T08:11:00+08:00",
+      "end_timestamp": "2026-07-24T08:12:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "通勤路线",
+      "content": "家人问今天几点回，我说要看安排，有变化再联系。"
+    },
+    {
+      "slice_id": "SL_00001_5965",
+      "timestamp": "2026-07-24T08:15:00+08:00",
+      "end_timestamp": "2026-07-24T08:16:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "通勤路线",
+      "content": "早餐后看了两页科普小册子，先不继续看了。"
+    },
+    {
+      "slice_id": "SL_00001_2096",
+      "timestamp": "2026-07-24T08:19:00+08:00",
+      "end_timestamp": "2026-07-24T08:20:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "通勤路线",
+      "content": "群里有人分享周末电影，我只点开看了一眼。"
+    },
+    {
+      "slice_id": "SL_00001_9227",
+      "timestamp": "2026-07-24T08:31:00+08:00",
+      "end_timestamp": "2026-07-24T08:32:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "通勤路线",
+      "content": "早餐后看了两页地方风物志，先不继续看了。"
+    },
+    {
+      "slice_id": "SL_00001_4064",
+      "timestamp": "2026-07-24T08:35:00+08:00",
+      "end_timestamp": "2026-07-24T08:36:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "日常消息摘要",
+      "location": "通勤路线",
+      "content": "出门前核对门锁，钥匙放在外袋。"
+    },
+    {
+      "slice_id": "SL_00001_5373",
+      "timestamp": "2026-07-24T08:39:00+08:00",
+      "end_timestamp": "2026-07-24T08:40:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "通勤路线",
+      "content": "早餐后看了两页科普小册子，先不继续看了。"
+    },
+    {
+      "slice_id": "SL_00001_2401",
+      "timestamp": "2026-07-24T08:43:00+08:00",
+      "end_timestamp": "2026-07-24T08:44:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "通勤路线",
+      "content": "早餐后看了两页建筑速写集，先不继续看了。"
+    },
+    {
+      "slice_id": "SL_00001_9025",
+      "timestamp": "2026-07-24T08:47:00+08:00",
+      "end_timestamp": "2026-07-24T08:48:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "通勤路线",
+      "content": "早餐后看了两页烹饪笔记，先不继续看了。"
+    },
+    {
+      "slice_id": "SL_00001_9519",
+      "timestamp": "2026-07-24T08:51:00+08:00",
+      "end_timestamp": "2026-07-24T08:52:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "通勤路线",
+      "content": "早餐后看了两页摄影入门书，先不继续看了。"
+    },
+    {
+      "slice_id": "SL_00001_9140",
+      "timestamp": "2026-07-24T08:55:00+08:00",
+      "end_timestamp": "2026-07-24T08:56:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "通勤路线",
+      "content": "群里有人分享宠物领养，我只点开看了一眼。"
+    },
+    {
+      "slice_id": "SL_00001_3392",
+      "timestamp": "2026-07-24T09:03:00+08:00",
+      "end_timestamp": "2026-07-24T09:04:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "同事问耳机盒放在哪，我指了指共享柜。"
+    },
+    {
+      "slice_id": "SL_00001_2669",
+      "timestamp": "2026-07-24T09:11:00+08:00",
+      "end_timestamp": "2026-07-24T09:12:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "群里转发某地公司裁员新闻，明确不是本人的工作通知。"
+    },
+    {
+      "slice_id": "SL_00001_4472",
+      "timestamp": "2026-07-24T09:19:00+08:00",
+      "end_timestamp": "2026-07-24T09:20:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "公共日历推送例行系统维护提醒，没有改变个人任务时限。"
+    },
+    {
+      "slice_id": "SL_00001_8317",
+      "timestamp": "2026-07-24T09:23:00+08:00",
+      "end_timestamp": "2026-07-24T09:24:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "合作社办公室",
+      "content": "接了温水，站在窗边活动肩颈一分钟。"
+    },
+    {
+      "slice_id": "SL_00001_3812",
+      "timestamp": "2026-07-24T09:27:00+08:00",
+      "end_timestamp": "2026-07-24T09:28:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "同事讲了城市公共花园的趣闻，大家聊了几句又各自做事。"
+    },
+    {
+      "slice_id": "SL_00001_1929",
+      "timestamp": "2026-07-24T09:31:00+08:00",
+      "end_timestamp": "2026-07-24T09:32:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "合作社办公室",
+      "content": "同事讲了宠物领养的趣闻，大家聊了几句又各自做事。"
+    },
+    {
+      "slice_id": "SL_00001_3777",
+      "timestamp": "2026-07-24T09:35:00+08:00",
+      "end_timestamp": "2026-07-24T09:36:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "同事问周末想不想看展，我说还没决定。"
+    },
+    {
+      "slice_id": "SL_00001_2999",
+      "timestamp": "2026-07-24T09:47:00+08:00",
+      "end_timestamp": "2026-07-24T09:48:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "合作社办公室",
+      "content": "有人转述影视角色分手的剧情，不是在描述本人的关系。"
+    },
+    {
+      "slice_id": "SL_00001_9259",
+      "timestamp": "2026-07-24T09:55:00+08:00",
+      "end_timestamp": "2026-07-24T09:56:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "合作社办公室",
+      "content": "同事问保温杯放在哪，我指了指共享柜。"
+    },
+    {
+      "slice_id": "SL_00001_4195",
+      "timestamp": "2026-07-24T10:03:00+08:00",
+      "end_timestamp": "2026-07-24T10:04:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "把桌上的纸巾收进抽屉，腾出空间。"
+    },
+    {
+      "slice_id": "SL_00001_4250",
+      "timestamp": "2026-07-24T10:11:00+08:00",
+      "end_timestamp": "2026-07-24T10:12:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "工作群提醒文档链接换了路径，内容没有新增决定。"
+    },
+    {
+      "slice_id": "SL_00001_6517",
+      "timestamp": "2026-07-24T10:15:00+08:00",
+      "end_timestamp": "2026-07-24T10:16:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "群里转发某地公司裁员新闻，明确不是本人的工作通知。"
+    },
+    {
+      "slice_id": "SL_00001_7150",
+      "timestamp": "2026-07-24T10:19:00+08:00",
+      "end_timestamp": "2026-07-24T10:20:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "查看一条设备使用说明，暂时没有修改任何设置。"
+    },
+    {
+      "slice_id": "SL_00001_3662",
+      "timestamp": "2026-07-24T10:23:00+08:00",
+      "end_timestamp": "2026-07-24T10:24:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "接了温水，站在窗边活动肩颈一分钟。"
+    },
+    {
+      "slice_id": "SL_00001_8679",
+      "timestamp": "2026-07-24T10:26:00+08:00",
+      "end_timestamp": "2026-07-24T10:27:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "李博桐",
+      "location": "合作社办公室",
+      "content": "李博桐：原定今晚核验供货计划，需要本人在线参加，不能只发附件。"
+    },
+    {
+      "slice_id": "SL_00001_4231",
+      "timestamp": "2026-07-24T10:31:00+08:00",
+      "end_timestamp": "2026-07-24T10:32:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "合作社办公室",
+      "content": "屏幕亮度调低两格，眼睛暂时舒服一些。"
+    },
+    {
+      "slice_id": "SL_00001_3574",
+      "timestamp": "2026-07-24T10:35:00+08:00",
+      "end_timestamp": "2026-07-24T10:36:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "接了温水，站在窗边活动肩颈一分钟。"
+    },
+    {
+      "slice_id": "SL_00001_9254",
+      "timestamp": "2026-07-24T10:39:00+08:00",
+      "end_timestamp": "2026-07-24T10:40:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "核对安排温室蔬菜供货所需资料的一页索引，结果留在笔记里。"
+    },
+    {
+      "slice_id": "SL_00001_5695",
+      "timestamp": "2026-07-24T10:47:00+08:00",
+      "end_timestamp": "2026-07-24T10:48:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "合作社办公室",
+      "content": "同事问周末想不想看展，我说还没决定。"
+    },
+    {
+      "slice_id": "SL_00001_5392",
+      "timestamp": "2026-07-24T10:51:00+08:00",
+      "end_timestamp": "2026-07-24T10:52:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "日常消息摘要",
+      "location": "合作社办公室",
+      "content": "同事讲了宠物领养的趣闻，大家聊了几句又各自做事。"
+    },
+    {
+      "slice_id": "SL_00001_6535",
+      "timestamp": "2026-07-24T10:55:00+08:00",
+      "end_timestamp": "2026-07-24T10:56:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "把桌上的充电线收进抽屉，腾出空间。"
+    },
+    {
+      "slice_id": "SL_00001_2709",
+      "timestamp": "2026-07-24T10:59:00+08:00",
+      "end_timestamp": "2026-07-24T11:00:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "核对安排温室蔬菜供货所需资料的一页索引，结果留在笔记里。"
+    },
+    {
+      "slice_id": "SL_00001_1094",
+      "timestamp": "2026-07-24T11:03:00+08:00",
+      "end_timestamp": "2026-07-24T11:04:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "同事问门卡放在哪，我指了指共享柜。"
+    },
+    {
+      "slice_id": "SL_00001_2453",
+      "timestamp": "2026-07-24T11:07:00+08:00",
+      "end_timestamp": "2026-07-24T11:08:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "合作社办公室",
+      "content": "同事确认会议室的水杯需要回收，我把自己的杯子带走。"
+    },
+    {
+      "slice_id": "SL_00001_1059",
+      "timestamp": "2026-07-24T11:19:00+08:00",
+      "end_timestamp": "2026-07-24T11:20:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "查看一条设备使用说明，暂时没有修改任何设置。"
+    },
+    {
+      "slice_id": "SL_00001_9195",
+      "timestamp": "2026-07-24T11:23:00+08:00",
+      "end_timestamp": "2026-07-24T11:24:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "日常消息摘要",
+      "location": "合作社办公室",
+      "content": "有人转述影视角色分手的剧情，不是在描述本人的关系。"
+    },
+    {
+      "slice_id": "SL_00001_2402",
+      "timestamp": "2026-07-24T11:31:00+08:00",
+      "end_timestamp": "2026-07-24T11:32:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "屏幕亮度调低两格，眼睛暂时舒服一些。"
+    },
+    {
+      "slice_id": "SL_00001_8820",
+      "timestamp": "2026-07-24T11:35:00+08:00",
+      "end_timestamp": "2026-07-24T11:36:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "合作社办公室",
+      "content": "屏幕亮度调低两格，眼睛暂时舒服一些。"
+    },
+    {
+      "slice_id": "SL_00001_6804",
+      "timestamp": "2026-07-24T11:43:00+08:00",
+      "end_timestamp": "2026-07-24T11:44:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "群里转发某地公司裁员新闻，明确不是本人的工作通知。"
+    },
+    {
+      "slice_id": "SL_00001_3588",
+      "timestamp": "2026-07-24T11:47:00+08:00",
+      "end_timestamp": "2026-07-24T11:48:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "日常消息摘要",
+      "location": "合作社办公室",
+      "content": "屏幕亮度调低两格，眼睛暂时舒服一些。"
+    },
+    {
+      "slice_id": "SL_00001_3606",
+      "timestamp": "2026-07-24T11:51:00+08:00",
+      "end_timestamp": "2026-07-24T11:52:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "有人转述影视角色分手的剧情，不是在描述本人的关系。"
+    },
+    {
+      "slice_id": "SL_00001_3283",
+      "timestamp": "2026-07-24T11:55:00+08:00",
+      "end_timestamp": "2026-07-24T11:56:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "核对安排温室蔬菜供货所需资料的一页索引，结果留在笔记里。"
+    },
+    {
+      "slice_id": "SL_00001_2476",
+      "timestamp": "2026-07-24T12:01:00+08:00",
+      "end_timestamp": "2026-07-24T12:02:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人账户银行已入账回执",
+      "location": "午间休息区",
+      "content": "午餐支付成功，扣款18.00元，此条为实际交易而非优惠宣传。",
+      "transaction": {
+        "transaction_id": "TX_00001_02",
+        "amount_cents": -1800,
+        "currency": "CNY",
+        "status": "SETTLED",
+        "category": "ordinary_expense"
+      }
+    },
+    {
+      "slice_id": "SL_00001_1944",
+      "timestamp": "2026-07-24T12:07:00+08:00",
+      "end_timestamp": "2026-07-24T12:08:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "午间休息区",
+      "content": "午休时把外套搭在椅背上，设了一个提醒。"
+    },
+    {
+      "slice_id": "SL_00001_1264",
+      "timestamp": "2026-07-24T12:10:00+08:00",
+      "end_timestamp": "2026-07-24T12:11:00+08:00",
+      "modality": "SENSOR",
+      "speaker_or_source": "手环PPG摘要",
+      "location": "午间休息区",
+      "content": "午间静坐片段心率79bpm，不能据此声称全天所有时刻均平稳。",
+      "measurements": {
+        "heart_rate_bpm": 79,
+        "motion": "seated",
+        "signal_valid": true
+      }
+    },
+    {
+      "slice_id": "SL_00001_8691",
+      "timestamp": "2026-07-24T12:15:00+08:00",
+      "end_timestamp": "2026-07-24T12:16:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "午间休息区",
+      "content": "午休时把外套搭在椅背上，设了一个提醒。"
+    },
+    {
+      "slice_id": "SL_00001_6274",
+      "timestamp": "2026-07-24T12:23:00+08:00",
+      "end_timestamp": "2026-07-24T12:24:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "日常消息摘要",
+      "location": "午间休息区",
+      "content": "看了几分钟短篇小说集的书评，随后锁屏。"
+    },
+    {
+      "slice_id": "SL_00001_9101",
+      "timestamp": "2026-07-24T12:27:00+08:00",
+      "end_timestamp": "2026-07-24T12:28:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "午间休息区",
+      "content": "朋友发来一张旧旅行照片，我回复天气看起来不错。"
+    },
+    {
+      "slice_id": "SL_00001_9342",
+      "timestamp": "2026-07-24T12:31:00+08:00",
+      "end_timestamp": "2026-07-24T12:32:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "午间休息区",
+      "content": "新闻摘要提到自行车保养，没有个人资产交易信息。"
+    },
+    {
+      "slice_id": "SL_00001_8333",
+      "timestamp": "2026-07-24T12:35:00+08:00",
+      "end_timestamp": "2026-07-24T12:36:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "午间休息区",
+      "content": "午休时把外套搭在椅背上，设了一个提醒。"
+    },
+    {
+      "slice_id": "SL_00001_7584",
+      "timestamp": "2026-07-24T12:39:00+08:00",
+      "end_timestamp": "2026-07-24T12:40:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "午间休息区",
+      "content": "食堂排队时聊到自行车保养，没有谈借钱或工作决定。"
+    },
+    {
+      "slice_id": "SL_00001_9766",
+      "timestamp": "2026-07-24T12:43:00+08:00",
+      "end_timestamp": "2026-07-24T12:44:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "午间休息区",
+      "content": "午休时把外套搭在椅背上，设了一个提醒。"
+    },
+    {
+      "slice_id": "SL_00001_6789",
+      "timestamp": "2026-07-24T12:47:00+08:00",
+      "end_timestamp": "2026-07-24T12:48:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "午间休息区",
+      "content": "看了几分钟摄影入门书的书评，随后锁屏。"
+    },
+    {
+      "slice_id": "SL_00001_9103",
+      "timestamp": "2026-07-24T12:51:00+08:00",
+      "end_timestamp": "2026-07-24T12:52:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "午间休息区",
+      "content": "看了几分钟历史人物传记的书评，随后锁屏。"
+    },
+    {
+      "slice_id": "SL_00001_2260",
+      "timestamp": "2026-07-24T12:55:00+08:00",
+      "end_timestamp": "2026-07-24T12:56:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "午间休息区",
+      "content": "收到餐饮订单电子凭证，是已经记账的午餐，不是又买了一次。"
+    },
+    {
+      "slice_id": "SL_00001_5659",
+      "timestamp": "2026-07-24T13:00:00+08:00",
+      "end_timestamp": "2026-07-24T13:01:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "新闻订阅摘要",
+      "location": "合作社办公室",
+      "content": "新闻转述：影视剧里的主角被裁员又失恋。此消息不是关于你或你所在单位的通知。"
+    },
+    {
+      "slice_id": "SL_00001_4740",
+      "timestamp": "2026-07-24T13:03:00+08:00",
+      "end_timestamp": "2026-07-24T13:04:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "有人转述影视角色分手的剧情，不是在描述本人的关系。"
+    },
+    {
+      "slice_id": "SL_00001_4239",
+      "timestamp": "2026-07-24T13:07:00+08:00",
+      "end_timestamp": "2026-07-24T13:08:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "公共日历推送例行系统维护提醒，没有改变个人任务时限。"
+    },
+    {
+      "slice_id": "SL_00001_1668",
+      "timestamp": "2026-07-24T13:10:00+08:00",
+      "end_timestamp": "2026-07-24T13:11:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "结算方留言",
+      "location": "合作社办公室",
+      "content": "上月另一项已完成事务的结算款3800.00元今天安排汇出，与今天的任务不是同一笔。"
+    },
+    {
+      "slice_id": "SL_00001_4363",
+      "timestamp": "2026-07-24T13:15:00+08:00",
+      "end_timestamp": "2026-07-24T13:16:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "有人转述影视角色分手的剧情，不是在描述本人的关系。"
+    },
+    {
+      "slice_id": "SL_00001_1967",
+      "timestamp": "2026-07-24T13:19:00+08:00",
+      "end_timestamp": "2026-07-24T13:20:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "合作社办公室",
+      "content": "把桌上的耳机盒收进抽屉，腾出空间。"
+    },
+    {
+      "slice_id": "SL_00001_5927",
+      "timestamp": "2026-07-24T13:27:00+08:00",
+      "end_timestamp": "2026-07-24T13:28:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "把供货计划的文件名整理成统一格式，没有改变审批状态。"
+    },
+    {
+      "slice_id": "SL_00001_2286",
+      "timestamp": "2026-07-24T13:31:00+08:00",
+      "end_timestamp": "2026-07-24T13:32:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "合作社办公室",
+      "content": "有人转述影视角色分手的剧情，不是在描述本人的关系。"
+    },
+    {
+      "slice_id": "SL_00001_5110",
+      "timestamp": "2026-07-24T13:35:00+08:00",
+      "end_timestamp": "2026-07-24T13:36:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "合作社办公室",
+      "content": "屏幕亮度调低两格，眼睛暂时舒服一些。"
+    },
+    {
+      "slice_id": "SL_00001_3941",
+      "timestamp": "2026-07-24T13:43:00+08:00",
+      "end_timestamp": "2026-07-24T13:44:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "有人转述影视角色分手的剧情，不是在描述本人的关系。"
+    },
+    {
+      "slice_id": "SL_00001_4587",
+      "timestamp": "2026-07-24T13:47:00+08:00",
+      "end_timestamp": "2026-07-24T13:48:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "把供货计划的文件名整理成统一格式，没有改变审批状态。"
+    },
+    {
+      "slice_id": "SL_00001_3495",
+      "timestamp": "2026-07-24T13:51:00+08:00",
+      "end_timestamp": "2026-07-24T13:52:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "日常消息摘要",
+      "location": "合作社办公室",
+      "content": "同事确认会议室的水杯需要回收，我把自己的杯子带走。"
+    },
+    {
+      "slice_id": "SL_00001_4483",
+      "timestamp": "2026-07-24T13:55:00+08:00",
+      "end_timestamp": "2026-07-24T13:56:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "日常消息摘要",
+      "location": "合作社办公室",
+      "content": "接了温水，站在窗边活动肩颈一分钟。"
+    },
+    {
+      "slice_id": "SL_00001_4275",
+      "timestamp": "2026-07-24T13:59:00+08:00",
+      "end_timestamp": "2026-07-24T14:00:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "合作社办公室",
+      "content": "同事问周末想不想看展，我说还没决定。"
+    },
+    {
+      "slice_id": "SL_00001_1891",
+      "timestamp": "2026-07-24T14:03:00+08:00",
+      "end_timestamp": "2026-07-24T14:04:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "核对安排温室蔬菜供货所需资料的一页索引，结果留在笔记里。"
+    },
+    {
+      "slice_id": "SL_00001_4539",
+      "timestamp": "2026-07-24T14:07:00+08:00",
+      "end_timestamp": "2026-07-24T14:08:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "日常消息摘要",
+      "location": "合作社办公室",
+      "content": "同事讲了宠物领养的趣闻，大家聊了几句又各自做事。"
+    },
+    {
+      "slice_id": "SL_00001_2649",
+      "timestamp": "2026-07-24T14:11:00+08:00",
+      "end_timestamp": "2026-07-24T14:12:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "同事讲了学校运动会的趣闻，大家聊了几句又各自做事。"
+    },
+    {
+      "slice_id": "SL_00001_6646",
+      "timestamp": "2026-07-24T14:15:00+08:00",
+      "end_timestamp": "2026-07-24T14:16:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "合作社办公室",
+      "content": "把桌上的耳机盒收进抽屉，腾出空间。"
+    },
+    {
+      "slice_id": "SL_00001_4911",
+      "timestamp": "2026-07-24T14:19:00+08:00",
+      "end_timestamp": "2026-07-24T14:20:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "合作社办公室",
+      "content": "屏幕亮度调低两格，眼睛暂时舒服一些。"
+    },
+    {
+      "slice_id": "SL_00001_7644",
+      "timestamp": "2026-07-24T14:23:00+08:00",
+      "end_timestamp": "2026-07-24T14:24:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "查看一条设备使用说明，暂时没有修改任何设置。"
+    },
+    {
+      "slice_id": "SL_00001_3399",
+      "timestamp": "2026-07-24T14:28:00+08:00",
+      "end_timestamp": "2026-07-24T14:29:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "我今天有工作时限与个人安排的时间冲突，希望明确哪些必须做、哪些可以改期，不想把所有事都拖着。"
+    },
+    {
+      "slice_id": "SL_00001_1080",
+      "timestamp": "2026-07-24T14:31:00+08:00",
+      "end_timestamp": "2026-07-24T14:32:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "合作社办公室",
+      "content": "同事讲了公共图书馆活动的趣闻，大家聊了几句又各自做事。"
+    },
+    {
+      "slice_id": "SL_00001_1765",
+      "timestamp": "2026-07-24T14:35:00+08:00",
+      "end_timestamp": "2026-07-24T14:36:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "合作社办公室",
+      "content": "工作群提醒文档链接换了路径，内容没有新增决定。"
+    },
+    {
+      "slice_id": "SL_00001_5661",
+      "timestamp": "2026-07-24T14:47:00+08:00",
+      "end_timestamp": "2026-07-24T14:48:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "日常消息摘要",
+      "location": "合作社办公室",
+      "content": "屏幕亮度调低两格，眼睛暂时舒服一些。"
+    },
+    {
+      "slice_id": "SL_00001_3797",
+      "timestamp": "2026-07-24T14:51:00+08:00",
+      "end_timestamp": "2026-07-24T14:52:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "接了温水，站在窗边活动肩颈一分钟。"
+    },
+    {
+      "slice_id": "SL_00001_5704",
+      "timestamp": "2026-07-24T14:55:00+08:00",
+      "end_timestamp": "2026-07-24T14:56:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "日常消息摘要",
+      "location": "合作社办公室",
+      "content": "公共日历推送例行系统维护提醒，没有改变个人任务时限。"
+    },
+    {
+      "slice_id": "SL_00001_5800",
+      "timestamp": "2026-07-24T14:59:00+08:00",
+      "end_timestamp": "2026-07-24T15:00:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "核对安排温室蔬菜供货所需资料的一页索引，结果留在笔记里。"
+    },
+    {
+      "slice_id": "SL_00001_1691",
+      "timestamp": "2026-07-24T15:03:00+08:00",
+      "end_timestamp": "2026-07-24T15:04:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "合作社办公室",
+      "content": "核对安排温室蔬菜供货所需资料的一页索引，结果留在笔记里。"
+    },
+    {
+      "slice_id": "SL_00001_7287",
+      "timestamp": "2026-07-24T15:19:00+08:00",
+      "end_timestamp": "2026-07-24T15:20:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "有人转述影视角色分手的剧情，不是在描述本人的关系。"
+    },
+    {
+      "slice_id": "SL_00001_1475",
+      "timestamp": "2026-07-24T15:23:00+08:00",
+      "end_timestamp": "2026-07-24T15:24:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "工作群提醒文档链接换了路径，内容没有新增决定。"
+    },
+    {
+      "slice_id": "SL_00001_1908",
+      "timestamp": "2026-07-24T15:27:00+08:00",
+      "end_timestamp": "2026-07-24T15:28:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "收到共享文档已备份的通知，不代表任务通过。"
+    },
+    {
+      "slice_id": "SL_00001_8792",
+      "timestamp": "2026-07-24T15:31:00+08:00",
+      "end_timestamp": "2026-07-24T15:32:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "李博桐",
+      "location": "合作社办公室",
+      "content": "李博桐：收到你的时间冲突说明，允许改到明天上午；任务保留，不是撤销。"
+    },
+    {
+      "slice_id": "SL_00001_5337",
+      "timestamp": "2026-07-24T15:35:00+08:00",
+      "end_timestamp": "2026-07-24T15:36:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "群里转发某地公司裁员新闻，明确不是本人的工作通知。"
+    },
+    {
+      "slice_id": "SL_00001_9178",
+      "timestamp": "2026-07-24T15:39:00+08:00",
+      "end_timestamp": "2026-07-24T15:40:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "合作社办公室",
+      "content": "屏幕亮度调低两格，眼睛暂时舒服一些。"
+    },
+    {
+      "slice_id": "SL_00001_3190",
+      "timestamp": "2026-07-24T15:43:00+08:00",
+      "end_timestamp": "2026-07-24T15:44:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "合作社办公室",
+      "content": "有人转述影视角色分手的剧情，不是在描述本人的关系。"
+    },
+    {
+      "slice_id": "SL_00001_4047",
+      "timestamp": "2026-07-24T15:47:00+08:00",
+      "end_timestamp": "2026-07-24T15:48:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "合作社办公室",
+      "content": "把桌上的钥匙收进抽屉，腾出空间。"
+    },
+    {
+      "slice_id": "SL_00001_7296",
+      "timestamp": "2026-07-24T15:55:00+08:00",
+      "end_timestamp": "2026-07-24T15:56:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "公共日历推送例行系统维护提醒，没有改变个人任务时限。"
+    },
+    {
+      "slice_id": "SL_00001_2186",
+      "timestamp": "2026-07-24T15:59:00+08:00",
+      "end_timestamp": "2026-07-24T16:00:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "核对安排温室蔬菜供货所需资料的一页索引，结果留在笔记里。"
+    },
+    {
+      "slice_id": "SL_00001_2393",
+      "timestamp": "2026-07-24T16:03:00+08:00",
+      "end_timestamp": "2026-07-24T16:04:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "日常消息摘要",
+      "location": "合作社办公室",
+      "content": "同事确认会议室的水杯需要回收，我把自己的杯子带走。"
+    },
+    {
+      "slice_id": "SL_00001_7798",
+      "timestamp": "2026-07-24T16:07:00+08:00",
+      "end_timestamp": "2026-07-24T16:08:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "有人转述影视角色分手的剧情，不是在描述本人的关系。"
+    },
+    {
+      "slice_id": "SL_00001_1482",
+      "timestamp": "2026-07-24T16:11:00+08:00",
+      "end_timestamp": "2026-07-24T16:12:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "合作社办公室",
+      "content": "核对安排温室蔬菜供货所需资料的一页索引，结果留在笔记里。"
+    },
+    {
+      "slice_id": "SL_00001_7333",
+      "timestamp": "2026-07-24T16:15:00+08:00",
+      "end_timestamp": "2026-07-24T16:16:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "同事问保温杯放在哪，我指了指共享柜。"
+    },
+    {
+      "slice_id": "SL_00001_8845",
+      "timestamp": "2026-07-24T16:19:00+08:00",
+      "end_timestamp": "2026-07-24T16:20:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "合作社办公室",
+      "content": "同事问周末想不想看展，我说还没决定。"
+    },
+    {
+      "slice_id": "SL_00001_2928",
+      "timestamp": "2026-07-24T16:22:00+08:00",
+      "end_timestamp": "2026-07-24T16:23:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人账户银行已入账回执",
+      "location": "合作社办公室",
+      "content": "上月独立结算款3800.00元已实际入账，不是仅有付款承诺。",
+      "transaction": {
+        "transaction_id": "TX_00001_05",
+        "amount_cents": 380000,
+        "currency": "CNY",
+        "status": "SETTLED",
+        "category": "prior_work_income"
+      }
+    },
+    {
+      "slice_id": "SL_00001_4715",
+      "timestamp": "2026-07-24T16:27:00+08:00",
+      "end_timestamp": "2026-07-24T16:28:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "同事问周末想不想看展，我说还没决定。"
+    },
+    {
+      "slice_id": "SL_00001_3012",
+      "timestamp": "2026-07-24T16:31:00+08:00",
+      "end_timestamp": "2026-07-24T16:32:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "把桌上的门卡收进抽屉，腾出空间。"
+    },
+    {
+      "slice_id": "SL_00001_7006",
+      "timestamp": "2026-07-24T16:35:00+08:00",
+      "end_timestamp": "2026-07-24T16:36:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "合作社办公室",
+      "content": "群里转发某地公司裁员新闻，明确不是本人的工作通知。"
+    },
+    {
+      "slice_id": "SL_00001_6161",
+      "timestamp": "2026-07-24T16:39:00+08:00",
+      "end_timestamp": "2026-07-24T16:40:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "合作社办公室",
+      "content": "接了温水，站在窗边活动肩颈一分钟。"
+    },
+    {
+      "slice_id": "SL_00001_6023",
+      "timestamp": "2026-07-24T16:43:00+08:00",
+      "end_timestamp": "2026-07-24T16:44:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "合作社办公室",
+      "content": "有人转述影视角色分手的剧情，不是在描述本人的关系。"
+    },
+    {
+      "slice_id": "SL_00001_4284",
+      "timestamp": "2026-07-24T16:47:00+08:00",
+      "end_timestamp": "2026-07-24T16:48:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "合作社办公室",
+      "content": "把桌上的纸巾收进抽屉，腾出空间。"
+    },
+    {
+      "slice_id": "SL_00001_5242",
+      "timestamp": "2026-07-24T16:51:00+08:00",
+      "end_timestamp": "2026-07-24T16:52:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "合作社办公室",
+      "content": "给供货计划的本地副本加了日期后缀，没有对外发送。"
+    },
+    {
+      "slice_id": "SL_00001_8203",
+      "timestamp": "2026-07-24T17:07:00+08:00",
+      "end_timestamp": "2026-07-24T17:08:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "合作社办公室",
+      "content": "公共日历推送例行系统维护提醒，没有改变个人任务时限。"
+    },
+    {
+      "slice_id": "SL_00001_3907",
+      "timestamp": "2026-07-24T17:15:00+08:00",
+      "end_timestamp": "2026-07-24T17:16:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "把供货计划的文件名整理成统一格式，没有改变审批状态。"
+    },
+    {
+      "slice_id": "SL_00001_7775",
+      "timestamp": "2026-07-24T17:23:00+08:00",
+      "end_timestamp": "2026-07-24T17:24:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "屏幕亮度调低两格，眼睛暂时舒服一些。"
+    },
+    {
+      "slice_id": "SL_00001_1251",
+      "timestamp": "2026-07-24T17:27:00+08:00",
+      "end_timestamp": "2026-07-24T17:28:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "查看一条设备使用说明，暂时没有修改任何设置。"
+    },
+    {
+      "slice_id": "SL_00001_7115",
+      "timestamp": "2026-07-24T17:31:00+08:00",
+      "end_timestamp": "2026-07-24T17:32:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "查看一条设备使用说明，暂时没有修改任何设置。"
+    },
+    {
+      "slice_id": "SL_00001_6878",
+      "timestamp": "2026-07-24T17:35:00+08:00",
+      "end_timestamp": "2026-07-24T17:36:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "合作社办公室",
+      "content": "同事确认会议室的水杯需要回收，我把自己的杯子带走。"
+    },
+    {
+      "slice_id": "SL_00001_6249",
+      "timestamp": "2026-07-24T17:43:00+08:00",
+      "end_timestamp": "2026-07-24T17:44:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "接了温水，站在窗边活动肩颈一分钟。"
+    },
+    {
+      "slice_id": "SL_00001_9830",
+      "timestamp": "2026-07-24T17:47:00+08:00",
+      "end_timestamp": "2026-07-24T17:48:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "同事问周末想不想看展，我说还没决定。"
+    },
+    {
+      "slice_id": "SL_00001_5331",
+      "timestamp": "2026-07-24T17:51:00+08:00",
+      "end_timestamp": "2026-07-24T17:52:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "日常消息摘要",
+      "location": "合作社办公室",
+      "content": "同事问门卡放在哪，我指了指共享柜。"
+    },
+    {
+      "slice_id": "SL_00001_9293",
+      "timestamp": "2026-07-24T17:59:00+08:00",
+      "end_timestamp": "2026-07-24T18:00:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "合作社办公室",
+      "content": "查看一条设备使用说明，暂时没有修改任何设置。"
+    },
+    {
+      "slice_id": "SL_00001_7489",
+      "timestamp": "2026-07-24T18:07:00+08:00",
+      "end_timestamp": "2026-07-24T18:08:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "通勤路线",
+      "content": "收到常用线路到站提醒，按原计划回家。"
+    },
+    {
+      "slice_id": "SL_00001_3983",
+      "timestamp": "2026-07-24T18:11:00+08:00",
+      "end_timestamp": "2026-07-24T18:12:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "通勤路线",
+      "content": "看见站内公益海报讲自行车保养，拍照后没有传播。"
+    },
+    {
+      "slice_id": "SL_00001_7957",
+      "timestamp": "2026-07-24T18:20:00+08:00",
+      "end_timestamp": "2026-07-24T18:21:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "快递柜通知",
+      "location": "通勤路线",
+      "content": "包裹已放入自提柜，是上周已付款的订单，今天没有再次扣款。"
+    },
+    {
+      "slice_id": "SL_00001_4768",
+      "timestamp": "2026-07-24T18:23:00+08:00",
+      "end_timestamp": "2026-07-24T18:24:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "通勤路线",
+      "content": "看见站内公益海报讲宠物领养，拍照后没有传播。"
+    },
+    {
+      "slice_id": "SL_00001_2180",
+      "timestamp": "2026-07-24T18:27:00+08:00",
+      "end_timestamp": "2026-07-24T18:28:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "通勤路线",
+      "content": "朋友问有没有带帆布袋，我回复已经放包里。"
+    },
+    {
+      "slice_id": "SL_00001_6007",
+      "timestamp": "2026-07-24T18:31:00+08:00",
+      "end_timestamp": "2026-07-24T18:32:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "通勤路线",
+      "content": "给家里留言说正在返程，具体到家时间仍以路况为准。"
+    },
+    {
+      "slice_id": "SL_00001_4314",
+      "timestamp": "2026-07-24T18:35:00+08:00",
+      "end_timestamp": "2026-07-24T18:36:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "通勤路线",
+      "content": "天气提示多云，我把伞挪到容易拿的位置。"
+    },
+    {
+      "slice_id": "SL_00001_8081",
+      "timestamp": "2026-07-24T18:39:00+08:00",
+      "end_timestamp": "2026-07-24T18:40:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "通勤路线",
+      "content": "看见站内公益海报讲公共图书馆活动，拍照后没有传播。"
+    },
+    {
+      "slice_id": "SL_00001_6787",
+      "timestamp": "2026-07-24T18:45:00+08:00",
+      "end_timestamp": "2026-07-24T18:46:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人账户银行已入账回执",
+      "location": "通勤路线",
+      "content": "交通支付成功，扣款6.00元，此条为实际交易而非优惠宣传。",
+      "transaction": {
+        "transaction_id": "TX_00001_03",
+        "amount_cents": -600,
+        "currency": "CNY",
+        "status": "SETTLED",
+        "category": "ordinary_expense"
+      }
+    },
+    {
+      "slice_id": "SL_00001_9295",
+      "timestamp": "2026-07-24T18:51:00+08:00",
+      "end_timestamp": "2026-07-24T18:52:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "通勤路线",
+      "content": "天气提示多云，我把伞挪到容易拿的位置。"
+    },
+    {
+      "slice_id": "SL_00001_5079",
+      "timestamp": "2026-07-24T19:03:00+08:00",
+      "end_timestamp": "2026-07-24T19:04:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "同事只发来共享文件的访问确认，不代表新增审批结果。"
+    },
+    {
+      "slice_id": "SL_00001_5972",
+      "timestamp": "2026-07-24T19:07:00+08:00",
+      "end_timestamp": "2026-07-24T19:08:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "整理手机里的重复截图，没有删除重要工作回执。"
+    },
+    {
+      "slice_id": "SL_00001_9116",
+      "timestamp": "2026-07-24T19:12:00+08:00",
+      "end_timestamp": "2026-07-24T19:13:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人账户银行已入账回执",
+      "location": "家中",
+      "content": "晚餐支付成功，扣款22.00元，此条为实际交易而非优惠宣传。",
+      "transaction": {
+        "transaction_id": "TX_00001_04",
+        "amount_cents": -2200,
+        "currency": "CNY",
+        "status": "SETTLED",
+        "category": "ordinary_expense"
+      }
+    },
+    {
+      "slice_id": "SL_00001_6799",
+      "timestamp": "2026-07-24T19:15:00+08:00",
+      "end_timestamp": "2026-07-24T19:16:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "家中",
+      "content": "朋友分享一条电影评论，我说等周末再看，不是约定今晚出门。"
+    },
+    {
+      "slice_id": "SL_00001_3285",
+      "timestamp": "2026-07-24T19:19:00+08:00",
+      "end_timestamp": "2026-07-24T19:20:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "家中",
+      "content": "把一本文学杂志放回书架，手机切到免打扰但保留紧急联系人。"
+    },
+    {
+      "slice_id": "SL_00001_9349",
+      "timestamp": "2026-07-24T19:23:00+08:00",
+      "end_timestamp": "2026-07-24T19:24:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "在家做一道数独，只完成一部分就停下了。"
+    },
+    {
+      "slice_id": "SL_00001_2935",
+      "timestamp": "2026-07-24T19:31:00+08:00",
+      "end_timestamp": "2026-07-24T19:32:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "把下午的待办检查一遍，没有把未完成项勾成完成。"
+    },
+    {
+      "slice_id": "SL_00001_5289",
+      "timestamp": "2026-07-24T19:35:00+08:00",
+      "end_timestamp": "2026-07-24T19:36:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "朋友分享一条电影评论，我说等周末再看，不是约定今晚出门。"
+    },
+    {
+      "slice_id": "SL_00001_3800",
+      "timestamp": "2026-07-24T19:39:00+08:00",
+      "end_timestamp": "2026-07-24T19:40:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "日历只提醒明日天气，没有新的财务或工作决定。"
+    },
+    {
+      "slice_id": "SL_00001_4096",
+      "timestamp": "2026-07-24T19:45:00+08:00",
+      "end_timestamp": "2026-07-24T19:46:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "杨可竹",
+      "location": "家中",
+      "content": "杨可竹：能不能今天再陪我忙一晚上？你不来是不是就不把我当朋友了？"
+    },
+    {
+      "slice_id": "SL_00001_4331",
+      "timestamp": "2026-07-24T19:50:00+08:00",
+      "end_timestamp": "2026-07-24T19:51:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "我已取回上周付款的包裹，里面是日用品，不是今天的新购物订单。"
+    },
+    {
+      "slice_id": "SL_00001_5823",
+      "timestamp": "2026-07-24T19:55:00+08:00",
+      "end_timestamp": "2026-07-24T19:56:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "家中",
+      "content": "把音乐访谈录放回书架，手机切到免打扰但保留紧急联系人。"
+    },
+    {
+      "slice_id": "SL_00001_2692",
+      "timestamp": "2026-07-24T20:03:00+08:00",
+      "end_timestamp": "2026-07-24T20:04:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "日常消息摘要",
+      "location": "家中",
+      "content": "查看包裹柜提醒，是上周已付款的小物件，没有新增扣款。"
+    },
+    {
+      "slice_id": "SL_00001_1477",
+      "timestamp": "2026-07-24T20:07:00+08:00",
+      "end_timestamp": "2026-07-24T20:08:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "日历只提醒明日天气，没有新的财务或工作决定。"
+    },
+    {
+      "slice_id": "SL_00001_1193",
+      "timestamp": "2026-07-24T20:11:00+08:00",
+      "end_timestamp": "2026-07-24T20:12:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "把明天要用的笔记本放到桌边，尚未出门办理任何事。"
+    },
+    {
+      "slice_id": "SL_00001_1494",
+      "timestamp": "2026-07-24T20:15:00+08:00",
+      "end_timestamp": "2026-07-24T20:16:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "新闻推送提到河道生态，只读摘要没有采取行动。"
+    },
+    {
+      "slice_id": "SL_00001_6138",
+      "timestamp": "2026-07-24T20:27:00+08:00",
+      "end_timestamp": "2026-07-24T20:28:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "日常消息摘要",
+      "location": "家中",
+      "content": "听完一首轻音乐后暂停播放，房间保持安静。"
+    },
+    {
+      "slice_id": "SL_00001_4197",
+      "timestamp": "2026-07-24T20:31:00+08:00",
+      "end_timestamp": "2026-07-24T20:32:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "家中",
+      "content": "查看包裹柜提醒，是上周已付款的小物件，没有新增扣款。"
+    },
+    {
+      "slice_id": "SL_00001_5348",
+      "timestamp": "2026-07-24T20:35:00+08:00",
+      "end_timestamp": "2026-07-24T20:36:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "朋友分享一条电影评论，我说等周末再看，不是约定今晚出门。"
+    },
+    {
+      "slice_id": "SL_00001_6978",
+      "timestamp": "2026-07-24T20:42:00+08:00",
+      "end_timestamp": "2026-07-24T20:43:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "杨可竹",
+      "location": "家中",
+      "content": "杨可竹：我接受你今晚没空，我们没有绝交，周末再约，不用为了证明关系硬撑。"
+    },
+    {
+      "slice_id": "SL_00001_1047",
+      "timestamp": "2026-07-24T20:47:00+08:00",
+      "end_timestamp": "2026-07-24T20:48:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "家中",
+      "content": "给杯子续了一点温水，准备继续休息。"
+    },
+    {
+      "slice_id": "SL_00001_3960",
+      "timestamp": "2026-07-24T20:51:00+08:00",
+      "end_timestamp": "2026-07-24T20:52:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "听完一首轻音乐后暂停播放，房间保持安静。"
+    },
+    {
+      "slice_id": "SL_00001_8761",
+      "timestamp": "2026-07-24T20:55:00+08:00",
+      "end_timestamp": "2026-07-24T20:56:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "刚被质问时有压力，对方接受以后放松了，也不用内疚到答应所有事情。"
+    },
+    {
+      "slice_id": "SL_00001_7839",
+      "timestamp": "2026-07-24T20:59:00+08:00",
+      "end_timestamp": "2026-07-24T21:00:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "把下午的待办检查一遍，没有把未完成项勾成完成。"
+    },
+    {
+      "slice_id": "SL_00001_8818",
+      "timestamp": "2026-07-24T21:05:00+08:00",
+      "end_timestamp": "2026-07-24T21:06:00+08:00",
+      "modality": "SENSOR",
+      "speaker_or_source": "手环PPG摘要",
+      "location": "家中",
+      "content": "晚间静坐测得心率80bpm，接触有效；该片段没有明显心率激增。",
+      "measurements": {
+        "heart_rate_bpm": 80,
+        "motion": "seated",
+        "signal_valid": true
+      }
+    },
+    {
+      "slice_id": "SL_00001_6048",
+      "timestamp": "2026-07-24T21:11:00+08:00",
+      "end_timestamp": "2026-07-24T21:12:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "家中",
+      "content": "新闻推送提到地方小吃，只读摘要没有采取行动。"
+    },
+    {
+      "slice_id": "SL_00001_1229",
+      "timestamp": "2026-07-24T21:15:00+08:00",
+      "end_timestamp": "2026-07-24T21:16:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "家中",
+      "content": "日历只提醒明日天气，没有新的财务或工作决定。"
+    },
+    {
+      "slice_id": "SL_00001_8274",
+      "timestamp": "2026-07-24T21:19:00+08:00",
+      "end_timestamp": "2026-07-24T21:20:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "把科普小册子放回书架，手机切到免打扰但保留紧急联系人。"
+    },
+    {
+      "slice_id": "SL_00001_7625",
+      "timestamp": "2026-07-24T21:31:00+08:00",
+      "end_timestamp": "2026-07-24T21:32:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "听完一首轻音乐后暂停播放，房间保持安静。"
+    },
+    {
+      "slice_id": "SL_00001_1621",
+      "timestamp": "2026-07-24T21:39:00+08:00",
+      "end_timestamp": "2026-07-24T21:40:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "日常消息摘要",
+      "location": "家中",
+      "content": "朋友分享一条电影评论，我说等周末再看，不是约定今晚出门。"
+    },
+    {
+      "slice_id": "SL_00001_1043",
+      "timestamp": "2026-07-24T21:55:00+08:00",
+      "end_timestamp": "2026-07-24T21:56:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "日历只提醒明日天气，没有新的财务或工作决定。"
+    },
+    {
+      "slice_id": "SL_00001_6443",
+      "timestamp": "2026-07-24T22:03:00+08:00",
+      "end_timestamp": "2026-07-24T22:04:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "新闻推送提到城市公共花园，只读摘要没有采取行动。"
+    },
+    {
+      "slice_id": "SL_00001_9258",
+      "timestamp": "2026-07-24T22:08:00+08:00",
+      "end_timestamp": "2026-07-24T22:09:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "因为今晚需要遵守约定的个人休息边界，而工作也不能没有交代，我决定使用已经批准的改期，把明天核验写进待办；这是接下来的安排，不是说所有待办已经完成。"
+    },
+    {
+      "slice_id": "SL_00001_4808",
+      "timestamp": "2026-07-24T22:23:00+08:00",
+      "end_timestamp": "2026-07-24T22:24:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "家中",
+      "content": "同事只发来共享文件的访问确认，不代表新增审批结果。"
+    },
+    {
+      "slice_id": "SL_00001_7922",
+      "timestamp": "2026-07-24T22:27:00+08:00",
+      "end_timestamp": "2026-07-24T22:28:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "把明天要用的门卡放到桌边，尚未出门办理任何事。"
+    },
+    {
+      "slice_id": "SL_00001_6832",
+      "timestamp": "2026-07-24T22:35:00+08:00",
+      "end_timestamp": "2026-07-24T22:36:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "在家做一道数独，只完成一部分就停下了。"
+    },
+    {
+      "slice_id": "SL_00001_4580",
+      "timestamp": "2026-07-24T22:39:00+08:00",
+      "end_timestamp": "2026-07-24T22:40:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "把明天要用的充电线放到桌边，尚未出门办理任何事。"
+    },
+    {
+      "slice_id": "SL_00001_1996",
+      "timestamp": "2026-07-24T22:47:00+08:00",
+      "end_timestamp": "2026-07-24T22:48:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "给纸巾换了存放位置，方便明早寻找。"
+    },
+    {
+      "slice_id": "SL_00001_2448",
+      "timestamp": "2026-07-24T22:51:00+08:00",
+      "end_timestamp": "2026-07-24T22:52:00+08:00",
+      "modality": "USER_NOTE",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "整理手机里的重复截图，没有删除重要工作回执。"
+    },
+    {
+      "slice_id": "SL_00001_2376",
+      "timestamp": "2026-07-24T22:55:00+08:00",
+      "end_timestamp": "2026-07-24T22:56:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "个人备忘录",
+      "location": "家中",
+      "content": "新闻推送提到地方小吃，只读摘要没有采取行动。"
+    },
+    {
+      "slice_id": "SL_00001_1776",
+      "timestamp": "2026-07-24T23:07:00+08:00",
+      "end_timestamp": "2026-07-24T23:08:00+08:00",
+      "modality": "MIC",
+      "speaker_or_source": "赵安宇",
+      "location": "家中",
+      "content": "同事只发来共享文件的访问确认，不代表新增审批结果。"
+    },
+    {
+      "slice_id": "SL_00001_6949",
+      "timestamp": "2026-07-24T23:11:00+08:00",
+      "end_timestamp": "2026-07-24T23:12:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "日常消息摘要",
+      "location": "家中",
+      "content": "给杯子续了一点温水，准备继续休息。"
+    },
+    {
+      "slice_id": "SL_00001_4713",
+      "timestamp": "2026-07-24T23:15:00+08:00",
+      "end_timestamp": "2026-07-24T23:16:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "家中",
+      "content": "整理手机里的重复截图，没有删除重要工作回执。"
+    },
+    {
+      "slice_id": "SL_00001_2869",
+      "timestamp": "2026-07-24T23:19:00+08:00",
+      "end_timestamp": "2026-07-24T23:20:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "已清洗通知摘要",
+      "location": "家中",
+      "content": "同事只发来共享文件的访问确认，不代表新增审批结果。"
+    },
+    {
+      "slice_id": "SL_00001_8830",
+      "timestamp": "2026-07-24T23:25:00+08:00",
+      "end_timestamp": "2026-07-25T00:00:00+08:00",
+      "modality": "APP",
+      "speaker_or_source": "银行与个人账本日终对账",
+      "location": "家中",
+      "content": "日终核对本题完整账户：余额30205.00元，借款本金0.00元；普通餐饮交通实际支出64.00元。所有实际交易已列出，待审、承诺、试算金额均未入账，23:25至日界无额外交易。",
+      "measurements": {
+        "cash_balance_cents": 3020500,
+        "loan_principal_cents": 0,
+        "ordinary_expense_cents": 6400,
+        "net_cashflow_cents": 373600,
+        "reconciled_through": "2026-07-25T00:00:00+08:00"
+      }
+    },
+    {
+      "slice_id": "SL_00001_5914",
+      "timestamp": "2026-07-24T23:28:00+08:00",
+      "end_timestamp": "2026-07-25T00:00:00+08:00",
+      "modality": "SENSOR",
+      "speaker_or_source": "手环日界宏观摘要",
+      "location": "家中",
+      "content": "全天步数6043步；之后到日界未新增计步。步数不能独立证明做过特定运动或发生了跌倒。",
+      "measurements": {
+        "steps": 6043,
+        "coverage_start": "2026-07-24T00:00:00+08:00",
+        "coverage_end": "2026-07-25T00:00:00+08:00"
+      }
+    },
+    {
+      "slice_id": "SL_00001_5748",
+      "timestamp": "2026-07-24T23:30:00+08:00",
+      "end_timestamp": "2026-07-25T00:00:00+08:00",
+      "modality": "SENSOR",
+      "speaker_or_source": "手环日界摘要",
+      "location": "家中",
+      "content": "23:30上床准备休息；到24:00没有新增可辨识语音、消息或交易。仅记录安静休息，尚不能判断下一夜睡眠总时长。",
+      "measurements": {
+        "motion": "resting",
+        "next_night_sleep_minutes": null
+      }
+    }
+  ],
+  "directional_ground_truth": {
+    "global_daily_summary": {
+      "semantic_core_anchors": [
+        {
+          "anchor_id": "AN_b5188919db7fb16c",
+          "semantic_intent": "CROSS_DIMENSION_DAILY_ARC",
+          "core_claim": "白天供货计划因时间冲突获准延期到明天，任务没有取消；晚间与杨可竹协商并接受今晚的时间边界，友谊没有破裂。在工作时限与个人关系或照护安排之间，本人明确选择使用已经批准的改期，把明天核验写进待办，以便遵守约定的个人休息边界。情绪表现为先感到人情压力，边界被接受后缓解；前夜有效睡眠443分钟；晨午晚已记录的静坐心率片段无明显突升，不能仅因关系或工作压力推断生理危象。财务主变化为上月独立结算款3800.00元实际到账，不能据此认定今天工作已验收。",
+          "acceptable_directions": [
+            "同时抓住‘供货计划因时间冲突获准延期到明天，任务没有取消’与‘与杨可竹协商并接受今晚的时间边界，友谊没有破裂’并说明时间取舍",
+            "围绕工作最终状态、人际转折和‘使用已经批准的改期，把明天核验写进待办’组织主线",
+            "可先讲人际或健康，再回溯工作，但必须保留最终状态、现金事实和明确的行动取舍"
+          ],
+          "required_entities": [
+            "赵安宇",
+            "李博桐",
+            "杨可竹"
+          ],
+          "evidence_slice_ids": [
+            "SL_00001_8679",
+            "SL_00001_8792",
+            "SL_00001_4096",
+            "SL_00001_6978",
+            "SL_00001_8761",
+            "SL_00001_6737",
+            "SL_00001_8204",
+            "SL_00001_1264",
+            "SL_00001_8818",
+            "SL_00001_1668",
+            "SL_00001_2928",
+            "SL_00001_8830",
+            "SL_00001_9258"
+          ],
+          "structured_anchors": []
+        }
+      ],
+      "redline_criteria": [
+        {
+          "contradicted_claim": "将关键事项的最终状态翻转、将别人的新闻当作本人经历，或把待办全部改写为已经完成",
+          "severity": "VETO",
+          "application_rule": "仅肯定性断言与最终证据相反时触发；不得用禁词或子串匹配",
+          "evidence_slice_ids": [
+            "SL_00001_8679",
+            "SL_00001_8792",
+            "SL_00001_4096",
+            "SL_00001_6978",
+            "SL_00001_8761",
+            "SL_00001_6737",
+            "SL_00001_8204",
+            "SL_00001_1264",
+            "SL_00001_8818",
+            "SL_00001_1668",
+            "SL_00001_2928",
+            "SL_00001_8830",
+            "SL_00001_9258"
+          ]
+        }
+      ],
+      "grading_notes": [
+        "按事实方向、状态、主体、先后关系与证据判断，不要求逐字命中参考摘要或同义词。",
+        "红线只在模型肯定了与证据矛盾的命题时触发；引用、否定、假设中的相同词语不构成违规。",
+        "可以省略普通日常，不能将转述新闻当作本人经历，也不能把计划、申请或承诺改写为完成。"
+      ],
+      "causal_constraints": [
+        {
+          "relation": "EXPLICIT_SELF_ATTRIBUTION",
+          "claim": "本人说明为了遵守约定的个人休息边界而选择使用已经批准的改期，把明天核验写进待办",
+          "cause_evidence_slice_ids": [
+            "SL_00001_6978"
+          ],
+          "effect_evidence_slice_ids": [
+            "SL_00001_9258"
+          ]
+        },
+        {
+          "relation": "TEMPORAL_ASSOCIATION_NOT_DIAGNOSIS",
+          "claim": "关系变化、自述情绪和体征各有来源，不得把同日先后强行升级成医学因果或确诊",
+          "cause_evidence_slice_ids": [
+            "SL_00001_8761"
+          ],
+          "effect_evidence_slice_ids": [
+            "SL_00001_6737",
+            "SL_00001_8204",
+            "SL_00001_1264",
+            "SL_00001_8818"
+          ]
+        }
+      ]
+    },
+    "dim:health": {
+      "semantic_core_anchors": [
+        {
+          "anchor_id": "AN_df055afeceddc43e",
+          "semantic_intent": "HEALTH_STABLE",
+          "core_claim": "前夜有效睡眠443分钟；晨午晚已记录的静坐心率片段无明显突升，不能仅因关系或工作压力推断生理危象",
+          "acceptable_directions": [
+            "有心理压力但已测心率相对平稳",
+            "情绪与已测体征不混同",
+            "未见明显异常不等于全天绝对无风险"
+          ],
+          "required_entities": [
+            "赵安宇"
+          ],
+          "evidence_slice_ids": [
+            "SL_00001_6737",
+            "SL_00001_8204",
+            "SL_00001_1264",
+            "SL_00001_8818",
+            "SL_00001_5914"
+          ],
+          "structured_anchors": [
+            {
+              "field": "morning_heart_rate_bpm",
+              "value": 74,
+              "source_slice_id": "SL_00001_8204"
+            },
+            {
+              "field": "sleep_minutes",
+              "value": 443,
+              "source_slice_id": "SL_00001_6737"
+            },
+            {
+              "field": "steps",
+              "value": 6043,
+              "source_slice_id": "SL_00001_5914"
+            }
+          ]
+        }
+      ],
+      "redline_criteria": [
+        {
+          "contradicted_claim": "凭生活压力捏造125bpm静息峰值、确诊心梗，或把有限片段概括为所有时刻绝对安全",
+          "severity": "VETO",
+          "application_rule": "仅肯定性断言与最终证据相反时触发；不得用禁词或子串匹配",
+          "evidence_slice_ids": [
+            "SL_00001_6737",
+            "SL_00001_8204",
+            "SL_00001_1264",
+            "SL_00001_8818"
+          ]
+        }
+      ],
+      "grading_notes": [
+        "按事实方向、状态、主体、先后关系与证据判断，不要求逐字命中参考摘要或同义词。",
+        "红线只在模型肯定了与证据矛盾的命题时触发；引用、否定、假设中的相同词语不构成违规。",
+        "可以省略普通日常，不能将转述新闻当作本人经历，也不能把计划、申请或承诺改写为完成。"
+      ]
+    },
+    "dim:social": {
+      "semantic_core_anchors": [
+        {
+          "anchor_id": "AN_61d3114e2c5b0896",
+          "semantic_intent": "FRIEND_BOUNDARY_ACCEPTED",
+          "core_claim": "与杨可竹协商并接受今晚的时间边界，友谊没有破裂",
+          "acceptable_directions": [
+            "拒绝临时陪同但保持友谊",
+            "朋友接受边界",
+            "协调时间而非绝交"
+          ],
+          "required_entities": [
+            "赵安宇",
+            "杨可竹"
+          ],
+          "evidence_slice_ids": [
+            "SL_00001_4096",
+            "SL_00001_6978"
+          ],
+          "structured_anchors": []
+        }
+      ],
+      "redline_criteria": [
+        {
+          "contradicted_claim": "说双方绝交，或本人已承诺陪朋友通宵",
+          "severity": "VETO",
+          "application_rule": "仅肯定性断言与最终证据相反时触发；不得用禁词或子串匹配",
+          "evidence_slice_ids": [
+            "SL_00001_4096",
+            "SL_00001_6978"
+          ]
+        }
+      ],
+      "grading_notes": [
+        "按事实方向、状态、主体、先后关系与证据判断，不要求逐字命中参考摘要或同义词。",
+        "红线只在模型肯定了与证据矛盾的命题时触发；引用、否定、假设中的相同词语不构成违规。",
+        "可以省略普通日常，不能将转述新闻当作本人经历，也不能把计划、申请或承诺改写为完成。"
+      ]
+    },
+    "dim:emotion": {
+      "semantic_core_anchors": [
+        {
+          "anchor_id": "AN_8a7995551091e378",
+          "semantic_intent": "EMOTION_FRIEND_BOUNDARY",
+          "core_claim": "先感到人情压力，边界被接受后缓解",
+          "acceptable_directions": [
+            "人情焦虑后缓解",
+            "拒绝后减轻内疚",
+            "建立边界带来放松"
+          ],
+          "required_entities": [
+            "赵安宇"
+          ],
+          "evidence_slice_ids": [
+            "SL_00001_4096",
+            "SL_00001_6978",
+            "SL_00001_8761"
+          ],
+          "structured_anchors": []
+        }
+      ],
+      "redline_criteria": [
+        {
+          "contradicted_claim": "把有时间变化的自述情绪写成全天完全相反的情绪，或从这些语句直接确诊精神疾病",
+          "severity": "VETO",
+          "application_rule": "仅肯定性断言与最终证据相反时触发；不得用禁词或子串匹配",
+          "evidence_slice_ids": [
+            "SL_00001_4096",
+            "SL_00001_6978",
+            "SL_00001_8761"
+          ]
+        }
+      ],
+      "grading_notes": [
+        "按事实方向、状态、主体、先后关系与证据判断，不要求逐字命中参考摘要或同义词。",
+        "红线只在模型肯定了与证据矛盾的命题时触发；引用、否定、假设中的相同词语不构成违规。",
+        "可以省略普通日常，不能将转述新闻当作本人经历，也不能把计划、申请或承诺改写为完成。"
+      ]
+    },
+    "dim:finance": {
+      "semantic_core_anchors": [
+        {
+          "anchor_id": "AN_05bf1b8760af8b50",
+          "semantic_intent": "FINANCE_INCOMING_SETTLED",
+          "core_claim": "上月独立结算款3800.00元实际到账，不能据此认定今天工作已验收；普通消费64.00元，日终余额30205.00元，本金负债0.00元",
+          "acceptable_directions": [
+            "往期结算款实际到账",
+            "已收到款项而非只有承诺",
+            "收入确认但不代表今日任务完成"
+          ],
+          "required_entities": [
+            "赵安宇"
+          ],
+          "evidence_slice_ids": [
+            "SL_00001_1965",
+            "SL_00001_1668",
+            "SL_00001_2928",
+            "SL_00001_1263",
+            "SL_00001_2476",
+            "SL_00001_6787",
+            "SL_00001_9116",
+            "SL_00001_8830"
+          ],
+          "structured_anchors": [
+            {
+              "field": "day_end_cash_balance_cents",
+              "value": 3020500,
+              "source_slice_id": "SL_00001_8830"
+            },
+            {
+              "field": "day_end_loan_principal_cents",
+              "value": 0,
+              "source_slice_id": "SL_00001_8830"
+            },
+            {
+              "field": "ordinary_expense_cents",
+              "value": 6400,
+              "source_slice_id": "SL_00001_8830"
+            }
+          ]
+        }
+      ],
+      "redline_criteria": [
+        {
+          "contradicted_claim": "说只是口头承诺尚未到账，或由旧款到账推断今日任务全部验收",
+          "severity": "VETO",
+          "application_rule": "仅肯定性断言与最终证据相反时触发；不得用禁词或子串匹配",
+          "evidence_slice_ids": [
+            "SL_00001_1965",
+            "SL_00001_1668",
+            "SL_00001_2928",
+            "SL_00001_1263",
+            "SL_00001_2476",
+            "SL_00001_6787",
+            "SL_00001_9116",
+            "SL_00001_8830"
+          ]
+        }
+      ],
+      "grading_notes": [
+        "按事实方向、状态、主体、先后关系与证据判断，不要求逐字命中参考摘要或同义词。",
+        "红线只在模型肯定了与证据矛盾的命题时触发；引用、否定、假设中的相同词语不构成违规。",
+        "可以省略普通日常，不能将转述新闻当作本人经历，也不能把计划、申请或承诺改写为完成。"
+      ]
+    },
+    "dim:career": {
+      "semantic_core_anchors": [
+        {
+          "anchor_id": "AN_3d3a0f0d841dfb62",
+          "semantic_intent": "DEADLINE_RESCHEDULED",
+          "core_claim": "供货计划因时间冲突获准延期到明天，任务没有取消；最终个人安排为使用已经批准的改期，把明天核验写进待办",
+          "acceptable_directions": [
+            "协商延期而非弃单",
+            "工作保留并调整时限",
+            "时间冲突通过改期处理"
+          ],
+          "required_entities": [
+            "赵安宇",
+            "李博桐"
+          ],
+          "evidence_slice_ids": [
+            "SL_00001_8679",
+            "SL_00001_3399",
+            "SL_00001_8792",
+            "SL_00001_9258"
+          ],
+          "structured_anchors": []
+        }
+      ],
+      "redline_criteria": [
+        {
+          "contradicted_claim": "声称已完成今晚核验，或任务被永久取消",
+          "severity": "VETO",
+          "application_rule": "仅肯定性断言与最终证据相反时触发；不得用禁词或子串匹配",
+          "evidence_slice_ids": [
+            "SL_00001_8679",
+            "SL_00001_3399",
+            "SL_00001_8792",
+            "SL_00001_9258"
+          ]
+        }
+      ],
+      "grading_notes": [
+        "按事实方向、状态、主体、先后关系与证据判断，不要求逐字命中参考摘要或同义词。",
+        "红线只在模型肯定了与证据矛盾的命题时触发；引用、否定、假设中的相同词语不构成违规。",
+        "可以省略普通日常，不能将转述新闻当作本人经历，也不能把计划、申请或承诺改写为完成。"
+      ]
+    }
+  }
+}
