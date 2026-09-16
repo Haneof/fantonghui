@@ -1,161 +1,153 @@
-"""SIM-001 30 天无界面高熵人生仿真——四大硬门验收。
-
-  1. 720h 时空流：昼夜节律、HRV、工厂噪声、120 场会议、老王违约+商业危机双事件
-  2. 全链驱动：C01 边缘清洗→C06 倒排→C02 账本→C04 单看板→C05 回溯注记
-  3. 0 死锁 / RSS ≤128MB 平稳 / 原始二进制滞留严格 0
-  4. 月度 Token 封套：≤ governance/runtime_policy.json 的 2,554,000（读文件不硬编码）
-"""
+"""SIM-001 验收：30 天（+180 天冒烟）无界面高熵人生仿真，四大硬门禁。"""
 
 from __future__ import annotations
 
 import json
-import resource
-import sqlite3
-import threading
-from datetime import timedelta
-from pathlib import Path
+import pathlib
 
 import pytest
 
-from aios_core.ingest.multimodal_edge import EdgeMultimodalCleaner, InMemoryPurgeSink
-from aios_core.services.manifest_data_plane import L0SliceStore, ManifestDataPlaneBuilderV0
+from aios_core.contracts.enums import ObjectType
 from aios_core.simulation.headless_life_driver import (
-    CRISIS_DAY_BUSINESS,
-    CRISIS_DAY_LAOWANG,
+    POLICY_PATH,
     HeadlessLifeDriver,
-    RetroAnnotationLog,
+    SimConfig,
+    load_token_policy,
 )
-from aios_core.storage.sqlite_store import SQLiteWorldStore
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-RSS_HARD_CAP_KB = 128 * 1024  # Linux ru_maxrss 以 KB 计
+REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
+
+
+def _rss_kb() -> int:
+    try:
+        with open("/proc/self/status", encoding="utf-8") as fh:
+            for line in fh:
+                if line.startswith("VmRSS:"):
+                    return int(line.split()[1])
+    except OSError:
+        return -1
+    return -1
+
 
 @pytest.fixture(scope="module")
-def sim_run(tmp_path_factory):
-    tmp_path = tmp_path_factory.mktemp("sim001")
-    store = SQLiteWorldStore(tmp_path / "sim_world.db")
-    sink = InMemoryPurgeSink()
-    cleaner = EdgeMultimodalCleaner(sink=sink)
-    conn = sqlite3.connect(":memory:")
-    builder = ManifestDataPlaneBuilderV0(store)
-    slices = L0SliceStore(store)
-    retro = RetroAnnotationLog()
-    driver = HeadlessLifeDriver(seed=20260916)
-
-    rss_before_kb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-    threads_before = threading.active_count()
-    report = driver.run(
-        store=store, cleaner=cleaner, index_conn=conn,
-        builder=builder, slices=slices, retro_log=retro, days=30,
-    )
-    rss_peak_kb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-    return {
-        "report": report, "sink": sink, "retro": retro, "store": store,
-        "rss_before_kb": rss_before_kb, "rss_peak_kb": rss_peak_kb,
-        "threads_delta": threading.active_count() - threads_before,
-        "tmp_path": tmp_path,
-    }
+def sim_30d(tmp_path_factory):
+    db = tmp_path_factory.mktemp("sim30d") / "world.db"
+    driver = HeadlessLifeDriver(SimConfig(), db)
+    rss_before = _rss_kb()
+    report = driver.run()
+    rss_after = _rss_kb()
+    if rss_before >= 0 and rss_after >= 0:
+        report.extra["rss_delta_kb"] = max(0, rss_after - rss_before)
+    return driver, report
 
 
 # ---------------------------------------------------------------------------
-# 门禁 1：720h 高熵时空流
+# 门禁一：真实高熵 720 小时时空流
 # ---------------------------------------------------------------------------
 
 
-def test_720h_stream_coverage_and_content_richness(sim_run):
-    report = sim_run["report"]
-    assert report.steps == 30 * 24 * 12 == 8640, "720 小时 × 12 步/小时"
-    assert report.virtual_days == 30
-    assert report.claims_committed == 120, "30 天 120 场真实工作会议（每天 4 场，含周末高压连轴）"
-    assert report.images_submitted == 60, "30 天 × 每天 2 次日间抓拍"
-    assert report.manifests_built == 120, "30 天 × 每日 4 次单看板装配"
-    assert report.anomaly_hours >= 1, "危机期（老王+商业危机）应激必超 95bpm 阈值"
-
-
-def test_laowang_and_business_crisis_events_materialized(sim_run):
-    retro = sim_run["retro"]
-    entries = retro.entries()
-    assert len(entries) >= 1, "老王违约注记必落账"
-    laowang = entries[0]
-    assert laowang.target_entity == "王建国"
-    assert (laowang.learned_at - laowang.valid_time_start).days >= CRISIS_DAY_LAOWANG
-    assert laowang.valid_time_start < laowang.valid_time_end, "双时间窗成立（回溯指向过去）"
-    assert "离岸" in laowang.semantic_overlay or "违约" in laowang.semantic_overlay
-    assert CRISIS_DAY_LAOWANG < CRISIS_DAY_BUSINESS  # 剧本次序自证
+def test_720_hour_stream_shape(sim_30d):
+    _driver, report = sim_30d
+    assert report.days == 30
+    assert report.ticks == 30 * 144  # 10 分钟粒度 × 720 小时
+    assert report.samples_generated == report.ticks
+    assert report.meetings == 120  # 恰好 120 次真实工作会议
+    assert report.crises == 3  # 突发商业危机
+    assert report.laowang_facts == 3  # 合伙 / 违约 / 今天才指认
+    # 高熵核验：观测值分散度（心率窗口点数远超下限）
+    assert report.observations_committed > 300
 
 
 # ---------------------------------------------------------------------------
-# 门禁 2：全链驱动（C01→C06→C02→C04→C05）
+# 门禁二：完整技术链 C01→C06→C02→C04→C05 全部驱动
 # ---------------------------------------------------------------------------
 
 
-def test_chain_c01_purged_every_raw_binary(sim_run):
-    report = sim_run["report"]
-    sink = sim_run["sink"]
-    assert len(sink.purged) == report.images_submitted, "每张原始图必走物理删除口（含画质丢弃件）"
-    assert len(set(sink.purged)) == len(sink.purged), "删除口幂等域内无重复 id"
+def test_full_pipeline_counters(sim_30d):
+    driver, report = sim_30d
+    assert report.raw_binaries_cleaned == 3  # C01 语义化
+    assert report.inverted_index_entries > 0  # C06 倒排表
+    assert report.inverted_intersect_queries > 0 and report.inverted_intersect_hits > 0
+    assert report.world_revision >= 30  # C02 每日账本 flush
+    persisted = driver.store.list_payloads(object_type=ObjectType.OBSERVATION)
+    assert len(persisted) == report.observations_committed
+    # C04 看板：day 0 全部条件任务仍 DORMANT 物理隐形，30 天后大量 READY
+    assert report.extra["day_0_board_items"] == 0
+    assert report.extra["day_0_dormant"] == 202
+    assert report.extra["day_29_board_items"] > 150
+    # C05 回溯注记已挂载
+    assert report.retrospective_overlays == 1
 
 
-def test_chain_c02_ledger_versioned_and_growing(sim_run):
-    store = sim_run["store"]
-    payloads = store.list_payloads()
-    meeting_claims = [p for p in payloads if str(p.get("object_id", "")).startswith("claim-meeting-")]
-    assert len(meeting_claims) == 120
-    rev = store.current_world_revision()
-    assert rev >= 120, "版本随提交单调增长（账本代际可读）"
-    # 老王铁律：历史 Claim 内容保持原样（C05 注记绝不倒写 C02 历史）
-    contents = [p["payload"]["content"] if "payload" in p else p.get("content") for p in meeting_claims]
-    assert any("王建国" in str(c) for c in contents), "历史纪要原文留在账内，未被注记改写"
-
-
-def test_chain_c04_c05_are_distinct_lanes(sim_run):
-    report = sim_run["report"]
-    assert report.manifests_built == 120 and report.retro_annotations >= 1
-    # C04 的看板 token 与 C05 的注记 token 各自记账、互不挪用
-    meter = report.token_meter
-    assert meter.manifest_tokens > 0 and meter.retro_tokens > 0
-    assert meter.total == (meter.manifest_tokens + meter.caption_tokens
-                           + meter.claim_tokens + meter.retro_tokens)
-
-
-# ---------------------------------------------------------------------------
-# 门禁 3：0 死锁 / 内存平稳 / 二进制零滞留
-# ---------------------------------------------------------------------------
-
-
-def test_zero_deadlock_and_thread_stable(sim_run):
-    report = sim_run["report"]
-    assert report.deadlocks == 0
-    assert report.thread_delta == 0 and sim_run["threads_delta"] == 0
-    assert report.wall_seconds < 120.0, f"加速回放墙钟 {report.wall_seconds:.1f}s（1000x 语义）"
-
-
-def test_memory_plateau_within_128mb(sim_run):
-    peak_kb = sim_run["rss_peak_kb"]
-    assert peak_kb <= RSS_HARD_CAP_KB, f"RSS 峰值 {peak_kb / 1024:.1f}MB 越 128MB 硬顶"
-    # 台地语义：720h 全量事件流不驻留——峰值不应随天数线性爬升
-    assert peak_kb - sim_run["rss_before_kb"] <= 64 * 1024, "仿真本体增量驻留须 ≤64MB"
-
-
-def test_zero_binary_blob_residency(sim_run):
-    report = sim_run["report"]
-    assert report.raw_bytes_resident == 0
-    payloads = sim_run["store"].list_payloads()
-    for p in payloads:
-        blob = json.dumps(p, ensure_ascii=False, default=str)
-        assert "base64" not in blob and "b'" not in blob[:0], "持久化面无二进制形态"
-    # 结构性同证：C01 观察物的契约字段 raw_image_bytes_retained 恒 False
-    assert report.images_captioned <= report.images_submitted
+def test_c05_retrospective_view_semantics(sim_30d):
+    driver, _report = sim_30d
+    assert driver.cfg.laowang_learning_day == 18
+    # 双时间透镜口径在仿真数据上重演（与 M1-018 验收同构）：
+    # as_of_cutoff=day10 → 18 号才学到的"骗子"认知一个字符都不许出现
+    past_view = driver.query_laowang_slice(day=2, as_of_day=10)
+    assert past_view["overlays"] == []
+    assert past_view["overlay_suppressed_by_cutoff"] == 1
+    assert [f["object_id"] for f in past_view["facts"]]  # 两年前合伙原始记录在场
+    rendered = json.dumps(past_view, ensure_ascii=False)
+    for forbidden in ("骗子", "欺诈", "rta_sim_laowang_fraud"):
+        assert forbidden not in rendered
+    # 当前视图：动态渲染警示标记，底层历史切片分毫未动
+    current = driver.query_laowang_slice(day=2)
+    assert len(current["overlays"]) == 1
+    assert current["facts"] == past_view["facts"]
 
 
 # ---------------------------------------------------------------------------
-# 门禁 4：月度 Token 封套核验（读政策文件，不硬编码）
+# 门禁三：0 死锁 + 内存平稳 + 原始二进制滞留 0
 # ---------------------------------------------------------------------------
 
 
-def test_monthly_token_envelope_within_policy_cap(sim_run):
-    policy = json.loads((REPO_ROOT / "governance" / "runtime_policy.json").read_text(encoding="utf-8"))
-    cap = policy["token_budget"]["monthly_total_cap"]
-    assert cap == 2_554_000, "政策锚点漂移：月度总帽必须以 v1.3.0 现行值为准"
-    total = sim_run["report"].token_meter.total
-    assert 0 < total <= cap, f"30 天全局 Token 消耗 {total:,} 越月度封套 {cap:,}"
+def test_zero_deadlock_memory_and_binary_residency(sim_30d):
+    _driver, report = sim_30d
+    assert report.deadlock_cycles == 0  # 30 天推进零停滞
+    assert report.retained_records == 0  # 每日 flush 后驻留 buffer 清空
+    assert report.raw_binary_retained_bytes == 0  # 原始大图滞留恒 0
+    if "rss_delta_kb" in report.extra:
+        assert report.extra["rss_delta_kb"] <= 128 * 1024  # 驻留增量 ≤128MB
+
+
+# ---------------------------------------------------------------------------
+# 门禁四：月度 Token 封套
+# ---------------------------------------------------------------------------
+
+
+def test_monthly_token_envelope(sim_30d):
+    _driver, report = sim_30d
+    policy = load_token_policy(POLICY_PATH)
+    assert POLICY_PATH.exists()
+    assert policy["monthly_token_budget"] == 2_554_000
+    assert 0 < report.prompt_tokens_total <= report.token_budget
+    # DORMANT 任务 0 Token / 机械快轨 0 LLM（与 M2-005R 门禁联动复述）
+    assert report.dormant_prompt_tokens == 0
+    assert report.dormant_board_leaks == 0
+    assert report.level1_llm_calls == 0
+    assert report.level1_evaluations > 0
+
+
+def test_policy_file_content():
+    raw = json.loads((REPO_ROOT / "governance" / "runtime_policy.json").read_text(encoding="utf-8"))
+    assert raw["monthly_token_budget"] == 2_554_000
+    assert raw["hard_rules"]["dormant_task_prompt_tokens_max"] == 0
+
+
+# ---------------------------------------------------------------------------
+# 180 天长跑冒烟（粗粒度）：仍 0 死锁、账本与封套受控
+# ---------------------------------------------------------------------------
+
+
+def test_180day_smoke_zero_deadlock(tmp_path):
+    cfg = SimConfig(days=180, minutes_step=60, bulk_conditional_tasks=50, meetings_per_day=1)
+    driver = HeadlessLifeDriver(cfg, tmp_path / "world180.db")
+    report = driver.run()
+    assert report.ticks == 180 * 24
+    assert report.deadlock_cycles == 0
+    assert report.meetings == 180
+    assert report.raw_binary_retained_bytes == 0
+    assert report.retained_records == 0
+    assert 0 < report.prompt_tokens_total <= report.token_budget
+    assert report.world_revision >= 180

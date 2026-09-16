@@ -361,3 +361,389 @@ M0-001 状态 CONDITIONAL PASS，禁止进入 M0-002，修正两个问题并制�
 ### 测试
 - 103 passed + 15 reference
 
+
+## 2026-09-16 M0′ R4 候选契约层冻结 + CAM 验收矩阵上线（首席架构师工件批）
+
+### 背景
+《AIOS宪法v3.0》与工程账本（宪法 v2.0 基线）漂移（详见 `reviews/AIOS宪法v3.0_首席评审报告_2026-09-15.md` 与《AIOS_Core_工程重构与任务拆分设计书_R4_首席架构师版.md》第一部分）。本次落地 R4 修改案的**契约层**与治理闸门，运行面按设计书排期留在 M1/M2/M3。
+
+### 执行步骤
+1. `contracts/enums.py`：ObjectType +6（prediction/life_chapter/reinterpretation/communication_experience/budget_policy/assembly_policy）；新增 SourceClass、MaintenanceClass、PredictionVerificationState、AnnotationSlot、UserReaction、BudgetScope、BudgetOnExceed 七个枚举。
+2. `contracts/operations.py`：OperationRequest 增加 `source_class`（默认 ai_cognition，兼容既有调用方）与 `maintenance_class`，after-validator 冻结互斥语义（M0-023 契约核心）。
+3. `contracts/models.py`：新增 Prediction（第 53 条 reasoning 空白拒写 + verdict 态强制 actual_outcome_ref + source_claim_ref 强制 pinned）、LifeChapter（sealed 必携 sealed_reason）、Reinterpretation（R4-01：target_ref 强制 pinned，历史节点零改写形态）、CommunicationExperience、BudgetPolicy（至少一个封顶）、AssemblyPolicy（section caps 只能引用 order 内层；数据源白名单字段）。
+4. `contracts/registry.py`：注册表同步（既有"注册表↔枚举全双射否则启动失败"守卫自动强制）。
+5. `contracts/ids.py`：新对象 ID 前缀（prd/lfc/rip/cxp/bgp/asp），同步 `test_ids.py` 冻结映射与 `test_operations.py` 的 OperationRequest 字段冻结集——两处均按"批准漂移"流程显式更新。
+6. 快照再生成：`schemas/r2/m0_contract_snapshot.json`，`gate_version=M0-R2+R4-delta-candidate`（R4 批准→改串转正；驳回→revert delta 再生成；两种动作都不触碰既有 22 任务文本）。
+7. 新增 `tests/unit/test_m0_prime_contracts.py`（12 用例，全绿）。
+8. CAM 治理件：`schemas/constitution_acceptance.py`（第 114 条 46 项 + R4 提案 9 项 = 55 项全量映射，21 项 contract_frozen 强制引用真实测试文件）+ `tests/architecture/test_cam_coverage.py`（7 用例：宪法原文实时解析防"账本自嗨"）。
+9. `governance/issues/M0-023..028_issue.md`：六份 §110 规范 Issue 正文（契约层交付状态 + 遗留工作精确切分）。
+10. 台账修正：README/TASK_PROGRESS 宪法基线行 v2.0→v3.0(+R4 待批准)；设计书 D4 勘误（Summary/OpExp/ToolProposal 实际已在 M0 registry，真实缺口 4 项——审查自身也被账本纠正，如实记录）。
+
+### 测试
+- 本地（沙箱 py3.11.2）：`586 passed / 1 failed`；唯一失败为既知环境项 `test_b8_cross_process_unordered_collection_exact_replay_is_stable`（改动前同样失败；CI 3.12.14 基线记录为全绿）。
+- CAM：`tests/architecture/test_cam_coverage.py` 7/7。
+
+### 已知限制
+- 本批为**候选契约**：R4 修改案未经 architect-01/chief-01 签核前，禁止在 M1 运行面上依赖新对象做业务承诺。
+- world_commits 加列与触发豁免过滤器属 M1/M2 任务，本批刻意未动存储层——契约先行、执法随后是设计书 §1.4 的明示顺序。
+
+## 2026-09-16 M0-023 运行面 + M1-017/018 检索核（预开工件批）
+
+### 背景与治理边界
+M1 Gate 未开。本批全部以**预开工件**落 arena 工作分支：不改 TASK_PROGRESS 的 M1
+表行、不宣称里程碑状态；接入唤醒/会话运行路径须待 M0-022R 签核与 Gate 后执行。
+
+### 执行步骤
+1. `storage/sqlite_store.py`：`world_commits` 增加 `source_class TEXT NOT NULL`
+   五值 CHECK；新库 DDL 直接带列 + `idx_commits_triggerable` 部分索引
+   （`WHERE source_class <> 'maintenance'`）。
+2. `_ensure_source_class_schema()` 迁移器（先于任何引用新列的 DDL 执行）：
+   补列→显式 UPDATE 回填 `ai_cognition`→表重建加约束改名；拒绝 DEFAULT 静默
+   冒充历史（R4-02）；审计 JSON 入 `world_meta.schema_migration_m0_023`。
+3. 读面三件：`commit_source_class()`（审计直读）、`triggerable_commits_after()`
+   （M2-002 触发消费口，维护提交结构性不可见）、`revisions_after()`
+   （投影重放入口）。`commit()` 持久化 `operation.source_class.value`。
+4. 新核 `query/search.py`（M1-017/018）：`WorldSearchIndex` 自带倒排投影
+   （search_postings/occurred/doc/alias/meta 五表同库）；CJK bigram + ASCII 词
+   分词（实测本构建 FTS5 unicode61 不分词、trigram 拒 2 字查询→自持分词器，
+   FTS5 保留为可替换适配器）；白名单字段抽取器（绝不整包 payload）。
+5. `co_search()` 语义：posting-AND 交集 ∩ 时间过滤 ∩ haystack 子串复核 ∩
+   实体解析通道（别名唯一→按实体编号展开 ref 召回 + 别名全集展开；歧义→
+   `ambiguous_keywords` 返回不自动合并，第 36/89 条）；`strict_freshness` 下
+   索引落后返回 `status=stale_index` 绝不冒充新鲜（双视图截止水位）。
+6. 索引为纯投影：`rebuild()` 幂等重建（drop/重建后命中位相同，测试锁定）、
+   `drop_projection()` 可整删、`catch_up()` 按 commit 边界水位截断；永不与
+   "真相"对账。
+7. 集成测试 `tests/integration/test_m0_prime_store_delta_and_search.py`：
+   8 用例（source_class 冻结、旧库迁移+审计、触发可见性、别名消歧召回、
+   时间范围、水位双模式、投影重建等价、降规模 G-M1P 冒烟 2000 对象 p95<250ms）。
+
+### 测试
+- 全量：`594 passed / 1 failed`；唯一失败仍为既知环境项 test_b8（子进程缺
+  PYTHONPATH；本批实跑 `PYTHONPATH=src` 该项通过，非回归）。
+- 上批基线 586 → +8 新用例，存储层改动零回归。
+
+### 已知限制
+- 正式 50 万修订版 G-M1P 压测脚本待 M1 Gate 后跑在目标硬件上；CI 只跑降规模冒烟。
+- 检索核未接入会话/唤醒运行路径（Gate 约束）；M2-002 届时直接消费
+  `triggerable_commits_after`。
+
+## 2026-09-16 M0-022R 签核包 + M1-019 施工图（编号勘误批）
+
+### 背景与治理边界
+M1 Gate 未开。本批全部为**文档与静态守卫**：不出运行面代码、不动 M1 表行；
+签核包把批准/驳回各自压成单步机械动作，并把全部偏差主动摊开给签核人。
+
+### 执行步骤
+1. `governance/M0-022R_ratification_package.md`：三合一复审对象全集（v2.0 集 /
+   R4 delta / CAM 55 项）、批准与驳回的单步动作、**五项风险摊开**——含两项
+   主动披露：预开工件先于 Gate（R1）、M1-017 题名"FTS5"与自持倒排核的字面
+   偏差需修订裁决（R2）；驳回路径显式覆盖 `20e7733` 预开工件的零残留回退。
+2. `governance/issues/M1-019_blueprint.md`：PRUNED tombstone 施工图。编号勘误
+   如实备案：上轮收尾把"唤醒回路"误称 M1-019（实为 M2-002/016/019/021；
+   M1-019=归档任务），本批按设计书 §3.4 实号出件。核心裁决：tombstone=append
+   新修订（复用 store `latest+1` 既有路径）；`revision_kind` 只活在表里、
+   pydantic 契约零漂移；三条件合取执行体离线、模型只有提案权；
+   `world.prune` 经 MAINTENANCE⇔PRUNE 契约强检走 triggerable 过滤器结构性
+   豁免——复盘批量归档不会放大成唤醒风暴（R2 永动机封死点的归档侧）。
+3. 静态守卫先行落码 `tests/architecture/test_no_object_deletion.py`（R4-07a）：
+   真相表禁 DELETE/DROP/TRUNCATE 全域扫描 + 防自嗨的假违例探针 + 显式豁免通道
+   （`# r4-07-exempt rename-rebuild`，M0-023 迁移重建的 DROP 旧壳即首个合法
+   使用者）。不等 Gate 的理由：它锁的是当下已成立的 append-only 承诺。
+
+### 测试
+- 全量：`596 passed / 1 failed`（+2 守卫用例；唯一失败仍为既知环境项 b8）。
+
+### 已知限制
+- 签核包的 R1/R2 裁决项悬置期间，M1-017 销账与预开工件转正均不得发生；
+  R4-07b/c 动态与对应层审计器按施工图排 Gate 后。
+
+## 2026-09-16 M1-020 HotCard 施工图 + 签核包 R2 裁决附件（Gate 前文档批）
+
+### 背景与治理边界
+M1 Gate 未开，本批**零代码**：两份文档 + 签核包补件。HotCard 依赖的检索核
+预开工件（`query/search.py`）与追赶水位机制均已在 arena 分支实测可用，施工
+图因此敢写死复用面。
+
+### 执行步骤
+1. `governance/issues/M1-020_blueprint.md`：核心教义**摘要不回写原则**——
+   builder 的模型产出只活在 `hot_cards.digest_json`（带指针视图），永不作为
+   世界对象提交：二手摘要回流世界=AI 自食语料，31 条 append-only 会被"摘要的
+   摘要"稀释成幻觉回路；并把该教义做成 CI 静态断言（测试 4，仿 R4-07a 手法）。
+   四槽位全部映射到已冻结契约的真实字段（identity_claim_refs / Task 非终态
+   ref 链 / participant_refs×search_occurred / 未 sealed LifeChapter.baseline_refs），
+   机械抽取零语义判断；读路径模型调用=0，prose 超预算退化为纯指针版（首字
+   预算高于文采）；迟到数据只打脏绝不同步重建（T2-G⑤+I 禁止写放大）；
+   与 M1-019 tombstone 的联动裁决：旧卡指针仍可解析，换代即清洗，无迁移义务。
+2. 签核包追加 §7：M1-017 改订草案三处（表行/对照表补注/T2-G②断言改
+   "postings 或 fts5 二者任一"）+ 批准动作第 4 步；R2 风险行挂上"草案见 §7"。
+   设计书本体零改动——裁决文本交付到"粘贴即生效"的粒度，笔仍握在签核人手里。
+
+### 测试
+- 全量复跑（文档批惯例）：套件结论不变；无代码路径变更。
+
+### 已知限制
+- R4-01a/b 与 T2-G⑤ 的 CAM 追加按图在 Gate 后入账，本批不入（防未批先占）；
+- 020c 的 C13 grant 联调需 M2-018 就位，已在切分表标注跨里程碑接缝。
+
+## 2026-09-16 G-M1P 正式压测套件落地（`aios_core.bench.g_m1p`）+ 内核物理计划整改
+
+### 背景与治理边界
+兑现 M1-020 批的收尾承诺：把"50 万修订生成器 + 检索/下钻/重建/追赶四点位
+harness"做成 **Gate 后一键可跑、Gate 前 CI 降规模常热** 的压测件。基准代码只读
+消费 store/index 公开面，不改运行语义；正式点位仍需 Gate 后在目标硬件执行。
+
+### 执行步骤
+1. 新包 `src/aios_core/bench/`（`g_m1p.py`，CLI：`python -m aios_core.bench.g_m1p`）：
+   - 确定性合成世界：核心词高权重 + 尾部噪音词表（全词等权会测出假绿）；
+     35% claim 命中"妈妈×生日×礼物"锚点密度；事件带 participant_refs；
+     实体播种 ≤1/8 修订且仅空库执行（注入轮走 object_revisions 复用编号，
+     不重放幂等键）。
+   - 点位：search p95 / drill（pinned get_payload + ≤8 ref 展开）/ 全量 rebuild
+     计时 / 迟到数据双态——strict 必须 <预算 返回 stale_index，adaptive 追赶
+     按**每修订毫秒**设预算（50 万规模外推用，比总量阈值稳健）。
+   - 计划三重锁（T2-I 机械执法）：内核源码 `EXPLAIN` 双查询（postings 用索引、
+     finalize 走 PK join）+ 静态扫描（无 SQL LIKE、无 FROM/JOIN 真相表）+
+     **finalize SQL 形态与内核源码逐字对锁**——防"基准测的是另一条查询"。
+   - `consistency_ok()`：R4-02 三点位 ±20% 极差比，None 槽位=pending 不放行，
+     零基线判 drift；报告含 env（python/sqlite/cpu）保证跨机可比。
+2. 内核整改（压测件逼出的真发现，Gate 前修掉）：`_finalize` 原行值
+   `IN (?,?)×N` 在 50 万行上有退化为 `SCAN search_occurred` 的现实风险，
+   改为 TEMP TABLE（WITHOUT ROWID PK）join——计划断言当场锁定新形态。
+3. CI 冒烟 `tests/integration/test_g_m1p_smoke.py`（3 用例）：1200 修订库 +
+   300 迟到修订全点位绿；形态对锁用例专门防基准-内核漂移。
+
+### 测试
+- 新 3 用例绿；检索/迁移 8 用例在 finalize 改写后复跑全绿；
+  全量 `599 passed / 1 failed`（唯一失败仍为既知环境项 b8）。
+- 冒烟实测信号：search p95 3.6ms、追赶 0.081ms/修订（50 万外推 ≈41s，
+  在同步追赶 ≤2000 修订的策略预算内）、strict 回绝 0.46ms。
+
+### 已知限制
+- hot_cards 点位当前显式 `not_implemented`（M1-020 施工图 §8 落地后，
+  `run_bench` 的 importlib 探针自动升级为计时点，报告格式不变）；
+- `plan_checks` 读 `aios_core.query.search.__file__` 源码对锁——打包安装
+  （wheel 无 .py 源码）时该断言需改为对编译产物旁置文本；私有构建不受影响。
+
+## 2026-09-16 M0-030 runtime_profile 契约 + R4-09.1 Claim 信任字段（候选冻结批，M0′ 收官）
+
+### 背景与治理边界
+M0-030 是签核包 §1 复审块 B 里唯一"承诺范围内仍空白"的 M0′ 任务；动工依据
+即上批结尾自查所得。发现并补上第二处空白：**R4-09.1 的 Claim 信任字段此前
+从未落地**（第 38 条追加项，V31 的契约前提）——两缺口同批合拢，均按
+M0-023~028 既有候选冻结机制走（同 gate 串、同转正/驳回单步动作），不入
+M1 运行面。
+
+### 执行步骤
+1. `ProfileName{virtual,band_v0}` 入 enums；`IngestPolicy/LatencyPolicy/
+   StoragePolicy/RuntimeProfile` 入 models——**配置进快照冻结面**（40 模型），
+   profile 契约与对象契约同权受漂移守卫。
+2. "只改数字不改代码路径"写成结构：宪法硬线（tombstone 不可关/禁 raw IMU/
+   禁大图/丢帧必录）在 validator 里对**两个名字同判**；band_v0 逐数字 ≤
+   virtual 默认 + 四必填旋钮 + 队列深度 ≤3；`extra=forbid` 把"夹带新旋钮"
+   直接定义为路径变更并拒绝。
+3. R4-09.1：Claim +`source_trust`(0–1) +`corroboration_required`；validator
+   锁"未印证第三方转述禁升 FACT"（V31 契约执法点）；`may_drive_external_action`
+   谓词给 C06；`test_claim.py` 按批准漂移流程登记两字段。
+4. CAM R4-09 条目补件：modules 扩到 C06/C01/C13/C14（修改案影响模块面），
+   挂真实测试 `test_r4_09_runtime_profile_and_trust.py`；不新增子编号
+   （R4-01..09 恰集由 coverage 测试强制，编号通胀比缺件更糟）。
+5. 数值锚点闭环：raw_tier_days=30 正是 M1-019 施工图引用的默认、
+   recall_sync 50ms 与 G-M1P 同数、DEFAULT_BAND_V0 全字段对表设计书 §2.4 YAML。
+
+### 测试
+- 新 9 用例 + test_claim/snapshot/CAM/M0′ 契约 4 套件复跑绿；
+- 全量：**608 passed / 1 failed**（唯一失败仍既知环境项 b8）。
+
+### 已知限制
+- 运行面消费（C01 摄入、M2-018 预算、T6 冒烟 harness）全部 Gate/里程碑在后；
+- profile 数字属工程默认候选，签核可改数字不动形状（issue 内已写明复审面）。
+
+## 2026-09-16 Gate 后 48 小时施工序列 + B1 彩排脚本落码实跑（签核人一侧唯一动作已就绪）
+
+### 背景与治理边界
+M0′ 8/8 收官后，可先行件的最后一环是"批准生效后的头两天"。本批为**计划+
+已验证执行物**：时刻表全部引用已落码工件（预开工件/施工图/压测套件/守卫），
+唯一新增执行物 `scripts/plan_scripts/migration_drill.py` 当场双向彩排通过——
+48h 序列里没有一件"计划中才存在"的东西。M1 表行仍未动（出口判据后才许翻转）。
+
+### 执行步骤
+1. `governance/POST_GATE_48H_施工序列.md`：B0–B5 六区块，每块出口判据 = 可粘贴
+   命令；五条写死的冻结规则（F3：`g_m1p_final.json` 非 pass 则 M2 任何 commit =
+   违宪，且用 `bench_ledger.json.m2_unlock` 做机械 CI 检查而非口头约定；内核
+   私有面与消费接线不同 commit；生产库失败退路 = append-only 重放；operations
+   审计列决策显式排除在 48h 外防互踩；每块出口 commit 带测试输出摘录入账）。
+2. B1 彩排脚本落码并实跑：旧库壳（3 历史行）→ 迁移+审计 `backfilled_rows=3`、
+   triggerable 3 全见；新库（sensor+maintenance 各 1）→ `pre_migrated=true`
+   直通、maintenance 对触发面不可见复证。`--expect-backfill` 不匹配即非零退出。
+3. 时刻表关键决策如实标注来源：B3 的 p95 相对基线漂移 >±20% 直接复用 R4-02
+   三点位口径（对进行中区块提前生效，不是等 M4a 才第一次用）；B5 的 consistency
+   只该是 pending_followup——写死防"用 G-M1P 单点冒充三点位一致"。
+
+### 测试
+- 全量：`608 passed / 1 failed`（本批无新用例；复跑保绿）。彩排脚本以真实子进程
+  双向执行验证（非仅 pytest 面）。
+
+### 已知限制
+- 时刻表的 H+4–16 等工时为单集成者口径估计，签核人若定双轨并行需重排块间依赖
+  （B3 与 B4 可并行，红线 2 仍逐块适用）。
+
+## 2026-09-16 M1-016 贯穿案例骨架（运动会→体测修正；A/B 两半 + strict-xfail 闹铃）
+
+### 背景与治理边界
+Gate 前立 M1 出口主戏的**终局对拍对象**（B2–B5 每一块的交付都要过这台标尺）。
+纯测试骨架 + 场景构造，零运行面实现；只调用公开接口（I 条"禁为过场景写特判"
+照抄执行——全文无任何 if sports）。
+
+### 执行步骤
+1. `tests/scenarios/test_sports_event_world.py`：总工程师版 §M1-016 的 G 条六项
+   检查全部入册，并按 R4 增装（双透镜/tombstone/热卡/信任字段/触发面四条在
+   v2.0 任务书里不存在的线）。`build_sports_world()` = H 条"一个脚本从空库跑完
+   输出可读轨迹"：四步轨迹（五源摄入→实体+自述→证据冻结+CANDIDATE 事件→
+   append-only 修正两件套），全常量时间戳。
+2. A/B 两半裁决：
+   - A 半 6 用例今日即绿——Event 不复制数据/EvidenceSet 成员逐一可解（store 读
+     面）、旧认知回放（M0-020 的 `as_of_world_revision` 读面已在，绿证明"历史
+     零改写"是当下事实不是许诺）、检索核召回 + 四笔提交触发面全可见、
+     R4-09.1 转述升 FACT 当场拒、可回放 JSON 两次构建逐字节等价。
+   - B 半 4 用例 `xfail(strict=True)` 闹铃：双透镜 world_at、视图感知检索、
+     HotCard 换代+旧卡指针、prune 后 pin 可解析且触发面不可见——对应 48h 序列
+     B2/B4 交付物落地日 **XPASS 自动翻红逼摘标记**，"实现了但没接上场景"无处
+     遁形；每条 reason 内嵌出口判据出处。
+3. 摄入合规定为可测事实：心率载荷=窗口平均线（bpm_mean+window_seconds）、IMU=
+   宏观事件（与 DEFAULT_* IngestPolicy 硬线同构）——profile 契约第一次在业务
+   场景里被引用而不是被背诵。
+
+### 测试
+- 新文件 6 passed / 4 xfailed；全量 **614 passed / 1 failed / 4 xfailed**
+  （唯一失败仍既知环境项 b8；xfail 计入通过侧）。
+
+### 已知限制
+- B 半断言的 API 形状（`view_at(store, at=, view=)`、`store.prune(object_id=,
+  authz_ref=, reason=)` 等）是**契约级提案**，Gate 后实现者可以改签名但必须让
+  XPASS 发生——改形状不摘闹铃 = 违反本文件 docstring 的对拍义务。
+
+## 2026-09-16 移交备忘录 + M1-015 控制台读面清单（收官批）
+
+### 背景与治理边界
+可先行件在上一批已宣告穷尽；本批是其两次收尾：把十二批工件收拢为签核人/
+集成者双受众的单文档索引，并把 M1-015 压缩成"三个新读面+映射表"消灭最后的
+设计残留。零代码、零契约改动；M1 表行未动。
+
+### 执行步骤
+1. `governance/移交备忘录_M0prime至M1_签核人与集成者版.md`：一句话现状/签核
+   四步与驳回一步/集成者五条复跑命令/六条红线速查（F3 机械检查点=
+   bench_ledger.m2_unlock）/批次台账（测试数轨迹 586→614 入册）/**刻意不做
+   清单**（九条自我否决逐条留名，防"看起来更快"）/散落限制的集中兑现处。
+   开头写明"签核前任何转正表述无效——包括本备忘录"。
+2. `governance/issues/M1-015_console_read_surface_checklist.md`：P1–P7 面板
+   全部映射到 arena 分支实测过的真实方法名（不可空引）；Gate 后允许的最小
+   新增 PR 恰三处（migration_audits/projection_stats/object_revision_count），
+   超出即范围蔓延；四条硬纪律——控制台连接必须 mode=ro URI、"修复索引"按钮
+   属违宪审美（投影纪律唯一执法形态是 rebuild/drop CLI）、W1 三行元数据头
+   归 M2-009 看板不归控制台（"系统知道什么"vs"AI 被允许看什么"）、与 M1-016
+   闹铃同批同绿才许记 DONE。
+
+### 测试
+- 全量复跑（文档批惯例）：**614 passed / 1 环境项 / 4 xfailed** 不变。
+
+### 已知限制
+- 备忘录 §5 的批次表以 arena 分支 git log 为唯一真源，本文件若与 log 分歧,
+  以 log 为准（台账可错，历史不可改）。
+
+## 2026-09-16 主干孤儿重建的合并与对表裁决（双父 merge；坐标系重写）
+
+### 事件
+fetch 发现 `origin/aios-2.0` 被重建为**无共同祖先的孤儿历史**（3 commits）：并行
+会话（战队 01a0a700/01a0a67a）成果入主干，V3 台账宣布 M0 23 项、M1 20 项闭环、
+M2 攻坚中；v3.0.1 裁决集（ADJ-001~012）裁决的是另一份同号「R4 重构方案」。
+R4 程序未死，坐标系必须重写——继续装作主线未动 = 把十二批治理信用换成一场自嗨。
+
+### 合并执行（含两次当场纠错）
+1. 首试 `merge -X theirs`：无祖先下 add/add 全判对方胜，我方 contracts 被覆盖
+   （SourceClass 当场消失）→ reset 回滚。教训：孤儿分支合并禁用 -X 策略。
+2. reset 时**过度回退**把自己的上一批 08a40de 甩在远端——push 被 non-fast-forward
+   拒回才暴露；正解是先接回远端 tip 再做对表 merge（本文件所在批次即修复）。
+   教训二：reset --hard 前必须 ls-remote 对表远端 tip，本仓库现在活跃度高到
+   "上一分钟的自己"也可能是别人的远端。
+3. 正确姿势：`-s ours --allow-unrelated-histories` 记双父 + 逐文件并集（双方变更
+   集 comm 验证互斥：我方 31 vs 上游 93 交集空；14 renames 逐一处理；2 垃圾文件
+   随上游删除）。R2 台账 rename-merge 冲突按既定裁决解：状态主权在移交备忘录，
+   主干版台账原样采纳。CAM 的 CHARTER 路径常量随宪法迁移（路径修、语义未动）。
+4. 合并后：**960 passed / 0 failed / 4 xfailed**——上游 ~903 用例与我方全部工件
+   同树共绿；既知环境项 b8 随上游 CI 修复消失（594/1 的旧记录不涂改，只在此标注）。
+
+### 对表裁决（`governance/上游对表裁决_2026-09-16.md`）
+- 编号冲突六行登记（M0-023/M1-017/018/019/020/G-M1P），本分支工件改"编号+路径"
+  双引；
+- 主干未吸收的独有线以 grep 取证：wake/dispatcher **无 maintenance 处理**（R2
+  永动机在主干未封死）、无 profile 契约、无 Claim 信任字段、M1"闭环"却无 50 万
+  规模闸（F3 病灶原样）；
+- 检索双实现裁决：主干优先，我方核转 G-M1P 对照组与语义供给源，不做吞并主张；
+- 48h 表降格为独有缺口施工检查单；签核包/备忘录加状态注记（动作保留、对象改写）；
+  M1-016 闹铃保留——双透镜条可能因主干 retrospective_annotation 而 XPASS，
+  届时摘标并致谢。
+
+### 已知限制
+- 双父 merge 对 review 工具链不可见三方语义，审本 merge 请分别 diff 两父；
+- 对表假设主干不再次孤儿重建；若再发生，本文件即流程模板。
+
+## 2026-09-16 接入提案 PROP-R4F（四线致 V3 总指挥部）+ 双核同场对拍（含自曝）
+
+### 背景
+对表裁决的收尾动作兑现：把"主干未吸收的独有线"从本分支台账变成**对方程序可
+直接裁决的提案文书**（PROP-R4F-2026-09-16，四线独立裁决、驳回零成本、blob 哈希
+锚点——按 G0 门/ADJ 的"编号+版本哈希"文化制发）。
+
+### 执行步骤
+1. 新件 `scripts/plan_scripts/crossref_bench.py`：同一合成世界喂两核，三口径
+   （主干实体级/主干粒度对等/R4 修订级）测延迟/重建/足迹；首轮即抓两处口径陷阱
+   （40 实体喂料的规模不对等→补粒度对等模式；双连接写锁互踩→复用其连接）。
+2. 实测（6000 修订，`bench/crossref_6k.json`）：主干核粒度对等下 p95 4.5ms vs
+   我方 28.3ms——**我方核在文档规模下有真实延迟劣势**，同时我方重建快 50 倍、
+   足迹省 29 倍（白名单抽取的复利）。自曝入提案：单 SQL 交集+复核后置 top-K
+   列为 R4 侧认领的整改工单，不藏。
+3. 提案 `governance/接入提案_R4缺口四线_致V3总指挥部.md`：F01 触发豁免（grep
+   实证主干 wake/dispatcher 无 maintenance 处理，R2 永动机在 M2 攻坚中的主干
+   敞着——安全级，建议并入 M2 波次）；F02 profile（其 ≤30ms/16ms 全是无户口
+   的裸数字）；F03 信任字段（小件）；F04 G-M1P（不主张替换、主张互备：我方
+   套件跑他们的索引，50 万结论两核同日公布互为基线）。裁决顺序建议
+   F01>F04>F02>F03。
+
+### 测试
+- 全量复跑：960 passed / 0 failed / 4 xfailed 不变（提案批零契约/运行面改动）。
+
+### 已知限制
+- 对拍为 6000 修订降规模（脚本 --revisions 可放大）；28.3ms 的构成未做火焰图
+  级归因，整改工单里已标注先做 EXPLAIN 再动刀。
+
+## 2026-09-16 工单 #3（M1-010R 时间金字塔）复核批：两处保险库隔离漏洞修复 + 3 回归用例
+
+### 分支程序说明
+任务书要求 `arena/agent-03-m1-010r`；Arena 平台将本会话硬绑定在
+`arena/01a0a638-fantonghui`（禁止创建/推送他支），工单内容在本分支完整执行，
+协调侧对本分支 head fast-forward/rename 收编即可，commit 语义不变。
+
+### 审计结论（不重复施工）
+工单指派文件在上游合并时已随主干入场且验收面完备：证据链 100%（多例互证）、
+45ms 红线非假绿（8784 事件 YEAR→DAY 实测，自定义 `_copy_event` 快速拷贝）、
+冲突拒写/幂等去重/missingness/5D 确定性均在。本批价值 = 首席复核抓出的
+**两处真漏洞**：
+
+1. **tuple 载污洞**：`_copy_event` 声称"与 deepcopy 隔离语义等价"，但 tuple 原样
+   返回——`({"k":1},)` 里的 dict 与 vault 共享，调用方经下钻结果可**直接改写
+   证据保险库原件**，违第 25-27 条"vault 只读、原始事实永存"。修复：tuple 逐
+   元素递归，全元素同一性守恒则走共享快路（纯标量元组零开销，实测
+   `raw["plain"] is ev["plain"]` 保真）；frozenset 同理加固。
+2. **注册表共享洞**：`TimePyramidSummary` 非 frozen 且 `get_summary`/`_materialize`
+   返回**同一对象**——`summary.evidence_ids.append(...)` 即污染物化视图。修复：
+   注册表存 `model_copy(deep=True)`，`get_summary` 深拷贝返回。
+
+回归：3 新用例（含快路保真断言，防"修好语义、修死性能"）；工单测试 28/28、
+全量 **963 passed / 0 failed / 4 xfailed**。
+
+### 已知限制
+- frozenset 分支针对"自定义可哈希可变对象"的理论场景，语言层禁止不可哈希元素，
+  无独立用例（不可构造）；
+- 本实现仍为内存态聚合器，与 SQLiteWorldStore/检索核的世界接线属后续工单
+  （金字塔→`search_occurred` 水位联动、summary 对象是否入世界契约需在 V3 侧裁决）。

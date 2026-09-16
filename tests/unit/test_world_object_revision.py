@@ -616,7 +616,7 @@ def test_w14_no_update_replace_in_store_source():
     import pathlib
 
     store_path = pathlib.Path("src/aios_core/storage/sqlite_store.py")
-    content = store_path.read_text()
+    content = store_path.read_text(encoding="utf-8")
 
     forbidden_patterns = [
         "UPDATE object_revisions",

@@ -233,6 +233,9 @@ class SQLiteWorldStore:
 
     def _initialize(self) -> None:
         with self._connection() as conn:
+            # M0-023：迁移必须先于任何引用 source_class 的 DDL（旧库上建部分索引会炸）。
+            self._ensure_source_class_schema(conn)
+            self._ensure_revision_kind_schema(conn)
             conn.executescript(
                 """
                 CREATE TABLE IF NOT EXISTS world_meta (
@@ -248,8 +251,12 @@ class SQLiteWorldStore:
                     committed_at TEXT NOT NULL,
                     operation_id TEXT NOT NULL UNIQUE,
                     session_id TEXT,
-                    reason TEXT NOT NULL
+                    reason TEXT NOT NULL,
+                    source_class TEXT NOT NULL
+                        CHECK(source_class IN ('user','sensor','ai_cognition','maintenance','safety'))
                 );
+                CREATE INDEX IF NOT EXISTS idx_commits_triggerable
+                    ON world_commits(world_revision) WHERE source_class <> 'maintenance';
 
                 CREATE TABLE IF NOT EXISTS object_revisions (
                     object_id TEXT NOT NULL,
@@ -260,6 +267,7 @@ class SQLiteWorldStore:
                     learned_at TEXT NOT NULL,
                     recorded_at TEXT NOT NULL,
                     payload_json TEXT NOT NULL,
+                    revision_kind TEXT NOT NULL DEFAULT 'content',
                     PRIMARY KEY(object_id, revision),
                     FOREIGN KEY(world_revision) REFERENCES world_commits(world_revision)
                 );
@@ -295,6 +303,157 @@ class SQLiteWorldStore:
                 """
             )
             conn.commit()
+
+    def _ensure_source_class_schema(self, conn: sqlite3.Connection) -> None:
+        """M0-023 runtime layer (R4-02): migrate pre-source_class databases.
+
+        Explicit backfill only: rows written before the R4 delta were all
+        produced by AI-session semantics or v2.0 test fixtures, so they are
+        classified as ``ai_cognition`` and the decision is audited in
+        ``world_meta``. A DEFAULT clause would silently impersonate history
+        and is forbidden by the amendment.
+        """
+
+        columns = {row[1] for row in conn.execute("PRAGMA table_info(world_commits)")}
+        if "source_class" in columns:
+            return
+        table_exists = conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='world_commits'"
+        ).fetchone()
+        if table_exists is None:
+            return  # 全新库：DDL 直接带列，无需迁移
+        conn.execute("ALTER TABLE world_commits ADD COLUMN source_class TEXT")
+        conn.execute(
+            "UPDATE world_commits SET source_class='ai_cognition' WHERE source_class IS NULL"
+        )
+        conn.execute(
+            """
+            CREATE TABLE world_commits_m023 (
+                world_revision INTEGER PRIMARY KEY,
+                committed_at TEXT NOT NULL,
+                operation_id TEXT NOT NULL UNIQUE,
+                session_id TEXT,
+                reason TEXT NOT NULL,
+                source_class TEXT NOT NULL
+                    CHECK(source_class IN ('user','sensor','ai_cognition','maintenance','safety'))
+            )
+            """
+        )
+        conn.execute(
+            """
+            INSERT INTO world_commits_m023(
+                world_revision, committed_at, operation_id, session_id, reason, source_class
+            )
+            SELECT world_revision, committed_at, operation_id, session_id, reason, source_class
+            FROM world_commits
+            """
+        )
+        migrated = conn.execute("SELECT COUNT(*) FROM world_commits_m023").fetchone()[0]
+        # 数据已完整复制进 world_commits_m023，DROP 的是待替换旧壳——非物理删除。
+        conn.execute("DROP TABLE world_commits")  # r4-07-exempt rename-rebuild
+        conn.execute("ALTER TABLE world_commits_m023 RENAME TO world_commits")
+        conn.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_commits_triggerable
+                ON world_commits(world_revision) WHERE source_class <> 'maintenance'
+            """
+        )
+        conn.execute(
+            """
+            INSERT OR REPLACE INTO world_meta(key, value)
+            VALUES ('schema_migration_m0_023', ?)
+            """,
+            (
+                json.dumps(
+                    {
+                        "migrated_at": canonical_utc_iso(utc_now(), "migrated_at"),
+                        "backfilled_rows": int(migrated),
+                        "backfilled_as": "ai_cognition",
+                        "policy": "explicit update; no silent DEFAULT",
+                    },
+                    sort_keys=True,
+                ),
+            ),
+        )
+
+
+    def _ensure_revision_kind_schema(self, conn: sqlite3.Connection) -> None:
+        """M1-019 runtime layer: support tombstone revision kind and cold archive."""
+        try:
+            cols_obj = {row[1] for row in conn.execute("PRAGMA table_info(object_revisions)")}
+            if cols_obj and "revision_kind" not in cols_obj:
+                conn.execute(
+                    "ALTER TABLE object_revisions ADD COLUMN revision_kind TEXT NOT NULL DEFAULT 'content'"
+                )
+        except sqlite3.OperationalError:
+            pass  # Race condition with concurrent connection
+
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS cold_archive (
+                object_id TEXT NOT NULL,
+                revision INTEGER NOT NULL,
+                payload_json TEXT NOT NULL,
+                archived_at TEXT NOT NULL,
+                authz_ref TEXT NOT NULL,
+                reason TEXT,
+                PRIMARY KEY(object_id, revision)
+            )
+            """
+        )
+
+    def commit_source_class(self, world_revision: int) -> str | None:
+        """Return the frozen source class of one committed world revision."""
+
+        with self._connection() as conn:
+            row = conn.execute(
+                "SELECT source_class FROM world_commits WHERE world_revision=?",
+                (world_revision,),
+            ).fetchone()
+            return None if row is None else str(row["source_class"])
+
+    def triggerable_commits_after(
+        self, world_revision: int, *, limit: int = 500
+    ) -> list[dict]:
+        """Read surface for the M2 trigger engine (R4-02 closure point).
+
+        MAINTENANCE commits are structurally invisible here; review work must
+        reach the AI through task channels, never through trigger evaluation.
+        """
+
+        with self._connection() as conn:
+            rows = conn.execute(
+                """
+                SELECT world_revision, committed_at, operation_id, session_id, reason, source_class
+                FROM world_commits
+                WHERE world_revision > ? AND source_class <> 'maintenance'
+                ORDER BY world_revision
+                LIMIT ?
+                """,
+                (world_revision, limit),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def revisions_after(self, world_revision: int, *, limit: int = 5000) -> list[dict]:
+        """Replay surface for rebuildable projections (search index, hot cards).
+
+        Delivers every object revision committed after ``world_revision`` in
+        commit order. Projections must never scan the whole object table to
+        stay fresh.
+        """
+
+        with self._connection() as conn:
+            rows = conn.execute(
+                """
+                SELECT world_revision, object_id, revision, object_type, subject_id, payload_json
+                FROM object_revisions
+                WHERE world_revision > ?
+                ORDER BY world_revision, object_id, revision
+                LIMIT ?
+                """,
+                (world_revision, limit),
+            ).fetchall()
+        return [dict(row) for row in rows]
 
     def current_world_revision(self) -> int:
         with self._connection() as conn:
@@ -765,13 +924,14 @@ class SQLiteWorldStore:
                 now_dt = utc_now()
                 now = canonical_utc_iso(now_dt, "now")
                 conn.execute(
-                    "INSERT INTO world_commits(world_revision, committed_at, operation_id, session_id, reason) VALUES(?,?,?,?,?)",
+                    "INSERT INTO world_commits(world_revision, committed_at, operation_id, session_id, reason, source_class) VALUES(?,?,?,?,?,?)",
                     (
                         next_world_revision,
                         now,
                         operation.operation_id,
                         operation.session_id,
                         operation.reason,
+                        operation.source_class.value,
                     ),
                 )
 
@@ -1016,3 +1176,111 @@ class SQLiteWorldStore:
                     },
                 )
             return dict(row)
+
+
+    def prune(
+        self,
+        object_id: str,
+        *,
+        authz_ref: str,
+        reason: str,
+    ) -> None:
+        """M1-019 prune submission: append tombstone revision and archive cold payload."""
+        with self._connection() as conn:
+            self._ensure_revision_kind_schema(conn)
+            row = conn.execute(
+                """
+                SELECT revision, object_type, subject_id, learned_at, payload_json
+                FROM object_revisions
+                WHERE object_id = ?
+                ORDER BY revision DESC LIMIT 1
+                """,
+                (object_id,),
+            ).fetchone()
+            if row is None:
+                raise StoreError(
+                    ErrorCode.NOT_FOUND,
+                    f"object {object_id} not found to prune",
+                    context={"object_id": object_id},
+                )
+            cur_rev = int(row["revision"])
+            obj_type = str(row["object_type"])
+            subj_id = str(row["subject_id"])
+            learned_at = str(row["learned_at"])
+            payload_json = str(row["payload_json"])
+
+            now = canonical_utc_iso(utc_now(), "archived_at")
+
+            # 1. Store in cold archive
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO cold_archive (object_id, revision, payload_json, archived_at, authz_ref, reason)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (object_id, cur_rev, payload_json, now, authz_ref, reason),
+            )
+
+            # 2. Advance global world revision with maintenance commit
+            cur_world_rev = conn.execute(
+                "SELECT value FROM world_meta WHERE key='world_revision'"
+            ).fetchone()[0]
+            new_world_rev = int(cur_world_rev) + 1
+            op_id = f"op_prune_{object_id}_{new_world_rev}"
+
+            conn.execute(
+                """
+                INSERT INTO world_commits (world_revision, committed_at, operation_id, session_id, reason, source_class)
+                VALUES (?, ?, ?, NULL, ?, 'maintenance')
+                """,
+                (new_world_rev, now, op_id, reason),
+            )
+            conn.execute(
+                "UPDATE world_meta SET value=? WHERE key='world_revision'",
+                (str(new_world_rev),),
+            )
+
+            # 3. Append tombstone revision to object_revisions
+            new_obj_rev = cur_rev + 1
+            tombstone_payload = json.dumps(
+                {
+                    "pruned": True,
+                    "reason": reason,
+                    "authz_ref": authz_ref,
+                    "previous_revision": cur_rev,
+                    "object_id": object_id,
+                }
+            )
+            conn.execute(
+                """
+                INSERT INTO object_revisions (
+                    object_id, revision, object_type, subject_id, world_revision,
+                    learned_at, recorded_at, payload_json, revision_kind
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'tombstone')
+                """,
+                (
+                    object_id,
+                    new_obj_rev,
+                    obj_type,
+                    subj_id,
+                    new_world_rev,
+                    learned_at,
+                    now,
+                    tombstone_payload,
+                ),
+            )
+            conn.commit()
+
+    def is_latest_pruned(self, object_id: str) -> bool:
+        """Return True if the newest revision of object_id is a tombstone."""
+        with self._connection() as conn:
+            cols = {r[1] for r in conn.execute("PRAGMA table_info(object_revisions)")}
+            if "revision_kind" not in cols:
+                return False
+            row = conn.execute(
+                "SELECT revision_kind FROM object_revisions WHERE object_id=? ORDER BY revision DESC LIMIT 1",
+                (object_id,),
+            ).fetchone()
+            if row is None:
+                return False
+            return str(row["revision_kind"]) == "tombstone"
