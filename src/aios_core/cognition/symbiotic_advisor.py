@@ -283,10 +283,28 @@ class SymbioticDecisionAdvisor:
     slug: str = "advisor"
     intent_key: str = "advice"
 
-    def __init__(self, *, store: Optional[SQLiteWorldStore] = None, index: Any = None) -> None:
+    def __init__(
+        self,
+        *,
+        store: Optional[SQLiteWorldStore] = None,
+        index: Any = None,
+        evidence_prefixes: Optional[Sequence[str]] = None,
+        seed_entities: Optional[Sequence[str]] = None,
+    ) -> None:
         self.store = store
         self.index = index
+        #: 取证选择器可被覆写（同一顾问可服务不同对象，亦可用于"证据缺口"对抗测试）
+        self._prefix_override = tuple(evidence_prefixes) if evidence_prefixes else None
+        self._seed_override = None if seed_entities is None else tuple(seed_entities)
         self._harvester: Optional[_EvidenceHarvester] = None
+
+    def evidence_prefixes(self, defaults: Sequence[str]) -> Tuple[str, ...]:
+        """证据前缀选择器（默认取子类常量，可被构造参数覆写）。"""
+        return self._prefix_override or tuple(defaults)
+
+    def seed_entities(self, defaults: Sequence[str]) -> Tuple[str, ...]:
+        """取证种子实体（默认取子类常量，可被构造参数覆写）。"""
+        return tuple(defaults) if self._seed_override is None else self._seed_override
 
     @property
     def harvester(self) -> _EvidenceHarvester:
@@ -357,10 +375,10 @@ class MomBirthdayGiftAdvisor(SymbioticDecisionAdvisor):
     def advise_from_world(self) -> ActionableAdvice:
         facts = self.harvester.harvest(
             intent_key=self.intent_key,
-            seed_entity_ids=self.SEED_ENTITIES,
+            seed_entity_ids=self.seed_entities(self.SEED_ENTITIES),
             keywords=("妈妈", "生日", "礼物", "膝盖"),
         )
-        gift_ids = self.harvester.require(facts, self.GIFT_PREFIXES, role="历年礼物与健康演化")
+        gift_ids = self.harvester.require(facts, self.evidence_prefixes(self.GIFT_PREFIXES), role="历年礼物与健康演化")
 
         chain: List[CausalLink] = []
         for object_id in gift_ids:
@@ -454,10 +472,10 @@ class FraudPreventionAdvisor(SymbioticDecisionAdvisor):
     def advise_from_world(self) -> ActionableAdvice:
         facts = self.harvester.harvest(
             intent_key=self.intent_key,
-            seed_entity_ids=self.SEED_ENTITIES,
+            seed_entity_ids=self.seed_entities(self.SEED_ENTITIES),
             keywords=("老王", "借款", "判决", "追偿"),
         )
-        wang_ids = self.harvester.require(facts, self.WANG_PREFIXES, role="老王案证据链")
+        wang_ids = self.harvester.require(facts, self.evidence_prefixes(self.WANG_PREFIXES), role="老王案证据链")
         has_court = any("court" in oid or "verdict" in oid for oid in wang_ids)
         has_history = any("delay" in oid or "chat" in oid or "msg" in oid for oid in wang_ids)
         if not (has_court and has_history):
@@ -557,10 +575,10 @@ class HealthFatigueBreakerAdvisor(SymbioticDecisionAdvisor):
     def advise_from_world(self) -> ActionableAdvice:
         facts = self.harvester.harvest(
             intent_key=self.intent_key,
-            seed_entity_ids=self.SEED_ENTITIES,
+            seed_entity_ids=self.seed_entities(self.SEED_ENTITIES),
             keywords=("加班", "早搏", "心率"),
         )
-        health_ids = self.harvester.require(facts, self.HEALTH_PREFIXES, role="加班-早搏因果链")
+        health_ids = self.harvester.require(facts, self.evidence_prefixes(self.HEALTH_PREFIXES), role="加班-早搏因果链")
         has_work = any(oid.startswith("obs_work_late_night_") for oid in health_ids)
         has_cardiac = any(oid.startswith("obs_bio_arrhythmia_") for oid in health_ids)
         if not (has_work and has_cardiac):
