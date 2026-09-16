@@ -714,13 +714,18 @@ class WorldSearchIndex:
         keywords: Sequence[str] = (),
         *,
         dimension: Optional[str] = None,
+        claim_id: Optional[str] = None,
         entity_id: Optional[str] = None,
+        annotation_id: Optional[str] = None,
         object_types: Optional[Sequence[str]] = None,
         time_range: Optional[Tuple[datetime, datetime]] = None,
+        include_annotations: bool = True,
         limit: int = 20,
     ) -> MindSearchPage:
         """宪法第二十章：多维心智联合感知检索入口。
-        支持按维度、实体、类型、时空与关键字的综合高速召回。
+
+        原生支持按**维度（Dimension）、主张（Claim）、实体（Entity）、注记（Annotation）**
+        的多维正交联合精准检索，兼具时空窗剪裁与极简 Token 输出。
         """
         current = int(self._store.current_world_revision())
         wm_before = self.watermark()
@@ -734,11 +739,14 @@ class WorldSearchIndex:
         if entity_id:
             search_tokens.add(_id_token("ent", entity_id))
             search_tokens.add(_id_token("ref", entity_id))
+        if claim_id:
+            search_tokens.add(_id_token("ref", claim_id))
+        if annotation_id:
+            search_tokens.add(_id_token("anno", annotation_id))
 
         with self._connect() as conn:
-            # 如果提供了 keywords 或 entity_id，根据 postings 交集加速
+            # 如果提供了 search_tokens，根据 postings 交集加速
             if search_tokens:
-                # 兼容别名扩展：如果某个关键词是别名，将其可能对应的实体别名也展开
                 expanded_tokens = set(search_tokens)
                 for kw in keywords:
                     ent_rows = conn.execute(
@@ -756,7 +764,6 @@ class WorldSearchIndex:
                 hits_map = self._postings_for(conn, expanded_tokens)
                 candidate_pairs = set(hits_map.keys())
             else:
-                # 若纯维度/时空检索，则由 search_occurred WHERE 条件主导
                 candidate_pairs = None
 
             params: list[Any] = []
@@ -764,6 +771,12 @@ class WorldSearchIndex:
             if dimension:
                 clauses.append("o.dimension = ?")
                 params.append(dimension)
+            if claim_id:
+                clauses.append("(o.object_id = ? OR o.object_id IN (SELECT object_id FROM search_postings WHERE token = ?))")
+                params.extend([claim_id, _id_token("ref", claim_id)])
+            if annotation_id:
+                clauses.append("(o.object_id = ? OR o.object_id IN (SELECT target_object_id FROM search_annotations WHERE annotation_id = ?))")
+                params.extend([annotation_id, annotation_id])
             if object_types:
                 placeholders = ",".join("?" for _ in object_types)
                 clauses.append(f"o.object_type IN ({placeholders})")
@@ -792,6 +805,7 @@ class WorldSearchIndex:
 
             mind_hits: list[MindSearchHit] = []
             total_toks = 0
+            retrieved_object_ids: set[str] = set()
 
             for r in rows:
                 oid = r["object_id"]
@@ -806,14 +820,12 @@ class WorldSearchIndex:
                 for kw in keywords:
                     if kw.lower() in haystack:
                         continue
-                    # 检查别名
                     resolved = sorted({
                         row[0] for row in conn.execute(
                             "SELECT entity_object_id FROM search_alias WHERE alias_norm=?", (normalize_alias(kw),)
                         ).fetchall()
                     })
                     if resolved:
-                        # 检查实体的别名全集是否有任何一个出现在 haystack 里
                         alias_variants = [row[0] for row in conn.execute(
                             "SELECT alias_norm FROM search_alias WHERE entity_object_id = ?", (resolved[0],)
                         ).fetchall()]
@@ -838,6 +850,7 @@ class WorldSearchIndex:
                 excerpt = r["excerpt"] or ""
                 est_tok = max(10, len(excerpt) // 3)
                 total_toks += est_tok
+                retrieved_object_ids.add(oid)
 
                 mind_hits.append(
                     MindSearchHit(
@@ -855,19 +868,79 @@ class WorldSearchIndex:
                 if len(mind_hits) >= limit:
                     break
 
+            # 伴随外挂注记联动（如果包含注记且命中列表中有被注记的目标）
+            if include_annotations and retrieved_object_ids:
+                placeholders = ",".join("?" for _ in retrieved_object_ids)
+                anno_rows = conn.execute(
+                    f"""
+                    SELECT annotation_id, target_object_id, target_object_type,
+                           reinterpretation_claim, dimension
+                    FROM search_annotations
+                    WHERE target_object_id IN ({placeholders})
+                    """,
+                    list(retrieved_object_ids),
+                ).fetchall()
+                for ar in anno_rows:
+                    aid = str(ar[0])
+                    if aid not in retrieved_object_ids:
+                        claim_txt = str(ar[3])
+                        est_a_tok = max(10, len(claim_txt) // 3)
+                        total_toks += est_a_tok
+                        mind_hits.append(
+                            MindSearchHit(
+                                object_id=aid,
+                                revision=1,
+                                object_type="reinterpretation",
+                                subject_id="user_1",
+                                score=15,  # 外挂注记拥有最高解释权
+                                dimension=str(ar[4]) or "dim_general",
+                                excerpt=f"[外挂注记/老王案] 指向 {ar[1]}: {claim_txt}",
+                                is_annotation=True,
+                                estimated_tokens=est_a_tok,
+                            )
+                        )
+
             # 排序：外挂注记与核心主张排在最前
             mind_hits.sort(key=lambda h: (-h.score, -h.revision))
+
+            intent_parts = list(keywords)
+            if dimension:
+                intent_parts.append(f"dim:{dimension}")
+            if claim_id:
+                intent_parts.append(f"claim:{claim_id}")
+            if entity_id:
+                intent_parts.append(f"entity:{entity_id}")
+            if annotation_id:
+                intent_parts.append(f"anno:{annotation_id}")
 
             return MindSearchPage(
                 status="ok",
                 lag=current - wm,
                 world_revision=current,
                 index_watermark=wm,
-                hits=mind_hits,
+                hits=mind_hits[:limit],
                 total_estimated_tokens=total_toks,
-                query_intent=" ".join(keywords) or dimension or "",
+                query_intent=" ".join(intent_parts) or "all",
             )
 
+    # ---------------- 快捷多维原语接口 ----------------
 
-# 别名导出
+    def search_by_dimension(self, dimension: str, keywords: Sequence[str] = (), limit: int = 20) -> MindSearchPage:
+        """按特定维度聚焦检索（如 dim_health, dim_finance, dim_social, dim_work）。"""
+        return self.search_mind(keywords=keywords, dimension=dimension, limit=limit)
+
+    def search_by_claim(self, claim_id: str, keywords: Sequence[str] = (), limit: int = 20) -> MindSearchPage:
+        """按主张与证据链因果检索。"""
+        return self.search_mind(keywords=keywords, claim_id=claim_id, limit=limit)
+
+    def search_by_entity(self, entity_id: str, keywords: Sequence[str] = (), limit: int = 20) -> MindSearchPage:
+        """按实体关系网络检索。"""
+        return self.search_mind(keywords=keywords, entity_id=entity_id, limit=limit)
+
+    def search_by_annotation(self, annotation_id: str, limit: int = 20) -> MindSearchPage:
+        """按外挂解释图层检索。"""
+        return self.search_mind(annotation_id=annotation_id, limit=limit)
+
+
+# 别名导出与类型对齐（最高法统命名规范）
 MultidimensionalSearchEngine = WorldSearchIndex

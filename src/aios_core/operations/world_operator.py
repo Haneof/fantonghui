@@ -726,31 +726,62 @@ class MultidimensionalSearchOperator:
         keywords: Sequence[str] = (),
         *,
         dimension: Optional[str] = None,
+        claim_id: Optional[str] = None,
         entity_id: Optional[str] = None,
+        annotation_id: Optional[str] = None,
         object_types: Optional[Sequence[str]] = None,
         time_range: Optional[Tuple[datetime, datetime]] = None,
+        include_annotations: bool = True,
         limit: int = 20,
     ) -> Any:
         """执行多维心智联合感知检索。"""
         return self.index.search_mind(
             keywords=keywords,
             dimension=dimension,
+            claim_id=claim_id,
             entity_id=entity_id,
+            annotation_id=annotation_id,
             object_types=object_types,
             time_range=time_range,
+            include_annotations=include_annotations,
             limit=limit,
         )
+
+    def search_by_dimension(self, dimension: str, keywords: Sequence[str] = (), limit: int = 20) -> Any:
+        """按特定维度聚焦检索。"""
+        return self.index.search_by_dimension(dimension, keywords=keywords, limit=limit)
+
+    def search_by_claim(self, claim_id: str, keywords: Sequence[str] = (), limit: int = 20) -> Any:
+        """按主张与证据链因果检索。"""
+        return self.index.search_by_claim(claim_id, keywords=keywords, limit=limit)
+
+    def search_by_entity(self, entity_id: str, keywords: Sequence[str] = (), limit: int = 20) -> Any:
+        """按实体关系网络检索。"""
+        return self.index.search_by_entity(entity_id, keywords=keywords, limit=limit)
+
+    def search_by_annotation(self, annotation_id: str, limit: int = 20) -> Any:
+        """按外挂解释图层检索。"""
+        return self.index.search_by_annotation(annotation_id, limit=limit)
 
     def query(
         self,
         keywords: Sequence[str] = (),
         *,
         dimension: Optional[str] = None,
+        claim_id: Optional[str] = None,
         entity_id: Optional[str] = None,
+        annotation_id: Optional[str] = None,
         limit: int = 10,
     ) -> List[Dict[str, Any]]:
         """极简快捷检索接口，直接输出结构化摘要切片（Token <= 150）。"""
-        page = self.search_mind(keywords=keywords, dimension=dimension, entity_id=entity_id, limit=limit)
+        page = self.search_mind(
+            keywords=keywords,
+            dimension=dimension,
+            claim_id=claim_id,
+            entity_id=entity_id,
+            annotation_id=annotation_id,
+            limit=limit,
+        )
         results = []
         for hit in page.hits:
             results.append({
