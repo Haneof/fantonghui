@@ -1,0 +1,100 @@
+{
+  "solver_agent": "01a0aa2d-fantonghui",
+  "questions_file": "/tmp/banks2/aa2c_small.jsonl",
+  "answers_file": "benchmarks/daily_summary/answers/ans_01a0aa2d-fantonghui_on_agent-01a0aa2c.jsonl",
+  "questions_graded": 1000,
+  "mean_overall_score": 67.7244,
+  "pass_rate": 0.202,
+  "verdicts": {
+    "PASS": 202,
+    "FAIL": 798
+  },
+  "fatal_redline_hits": 0,
+  "dimension_mean_scores": {
+    "global_daily_summary": 73.0069,
+    "dim:health": 85.66,
+    "dim:social": 60.5564,
+    "dim:emotion": 65.93,
+    "dim:finance": 62.91,
+    "dim:career": 54.76
+  },
+  "dimension_miss_counts": {
+    "global_daily_summary": {
+      "no_direction": 189,
+      "low_anchor": 159
+    },
+    "dim:health": {
+      "no_direction": 44,
+      "low_anchor": 180
+    },
+    "dim:social": {
+      "no_direction": 380,
+      "low_anchor": 347
+    },
+    "dim:emotion": {
+      "no_direction": 812,
+      "low_anchor": 158
+    },
+    "dim:finance": {
+      "no_direction": 480,
+      "low_anchor": 319
+    },
+    "dim:career": {
+      "no_direction": 661,
+      "low_anchor": 353
+    }
+  },
+  "worst_samples": [
+    {
+      "score": 10.5,
+      "question_id": "D_agent-01a0aa2c_00487",
+      "global_summary": "李大山今日：07:20 本月餐饮支出1420元,较上月同期下降8%；07:00 晨起静息心率77bpm，昨夜睡眠5.3小"
+    },
+    {
+      "score": 18.0,
+      "question_id": "D_agent-01a0aa2c_00655",
+      "global_summary": "沈画今日：07:25 根据您的喜好推荐:深夜加班Lo-Fi歌单；23:20 买一盒创可贴,再拿一瓶碘伏棉签家用；07:0"
+    },
+    {
+      "score": 18.0,
+      "question_id": "D_agent-01a0aa2c_00771",
+      "global_summary": "沈画今日：07:05 根据您的喜好推荐:深夜加班Lo-Fi歌单；07:00 晨起静息心率68bpm，昨夜睡眠5.7小时，"
+    },
+    {
+      "score": 19.5,
+      "question_id": "D_agent-01a0aa2c_00428",
+      "global_summary": "李大山今日：18:00 根据您的喜好推荐:深夜加班Lo-Fi歌单；07:00 晨起静息心率79bpm，昨夜睡眠5.4小时"
+    },
+    {
+      "score": 19.5,
+      "question_id": "D_agent-01a0aa2c_00661",
+      "global_summary": "李大山今日：07:00 晨起静息心率81bpm，昨夜睡眠5.3小时，全天步数9516步。；今日主线：体力透支；主线判定："
+    },
+    {
+      "score": 25.5,
+      "question_id": "D_agent-01a0aa2c_00005",
+      "global_summary": "沈画今日：18:25 根据您的喜好推荐:深夜加班Lo-Fi歌单；18:45 本月餐饮支出1420元,较上月同期下降8%；"
+    },
+    {
+      "score": 25.5,
+      "question_id": "D_agent-01a0aa2c_00143",
+      "global_summary": "钱国富今日：10:30 根据您的喜好推荐:深夜加班Lo-Fi歌单；18:15 本月餐饮支出1420元,较上月同期下降8%"
+    },
+    {
+      "score": 25.5,
+      "question_id": "D_agent-01a0aa2c_00360",
+      "global_summary": "钱国富今日：18:25 根据您的喜好推荐:深夜加班Lo-Fi歌单；17:25 建议分期,听得我眼前发黑；07:00 晨起"
+    },
+    {
+      "score": 25.5,
+      "question_id": "D_agent-01a0aa2c_00633",
+      "global_summary": "沈画今日：13:40 根据您的喜好推荐:深夜加班Lo-Fi歌单；07:00 晨起静息心率72bpm，昨夜睡眠5.2小时，"
+    },
+    {
+      "score": 25.5,
+      "question_id": "D_agent-01a0aa2c_00745",
+      "global_summary": "沈画今日：14:10 根据您的喜好推荐:深夜加班Lo-Fi歌单；08:45 买一盒创可贴,再拿一瓶碘伏棉签家用；07:0"
+    }
+  ],
+  "scoring": "DailySummaryDirectionalMatcher（官方协议）；权重 global 0.25 + 五维各 0.15；红线一票否决"
+}

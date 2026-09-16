@@ -1,0 +1,96 @@
+{
+  "auditor": "01a0aa2d-fantonghui",
+  "method": "标答方向词簇/锚点实体能否在对手考卷的可见生活流中逐字溯源（做题可行性上限）",
+  "banks": [
+    {
+      "bank": "/tmp/banks2/aa2c_10k.jsonl",
+      "questions": 10000,
+      "per_dim": {
+        "global_daily_summary": {
+          "synonym_traceability": 0.0,
+          "anchor_traceability": 0.0
+        },
+        "dim:health": {
+          "synonym_traceability": 0.0,
+          "anchor_traceability": 0.0
+        },
+        "dim:social": {
+          "synonym_traceability": 0.0,
+          "anchor_traceability": 0.0
+        },
+        "dim:emotion": {
+          "synonym_traceability": 0.0,
+          "anchor_traceability": 0.0
+        },
+        "dim:finance": {
+          "synonym_traceability": 0.0,
+          "anchor_traceability": 0.0
+        },
+        "dim:career": {
+          "synonym_traceability": 0.0,
+          "anchor_traceability": 0.0
+        }
+      }
+    },
+    {
+      "bank": "/tmp/banks2/aa2e_10k.jsonl",
+      "questions": 10000,
+      "per_dim": {
+        "global_daily_summary": {
+          "synonym_traceability": 0.0,
+          "anchor_traceability": 0.3333
+        },
+        "dim:health": {
+          "synonym_traceability": 0.0,
+          "anchor_traceability": 0.75
+        },
+        "dim:social": {
+          "synonym_traceability": 0.0,
+          "anchor_traceability": 1.0
+        },
+        "dim:emotion": {
+          "synonym_traceability": 0.0,
+          "anchor_traceability": 1.0
+        },
+        "dim:finance": {
+          "synonym_traceability": 0.0302,
+          "anchor_traceability": 1.0
+        },
+        "dim:career": {
+          "synonym_traceability": 0.0121,
+          "anchor_traceability": 0.5
+        }
+      }
+    },
+    {
+      "bank": "/tmp/banks2/aa2c_small.jsonl",
+      "questions": 1000,
+      "per_dim": {
+        "global_daily_summary": {
+          "synonym_traceability": 0.3339,
+          "anchor_traceability": 1.0
+        },
+        "dim:health": {
+          "synonym_traceability": 0.4371,
+          "anchor_traceability": 1.0
+        },
+        "dim:social": {
+          "synonym_traceability": 0.128,
+          "anchor_traceability": 0.982
+        },
+        "dim:emotion": {
+          "synonym_traceability": 0.0493,
+          "anchor_traceability": 1.0
+        },
+        "dim:finance": {
+          "synonym_traceability": 0.3199,
+          "anchor_traceability": 1.0
+        },
+        "dim:career": {
+          "synonym_traceability": 0.1426,
+          "anchor_traceability": 1.0
+        }
+      }
+    }
+  ]
+}

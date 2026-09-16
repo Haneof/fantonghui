@@ -1,0 +1,100 @@
+{
+  "solver_agent": "01a0aa2d-fantonghui",
+  "questions_file": "/tmp/banks2/aa2e_10k.jsonl",
+  "answers_file": "benchmarks/daily_summary/answers/ans_01a0aa2d-fantonghui_on_agent-aa2e.jsonl",
+  "questions_graded": 10000,
+  "mean_overall_score": 73.4179,
+  "pass_rate": 0.1527,
+  "verdicts": {
+    "PASS": 1527,
+    "FAIL": 8473
+  },
+  "fatal_redline_hits": 0,
+  "dimension_mean_scores": {
+    "global_daily_summary": 76.828,
+    "dim:health": 83.754,
+    "dim:social": 69.132,
+    "dim:emotion": 71.149,
+    "dim:finance": 78.656,
+    "dim:career": 58.715
+  },
+  "dimension_miss_counts": {
+    "global_daily_summary": {
+      "no_direction": 7724,
+      "low_anchor": 0
+    },
+    "dim:health": {
+      "no_direction": 3192,
+      "low_anchor": 0
+    },
+    "dim:social": {
+      "no_direction": 7908,
+      "low_anchor": 0
+    },
+    "dim:emotion": {
+      "no_direction": 9617,
+      "low_anchor": 0
+    },
+    "dim:finance": {
+      "no_direction": 6956,
+      "low_anchor": 0
+    },
+    "dim:career": {
+      "no_direction": 7095,
+      "low_anchor": 0
+    }
+  },
+  "worst_samples": [
+    {
+      "score": 62.5,
+      "question_id": "QD_agent-aa2e_00036",
+      "global_summary": "杨芷晴今日：14:00 杨芷晴，公司业务线调整，你的岗位在优化名单里，N+1方案你先看看。；09:05 银行APP：您的"
+    },
+    {
+      "score": 62.5,
+      "question_id": "QD_agent-aa2e_00152",
+      "global_summary": "吕静姝今日：11:00 评委：思路很完整，落地路径也清晰。；09:05 银行APP：您的住房贷款本月月供5379元已扣款"
+    },
+    {
+      "score": 62.5,
+      "question_id": "QD_agent-aa2e_00156",
+      "global_summary": "何梓萱今日：14:00 何梓萱，公司业务线调整，你的岗位在优化名单里，N+1方案你先看看。；09:05 银行APP：您的"
+    },
+    {
+      "score": 62.5,
+      "question_id": "QD_agent-aa2e_00173",
+      "global_summary": "蒋思齐今日：11:00 评委：思路很完整，落地路径也清晰。；09:05 银行APP：您的住房贷款本月月供11882元已扣"
+    },
+    {
+      "score": 62.5,
+      "question_id": "QD_agent-aa2e_00176",
+      "global_summary": "严静姝今日：10:40 你们家口碑不错，公司年会两百人的单子交给你，预算五万。；09:05 银行APP：您的住房贷款本月"
+    },
+    {
+      "score": 62.5,
+      "question_id": "QD_agent-aa2e_00282",
+      "global_summary": "施志远今日：09:50 邮箱-期刊编辑部：很遗憾，建议大修后另投。；09:05 银行APP：您的住房贷款本月月供6741"
+    },
+    {
+      "score": 62.5,
+      "question_id": "QD_agent-aa2e_00288",
+      "global_summary": "赵婉清今日：17:20 企业微信-老板：今天现场什么情况？晚上电话会复盘，把根因给我讲清楚。；09:05 银行APP：您"
+    },
+    {
+      "score": 62.5,
+      "question_id": "QD_agent-aa2e_00382",
+      "global_summary": "孙慧娴今日：10:40 你们家口碑不错，公司年会两百人的单子交给你，预算五万。；09:05 银行APP：您的住房贷款本月"
+    },
+    {
+      "score": 62.5,
+      "question_id": "QD_agent-aa2e_00416",
+      "global_summary": "沈佩珊今日：10:30 昨晚的故障是沈佩珊改的配置引起的吧？我这边可没动过。；09:05 银行APP：您的住房贷款本月月"
+    },
+    {
+      "score": 62.5,
+      "question_id": "QD_agent-aa2e_00523",
+      "global_summary": "魏婉清今日：10:30 昨晚的故障是魏婉清改的配置引起的吧？我这边可没动过。；09:05 银行APP：您的住房贷款本月月"
+    }
+  ],
+  "scoring": "DailySummaryDirectionalMatcher（官方协议）；权重 global 0.25 + 五维各 0.15；红线一票否决"
+}

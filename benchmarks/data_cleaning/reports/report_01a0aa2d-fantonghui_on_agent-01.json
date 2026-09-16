@@ -1,0 +1,186 @@
+{
+  "solver_agent": "01a0aa2d-fantonghui",
+  "generator_agent": "agent-01",
+  "question_source": "/tmp/banks2/a9fd_bank.jsonl",
+  "questions_scored": 1000,
+  "questions_total": 1000,
+  "extracted_facts": 1000,
+  "pruned_junk_ids": 2242,
+  "kept_carriers": 2477,
+  "p0_hard_bypass_hits": 0,
+  "p0_max_latency_ms": 0.0,
+  "llm_tokens_used": 0,
+  "fabricated_history_mutations": 0,
+  "self_solving_violation": false,
+  "mean_score": 25.0,
+  "pass_count": 0,
+  "fail_count": 1000,
+  "pass_rate": 0.0,
+  "hallucination_total": 0,
+  "gate_summary": {
+    "direction_match_rate": 0.0,
+    "entity_recall_rate": 0.0,
+    "dimension_accuracy": 0.0,
+    "junk_prune_rate": 1.0
+  },
+  "error_attribution": {
+    "INTENT_DRIFT": 1000,
+    "ENTITY_MISSED": 1000,
+    "DIMENSION_MISROUTE": 1000
+  },
+  "prune_reason_codes": {
+    "DECLARED_JUNK": 1938,
+    "NOISE_LEAK": 292,
+    "ACOUSTIC_NOISE": 12
+  },
+  "failing_samples": [
+    {
+      "question_id": "Q_agent-01_00001",
+      "final_score": 25.0,
+      "direction": 0.0,
+      "entity": 0.0,
+      "dimension": 0.0,
+      "junk": 1.0,
+      "hallucination": 0,
+      "notes": [
+        "遗漏/偏离事实: fact_00001_01 (王春兰（53岁更年期民企财务总监）剧烈运动或超负荷劳作后突发横纹肌溶解，尿液呈深浓茶酱油色，双下肢肌肉肿胀坏死)",
+        "遗漏/偏离事实: fact_00001_02 (王春兰（53岁更年期民企财务总监）突发生理急症，传感器波形异常且伴随严重躯体症状，亟需医疗干预)"
+      ]
+    },
+    {
+      "question_id": "Q_agent-01_00002",
+      "final_score": 25.0,
+      "direction": 0.0,
+      "entity": 0.0,
+      "dimension": 0.0,
+      "junk": 1.0,
+      "hallucination": 0,
+      "notes": [
+        "遗漏/偏离事实: fact_00002_01 (陈主任投资机构正式送达对赌失败回购通知书，要求马小宝（22岁乡村外卖骑手）承担10万元投资款本息个人无限连带担保责任)"
+      ]
+    },
+    {
+      "question_id": "Q_agent-01_00003",
+      "final_score": 25.0,
+      "direction": 0.0,
+      "entity": 0.0,
+      "dimension": 0.0,
+      "junk": 1.0,
+      "hallucination": 0,
+      "notes": [
+        "遗漏/偏离事实: fact_00003_01 (顾飞（30岁户外越野与极限攀岩者）偶然在老家柜底搜出父母瞒报的胰腺癌晚期转移病历，异地痛哭质问并连夜联系三甲医院专家急诊加号)"
+      ]
+    },
+    {
+      "question_id": "Q_agent-01_00004",
+      "final_score": 25.0,
+      "direction": 0.0,
+      "entity": 0.0,
+      "dimension": 0.0,
+      "junk": 1.0,
+      "hallucination": 0,
+      "notes": [
+        "遗漏/偏离事实: fact_00004_01 (徐警官前东家提起劳动仲裁与诉讼，以违反竞业协议为由向陈博文（42岁急诊科住院总医师）索赔违约金5万元并指控入职竞对)"
+      ]
+    },
+    {
+      "question_id": "Q_agent-01_00005",
+      "final_score": 25.0,
+      "direction": 0.0,
+      "entity": 0.0,
+      "dimension": 0.0,
+      "junk": 1.0,
+      "hallucination": 0,
+      "notes": [
+        "遗漏/偏离事实: fact_00005_01 (刘总饲养的大型罗威纳犬在小区未牵绳扑倒并撕咬幼童，郑桂芬（78岁独居空巢老人）挺身相救与狗主人在派出所发生激烈争执)"
+      ]
+    },
+    {
+      "question_id": "Q_agent-01_00006",
+      "final_score": 25.0,
+      "direction": 0.0,
+      "entity": 0.0,
+      "dimension": 0.0,
+      "junk": 1.0,
+      "hallucination": 0,
+      "notes": [
+        "遗漏/偏离事实: fact_00006_01 (李建国（48岁建筑工地钢筋班包工头）突发急性缺血性脑卒中(中风)先兆，单侧肢体麻木无力且言语含糊，本人嘴硬隐瞒但伴随口角歪斜)",
+        "遗漏/偏离事实: fact_00006_02 (李建国（48岁建筑工地钢筋班包工头）突发生理急症，传感器波形异常且伴随严重躯体症状，亟需医疗干预)"
+      ]
+    },
+    {
+      "question_id": "Q_agent-01_00007",
+      "final_score": 25.0,
+      "direction": 0.0,
+      "entity": 0.0,
+      "dimension": 0.0,
+      "junk": 1.0,
+      "hallucination": 0,
+      "notes": [
+        "遗漏/偏离事实: fact_00007_01 (陈主任操控的虚拟币质押分红盘彻底崩盘关网跑路，陈博文（42岁急诊科住院总医师）被套牢损失200万元并前往经侦支队报案)"
+      ]
+    },
+    {
+      "question_id": "Q_agent-01_00008",
+      "final_score": 25.0,
+      "direction": 0.0,
+      "entity": 0.0,
+      "dimension": 0.0,
+      "junk": 1.0,
+      "hallucination": 0,
+      "notes": [
+        "遗漏/偏离事实: fact_00008_01 (老张口头答应协议签署但两小时后短信明确反悔拒绝履约并威胁耗死佩戴者)"
+      ]
+    },
+    {
+      "question_id": "Q_agent-01_00009",
+      "final_score": 25.0,
+      "direction": 0.0,
+      "entity": 0.0,
+      "dimension": 0.0,
+      "junk": 1.0,
+      "hallucination": 0,
+      "notes": [
+        "遗漏/偏离事实: fact_00009_01 (孙老板在群聊许诺补贴后迅速撤回，私聊明确表示手滑发错并维持原合同扣罚)"
+      ]
+    },
+    {
+      "question_id": "Q_agent-01_00010",
+      "final_score": 25.0,
+      "direction": 0.0,
+      "entity": 0.0,
+      "dimension": 0.0,
+      "junk": 1.0,
+      "hallucination": 0,
+      "notes": [
+        "遗漏/偏离事实: fact_00010_01 (林晓峰（17岁高三复读生）在境外偏远盘山公路遭遇严重侧翻车祸车身变形卡压，面对当地警方语言不通，通过手环全球紧急卫星短报文求援)"
+      ]
+    },
+    {
+      "question_id": "Q_agent-01_00011",
+      "final_score": 25.0,
+      "direction": 0.0,
+      "entity": 0.0,
+      "dimension": 0.0,
+      "junk": 1.0,
+      "hallucination": 0,
+      "notes": [
+        "遗漏/偏离事实: fact_00011_01 (苏婉（28岁孕晚期准妈妈）第一跖趾关节痛风石破溃化脓引发急性蜂窝织炎，患肢灼痛红肿无法触地，伴高热寒战)",
+        "遗漏/偏离事实: fact_00011_02 (苏婉（28岁孕晚期准妈妈）突发生理急症，传感器波形异常且伴随严重躯体症状，亟需医疗干预)"
+      ]
+    },
+    {
+      "question_id": "Q_agent-01_00012",
+      "final_score": 25.0,
+      "direction": 0.0,
+      "entity": 0.0,
+      "dimension": 0.0,
+      "junk": 1.0,
+      "hallucination": 0,
+      "notes": [
+        "遗漏/偏离事实: fact_00012_01 (孙老板向顾飞(佩戴者)发送转账80万元截图，但实际被银行APP拦截冲正失败，转账未完成并涉及账户涉案异常)"
+      ]
+    }
+  ],
+  "referee": "official"
+}
