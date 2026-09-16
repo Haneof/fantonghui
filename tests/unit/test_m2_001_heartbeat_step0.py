@@ -1,4 +1,9 @@
-"""M2-001 · 主动心跳唤醒调度 + Step-0 安全便利闸门 + 冷却去重队列 —— 门禁测试
+"""M2-001 · 主动心跳唤醒调度 + Step-0 安全便利闸门 + 反馈冷却队列 —— 门禁测试
+
+落地路径说明：工单点名 ``wake/cooldown_queue.py``，但该路径已被并行线的 M2-001
+（入站高频事件防抖 + DEEP_SLEEP 绝对静默）占据并在远端裁决中被采信；按"不覆盖任何
+既有文件"的常设指令，本工单落在 ``wake/heartbeat_step0_gate.py``。两套测试并存：
+``test_m2_001_wake_cooldown.py``（并行线）与本文件。
 
 四大硬门禁各自的可判定形式（政策 ``runtime_policy.json`` 的 ``heartbeat`` /
 ``step0_safety_gate`` / ``token_budget`` / ``threshold_governance`` 四段为唯一权威）：
@@ -40,9 +45,9 @@ from aios_core.contracts.safety_bypass import (
 )
 from aios_core.scheduler import conditional_engine as ce
 from aios_core.scheduler.conditional_engine import ModelCallMeter
-from aios_core.wake import cooldown_queue as cq
+from aios_core.wake import heartbeat_step0_gate as cq
 from aios_core.wake import dispatcher as wake_dispatcher
-from aios_core.wake.cooldown_queue import (
+from aios_core.wake.heartbeat_step0_gate import (
     ABSOLUTE_FLOOR_CHANNELS,
     PROPOSED_DEDUP_WINDOW_SECONDS,
     PROPOSED_FEEDBACK_COOLDOWNS,
@@ -1298,14 +1303,54 @@ class TestReuseNotReimplementation:
 
         assert cq.SafetyGateVerdict is models_v3.SafetyGateVerdict
 
+    @staticmethod
+    def _classes_defined_here():
+        """**用 AST 数类定义，不用字符串匹配。**
+
+        字符串匹配会把 docstring 里的*提及*误判成定义 —— 本模块的 docstring 正当
+        引用了并行线的 ``class WakePriority`` 以记录其双枚举缺陷，grep 立刻误报。
+        这是同一类陷阱第三次出现（前两次：M2-005R 的 ``_TASK_TRANSITIONS``、
+        本文件的 ``meter.charge(``），所以一律改判据而不是改文档。
+        """
+        import ast
+
+        tree = ast.parse(MODULE_SOURCE)
+        return {node.name for node in ast.walk(tree) if isinstance(node, ast.ClassDef)}
+
     def test_module_does_not_define_its_own_verdict_enum(self):
         """本模块不得出现第二个裁决枚举（双枚举 = 落盘失败的既有前车之鉴）。"""
-        for name in ("class SafetyVerdict", "class Verdict", "class Step0Verdict"):
-            assert name not in MODULE_SOURCE
+        defined = self._classes_defined_here()
+        assert not (defined & {"SafetyVerdict", "Verdict", "Step0Verdict", "Convenience"})
 
     def test_module_does_not_define_its_own_priority_or_wake_state(self):
-        for name in ("class WakePriority", "class WakeState", "class WakeSource"):
-            assert name not in MODULE_SOURCE
+        defined = self._classes_defined_here()
+        assert not (defined & {"WakePriority", "WakeState", "WakeSource", "WakeSourceV3"})
+
+    def test_the_legal_wake_priority_is_used_not_the_sibling_shadow_enum(self):
+        """钉住"用法定四级优先级"这个选择。
+
+        并行线 ``wake/cooldown_queue.py`` 在模块内自定义了 ``WakePriority``，成员为
+        ``P0_CRITICAL_SAFETY`` / ``NORMAL`` —— 与法定 ``contracts.safety_bypass.
+        WakePriority`` 同名而不同物，且 ``NORMAL`` 在法定枚举里没有对应成员。
+        本仓库的 ObjectType / ObjectTypeV3 双枚举曾导致 v3 扩展类型完全无法落盘，
+        属已付学费的缺陷类。此处不代改他人文件，只把本模块的选择钉死并留证。
+        """
+        from aios_core.contracts.safety_bypass import WakePriority as LegalPriority
+        from aios_core.wake import cooldown_queue as sibling
+
+        # 本模块引用的 WakePriority **就是**法定枚举本体，不是影子副本
+        assert cq.WakePriority is LegalPriority
+        assert "WakePriority" not in cq.__all__, "不得把枚举再导出一次，避免第二处命名权威"
+        hints = typing.get_type_hints(CandidateWake)
+        assert hints["priority"] is LegalPriority
+        # 证据留存：并行线确实存在同名影子枚举，且 NORMAL 非法定成员
+        assert hasattr(sibling, "WakePriority")
+        assert sibling.WakePriority is not LegalPriority
+        assert hasattr(sibling.WakePriority, "NORMAL")
+        assert not hasattr(LegalPriority, "NORMAL")
+        assert {m.value for m in LegalPriority} == {
+            "P0_CRITICAL_SAFETY", "P1_URGENT_TASK", "P2_NORMAL_INTERACT", "P3_BACKGROUND_TICK"
+        }
 
     def test_non_positive_interval_rejected_at_construction(self):
         with pytest.raises(WakeError):
