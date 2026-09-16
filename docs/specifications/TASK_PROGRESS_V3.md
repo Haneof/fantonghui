@@ -58,3 +58,31 @@
 3. **BrevityGuard 纯标点输入**："…………" 会被计为 1~3 句"标点句"（结构约束成立、信息量为零）。留档为增强候选（信息量兜底），不影响 1~3 句硬门禁。
 
 **分支与谱系**：全部提交至 `arena/01a0a700-fantonghui`（会话锁定分支）。谱系：`7785aed`（M1-018 增量硬化合流点，基线 651）→ 本批次 4 个独立提交 → 治理登记。既有版本 `b0c540a` / `8f21987` / `29d115f` / `db40aa0` / `0f097c4` 均保留于历史、未被覆盖。
+
+---
+
+## 四、M2/M3/SIM 实现批次登记（agent-05-m2m3-sim-batch-20260916，2026-09-16 追加，纯增量）
+
+> 总师指令："做完提交，不要覆盖任何别的文件。"
+> **并行交付说明**：本批次四个工单在推进期间，并行会话已将同工单的规范实现
+> （`9df301e` M2-005R / `276473f` M2-001 / `4fbe772` M3-001R / `cce3816` SIM-001）
+> 先行合流至本分支并占用规范模块路径。依"零覆盖"铁律与仓库既定并存先例
+> （`retrospective_annotation_agent05`、`epistemic_world_lens` 并存线），
+> 本批次交付物全部转为**独立命名并存线**（`*_agent05`），与规范实现并存，
+> 一行未覆盖任何既有/并行版本；全仓回归 **849 passed**
+> （723 红队批次基线 + 58 并行会话新增 + 68 本批次共存线）。
+
+| 工单 | 规范实现（并行会话，未触碰） | 本批次并存线（独立命名） | 测试数 | 核心门禁达成（30 天实测） |
+|---|---|---|:---:|---|
+| **M2-005R** 条件驱动双轨调度 | `scheduler/conditional_engine.py` | `scheduler/conditional_engine_agent05.py` | 21 | DORMANT 看板 Token 严格 0（200 任务 195 休眠物理隐形）；Level-1 机械快轨 200 任务 <1ms、LLM 严格 0；Level-2 仅用户主动 wake_ref 捎带（无自主唤醒入口）；非法跃迁 100% 拦截 |
+| **M2-001** 唤醒去重合并队列 | `wake/cooldown_queue.py` | `wake/cooldown_queue_agent05.py` | 17 | 250 条 50Hz 脉冲（5s）→ 单条批次；15~30min 自适应冷却（+5min 升级封顶 30min）；DEEP_SLEEP 静默闸一般振动严格 0、P0 经 V1 既有脉冲通道直穿；第一安全窗口无损保序解冻 |
+| **M3-001R** 维度衍生三重门限 | `dimensions/evolution_guard.py` | `dimensions/evolution_guard_agent05.py` | 19 | 跨域 ≥2 且持续 ≥3 天准入；30 天试用期准确率 ≥70%（0.70 边界达标）否则 EXPIRED；每日反思配额严格 1 次；活跃 ≤32 硬顶 + 末位淘汰归档；反思套娃第 2 层递归物理熔断 |
+| **SIM-001** 无界面人生仿真器 | `simulation/headless_life_driver.py` + `governance/runtime_policy.json` | `simulation/headless_life_driver_agent05.py` + `simulation/cjk_trigram_index.py`（仿真局部 C06 求交自持实现） | 11 | 720h 高熵时间流（120 会议/85dB 车间/老王违约危机/唯一 03:15 P0）；C01→C06→C02→C04→C05 全链 + M2/M3 主线（C06：123 文档，对赌+回购 121 命中、老王+违约 122 命中；C02：154 事实哈希封存）；0 死锁、峰值 RSS 33.9MB≤128MB、原始图片滞留 0；Token 8,540 ≤ 2,554,000 月度封套（读取规范 `runtime_policy.json` 核验）；180 天冒烟 + 确定性双跑 |
+
+**分支与谱系**：全部提交至 `arena/01a0a700-fantonghui`（会话锁定分支）。
+谱系：`4451e38`（红队批次终点）→ `8d921ae`/`9df301e`/`276473f`/`4fbe772`/`cce3816`
+（并行会话：M1-018 超集并存线 + 四工单规范实现）→ 本批次 5 个并存线提交（M2-005R /
+M2-001 / M3-001R / SIM-001 / 治理登记）。
+工单要求的目标分支 `arena/agent-dispatch-m2-005r` / `arena/agent-wake-m2-001` /
+`arena/agent-cognition-m3-001r` / `arena/agent-sim-engine` 因会话锁无法使用，
+映射关系提请总师知悉。
