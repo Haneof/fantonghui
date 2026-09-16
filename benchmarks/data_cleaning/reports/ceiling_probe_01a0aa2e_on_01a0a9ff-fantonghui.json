@@ -1,0 +1,12 @@
+{
+  "generator_agent": "01a0a9ff-fantonghui",
+  "questions_probed": 2000,
+  "ground_truth_facts": 5740,
+  "directional_keyword_visible_in_payload": 0.7596,
+  "directional_keyword_visible_in_cited_item": 0.4523,
+  "anchor_entity_visible_in_payload": 0.6169,
+  "entity_gate_reachable_ratio": 0.8047,
+  "oracle_mean_score": 67.58,
+  "oracle_pass_rate": 0.2495,
+  "reading": "oracle 探针借用标答的维度/意图、实体只从被引用碎片可见文本抽取、垃圾全剪；它给出的是'分类零失误'情形下的得分上限，不是本战队的提交结果。"
+}

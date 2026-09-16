@@ -71,3 +71,6 @@ benchmarks/data_cleaning/answers/*.jsonl
 # 复现命令见 benchmarks/daily_life/EXAM_SPEC_agent_01a0aa2e.md
 # 校验基准：MANIFEST.json 内的 sha256
 benchmarks/daily_life/questions/*.jsonl
+
+# 本地取回的对手题库 / 中间产物（题面 171.8 MiB、含标答 215 MB，超出产物上限，禁止入库）
+.cache/

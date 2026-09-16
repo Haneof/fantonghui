@@ -1,0 +1,148 @@
+{
+  "meta": {
+    "solver_agent": "01a0aa2e",
+    "generator_agent": "fantonghui",
+    "generator_agent_in_payload": "fantonghui",
+    "questions_file": "/home/user/fantonghui/.cache/inbound/questions_fantonghui.jsonl",
+    "ground_truth_file": ".cache/inbound/gt_fantonghui.jsonl",
+    "questions_scored": 10000,
+    "questions_skipped_no_ground_truth": 0,
+    "self_solving_violations": 0,
+    "generated_at_utc": "2026-09-16T13:23:47Z",
+    "max_facts_cap": 3,
+    "engine": "aios_core.ingest.purifier_01a0aa2e (确定性规则引擎，0 大模型调用)",
+    "wall_clock_s": 15.63
+  },
+  "score": {
+    "mean_final_score": 63.54,
+    "pass_rate": 0.1461,
+    "pass_threshold": 90.0,
+    "p10": 30.83,
+    "p50": 68.75,
+    "p90": 93.75
+  },
+  "rates": {
+    "direction_match_rate": 0.7233,
+    "entity_recall_rate": 0.5727,
+    "dimension_accuracy": 0.7233,
+    "junk_prune_rate": 0.8651
+  },
+  "iron_laws": {
+    "llm_tokens_used_total": 0,
+    "llm_calls_total": 0,
+    "p0_emergency_triggered_questions": 2970,
+    "p0_triage_ms_p50": 0.0065,
+    "p0_triage_ms_p95": 0.0126,
+    "p0_triage_ms_max": 0.2418,
+    "p0_triage_budget_ms": 50.0,
+    "cleaning_ms_per_question_mean": 1.217,
+    "junk_bytes_physically_pruned": 4534651,
+    "retained_bytes": 5595486,
+    "edge_storage_saving_ratio": 0.4476,
+    "history_mutations": 0
+  },
+  "error_attribution": {
+    "NOISE_LEAK": 4784,
+    "OVER_PRUNE": 3639,
+    "ENTITY_MISSED": 9157,
+    "INTENT_DRIFT": 4935,
+    "DIMENSION_MISMATCH": 4935,
+    "FALSE_ALARM": 5897,
+    "SELF_SOLVING": 0
+  },
+  "volumes": {
+    "extracted_facts_mean": 2.545,
+    "ground_truth_facts_mean": 2.027
+  },
+  "bank_self_coherence": {
+    "directional_keyword_visible_in_payload": 0.787,
+    "anchor_entity_visible_in_payload": 0.9863,
+    "note": "出题方自查：标答方向词/实体在题面可见的比例，决定了阅卷得分的物理天花板"
+  },
+  "worst_questions": [
+    {
+      "question_id": "Q_fantonghui_00052",
+      "final_score": 0.0
+    },
+    {
+      "question_id": "Q_fantonghui_00014",
+      "final_score": 10.0
+    },
+    {
+      "question_id": "Q_fantonghui_00036",
+      "final_score": 10.0
+    },
+    {
+      "question_id": "Q_fantonghui_00003",
+      "final_score": 25.0
+    },
+    {
+      "question_id": "Q_fantonghui_00011",
+      "final_score": 25.0
+    },
+    {
+      "question_id": "Q_fantonghui_00025",
+      "final_score": 25.0
+    },
+    {
+      "question_id": "Q_fantonghui_00023",
+      "final_score": 32.92
+    },
+    {
+      "question_id": "Q_fantonghui_00037",
+      "final_score": 41.25
+    },
+    {
+      "question_id": "Q_fantonghui_00032",
+      "final_score": 47.22
+    },
+    {
+      "question_id": "Q_fantonghui_00029",
+      "final_score": 47.5
+    },
+    {
+      "question_id": "Q_fantonghui_00006",
+      "final_score": 51.25
+    },
+    {
+      "question_id": "Q_fantonghui_00040",
+      "final_score": 51.25
+    },
+    {
+      "question_id": "Q_fantonghui_00022",
+      "final_score": 55.42
+    },
+    {
+      "question_id": "Q_fantonghui_00008",
+      "final_score": 57.5
+    },
+    {
+      "question_id": "Q_fantonghui_00030",
+      "final_score": 57.5
+    },
+    {
+      "question_id": "Q_fantonghui_00031",
+      "final_score": 57.5
+    },
+    {
+      "question_id": "Q_fantonghui_00039",
+      "final_score": 59.38
+    },
+    {
+      "question_id": "Q_fantonghui_00016",
+      "final_score": 61.81
+    },
+    {
+      "question_id": "Q_fantonghui_00013",
+      "final_score": 62.5
+    },
+    {
+      "question_id": "Q_fantonghui_00038",
+      "final_score": 62.5
+    }
+  ],
+  "artifacts": {
+    "answers": "benchmarks/data_cleaning/answers/ans_01a0aa2e_on_fantonghui.jsonl.gz",
+    "details": "benchmarks/data_cleaning/reports/details_01a0aa2e_on_fantonghui.jsonl.gz"
+  }
+}
