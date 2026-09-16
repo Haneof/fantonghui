@@ -20,11 +20,18 @@ from __future__ import annotations
 
 import json
 import math
+import random
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Iterable, Iterator, Mapping, Sequence
+from datetime import datetime, timedelta, timezone
+from typing import Any, Iterable, Iterator, Mapping, Sequence, Tuple
 
+from aios_core.contracts.ids import new_operation_id
+from aios_core.contracts.models import Observation
+from aios_core.contracts.operations import OperationRequest
+from aios_core.contracts.refs import ObjectRef
+from aios_core.contracts.time import TemporalExtent
+from aios_core.contracts.enums import SourceClass
 from aios_core.simulation.massive_life_bench import (
     MassiveBenchStats,
     populate_massive_world,
@@ -336,3 +343,187 @@ def noise_ratio(stats: MassiveBenchStats) -> float:
     total = max(1, stats.total_observations)
     noise = max(0, stats.total_observations - len(WANG_FRAUD_CORE) - len(MOM_GIFT_CORE) - len(HEALTH_RESONANCE_CORE) - len(ROMANCE_CORE))
     return noise / total
+
+
+# ===========================================================================
+# 跨域异常窗口装配器（供维度演化 / 人设姿态 / 战训考场共用）
+# ===========================================================================
+@dataclass(frozen=True)
+class AnomalyWindow:
+    """一条"连续 N 天 × 多物理域"的真实异常窗口。"""
+
+    profile: str
+    days: Tuple[datetime, ...]
+    per_day: Mapping[str, Mapping[str, Tuple[str, ...]]]
+    observation_ids: Tuple[str, ...]
+    evidence_refs: Tuple[ObjectRef, ...]
+
+    def day_count(self) -> int:
+        """窗口天数。"""
+        return len(self.days)
+
+    def domains(self) -> frozenset[str]:
+        """窗口内点亮过的物理域集合。"""
+        out: set[str] = set()
+        for domains in self.per_day.values():
+            out.update(domains)
+        return frozenset(out)
+
+    def payloads(self, store: SQLiteWorldStore) -> list[dict]:
+        """取回窗口内全部观测载荷（按对象 id 顺序）。"""
+        return [store.get_payload(oid) for oid in self.observation_ids]
+
+
+#: 窗口配方：profile → 每日 (物理域 → 观测模板) 与主题人物
+_WINDOW_RECIPES: Mapping[str, Mapping[str, Any]] = {
+    "burnout": {
+        "subject_id": "ent_user_me",
+        "domains": {
+            "health": (
+                "biometrics",
+                "json",
+                '{{"resting_hr": {hr}, "hrv": {hrv}, "note": "凌晨 02:10 静息心率骤升，HRV 显著塌陷"}}',
+            ),
+            "work": (
+                "work_log",
+                "text",
+                "连续第 {day_index} 天在工位加班至凌晨 02:30 提交版本，全天会议 4 场，未离开写字楼。",
+            ),
+            "finance": (
+                "transaction",
+                "text",
+                "凌晨 01:40 咖啡与外卖异常消费 {amount} 元（远高于日常均值 32 元）。",
+            ),
+        },
+    },
+    "credit": {
+        "subject_id": "ent_old_wang",
+        "domains": {
+            "finance": (
+                "transaction",
+                "text",
+                "老王的项目方大额资金转出 {amount} 元，同日又有 2 笔小额过账回流，账户流水异常。",
+            ),
+            "social": (
+                "chat",
+                "text",
+                "老王微信：'再宽限我{day_index}天，下周三连本带息打过去'（与此前 3 次承诺措辞几乎一致）。",
+            ),
+            "behavior": (
+                "location",
+                "text",
+                "老王临时变更常驻办公地点并多次拒接视频核验，行为轨迹与承诺不符。",
+            ),
+        },
+    },
+    "parent_health": {
+        "subject_id": "ent_mom",
+        "domains": {
+            "health": (
+                "medical",
+                "text",
+                "母亲膝关节受凉疼痛复发，晨起上下楼困难，自述膝盖像被冷风灌透，热敷后略有缓解。",
+            ),
+            "social": (
+                "chat",
+                "text",
+                "妈妈微信语音：'今天膝盖又疼了第 {day_index} 天，别买那些又要灌水又要搬的东西'。",
+            ),
+            "behavior": (
+                "location",
+                "text",
+                "母亲连续减少外出散步时长（{day_index} 天来最低），居家活动为主。",
+            ),
+        },
+    },
+}
+
+
+def build_anomaly_window(
+    store: SQLiteWorldStore,
+    *,
+    profile: str = "burnout",
+    start: datetime = datetime(2026, 9, 10, 2, 0, tzinfo=UTC),
+    days: int = 3,
+    seed: int = 7,
+) -> AnomalyWindow:
+    """装配一条连续 ``days`` 天、每天多物理域的异常观测窗口并真实入库。
+
+    这是维度层"门槛一"的证据来源：窗口内每个物理域都有真实 ``Observation`` 对象，
+    提炼出的高阶维度因而携带可回指的物证指针（而不是测试里的字符串常量）。
+    """
+    recipe = _WINDOW_RECIPES[profile]
+    subject_id = str(recipe["subject_id"])
+    domains: Mapping[str, Any] = recipe["domains"]
+    rng = random.Random(seed)
+    start = start if start.tzinfo else start.replace(tzinfo=UTC)
+
+    objects: list[Any] = []
+    per_day: dict[str, dict[str, tuple[str, ...]]] = {}
+    all_ids: list[str] = []
+
+    day_starts: list[datetime] = []
+    for day_offset in range(days):
+        day_anchor = start + timedelta(days=day_offset)
+        day_starts.append(day_anchor)
+        key = day_anchor.date().isoformat()
+        per_day[key] = {}
+        for domain_index, (domain, template) in enumerate(domains.items()):
+            source_kind, modality, text_template = template
+            ts = day_anchor + timedelta(hours=domain_index) + timedelta(minutes=rng.randint(0, 45))
+            value = text_template.format(
+                day_index=day_offset + 1,
+                hr=rng.randint(96, 118),
+                hrv=rng.randint(14, 22),
+                amount=rng.choice([138, 156, 189, 213]),
+            )
+            # id 内嵌自然日，保证同一世界内多条窗口（主组/控制组）互不覆盖
+            object_id = f"obs_window_{profile}_{domain}_{ts.date().isoformat()}"
+            objects.append(
+                Observation(
+                    object_id=object_id,
+                    subject_id=subject_id,
+                    revision=1,
+                    source_kind=source_kind,
+                    modality=modality,
+                    value=value,
+                    occurred=TemporalExtent.point(ts),
+                    learned_at=ts,
+                    recorded_at=ts,
+                    created_by="m5_anomaly_window",
+                )
+            )
+            per_day[key][domain] = (object_id,)
+            all_ids.append(object_id)
+
+    operation = OperationRequest(
+        operation_id=new_operation_id(),
+        operation_name="sim.m5.anomaly_window",
+        expected_world_revision=store.current_world_revision(),
+        reason=f"装配跨域异常窗口 profile={profile} days={days}",
+        idempotency_key=f"m5_window_{profile}_{days}_{seed}_{start.date().isoformat()}",
+        source_class=SourceClass.AI_COGNITION,
+    )
+    store.commit(objects, operation)
+
+    return AnomalyWindow(
+        profile=profile,
+        days=tuple(day_starts),
+        per_day=per_day,
+        observation_ids=tuple(all_ids),
+        evidence_refs=tuple(ObjectRef(object_id=oid, revision=1) for oid in all_ids),
+    )
+
+
+def build_anomaly_windows(
+    store: SQLiteWorldStore,
+    *,
+    start: datetime = datetime(2026, 9, 10, 2, 0, tzinfo=UTC),
+    days: int = 3,
+    seed: int = 7,
+) -> dict[str, AnomalyWindow]:
+    """一次性装配三类跨域异常窗口：过劳 / 信用 / 亲人健康。"""
+    return {
+        profile: build_anomaly_window(store, profile=profile, start=start, days=days, seed=seed)
+        for profile in _WINDOW_RECIPES
+    }
