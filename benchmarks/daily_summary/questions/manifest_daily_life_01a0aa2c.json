@@ -1,0 +1,48 @@
+{
+  "generator_agent": "01a0aa2c-fantonghui",
+  "generator_version": "v1",
+  "seed": "0x1a0aa2c",
+  "total_questions": 10000,
+  "file": "benchmarks/daily_summary/questions/questions_daily_life_01a0aa2c.jsonl",
+  "sha256": "2632805b6447074bc4fc2b7c5fbe8ee80358d270a3fd23afe8506a83ad6eccae",
+  "size_mb": 52.54,
+  "avg_events_per_day": 20.73,
+  "plot_family_distribution": {
+    "健康危机": 1139,
+    "财务契约": 822,
+    "情感转折": 787,
+    "职场危机": 777,
+    "职场危机×情感断裂": 742,
+    "职场转折": 686,
+    "复合转折（喜忧参半）": 683,
+    "健康危机×家庭": 500,
+    "平静基线（小确幸）": 466,
+    "职场危机×财务": 383,
+    "财务契约×人际": 378,
+    "复合转折（顾此失彼）": 376,
+    "情感断裂": 364,
+    "人际冲突": 327,
+    "人际转折": 323,
+    "情感修复": 322,
+    "平静基线（远程办公）": 317,
+    "正向突破": 310,
+    "财务契约×正向": 298
+  },
+  "difficulty_distribution": {
+    "HARD": 4054,
+    "ADVERSARIAL": 2933,
+    "MEDIUM": 1710,
+    "EASY": 1303
+  },
+  "dimension_schema": [
+    "global",
+    "dim:health",
+    "dim:social",
+    "dim:emotion",
+    "dim:finance",
+    "dim:career"
+  ],
+  "observability_check": "passed",
+  "grading_rule": "判卷以方向为准：命中 core_anchor 或任一 accepted_synonyms 方向即得分；命中任一 redline_criteria 即该维一票否决（0 分）；严禁字句级死板匹配。",
+  "note": "每道试卷=一人一整天（07:00~23:30 事件流+传感器宏观摘要）；盲做时请剥离 directional_ground_truth 字段。"
+}
