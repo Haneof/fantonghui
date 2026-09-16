@@ -1,0 +1,119 @@
+{
+  "generator_agent": "01a0aa2c-fantonghui",
+  "generator_branch": "arena/01a0aa2c-fantonghui",
+  "seed": 20260916,
+  "count": 10000,
+  "questions_sha256": "3588fa17ea44ccc54035a2331fb89efe4244845891de2a56832a0554b2246852",
+  "ground_truth_sha256": "9b4b607bc3706b321edb0fb1e5375cb9fcb05755df86dc7549cc1e041a4f0144",
+  "questions_path": "benchmarks/data_cleaning/questions/questions_01a0aa2c-fantonghui_v3.jsonl",
+  "ground_truth_path": "benchmarks/data_cleaning/ground_truth/gt_01a0aa2c-fantonghui_v3.jsonl",
+  "statistics": {
+    "questions": 10000,
+    "role_dimensions_per_question": 6.29,
+    "red_line_facts_share": 1.0,
+    "day_span_minutes_mean": 947.6,
+    "modality_share": {
+      "sensor": 0.3,
+      "mic": 0.3,
+      "voiceprint": 0.2,
+      "app": 0.15,
+      "utterance": 0.05
+    },
+    "fact_source_channel_share": {
+      "m": 0.5495,
+      "a": 0.2797,
+      "u": 0.1014,
+      "s": 0.0693
+    },
+    "primary_domain_share": {
+      "dim:finance": 0.2022,
+      "dim:social": 0.2022,
+      "dim:career": 0.2022,
+      "dim:life": 0.2021,
+      "dim:health": 0.1913
+    },
+    "adversarial_share": 0.0435,
+    "facts_total": 14261,
+    "junk_total": 318597,
+    "facts_per_question": {
+      "1": 5804,
+      "2": 4131,
+      "3": 65
+    },
+    "dimension_share": {
+      "dim:social": 0.2061,
+      "dim:career": 0.2001,
+      "dim:finance": 0.2,
+      "dim:life": 0.1999,
+      "dim:health": 0.194
+    },
+    "difficulty_share": {
+      "MEDIUM": 0.7568,
+      "HARD": 0.1261,
+      "EASY": 0.0736,
+      "ADVERSARIAL": 0.0435
+    },
+    "intent_kinds": 42,
+    "intent_top": [
+      [
+        "DEBT_COLLECTION_OVERDUE",
+        396
+      ],
+      [
+        "PAYROLL_WAGE_ARREARS",
+        396
+      ],
+      [
+        "CRYPTO_PONZI_COLLAPSE",
+        395
+      ],
+      [
+        "THESIS_BLIND_REVIEW",
+        395
+      ],
+      [
+        "INHERITANCE_FAMILY_DISPUTE",
+        392
+      ],
+      [
+        "JOB_INTERVIEW_RESULT",
+        392
+      ],
+      [
+        "PROJECT_FAILURE_REVIEW",
+        392
+      ],
+      [
+        "REFUND_SCAM_COMPENSATION",
+        392
+      ],
+      [
+        "SAFETY_HAZARD_ON_SITE",
+        392
+      ],
+      [
+        "FAMILY_ENTRUSTMENT",
+        391
+      ],
+      [
+        "TAX_INSPECTION_FALSE_INVOICE",
+        391
+      ],
+      [
+        "NEIGHBOR_FLOOD_DISPUTE",
+        391
+      ]
+    ],
+    "persona_coverage": 15,
+    "anchor_grounded_rate": 1.0,
+    "keyword_grounded_rate": 0.5313,
+    "core_unique_rate": 0.9819,
+    "junk_ratio_mean": 0.9289,
+    "junk_ratio_min": 0.9062,
+    "echo_trap_questions": 3256
+  },
+  "audit": {
+    "problems": 0,
+    "verdict": "PASS"
+  }
+}

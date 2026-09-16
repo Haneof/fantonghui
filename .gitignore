@@ -60,11 +60,9 @@ data/
 .env
 .env.*
 
-# 数据清洗竞技场：对手题库/标答按 Dispatch #11 现场跨 Git 拉取；仅本战队原创出卷入库。
-# （对手卷如 questions_agent_11.jsonl / gt_agent_11.jsonl 等体积巨大且非本战队产物，不入库）
-benchmarks/data_cleaning/questions/questions_agent*.jsonl
-benchmarks/data_cleaning/questions/questions_fantonghui*.jsonl
-benchmarks/data_cleaning/questions/questions_01a0a9f*.jsonl
-benchmarks/data_cleaning/ground_truth/gt_agent*.jsonl
-benchmarks/data_cleaning/ground_truth/gt_fantonghui*.jsonl
-benchmarks/data_cleaning/ground_truth/gt_01a0a9f*.jsonl
+# 数据清洗竞技场：对手题库/标答体积巨大且属于对手分支产物，按 Dispatch #11 现场跨 Git 拉取，不入库。
+benchmarks/data_cleaning/questions/*.jsonl
+benchmarks/data_cleaning/ground_truth/*.jsonl
+# 例外：本战队 OWN 出卷产物是法定交付物（其他战队必须能跨 Git 拉取做题），必须入库。
+!benchmarks/data_cleaning/questions/questions_01a0aa2c-fantonghui_v3.jsonl
+!benchmarks/data_cleaning/ground_truth/gt_01a0aa2c-fantonghui_v3.jsonl
