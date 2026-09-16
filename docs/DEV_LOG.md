@@ -386,3 +386,44 @@ M0-001 状态 CONDITIONAL PASS，禁止进入 M0-002，修正两个问题并制�
 ### 已知限制
 - 本批为**候选契约**：R4 修改案未经 architect-01/chief-01 签核前，禁止在 M1 运行面上依赖新对象做业务承诺。
 - world_commits 加列与触发豁免过滤器属 M1/M2 任务，本批刻意未动存储层——契约先行、执法随后是设计书 §1.4 的明示顺序。
+
+## 2026-09-16 M0-023 运行面 + M1-017/018 检索核（预开工件批）
+
+### 背景与治理边界
+M1 Gate 未开。本批全部以**预开工件**落 arena 工作分支：不改 TASK_PROGRESS 的 M1
+表行、不宣称里程碑状态；接入唤醒/会话运行路径须待 M0-022R 签核与 Gate 后执行。
+
+### 执行步骤
+1. `storage/sqlite_store.py`：`world_commits` 增加 `source_class TEXT NOT NULL`
+   五值 CHECK；新库 DDL 直接带列 + `idx_commits_triggerable` 部分索引
+   （`WHERE source_class <> 'maintenance'`）。
+2. `_ensure_source_class_schema()` 迁移器（先于任何引用新列的 DDL 执行）：
+   补列→显式 UPDATE 回填 `ai_cognition`→表重建加约束改名；拒绝 DEFAULT 静默
+   冒充历史（R4-02）；审计 JSON 入 `world_meta.schema_migration_m0_023`。
+3. 读面三件：`commit_source_class()`（审计直读）、`triggerable_commits_after()`
+   （M2-002 触发消费口，维护提交结构性不可见）、`revisions_after()`
+   （投影重放入口）。`commit()` 持久化 `operation.source_class.value`。
+4. 新核 `query/search.py`（M1-017/018）：`WorldSearchIndex` 自带倒排投影
+   （search_postings/occurred/doc/alias/meta 五表同库）；CJK bigram + ASCII 词
+   分词（实测本构建 FTS5 unicode61 不分词、trigram 拒 2 字查询→自持分词器，
+   FTS5 保留为可替换适配器）；白名单字段抽取器（绝不整包 payload）。
+5. `co_search()` 语义：posting-AND 交集 ∩ 时间过滤 ∩ haystack 子串复核 ∩
+   实体解析通道（别名唯一→按实体编号展开 ref 召回 + 别名全集展开；歧义→
+   `ambiguous_keywords` 返回不自动合并，第 36/89 条）；`strict_freshness` 下
+   索引落后返回 `status=stale_index` 绝不冒充新鲜（双视图截止水位）。
+6. 索引为纯投影：`rebuild()` 幂等重建（drop/重建后命中位相同，测试锁定）、
+   `drop_projection()` 可整删、`catch_up()` 按 commit 边界水位截断；永不与
+   "真相"对账。
+7. 集成测试 `tests/integration/test_m0_prime_store_delta_and_search.py`：
+   8 用例（source_class 冻结、旧库迁移+审计、触发可见性、别名消歧召回、
+   时间范围、水位双模式、投影重建等价、降规模 G-M1P 冒烟 2000 对象 p95<250ms）。
+
+### 测试
+- 全量：`594 passed / 1 failed`；唯一失败仍为既知环境项 test_b8（子进程缺
+  PYTHONPATH；本批实跑 `PYTHONPATH=src` 该项通过，非回归）。
+- 上批基线 586 → +8 新用例，存储层改动零回归。
+
+### 已知限制
+- 正式 50 万修订版 G-M1P 压测脚本待 M1 Gate 后跑在目标硬件上；CI 只跑降规模冒烟。
+- 检索核未接入会话/唤醒运行路径（Gate 约束）；M2-002 届时直接消费
+  `triggerable_commits_after`。

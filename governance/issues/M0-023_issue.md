@@ -19,8 +19,17 @@ OperationRequest 新增 `source_class: SourceClass`（user/sensor/ai_cognition/m
 ## 必须测试
 - MAINTENANCE 缺 maintenance_class → ValidationError；非 MAINTENANCE 携带 → ValidationError；默认值兼容 → 通过。
 
+## 预开工件记录（arena 分支；M1 Gate 未开，不构成里程碑状态变更）
+- [x] 存储层加列 + 迁移 + 部分索引已作为**预开工件**落地：`world_commits.source_class`
+      五值 CHECK、`idx_commits_triggerable`（排除 maintenance）；旧库迁移走
+      补列→显式回填 `ai_cognition`→表重建（无 DEFAULT 蒙混），审计 JSON 写入
+      `world_meta.schema_migration_m0_023`（测试锁定）。
+- [x] `triggerable_commits_after()` 读面就位：M2-002 触发引擎届时只消费该过滤器，
+      `MAINTENANCE → skip` 已结构性成立（维护提交对触发评估不可见）。
+- 边界：本记录不改变上方遗留工作中 M2-002/M2-GATE 的待办状态；运行路径接入仍待 Gate。
+
 ## 遗留工作（不入本契约任务）
-- M1：world_commits/operations 加列 + 显式回填迁移 + `idx_commits_triggerable` 部分索引
+- M1：world_commits/operations 加列 + 显式回填迁移 + `idx_commits_triggerable` 部分索引（存储侧已以预开工件完成，见上；operations 表如需审计加列仍归 M2-002 接入时决定）
 - M2-002 重写：触发引擎 `MAINTENANCE → skip`；SAFETY 去抖带（V32）
 - M2-GATE：V21b 风暴回归（唤醒放大比≤1、时钟冻结检测）
 
