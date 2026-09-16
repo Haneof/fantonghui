@@ -46,6 +46,7 @@ __all__ = [
     "AnnotationRegistry",
     "BiTemporalEpistemicLens",
     "CascadeIsolationError",
+    "EpistemicWorldLens",
     "HistoricalFact",
     "HistoricalSliceView",
     "ImmutableFactLedger",
@@ -54,6 +55,8 @@ __all__ = [
     "RetrospectiveAnnotation",
     "SingleHopCascadeIsolator",
 ]
+
+from .epistemic_world_lens import EpistemicWorldLens
 
 
 def _utc_now() -> datetime:

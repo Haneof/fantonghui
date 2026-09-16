@@ -14,6 +14,13 @@
   "generated_at": "2026-09-15",
   "constitution_baseline": "AIOS核心系统宪法v3.0.md (六编三十三章一百一十六条) + R1/R2/R3 + R4裁决案(待签发)",
   "enforced_by": ["tests/policy/test_runtime_policy.py", ".github/workflows/ci.yml"],
+  "monthly_token_budget": 2554000,
+  "hard_rules": {
+    "level1_mechanical_llm_calls_max": 0,
+    "p0_safety_bypass_llm_calls_max": 0,
+    "dormant_task_prompt_tokens_max": 0,
+    "raw_binary_image_retention_bytes_max": 0
+  },
 
   "token_budget": {
     "$comment": "月度封套（单用户，12 活跃维度，L 档摄入 ≤500 obs/日）。这是设计输入，不是监控输出：超封套的 Issue 不予派单。",
