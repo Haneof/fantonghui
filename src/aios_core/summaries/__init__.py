@@ -1,1 +1,15 @@
-"""Summaries - 日/周/月总结占位。M3 实现，禁止覆盖原始证据。"""
+"""Lossless multi-scale temporal summaries."""
+
+from .pyramid_aggregator import (
+    LosslessTemporalPyramid,
+    PyramidBuildReceipt,
+    TemporalGranularity,
+    TemporalSummaryNode,
+)
+
+__all__ = [
+    "LosslessTemporalPyramid",
+    "PyramidBuildReceipt",
+    "TemporalGranularity",
+    "TemporalSummaryNode",
+]

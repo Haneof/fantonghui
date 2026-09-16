@@ -17,14 +17,26 @@ from .cjk_inverted_index import (
     ScoredHit,
     tokenize_cjk_overlapping,
 )
+from .epistemic_projection import (
+    DualLensProjectionIndex,
+    EpistemicProjection,
+    ImmutableProjectionFact,
+    ProjectionOverlay,
+    dual_lens_projection_tool_proposal,
+)
 from .history import HistoricalQueryResult, HistoricalWorldQuery, QueryCoverage
 
 __all__ = [
     "CJKTopologicalInvertedIndex",
     "CoOccurrenceEdge",
+    "DualLensProjectionIndex",
+    "EpistemicProjection",
     "HistoricalQueryResult",
     "HistoricalWorldQuery",
+    "ImmutableProjectionFact",
+    "ProjectionOverlay",
     "QueryCoverage",
     "ScoredHit",
+    "dual_lens_projection_tool_proposal",
     "tokenize_cjk_overlapping",
 ]

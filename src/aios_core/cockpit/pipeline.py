@@ -191,6 +191,11 @@ class CrisisCockpitContext(BaseModel):
     session_id: str = Field(min_length=1, max_length=160)
     ai_self_summary: str = Field(min_length=1, max_length=500_000)
     rapport_state: str = Field(min_length=1, max_length=500_000)
+    response_posture: str = Field(
+        default="bounded_evidence_first",
+        min_length=1,
+        max_length=2_000,
+    )
     wake_reason_anchor: str = Field(min_length=1, max_length=500_000)
     local_world_facts: str = Field(min_length=1, max_length=2_000_000)
     ready_tasks: list[dict[str, Any]] = Field(default_factory=list, max_length=3)
@@ -278,11 +283,12 @@ class CockpitPipeline:
             separators=(",", ":"),
         )
         sections = [
-            self._bounded_section("CONTRACT", contract, 120),
-            self._bounded_section("WAKE", context.wake_reason_anchor, 120),
-            self._bounded_section("SELF", context.ai_self_summary, 80),
-            self._bounded_section("RAPPORT", context.rapport_state, 80),
-            self._bounded_section("CRISIS_FACTS", context.local_world_facts, 220),
+            self._bounded_section("CONSTITUTION", contract, 120),
+            self._bounded_section("STEP_1_SELF", context.ai_self_summary, 80),
+            self._bounded_section("STEP_2_RAPPORT", context.rapport_state, 80),
+            self._bounded_section("STEP_3_POSTURE", context.response_posture, 80),
+            self._bounded_section("STEP_4_WORLD", context.wake_reason_anchor, 120),
+            self._bounded_section("STEP_4_FACTS", context.local_world_facts, 220),
             self._bounded_section("READY", ready_json, 80),
         ]
         for turn in active_turns:
@@ -309,6 +315,7 @@ class CockpitPipeline:
                 context.wake_reason_anchor,
                 context.ai_self_summary,
                 context.rapport_state,
+                context.response_posture,
                 context.local_world_facts,
                 ready_json,
             )
