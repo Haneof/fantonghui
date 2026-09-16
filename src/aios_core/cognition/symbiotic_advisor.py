@@ -167,11 +167,13 @@ class MomBirthdayGiftAdvisorV2:
             category = payload.get("gift_category")
             if any(h in text for h in _KNEE_SIGNAL_HINTS):
                 knee_evidence.append(fact_id)
-            if payload.get("kind") == "gift_history" or category:
+            negative = any(h in text for h in _NEGATIVE_OUTCOME_HINTS)
+            positive = any(h in text for h in _POSITIVE_OUTCOME_HINTS)
+            if payload.get("kind") == "gift_history" or category or negative or positive:
                 history_evidence.append(fact_id)
-                if any(h in text for h in _NEGATIVE_OUTCOME_HINTS) and category:
+                if negative and category:
                     idle_categories.add(str(category))
-                if any(h in text for h in _POSITIVE_OUTCOME_HINTS) and category:
+                if positive and category:
                     praised_categories.add(str(category))
 
         if not knee_evidence:

@@ -268,7 +268,8 @@ def _decide_posture_with_rapport(
 
     - LIFE_CRITICAL：生死第一，任何羁绊层级都骨传导直言；
     - HIGH：对陌生/初识先微震提醒守住分寸，对熟人及以上直言不讳；
-    - MEDIUM：微震先导；TRUSTED 僚机可直接开口；
+    - MEDIUM：关键节点一律微震先导——即便是生死死党也不开口说教，
+      开口只留给高危与生死（知分寸，不越界）；
     - LOW：沉默是金，绝不制造噪音。
     """
     urgency = urgency_of(event_context)
@@ -281,8 +282,6 @@ def _decide_posture_with_rapport(
             return ResponsePosture.CRITICAL_SPOKEN
         return ResponsePosture.HAPTIC_NUDGE
     if urgency == EventUrgency.MEDIUM:
-        if effective_tier == RapportTier.TRUSTED_WINGMAN:
-            return ResponsePosture.CRITICAL_SPOKEN
         return ResponsePosture.HAPTIC_NUDGE
     return ResponsePosture.SILENCE
 

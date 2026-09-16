@@ -178,10 +178,10 @@ def test_posture_matrix_urgency_times_rapport():
     assert decider.decide_posture_with_rapport(loan, RapportTier.FAMILIAR_COMPANION) == ResponsePosture.CRITICAL_SPOKEN
     assert decider.decide_posture_with_rapport(loan, RapportTier.TRUSTED_WINGMAN) == ResponsePosture.CRITICAL_SPOKEN
 
-    # 中优先级：死党可直接开口，其余层级微震先导
+    # 中优先级：任何层级一律微震先导——开口只留给高危与生死（知分寸，不越界）
     reminder = {"severity": "MEDIUM", "event_type": "IMPORTANT_REMINDER"}
-    assert decider.decide_posture_with_rapport(reminder, RapportTier.TRUSTED_WINGMAN) == ResponsePosture.CRITICAL_SPOKEN
-    assert decider.decide_posture_with_rapport(reminder, RapportTier.FAMILIAR_COMPANION) == ResponsePosture.HAPTIC_NUDGE
+    for tier in RapportTier:
+        assert decider.decide_posture_with_rapport(reminder, tier) == ResponsePosture.HAPTIC_NUDGE
 
     # 日常琐碎：一律沉默，绝不制造噪音
     trivia = {"keywords": ["闲逛", "吃饭"], "severity": "LOW", "event_type": "TRIVIAL"}
