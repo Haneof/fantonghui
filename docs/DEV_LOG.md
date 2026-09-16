@@ -716,3 +716,34 @@ R4 程序未死，坐标系必须重写——继续装作主线未动 = 把十�
 ### 已知限制
 - 对拍为 6000 修订降规模（脚本 --revisions 可放大）；28.3ms 的构成未做火焰图
   级归因，整改工单里已标注先做 EXPLAIN 再动刀。
+
+## 2026-09-16 工单 #3（M1-010R 时间金字塔）复核批：两处保险库隔离漏洞修复 + 3 回归用例
+
+### 分支程序说明
+任务书要求 `arena/agent-03-m1-010r`；Arena 平台将本会话硬绑定在
+`arena/01a0a638-fantonghui`（禁止创建/推送他支），工单内容在本分支完整执行，
+协调侧对本分支 head fast-forward/rename 收编即可，commit 语义不变。
+
+### 审计结论（不重复施工）
+工单指派文件在上游合并时已随主干入场且验收面完备：证据链 100%（多例互证）、
+45ms 红线非假绿（8784 事件 YEAR→DAY 实测，自定义 `_copy_event` 快速拷贝）、
+冲突拒写/幂等去重/missingness/5D 确定性均在。本批价值 = 首席复核抓出的
+**两处真漏洞**：
+
+1. **tuple 载污洞**：`_copy_event` 声称"与 deepcopy 隔离语义等价"，但 tuple 原样
+   返回——`({"k":1},)` 里的 dict 与 vault 共享，调用方经下钻结果可**直接改写
+   证据保险库原件**，违第 25-27 条"vault 只读、原始事实永存"。修复：tuple 逐
+   元素递归，全元素同一性守恒则走共享快路（纯标量元组零开销，实测
+   `raw["plain"] is ev["plain"]` 保真）；frozenset 同理加固。
+2. **注册表共享洞**：`TimePyramidSummary` 非 frozen 且 `get_summary`/`_materialize`
+   返回**同一对象**——`summary.evidence_ids.append(...)` 即污染物化视图。修复：
+   注册表存 `model_copy(deep=True)`，`get_summary` 深拷贝返回。
+
+回归：3 新用例（含快路保真断言，防"修好语义、修死性能"）；工单测试 28/28、
+全量 **963 passed / 0 failed / 4 xfailed**。
+
+### 已知限制
+- frozenset 分支针对"自定义可哈希可变对象"的理论场景，语言层禁止不可哈希元素，
+  无独立用例（不可构造）；
+- 本实现仍为内存态聚合器，与 SQLiteWorldStore/检索核的世界接线属后续工单
+  （金字塔→`search_occurred` 水位联动、summary 对象是否入世界契约需在 V3 侧裁决）。

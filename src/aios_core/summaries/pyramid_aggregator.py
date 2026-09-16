@@ -164,6 +164,23 @@ def _copy_event(value: Any, memo: Dict[int, Any]) -> Any:
         for item in value:
             result_set.add(_copy_event(item, memo))
         return result_set
+    if isinstance(value, tuple):
+        # 元组可携带可变元素（({"k":1},)），必须逐元素递归；全部元素与原件同一
+        # （纯不可变元组）时共享原件——零开销快路，语义仍与 deepcopy 等价。
+        copied = tuple(_copy_event(item, memo) for item in value)
+        if all(a is b for a, b in zip(copied, value)):
+            return value
+        memo[id(value)] = copied
+        return copied
+    if isinstance(value, frozenset):
+        copied_items = [_copy_event(item, memo) for item in value]
+        originals = set(value)
+        if all(
+            any(a is b for b in originals if type(a) is type(b) and a == b)
+            for a in copied_items
+        ):
+            return value
+        return frozenset(copied_items)
     return value
 
 
@@ -382,7 +399,7 @@ class PyramidAggregator:
     def get_summary(self, summary_id: str) -> TimePyramidSummary:
         """按 summary_id 取回物化总结。"""
         try:
-            return self._summaries[summary_id]
+            return self._summaries[summary_id].model_copy(deep=True)
         except KeyError:
             raise PyramidError(f"unknown summary_id: {summary_id!r}") from None
 
@@ -514,7 +531,8 @@ class PyramidAggregator:
             events=vault_events,
             utc_times=[vault_event.utc_time for vault_event in vault_events],
         )
-        self._summaries[summary_id] = summary
+        # 注册表存深拷贝：返回给调用方的 summary 对象被就地篡改不污染物化视图
+        self._summaries[summary_id] = summary.model_copy(deep=True)
         self._records[summary_id] = record
         return summary
 

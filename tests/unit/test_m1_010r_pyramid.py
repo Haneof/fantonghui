@@ -324,6 +324,54 @@ class TestFiveDAggregation:
             aggregator.generate_materialized_rollup("DAY", "dim_bad", events)
 
 
+
+# ----------------------------------------------------------------------
+# 保险库隔离补强（Agent-03 复核批：tuple 携带可变元素 + 注册表共享对象）
+# 宪法第 25-27 条推论——"vault 只读"若可经元组内层污染，铁律即为纸面。
+# ----------------------------------------------------------------------
+
+
+class TestIsolationHardening:
+    def test_mutable_inside_tuple_cannot_pollute_vault(self):
+        inner = {"k": 1}
+        events = [
+            {
+                "id": "tup-1",
+                "time": BASE,
+                "text": "原始事实",
+                "payload": (inner,),
+                "plain_scalars": (1, 2, 3),
+            }
+        ]
+        agg = PyramidAggregator()
+        summary = agg.generate_materialized_rollup("WEEK", "dim_iso", events)
+        drilled = agg.drill_down(summary.summary_id, "DAY")
+        assert drilled[0]["payload"][0] is not inner, "含可变元素的 tuple 必须物建"
+        drilled[0]["payload"][0]["k"] = 999
+        drilled[0]["plain_scalars"] is not None
+        assert agg.get_raw_event("tup-1")["payload"][0]["k"] == 1, "tuple 内层污染了保险库原件"
+
+    def test_scalar_only_tuple_shares_original_fast_path(self):
+        events = [{"id": "tup-2", "time": BASE, "text": "x", "coords": (1.5, -2.0, 3)}]
+        agg = PyramidAggregator()
+        summary = agg.generate_materialized_rollup("DAY", "dim_iso", events)
+        assert summary.evidence_ids == ["tup-2"]
+        raw = agg.get_raw_event("tup-2")
+        assert raw["coords"] == (1.5, -2.0, 3)  # 值等价即可；纯标量元组允许共享原件省开销
+
+    def test_mutating_returned_summary_cannot_pollute_registry(self):
+        events = make_events(n_days=2, per_day=2, id_prefix="reg")
+        agg = PyramidAggregator()
+        summary = agg.generate_materialized_rollup("WEEK", "dim_reg", events)
+        summary.evidence_ids.append("evil")
+        summary.headline = "被篡改的标题"
+        registry_copy = agg.get_summary(summary.summary_id)
+        assert "evil" not in registry_copy.evidence_ids, "注册表被共享对象就地篡改污染"
+        assert registry_copy.headline != "被篡改的标题"
+        further = agg.drill_down(summary.summary_id, "DAY")  # 下钻仍须基于干净 record
+        assert len(further) == 4
+
+
 # ----------------------------------------------------------------------
 # 下钻响应 <= 45ms
 # ----------------------------------------------------------------------
