@@ -70,7 +70,7 @@ def _event_transitions() -> dict[str, list[str]]:
 
 def build_current_snapshot() -> dict[str, object]:
     return {
-        "gate_version": "M0-R2",
+        "gate_version": "M0-R2+R4-delta-candidate",
         "models": _model_hashes(),
         "enums": _enum_values(),
         "task_transitions": _task_transitions(),

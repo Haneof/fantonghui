@@ -139,7 +139,8 @@ class TestTtlBoundarySemantics:
 
 class TestLshRedTeam:
     @pytest.fixture(scope="class")
-    def index_and_speakers(self):
+    @classmethod
+    def index_and_speakers(cls):
         rng = random.Random(SEED)
         index = VoiceprintLSHIndex(seed=SEED, lsh_planes=LSH_PLANES)
         bases = {}

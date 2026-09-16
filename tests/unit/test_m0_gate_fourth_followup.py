@@ -99,6 +99,9 @@ def _run_cross_process_commit(db_path: Path, seed: int) -> dict[str, object]:
     )
     env = os.environ.copy()
     env["PYTHONHASHSEED"] = str(seed)
+    src_dir = str(Path(__file__).resolve().parents[2] / "src")
+    existing_pythonpath = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = f"{src_dir}{os.pathsep}{existing_pythonpath}" if existing_pythonpath else src_dir
     completed = subprocess.run(
         [sys.executable, "-c", script],
         env=env,

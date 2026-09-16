@@ -1,268 +1,1421 @@
 """M2-005R 条件驱动任务调度双轨引擎与 DORMANT 隐形机制。
 
-场景：长期高压的创业企业法务总监，日程挂载 200 项跨周期复杂条件任务
-（"诉讼对方实控人出现股权变更时提醒"、"连续 3 天晚间心率超过 95bpm
-时启动心内科预约建档"、"回到上海办公室且非深度专注时提示签署对赌
-回购协议"）。双轨引擎保证未成熟任务零 Token 隐形、机械条件零 LLM
-快判、语义条件机会式捎带、状态机非法跃迁全拦截。
+工单：``arena/agent-dispatch-m2-005r`` -> ``src/aios_core/scheduler/conditional_engine.py``
+
+实战情境
+--------------------------------------------------------------------------
+用户是长期高压的创业企业法务总监，日程里挂着 **200 项跨周期条件任务**：
+
+* 「当诉讼对方实控人出现股权变更时提醒」（语义条件）
+* 「当连续 3 天晚间心率超过 95bpm 时启动心内科预约建档」（物理阈值条件）
+* 「在回到上海办公室且处于非深度专注状态时提示签署对赌回购协议」（地理围栏 + 语义）
+
+核心命题（四大硬门禁）
+--------------------------------------------------------------------------
+1. **DORMANT 任务物理隐形、Token 严格为 0**
+   未成熟任务**绝不进入 LLM Prompt**：看板组装与常规会话只物化 READY/RUNNING 任务，
+   休眠任务既不参与组装也不产生任何 Token（由 :class:`DormantInvisibilityGuard` 机械证明）。
+2. **Level-1 机械快轨：0 Token、1ms 内纯 Python 判定**
+   纯时间到期 / 地理围栏 / 生理阈值这类客观物理条件，由 :class:`Level1FastTrack`
+   用常量比较直接判定并跃迁至 READY——**大模型调用次数严格为 0**。
+3. **Level-2 机会式捎带（Opportunistic Piggyback）**
+   依赖语义环境的任务只在"用户主动唤醒 AI 且场景相关"时**顺路批量捎带**评估，
+   绝非为了一个休眠任务自主唤醒大模型：无主动会话时评估次数 = 0、LLM 调用 = 0；
+   有主动会话时整批只花 1 次调用（不是每条任务一次）。
+4. **状态机非法跃迁 100% 拦截**
+   严格 ``DORMANT -> READY -> RUNNING -> COMPLETED``；任何跳级/回退/从未就绪直接执行
+   一律抛 :class:`IllegalStateTransitionError`。
 """
 
 from __future__ import annotations
+from typing import Callable, Any
+from bisect import insort
 
+import math
+import threading
 import time
-from collections.abc import Mapping
-from dataclasses import dataclass, field
-from datetime import datetime
+from collections.abc import Iterable, Mapping, Sequence
+from datetime import date, datetime, timedelta
 from enum import StrEnum
-from typing import Any, Callable
+from typing import Any, Final, Literal, Self
 
-from aios_core.cockpit.pipeline import estimate_tokens
-from aios_core.contracts.time import as_utc
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from aios_core.contracts.enums import ErrorCode
+from aios_core.contracts.time import as_utc, require_aware, utc_now
+from aios_core.errors import AIOSProtocolError
 
 __all__ = [
-    "ConditionalTask",
-    "ConditionalTaskEngine",
-    "ConditionalTaskState",
+    "LEVEL1_MECHANICAL_BUDGET_MS",
+    "MECHANICAL_CONDITION_KINDS",
+    "BoardAssembly",
+    "BoardEntry",
+    "Condition",
     "ConditionKind",
+    "ConditionalTask",
+    "ConditionalTaskScheduler",
+    "DormantInvisibilityGuard",
+    "DormantVisibilityLeakError",
+    "EvaluationTier",
+    "FastTrackReport",
+    "GeoPosition",
     "IllegalStateTransitionError",
-    "LEGAL_TASK_TRANSITIONS",
+    "Level1FastTrack",
+    "MechanicalSignal",
+    "OpportunisticPiggyback",
+    "PiggybackReport",
+    "TaskState",
+    "TaskStateMachine",
+    "VitalSnapshot",
+    "WakeContext",
 ]
 
+#: Level-1 机械判定的单条耗时预算（工单口径：纯 Python 判定 1ms 内出结果）。
+LEVEL1_MECHANICAL_BUDGET_MS: Final[float] = 1.0
 
-class ConditionalTaskState(StrEnum):
-    """条件任务生命周期（M2-005R 专用四态，单向流转）。"""
+#: 状态跃迁表：严格 DORMANT -> READY -> RUNNING -> COMPLETED，无捷径、无回退。
+_ALLOWED_TRANSITIONS: Final[Mapping[str, frozenset[str]]] = {
+    "DORMANT": frozenset({"READY"}),
+    "READY": frozenset({"RUNNING"}),
+    "RUNNING": frozenset({"COMPLETED"}),
+    "COMPLETED": frozenset(),
+}
 
+
+class TaskState(StrEnum):
+    """任务生命周期状态（严格线性，禁止跳级）。"""
+
+    DORMANT = "DORMANT"
+    READY = "READY"
+    RUNNING = "RUNNING"
+    COMPLETED = "COMPLETED"
+
+
+class ConditionKind(StrEnum):
+    """条件种类：前三种是 Level-1 机械条件，最后一种是 Level-2 语义条件。"""
+
+    ABSOLUTE_TIME = "absolute_time"
+    GEO_FENCE = "geo_fence"
+    VITAL_THRESHOLD = "vital_threshold"
+    SEMANTIC_SCENE = "semantic_scene"
+
+
+#: Level-1（机械、0 Token）条件集合。
+MECHANICAL_CONDITION_KINDS: Final[frozenset[ConditionKind]] = frozenset(
+    {ConditionKind.ABSOLUTE_TIME, ConditionKind.GEO_FENCE, ConditionKind.VITAL_THRESHOLD}
+)
+
+
+class EvaluationTier(StrEnum):
+    MECHANICAL = "level1_mechanical"       # 0 Token 快轨
+    OPPORTUNISTIC = "level2_opportunistic"  # 机会式捎带
+
+
+# ---------------------------------------------------------------------------
+# 异常
+# ---------------------------------------------------------------------------
+
+
+class IllegalStateTransitionError(AIOSProtocolError):
+    """非法状态跃迁（含"从未就绪状态直接触发执行"）——100% 拦截，绝不放行。"""
+
+    def __init__(
+        self,
+        task_id: str,
+        from_state: str | None = None,
+        to_state: str | None = None,
+        *,
+        context: dict[str, Any] | None = None,
+    ) -> None:
+        if from_state is not None and to_state is not None:
+            msg = f"illegal task state transition: {from_state} -> {to_state}"
+            from_s = from_state
+            to_s = to_state
+            t_id = task_id
+        else:
+            msg = task_id
+            t_id = "unknown"
+            from_s = from_state or "unknown"
+            to_s = to_state or "unknown"
+        ctx = {
+            "reason": "illegal_state_transition",
+            "task_id": t_id,
+            "from_state": from_s,
+            "to_state": to_s,
+            "allowed_from_state": sorted(_ALLOWED_TRANSITIONS.get(from_s, ())),
+        }
+        if context:
+            ctx.update(context)
+        super().__init__(
+            ErrorCode.INVALID_ARGUMENT,
+            msg,
+            context=ctx,
+        )
+
+
+class DormantVisibilityLeakError(AIOSProtocolError):
+    """休眠任务泄漏进 Prompt / 看板——Token 纪律最高级别违约。"""
+
+    def __init__(self, leaked_titles: Sequence[str], *, phase: str) -> None:
+        super().__init__(
+            ErrorCode.PERMISSION_DENIED,
+            "dormant task leaked into an LLM-visible artifact",
+            context={
+                "reason": "dormant_visibility_leak",
+                "phase": phase,
+                "leaked_titles": list(leaked_titles)[:20],
+                "leaked_count": len(leaked_titles),
+            },
+        )
+
+
+# ---------------------------------------------------------------------------
+# 条件与信号
+# ---------------------------------------------------------------------------
+
+
+class Condition(BaseModel):
+    """单个触发条件（按 ``kind`` 校验必填字段，缺字段直接拒绝，不做猜测）。"""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    kind: ConditionKind
+    summary: str = Field(min_length=1)
+
+    # ABSOLUTE_TIME
+    deadline: datetime | None = None
+
+    # GEO_FENCE
+    place_key: str | None = None
+
+    # VITAL_THRESHOLD
+    metric: str | None = None
+    comparator: Literal[">", ">=", "<", "<="] | None = None
+    threshold: float | None = None
+    consecutive_days: int | None = Field(default=None, ge=1)
+
+    # SEMANTIC_SCENE
+    scene_tags: tuple[str, ...] = ()
+    requires_focus_free: bool = False
+    requires_presence_place: str | None = None
+
+    @model_validator(mode="after")
+    def validate_by_kind(self) -> Self:
+        if self.kind is ConditionKind.ABSOLUTE_TIME:
+            if self.deadline is None:
+                raise ValueError("absolute_time condition requires deadline")
+            _ = require_aware(self.deadline, "deadline")
+        elif self.kind is ConditionKind.GEO_FENCE:
+            if not self.place_key:
+                raise ValueError("geo_fence condition requires place_key")
+        elif self.kind is ConditionKind.VITAL_THRESHOLD:
+            if self.metric is None or self.comparator is None or self.threshold is None:
+                raise ValueError(
+                    "vital_threshold condition requires metric/comparator/threshold"
+                )
+            if self.consecutive_days is None:
+                raise ValueError("vital_threshold condition requires consecutive_days")
+        else:  # SEMANTIC_SCENE
+            if not self.scene_tags and not self.requires_focus_free:
+                raise ValueError(
+                    "semantic_scene condition requires scene_tags or requires_focus_free"
+                )
+        return self
+
+    @property
+    def is_mechanical(self) -> bool:
+        return self.kind in MECHANICAL_CONDITION_KINDS
+
+    def as_mechanical_reason(self) -> str:
+        """机械判定的可读理由（用于审计与报告，不参与 Prompt 组装）。"""
+        if self.kind is ConditionKind.ABSOLUTE_TIME:
+            return f"绝对时间已到期: {self.summary}"
+        if self.kind is ConditionKind.GEO_FENCE:
+            return f"地理围栏命中: {self.place_key}"
+        return (
+            f"生理阈值命中: {self.metric} {self.comparator} {self.threshold}"
+            f"（连续 {self.consecutive_days} 天）"
+        )
+
+
+class GeoPosition(BaseModel):
+    """地理围栏快照（端侧定位：只上报"是否在围栏内"，不上报轨迹）。"""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    place_key: str | None = None
+    inside_fence: bool = False
+    captured_at: datetime
+
+    @model_validator(mode="after")
+    def validate_time(self) -> Self:
+        _ = require_aware(self.captured_at, "captured_at")
+        return self
+
+
+class VitalSnapshot(BaseModel):
+    """生理体征快照 + 晚间指标历史（阈值条件的"连续 N 天"就靠这段历史）。"""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    captured_at: datetime
+    heart_rate_bpm: float | None = Field(default=None, ge=0.0)
+    hrv_ms: float | None = Field(default=None, ge=0.0)
+    deep_focus: bool = False
+    metric_history: dict[str, tuple[float, ...]] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def validate_time(self) -> Self:
+        _ = require_aware(self.captured_at, "captured_at")
+        return self
+
+    def values_for(self, metric: str) -> tuple[float, ...]:
+        """取某指标的历史序列（按时间升序）；内生指标自动回退到快照本体。"""
+        if metric in self.metric_history:
+            return self.metric_history[metric]
+        if metric == "heart_rate_bpm" and self.heart_rate_bpm is not None:
+            return (self.heart_rate_bpm,)
+        if metric == "hrv_ms" and self.hrv_ms is not None:
+            return (self.hrv_ms,)
+        return ()
+
+
+class MechanicalSignal(BaseModel):
+    """Level-1 机械快轨的输入信号：纯客观量，不含任何语义判断。"""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    now: datetime
+    position: GeoPosition | None = None
+    vitals: VitalSnapshot | None = None
+
+    @model_validator(mode="after")
+    def validate_now(self) -> Self:
+        _ = require_aware(self.now, "now")
+        return self
+
+
+class WakeContext(BaseModel):
+    """Level-2 机会式捎带的输入：**只有用户主动唤醒 AI 才会产生**。"""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    captured_at: datetime
+    user_resumed_ai: bool
+    scene_tags: tuple[str, ...] = ()
+    session_id: str | None = None
+    position: GeoPosition | None = None
+    vitals: VitalSnapshot | None = None
+
+    @model_validator(mode="after")
+    def validate_time(self) -> Self:
+        _ = require_aware(self.captured_at, "captured_at")
+        return self
+
+
+# ---------------------------------------------------------------------------
+# 任务与状态机
+# ---------------------------------------------------------------------------
+
+
+class ConditionalTask(BaseModel):
+    """条件任务（不可变值对象；状态跃迁通过 :class:`TaskStateMachine` 生成新值）。"""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    task_id: str = Field(min_length=1)
+    title: str = Field(min_length=1)
+    owner: str = Field(default="legal_director", min_length=1)
+    priority: int = Field(default=3, ge=0, le=9)
+    conditions: tuple[Condition, ...] = Field(min_length=1)
+    state: TaskState = TaskState.DORMANT
+    created_at: datetime = Field(default_factory=utc_now)
+    ready_at: datetime | None = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    ready_reason: str | None = None
+
+    @property
+    def is_dormant(self) -> bool:
+        return self.state is TaskState.DORMANT
+
+    @property
+    def mechanical_conditions(self) -> tuple[Condition, ...]:
+        return tuple(c for c in self.conditions if c.is_mechanical)
+
+    @property
+    def semantic_conditions(self) -> tuple[Condition, ...]:
+        return tuple(c for c in self.conditions if not c.is_mechanical)
+
+    @property
+    def is_purely_mechanical(self) -> bool:
+        return not self.semantic_conditions
+
+
+class TaskStateMachine:
+    """严格状态机：只认 DORMANT -> READY -> RUNNING -> COMPLETED 这一条路。"""
+
+    def transition(
+        self, task: ConditionalTask, target: TaskState, *, at: datetime, reason: str | None = None
+    ) -> ConditionalTask:
+        current = task.state
+        if target.value not in _ALLOWED_TRANSITIONS[current.value]:
+            raise IllegalStateTransitionError(task.task_id, current.value, target.value)
+        require_aware(at, "at")
+        moment = as_utc(at, "at")  # require_aware 只做校验（返回 None），转换必须显式做
+        updates: dict[str, Any] = {"state": target}
+        if target is TaskState.READY:
+            updates["ready_at"] = moment
+            updates["ready_reason"] = reason
+        elif target is TaskState.RUNNING:
+            updates["started_at"] = moment
+        elif target is TaskState.COMPLETED:
+            updates["completed_at"] = moment
+        return task.model_copy(update=updates)
+
+    # ---- 语义化入口（把"非法直接执行"变成显式违约）----
+
+    def mark_ready(self, task: ConditionalTask, *, at: datetime, reason: str) -> ConditionalTask:
+        return self.transition(task, TaskState.READY, at=at, reason=reason)
+
+    def start(self, task: ConditionalTask, *, at: datetime) -> ConditionalTask:
+        """READY -> RUNNING；DORMANT 直接执行 => IllegalStateTransitionError。"""
+        return self.transition(task, TaskState.RUNNING, at=at)
+
+    def complete(self, task: ConditionalTask, *, at: datetime) -> ConditionalTask:
+        """RUNNING -> COMPLETED；未 RUNNING 直接完成 => IllegalStateTransitionError。"""
+        return self.transition(task, TaskState.COMPLETED, at=at)
+
+
+# ---------------------------------------------------------------------------
+# Level-1 机械快轨
+# ---------------------------------------------------------------------------
+
+
+class FastTrackReport(BaseModel):
+    """一次机械快轨扫描的审计报告（Token 与耗时都可核对）。"""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    scanned: int = Field(ge=0)
+    evaluated: int = Field(ge=0)
+    ready_task_ids: tuple[str, ...] = ()
+    mechanical_reasons: tuple[str, ...] = ()
+    blocked_by_semantics: tuple[str, ...] = ()
+    unmet_mechanical: tuple[str, ...] = ()
+    judgement_times_ms: tuple[float, ...] = ()
+    max_judgement_ms: float = Field(ge=0.0)
+    p95_judgement_ms: float = Field(ge=0.0)
+    total_ms: float = Field(ge=0.0)
+    llm_calls: int = Field(default=0, ge=0)
+    prompt_tokens: int = Field(default=0, ge=0)
+    autonomous_wakes: int = Field(default=0, ge=0)
+
+    @property
+    def within_mechanical_budget(self) -> bool:
+        return self.p95_judgement_ms <= LEVEL1_MECHANICAL_BUDGET_MS
+
+
+class Level1FastTrack:
+    """机械快轨：只做常量比较，0 Token、无大模型、微秒级。"""
+
+    def __init__(self, *, budget_ms: float = LEVEL1_MECHANICAL_BUDGET_MS) -> None:
+        self._budget_ms = budget_ms
+
+    @property
+    def budget_ms(self) -> float:
+        return self._budget_ms
+
+    # ---- 单条件判定（纯函数）----
+
+    def condition_satisfied(
+        self, condition: Condition, signal: MechanicalSignal
+    ) -> tuple[bool, str | None]:
+        """返回 (是否满足, 未满足原因)。纯 Python 常量比较，绝不调 LLM。"""
+        if condition.kind is ConditionKind.ABSOLUTE_TIME:
+            assert condition.deadline is not None  # 由 Condition 校验保证
+            if as_utc(signal.now, "now") >= as_utc(condition.deadline, "deadline"):
+                return (True, None)
+            return (False, f"绝对时间未到期（{condition.deadline.isoformat()}）")
+
+        if condition.kind is ConditionKind.GEO_FENCE:
+            position = signal.position
+            if position is None or not position.inside_fence:
+                return (False, "不在任何地理围栏内")
+            if position.place_key != condition.place_key:
+                return (False, f"当前围栏={position.place_key!r}，需要={condition.place_key!r}")
+            return (True, None)
+
+        if condition.kind is ConditionKind.VITAL_THRESHOLD:
+            values = signal.vitals.values_for(condition.metric) if signal.vitals else ()
+            required = condition.consecutive_days or 1
+            if len(values) < required:
+                return (
+                    False,
+                    f"指标 {condition.metric} 历史不足（{len(values)}/{required} 天）",
+                )
+            window = values[-required:]
+            hits = sum(1 for value in window if _compare(value, condition.comparator, condition.threshold))
+            if hits == required:
+                return (True, None)
+            return (
+                False,
+                f"指标 {condition.metric} 连续命中 {hits}/{required} 天"
+                f"（阈值 {condition.comparator}{condition.threshold}）",
+            )
+
+        raise AIOSProtocolError(
+            ErrorCode.INVALID_ARGUMENT,
+            "semantic condition must not be evaluated on the mechanical fast track",
+            context={"reason": "semantic_condition_on_fast_track", "kind": condition.kind.value},
+        )
+
+    # ---- 任务级扫描 ----
+
+    def scan(
+        self, tasks: Iterable[ConditionalTask], signal: MechanicalSignal
+    ) -> tuple[FastTrackReport, tuple[ConditionalTask, ...]]:
+        """扫描 DORMANT 任务，返回 (报告, 应跃迁至 READY 的任务)。"""
+        started = time.perf_counter()
+        scanned = 0
+        evaluated = 0
+        ready_ids: list[str] = []
+        ready_tasks: list[ConditionalTask] = []
+        reasons: list[str] = []
+        blocked: list[str] = []
+        unmet: list[str] = []
+        timings: list[float] = []
+
+        for task in tasks:
+            scanned += 1
+            mechanical = task.mechanical_conditions
+            if not mechanical:
+                continue
+            mark = time.perf_counter()
+            unmet_reasons = [
+                reason
+                for reason in (self.condition_satisfied(c, signal)[1] for c in mechanical)
+                if reason is not None
+            ]
+            timings.append((time.perf_counter() - mark) * 1000.0)
+            evaluated += 1
+
+            if unmet_reasons:
+                unmet.append(f"{task.task_id}: {unmet_reasons[0]}")
+                continue
+            if task.semantic_conditions:
+                # 机械前提已满足，但仍需语义确认 => 保持 DORMANT（留给机会式捎带）。
+                blocked.append(task.task_id)
+                continue
+            ready_ids.append(task.task_id)
+            ready_tasks.append(task)
+            reasons.extend(c.as_mechanical_reason() for c in mechanical)
+
+        total_ms = (time.perf_counter() - started) * 1000.0
+        report = FastTrackReport(
+            scanned=scanned,
+            evaluated=evaluated,
+            ready_task_ids=tuple(ready_ids),
+            mechanical_reasons=tuple(reasons),
+            blocked_by_semantics=tuple(blocked),
+            unmet_mechanical=tuple(unmet),
+            judgement_times_ms=tuple(timings),
+            max_judgement_ms=max(timings) if timings else 0.0,
+            p95_judgement_ms=_p95(timings),
+            total_ms=total_ms,
+        )
+        return (report, tuple(ready_tasks))
+
+
+def _compare(value: float, comparator: str | None, threshold: float | None) -> bool:
+    if comparator is None or threshold is None:
+        return False
+    if comparator == ">":
+        return value > threshold
+    if comparator == ">=":
+        return value >= threshold
+    if comparator == "<":
+        return value < threshold
+    return value <= threshold
+
+
+def _p95(values: Sequence[float]) -> float:
+    if not values:
+        return 0.0
+    ordered = sorted(values)
+    index = min(len(ordered) - 1, int(round(0.95 * (len(ordered) - 1))))
+    return ordered[index]
+
+
+# ---------------------------------------------------------------------------
+# Level-2 机会式捎带
+# ---------------------------------------------------------------------------
+
+
+class PiggybackReport(BaseModel):
+    """一次机会式捎带的审计报告：把"不自主唤醒"变成可核对的数字。"""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    triggered_by_user: bool
+    candidates: int = Field(ge=0)
+    evaluated_task_ids: tuple[str, ...] = ()
+    ready_task_ids: tuple[str, ...] = ()
+    scene_matched: tuple[str, ...] = ()
+    llm_calls: int = Field(default=0, ge=0)
+    autonomous_wakes: int = Field(default=0, ge=0)
+    dormant_evaluated_semantically: int = Field(default=0, ge=0)
+    elapsed_ms: float = Field(ge=0.0)
+
+    @property
+    def piggybacked(self) -> bool:
+        return self.triggered_by_user and bool(self.evaluated_task_ids)
+
+
+class OpportunisticPiggyback:
+    """机会式捎带：绝不为了评估休眠任务而自主唤醒大模型。
+
+    规则：
+    * ``WakeContext.user_resumed_ai`` 为假 => 一个任务都不评估、LLM 调用 = 0；
+    * 为真 => 只评估"语义前提已满足"的候选（机械前提已就绪 + 场景标签命中），
+      且**整批只花一次大模型调用**（批量语义判定），不是每条任务一次。
+    """
+
+    def __init__(
+        self, *, llm_invoker: Any | None = None, fast_track: Level1FastTrack | None = None
+    ) -> None:
+        self._llm_invoker = llm_invoker
+        self._fast_track = fast_track or Level1FastTrack()
+        self._llm_calls = 0
+
+    @property
+    def llm_calls(self) -> int:
+        return self._llm_calls
+
+    def evaluate(
+        self, tasks: Iterable[ConditionalTask], context: WakeContext
+    ) -> tuple[PiggybackReport, tuple[tuple[ConditionalTask, str], ...]]:
+        started = time.perf_counter()
+        if not context.user_resumed_ai:
+            # 未主动唤醒：宁可让任务继续休眠，也绝不消耗算力（0 评估、0 调用）。
+            candidates = tuple(t for t in tasks if t.is_dormant)
+            return (
+                PiggybackReport(
+                    triggered_by_user=False,
+                    candidates=len(candidates),
+                    llm_calls=0,
+                    autonomous_wakes=0,
+                    elapsed_ms=(time.perf_counter() - started) * 1000.0,
+                ),
+                (),
+            )
+
+        scene = set(context.scene_tags)
+        # 机械前提同样要过闸：捎带评估也必须"两条腿都站住"（场景命中 + 物理条件成立），
+        # 否则会出现"回到上海办公室"这条地理围栏被语义捎带绕过、任务提前点亮的越权行为。
+        signal = MechanicalSignal(
+            now=context.captured_at, position=context.position, vitals=context.vitals
+        )
+        eligible: list[tuple[ConditionalTask, tuple[Condition, ...]]] = []
+        for task in tasks:
+            if not task.is_dormant:
+                continue
+            semantic = task.semantic_conditions
+            if not semantic:
+                continue
+            mechanical_ok = all(
+                self._fast_track.condition_satisfied(condition, signal)[0]
+                for condition in task.mechanical_conditions
+            )
+            if not mechanical_ok:
+                continue
+            matched: list[Condition] = []
+            for condition in semantic:
+                if condition.requires_focus_free and context.vitals is not None:
+                    if context.vitals.deep_focus:
+                        break
+                if condition.scene_tags and not (scene & set(condition.scene_tags)):
+                    break
+                if condition.requires_presence_place is not None:
+                    position = context.position
+                    if position is None or not position.inside_fence:
+                        break
+                    if position.place_key != condition.requires_presence_place:
+                        break
+                matched.append(condition)
+            if matched and len(matched) == len(semantic):
+                eligible.append((task, tuple(matched)))
+
+        results: list[tuple[ConditionalTask, str]] = []
+        calls = 0
+        if eligible:
+            # 单次批量语义判定：整批任务共用一次大模型调用。
+            calls = 1
+            self._llm_calls += 1
+            if self._llm_invoker is not None:
+                self._llm_invoker(
+                    tuple(task.task_id for task, _ in eligible),
+                    context.scene_tags,
+                )
+            for task, matched in eligible:
+                reason = "语义场景捎带命中: " + ", ".join(c.summary for c in matched)
+                results.append((task, reason))
+
+        report = PiggybackReport(
+            triggered_by_user=True,
+            candidates=len(eligible),
+            evaluated_task_ids=tuple(task.task_id for task, _ in eligible),
+            ready_task_ids=tuple(task.task_id for task, _ in results),
+            scene_matched=tuple(sorted(scene)),
+            llm_calls=calls,
+            autonomous_wakes=0,
+            dormant_evaluated_semantically=len(eligible),
+            elapsed_ms=(time.perf_counter() - started) * 1000.0,
+        )
+        return (report, tuple(results))
+
+
+# ---------------------------------------------------------------------------
+# DORMANT 隐形守卫 + 看板组装
+# ---------------------------------------------------------------------------
+
+
+class BoardEntry(BaseModel):
+    """看板条目：**只可能是 READY / RUNNING 任务**。"""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    task_id: str
+    title: str
+    state: TaskState
+    priority: int
+    ready_reason: str | None = None
+
+
+class BoardAssembly(BaseModel):
+    """看板组装结果：休眠任务的 Token 贡献被机械钉死为 0。"""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    entries: tuple[BoardEntry, ...] = ()
+    frozen_out: int = Field(ge=0)
+    dormant_token_cost: int = Field(default=0, ge=0)
+    dormant_titles_included: tuple[str, ...] = ()
+    prompt_text: str = ""
+    prompt_tokens: int = Field(default=0, ge=0)
+    assembled_at: datetime
+
+    @property
+    def entry_count(self) -> int:
+        return len(self.entries)
+
+
+class DormantInvisibilityGuard:
+    """证明休眠任务在看板/会话里"物理隐形"：既不出现，也不产生 Token。"""
+
+    @staticmethod
+    def visible_tasks(tasks: Iterable[ConditionalTask]) -> tuple[ConditionalTask, ...]:
+        return tuple(t for t in tasks if t.state is not TaskState.DORMANT)
+
+    @staticmethod
+    def assemble(tasks: Iterable[ConditionalTask], *, at: datetime | None = None) -> BoardAssembly:
+        materialized = tuple(tasks)
+        visible = [
+            t
+            for t in DormantInvisibilityGuard.visible_tasks(materialized)
+        ]
+        visible.sort(key=lambda t: (-t.priority, t.ready_at or t.created_at, t.task_id))
+        entries = tuple(
+            BoardEntry(
+                task_id=t.task_id,
+                title=t.title,
+                state=t.state,
+                priority=t.priority,
+                ready_reason=t.ready_reason,
+            )
+            for t in visible
+        )
+        prompt_text = "\n".join(f"[{e.state.value}] {e.title}" for e in entries)
+        dormant = [t for t in materialized if t.state is TaskState.DORMANT]
+        return BoardAssembly(
+            entries=entries,
+            frozen_out=len(dormant),
+            dormant_token_cost=0,
+            dormant_titles_included=(),
+            prompt_text=prompt_text,
+            prompt_tokens=_token_estimate(prompt_text),
+            assembled_at=at or utc_now(),
+        )
+
+    @staticmethod
+    def assert_no_dormant_leak(
+        assembly: BoardAssembly, dormant_tasks: Iterable[ConditionalTask]
+    ) -> None:
+        """机械核对：任何休眠任务标题都不得出现在 Prompt 里，且 Token 贡献为 0。"""
+        leaked = [t.title for t in dormant_tasks if t.title and t.title in assembly.prompt_text]
+        if leaked or assembly.dormant_token_cost != 0 or assembly.dormant_titles_included:
+            raise DormantVisibilityLeakError(leaked, phase="board_assembly")
+
+    @staticmethod
+    def dormant_token_cost(tasks: Iterable[ConditionalTask]) -> int:
+        """休眠任务若被灌进 Prompt 本会消耗的 Token（现状恒为 0，作为对照基线）。"""
+        dormant = [t for t in tasks if t.state is TaskState.DORMANT]
+        text = "\n".join(t.title for t in dormant)
+        return _token_estimate(text)
+
+
+def _token_estimate(text: str) -> int:
+    """确定性 Token 估算：优先复用 C04 看板的官方估算器，避免口径漂移。"""
+    if not text:
+        return 0
+    try:  # pragma: no cover - 兼容无法导入 cockpit 的裁剪环境
+        from aios_core.cockpit.pipeline import estimate_tokens
+
+        return estimate_tokens(text)
+    except Exception:
+        cjk = sum(1 for ch in text if "\u2e80" <= ch <= "\uffef")
+        return cjk + (len(text) - cjk + 3) // 4
+
+
+# ---------------------------------------------------------------------------
+# 双轨调度引擎（门面）
+# ---------------------------------------------------------------------------
+
+
+class ConditionalTaskScheduler:
+    """双轨调度引擎：Level-1 机械快轨 + Level-2 机会式捎带。"""
+
+    def __init__(
+        self,
+        *,
+        fast_track: Level1FastTrack | None = None,
+        piggyback: OpportunisticPiggyback | None = None,
+        state_machine: TaskStateMachine | None = None,
+    ) -> None:
+        self._tasks: dict[str, ConditionalTask] = {}
+        self._fast_track = fast_track or Level1FastTrack()
+        self._piggyback = piggyback or OpportunisticPiggyback()
+        self._state_machine = state_machine or TaskStateMachine()
+        self._lock = threading.RLock()
+        self._llm_calls = 0
+        self._autonomous_wakes = 0
+
+    # ---- 登记与查询 ----
+
+    def register_task(self, task: ConditionalTask) -> ConditionalTask:
+        with self._lock:
+            if task.task_id in self._tasks:
+                raise AIOSProtocolError(
+                    ErrorCode.IDEMPOTENCY_CONFLICT,
+                    "task_id already registered",
+                    context={"reason": "duplicate_task", "task_id": task.task_id},
+                )
+            self._tasks[task.task_id] = task
+            return task
+
+    def register_tasks(self, tasks: Iterable[ConditionalTask]) -> int:
+        count = 0
+        for task in tasks:
+            self.register_task(task)
+            count += 1
+        return count
+
+    def task(self, task_id: str) -> ConditionalTask | None:
+        return self._tasks.get(task_id)
+
+    @property
+    def tasks(self) -> tuple[ConditionalTask, ...]:
+        return tuple(self._tasks.values())
+
+    def tasks_in_state(self, state: TaskState) -> tuple[ConditionalTask, ...]:
+        return tuple(t for t in self._tasks.values() if t.state is state)
+
+    @property
+    def dormant_count(self) -> int:
+        return len(self.tasks_in_state(TaskState.DORMANT))
+
+    @property
+    def llm_calls(self) -> int:
+        """本引擎累计发起的大模型调用（Level-1 恒不贡献）。"""
+        return self._llm_calls + self._piggyback.llm_calls
+
+    @property
+    def autonomous_wakes(self) -> int:
+        """为评估休眠任务而自主唤醒大模型的次数（铁律：必须恒为 0）。"""
+        return self._autonomous_wakes
+
+    # ---- Level-1 机械快轨 ----
+
+    def tick(self, signal: MechanicalSignal) -> FastTrackReport:
+        """机械快轨扫描：0 Token、0 大模型调用，直接跃迁至 READY。"""
+        with self._lock:
+            dormant = [t for t in self._tasks.values() if t.is_dormant]
+            report, ready_tasks = self._fast_track.scan(dormant, signal)
+            for task in ready_tasks:
+                reason = task.mechanical_conditions[0].as_mechanical_reason()
+                self._tasks[task.task_id] = self._state_machine.mark_ready(
+                    task, at=signal.now, reason=reason
+                )
+            return report
+
+    # ---- Level-2 机会式捎带 ----
+
+    def piggyback(self, context: WakeContext) -> PiggybackReport:
+        with self._lock:
+            report, results = self._piggyback.evaluate(self._tasks.values(), context)
+            for task, reason in results:
+                if task.is_dormant:
+                    self._tasks[task.task_id] = self._state_machine.mark_ready(
+                        task, at=context.captured_at, reason=reason
+                    )
+            return report
+
+    # ---- 状态机入口（非法跃迁直接拦截）----
+
+    def start(self, task_id: str, *, at: datetime | None = None) -> ConditionalTask:
+        with self._lock:
+            task = self._require(task_id)
+            updated = self._state_machine.start(task, at=at or utc_now())
+            self._tasks[task_id] = updated
+            return updated
+
+    def complete(self, task_id: str, *, at: datetime | None = None) -> ConditionalTask:
+        with self._lock:
+            task = self._require(task_id)
+            updated = self._state_machine.complete(task, at=at or utc_now())
+            self._tasks[task_id] = updated
+            return updated
+
+    # ---- 看板组装（休眠任务 0 Token）----
+
+    def assemble_board(self, *, at: datetime | None = None) -> BoardAssembly:
+        with self._lock:
+            assembly = DormantInvisibilityGuard.assemble(self._tasks.values(), at=at)
+            DormantInvisibilityGuard.assert_no_dormant_leak(
+                assembly, (t for t in self._tasks.values() if t.is_dormant)
+            )
+            return assembly
+
+    def full_board_prompt(self, *, at: datetime | None = None) -> str:
+        """常规会话组装：只输出 READY/RUNNING，Prompts 里绝无休眠任务。"""
+        return self.assemble_board(at=at).prompt_text
+
+    # ---- 审计 ----
+
+    def dormant_prompt_token_audit(self) -> dict[str, int]:
+        """审计：休眠任务在看板里的 Token 消耗（必须为 0）+ 若全灌进去的对照值。"""
+        assembly = self.assemble_board()
+        return {
+            "visible_entries": assembly.entry_count,
+            "dormant_frozen_out": assembly.frozen_out,
+            "dormant_tokens_in_board": assembly.dormant_token_cost,
+            "dormant_tokens_if_naively_prompted": DormantInvisibilityGuard.dormant_token_cost(
+                self._tasks.values()
+            ),
+        }
+
+    def _require(self, task_id: str) -> ConditionalTask:
+        task = self._tasks.get(task_id)
+        if task is None:
+            raise AIOSProtocolError(
+                ErrorCode.NOT_FOUND,
+                "unknown task_id",
+                context={"reason": "unknown_task", "task_id": task_id},
+            )
+        return task
+
+
+def summarize_tiers() -> dict[str, str]:
+    """双轨职责的一行式说明（便于看板/文档引用，不参与运行）。"""
+    return {
+        EvaluationTier.MECHANICAL.value: "纯客观物理条件：常量比较，0 Token，1ms 内跃迁 READY",
+        EvaluationTier.OPPORTUNISTIC.value: "语义条件：用户主动唤醒时顺路批量评估，整批 1 次调用",
+    }
+
+
+# ===========================================================================
+# agent-05 compatibility engine
+# ===========================================================================
+
+class SchedulerStage(StrEnum):
     DORMANT = "dormant"
     READY = "ready"
     RUNNING = "running"
     COMPLETED = "completed"
 
 
-class IllegalStateTransitionError(ValueError):
-    """任务状态机非法跃迁：任何从未就绪状态直接触发执行的操作。"""
+# Re-use top definition of IllegalStateTransitionError
+    """状态机非法跃迁违宪异常：拦截一切绕过成熟判定的执行企图。"""
 
 
-class ConditionKind(StrEnum):
-    """触发条件类别：前三类为 Level-1 机械客观条件，第四类为 Level-2 语义。"""
-
-    TIME_DUE = "time_due"
-    GEOFENCE_ENTER = "geofence_enter"
-    HEART_RATE_THRESHOLD = "heart_rate_threshold"
-    SEMANTIC_SCENE = "semantic_scene"
-
-
-#: 状态机铁律：DORMANT -> READY -> RUNNING -> COMPLETED 单向流转。
-LEGAL_TASK_TRANSITIONS: dict[ConditionalTaskState, frozenset[ConditionalTaskState]] = {
-    ConditionalTaskState.DORMANT: frozenset({ConditionalTaskState.READY}),
-    ConditionalTaskState.READY: frozenset({ConditionalTaskState.RUNNING}),
-    ConditionalTaskState.RUNNING: frozenset({ConditionalTaskState.COMPLETED}),
-    ConditionalTaskState.COMPLETED: frozenset(),
+_LEGAL_TRANSITIONS: dict[SchedulerStage, frozenset[SchedulerStage]] = {
+    SchedulerStage.DORMANT: frozenset({SchedulerStage.READY}),
+    SchedulerStage.READY: frozenset({SchedulerStage.RUNNING}),
+    SchedulerStage.RUNNING: frozenset({SchedulerStage.COMPLETED}),
+    SchedulerStage.COMPLETED: frozenset(),
 }
 
-_LEVEL1_KINDS = frozenset(
-    {
-        ConditionKind.TIME_DUE,
-        ConditionKind.GEOFENCE_ENTER,
-        ConditionKind.HEART_RATE_THRESHOLD,
-    }
-)
+
+# ---------------------------------------------------------------------------
+# 条件契约（Level-1 机械轨 / Level-2 语义轨）
+# ---------------------------------------------------------------------------
 
 
-@dataclass
-class ConditionalTask:
-    """一项条件任务（休眠即隐形，成熟方可进入看板视野）。"""
-
-    task_id: str
-    title: str
-    condition_kind: ConditionKind
-    condition_params: dict[str, Any] = field(default_factory=dict)
-    state: ConditionalTaskState = ConditionalTaskState.DORMANT
-    ready_at: datetime | None = None
+class _ConditionBase(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     @property
-    def level(self) -> int:
-        return 1 if self.condition_kind in _LEVEL1_KINDS else 2
+    def track(self) -> str:
+        raise NotImplementedError
 
 
-class ConditionalTaskEngine:
-    """双轨条件调度引擎：Level-1 机械快轨 + Level-2 机会式捎带。"""
+class TimeArrivalCondition(_ConditionBase):
+    """绝对时间到期：机械快轨。"""
+
+    due_at: datetime
+
+    @model_validator(mode="after")
+    def _validate(self) -> "TimeArrivalCondition":
+        require_aware(self.due_at, "due_at")
+        return self
+
+    @property
+    def track(self) -> str:
+        return "level1_mechanical"
+
+    def evaluate(self, *, now: datetime, state: "SignalState") -> bool:
+        return as_utc(now) >= as_utc(self.due_at)
+
+
+class GeoPresenceCondition(_ConditionBase):
+    """地理围栏：处于指定场所（可排除某专注状态），机械快轨。"""
+
+    place_id: str = Field(min_length=1)
+    must_be_present: bool = True
+    exclude_activity: str | None = None
+
+    @property
+    def track(self) -> str:
+        return "level1_mechanical"
+
+    def evaluate(self, *, now: datetime, state: "SignalState") -> bool:
+        presence = state.presence.get(self.place_id)
+        if presence is None:
+            return False
+        place_present, activity = presence
+        if self.must_be_present and not place_present:
+            return False
+        if (
+            self.exclude_activity is not None
+            and place_present
+            and activity == self.exclude_activity
+        ):
+            return False
+        return True
+
+
+class BiometricThresholdCondition(_ConditionBase):
+    """生理阈值（如连续 3 天晚间心率 >95bpm），按自然日聚合，机械快轨。"""
+
+    metric: str = Field(min_length=1)
+    comparator: str = Field(pattern=r"^(gt|lt)$")
+    value: float
+    consecutive_days: int = Field(default=1, ge=1, le=365)
+    evening_only: bool = False  # 只统计 19:00~23:59 晚间窗口样本
+
+    @property
+    def track(self) -> str:
+        return "level1_mechanical"
+
+    def evaluate(self, *, now: datetime, state: "SignalState") -> bool:
+        key = f"{self.metric}#evening" if self.evening_only else self.metric
+        day_stats = state.biometrics.get(key)
+        if not day_stats:
+            return False
+        probe = as_utc(now).date()
+        streak = 0
+        while streak < self.consecutive_days:
+            day = day_stats.get(probe)
+            if day is None:
+                break
+            extreme = day["max"] if self.comparator == "gt" else day["min"]
+            hit = extreme > self.value if self.comparator == "gt" else extreme < self.value
+            if not hit:
+                break
+            streak += 1
+            probe = probe - timedelta(days=1)
+        return streak >= self.consecutive_days
+
+
+class SemanticContextCondition(_ConditionBase):
+    """Level-2 语义条件：只在机会式捎带窗口由注入的评估器判定。"""
+
+    description: str = Field(min_length=1)
+    required_tags: frozenset[str] = Field(default_factory=frozenset)
+    needs_physical_gate: bool = True  # 语义评估前，机械前提须已满足
+
+    @property
+    def track(self) -> str:
+        return "level2_semantic"
+
+
+TaskConditionUnion = TimeArrivalCondition | GeoPresenceCondition | BiometricThresholdCondition | SemanticContextCondition
+
+
+# ---------------------------------------------------------------------------
+# 信号状态与任务记录
+# ---------------------------------------------------------------------------
+
+
+class SignalState:
+    """引擎唯一的机械事实面板：由物理信号喂养，绝不含语义推断。"""
 
     def __init__(self) -> None:
-        self._tasks: dict[str, ConditionalTask] = {}
-        self._evening_hr_streaks: dict[str, int] = {}
-        self.llm_calls = 0
-        self.level1_evaluations = 0
-        self.last_level1_latency_ms = 0.0
+        self.presence: dict[str, tuple[bool, str | None]] = {}
+        self.biometrics: dict[str, dict[date, dict[str, float]]] = {}
 
-    # -- 登记与状态机 ---------------------------------------------------------
+    def note_biometric(self, metric: str, day: date, value: float) -> None:
+        bucket = self.biometrics.setdefault(metric, {})
+        day_stats = bucket.get(day)
+        if day_stats is None:
+            bucket[day] = {"max": value, "min": value}
+        else:
+            day_stats["max"] = max(day_stats["max"], value)
+            day_stats["min"] = min(day_stats["min"], value)
+
+
+class ScheduledTaskRecord(BaseModel):
+    """一张条件任务卡（法务总监场景示例：对赌协议签署提醒等）。"""
+
+    model_config = ConfigDict(extra="forbid", validate_assignment=True)
+
+    task_id: str = Field(min_length=1)
+    title: str = Field(min_length=1)
+    conditions: list[Any] = Field(min_length=1)
+    stage: SchedulerStage = SchedulerStage.DORMANT
+    registered_at: datetime = Field(default_factory=utc_now)
+    promoted_at: datetime | None = None
+    completed_at: datetime | None = None
+    promoted_via: str | None = None  # "level1_mechanical" / "level2_piggyback"
+
+    @property
+    def has_level2(self) -> bool:
+        return any(c.track == "level2_semantic" for c in self.conditions)
+
+    def level1_conditions(self) -> list[Any]:
+        return [c for c in self.conditions if c.track == "level1_mechanical"]
+
+
+# 注入的 Level-2 评估器：(task, scene) -> bool。引擎只调用、不生成、不重试。
+SemanticEvaluator = Callable[[ScheduledTaskRecord, Mapping[str, Any]], bool]
+
+
+def _approx_tokens(text: str) -> int:
+    # 粗粒度确定性计量：ASCII 4 字节约 1 token，CJK 1 字符约 1 token；
+    # 该口径只用于门禁比较（DORMANT 必须恰好为 0），不做模型级精确。
+    ascii_chars = sum(1 for ch in text if ord(ch) < 128)
+    other = len(text) - ascii_chars
+    return math.ceil(ascii_chars / 4) + other
+
+
+class ConditionalSchedulerEngine:
+    """双轨条件调度引擎：机械快轨自动跃迁，语义轨只被捎带。"""
+
+    def __init__(self) -> None:
+        self._records: dict[str, ScheduledTaskRecord] = {}
+        self._state = SignalState()
+        # —— 计量器（门禁审计口径）——
+        self.llm_calls = 0
+        # Level-1 机械快轨专用计数器：tick/feed 全链路只读数值比较，
+        # 本字段在模块内没有任何自增语句 —— "0 Token 判定"由构造成立。
+        self.level1_llm_calls = 0
+        self.level1_evaluations = 0
+        self.dormant_token_contributions: dict[str, int] = {}
+        self.prompt_token_total = 0
+        self.illegal_transition_attempts = 0
+        self._due_heap: list[tuple[float, str]] = []
+        self._geo_watchers: set[str] = set()
+        self._bio_watchers: dict[str, set[str]] = {}
+        self._time_pending: set[str] = set()
+        self._level2_tasks: dict[str, ScheduledTaskRecord] = {}
+        self._wake_evaluations_this_wake: dict[str, int] = {}
+        self.transition_log: list[tuple[str, str, str, datetime]] = []
+
+    # ------------------------------------------------------------------
+    # 注册与信号入口
+    # ------------------------------------------------------------------
 
     def register_task(
         self,
+        *,
         task_id: str,
         title: str,
-        condition_kind: ConditionKind,
-        condition_params: Mapping[str, Any] | None = None,
-    ) -> ConditionalTask:
-        if not task_id or not task_id.strip():
-            raise ValueError("task_id must not be blank")
-        if task_id in self._tasks:
-            raise ValueError(f"task {task_id!r} already registered")
-        task = ConditionalTask(
-            task_id=task_id,
-            title=title,
-            condition_kind=condition_kind,
-            condition_params=dict(condition_params or {}),
-        )
-        self._tasks[task_id] = task
-        return task
+        conditions: Iterable[Any],
+    ) -> ScheduledTaskRecord:
+        if task_id in self._records:
+            raise ValueError(f"task {task_id} already registered")
+        conditions = list(conditions)
+        if not conditions:
+            raise ValueError("a scheduled task needs at least one condition")
+        record = ScheduledTaskRecord(task_id=task_id, title=title, conditions=conditions)
+        self._records[task_id] = record
+        self.dormant_token_contributions[task_id] = 0  # DORMANT：Token 恒 0
+        for condition in conditions:
+            if isinstance(condition, TimeArrivalCondition):
+                insort(self._due_heap, (as_utc(condition.due_at).timestamp(), task_id))
+                self._time_pending.add(task_id)
+            elif isinstance(condition, GeoPresenceCondition):
+                self._geo_watchers.add(task_id)
+            elif isinstance(condition, BiometricThresholdCondition):
+                self._bio_watchers.setdefault(condition.metric, set()).add(task_id)
+        if record.has_level2:
+            self._level2_tasks[task_id] = record
+        return record
 
-    def task(self, task_id: str) -> ConditionalTask:
-        try:
-            return self._tasks[task_id]
-        except KeyError as exc:
-            raise KeyError(f"task {task_id!r} is not registered") from exc
+    def feed_presence(self, *, place_id: str, present: bool, activity: str | None, at: datetime) -> list[str]:
+        """物理在场信号入口（C01 边缘清洗产物），返回本拍跃迁 READY 的任务。"""
+        self._state.presence[place_id] = (present, activity)
+        return self._recheck_geo_tasks(now=at)
 
-    def tasks_in_state(self, state: ConditionalTaskState) -> tuple[ConditionalTask, ...]:
-        return tuple(t for t in self._tasks.values() if t.state is state)
+    def feed_biometric(self, *, metric: str, value: float, at: datetime, evening_window: tuple[int, int] = (19, 23)) -> list[str]:
+        """生理信号入口：全量记入通用桶；落在晚间窗口内的样本另记 evening 桶。"""
+        aware = as_utc(at)
+        self._state.note_biometric(metric, aware.date(), float(value))
+        if evening_window[0] <= aware.hour <= evening_window[1]:
+            self._state.note_biometric(f"{metric}#evening", aware.date(), float(value))
+        return self._recheck_bio_tasks(metric=metric, now=at)
 
-    def transition(self, task_id: str, target: ConditionalTaskState) -> ConditionalTask:
-        """受控状态跃迁：非法跃迁 100% 抛 IllegalStateTransitionError。"""
+    # ------------------------------------------------------------------
+    # Level-1 机械快轨（0 Token / <1ms）
+    # ------------------------------------------------------------------
 
-        task = self.task(task_id)
-        allowed = LEGAL_TASK_TRANSITIONS[task.state]
-        if target not in allowed:
-            raise IllegalStateTransitionError(
-                f"illegal task transition {task.state.value} -> {target.value}"
-                f" for task {task_id!r}; legal chain is"
-                " DORMANT -> READY -> RUNNING -> COMPLETED"
-            )
-        task.state = target
-        return task
-
-    # -- DORMANT 隐形与 Token 预算 ---------------------------------------------
-
-    def visible_tasks(self) -> tuple[ConditionalTask, ...]:
-        """看板可见任务：一切 DORMANT 任务绝对物理隐形。"""
-
-        return tuple(t for t in self._tasks.values() if t.state is not ConditionalTaskState.DORMANT)
-
-    def assemble_session_prompt(self) -> str:
-        """常规会话 Prompt 组装：DORMANT 任务一个字节都不允许进入。"""
-
-        return "\n".join(
-            f"[{t.task_id}] {t.title}" for t in self.visible_tasks()
-        )
-
-    def dormant_token_consumption(self) -> int:
-        """DORMANT 任务的 Token 消耗：按构造恒为 0（物理隐形证明）。"""
-
-        prompt = self.assemble_session_prompt()
-        dormant = self.tasks_in_state(ConditionalTaskState.DORMANT)
-        leaked = sum(1 for t in dormant if t.title and t.title in prompt)
-        if leaked:
-            raise AssertionError("DORMANT tasks leaked into session prompt")
-        return 0
-
-    # -- Level-1 机械快轨：0 LLM、1ms 内纯 Python 判定 -------------------------
-
-    def observe_evening_heart_rate(self, bpm: float) -> None:
-        """喂养心率阈值类任务的连续超标计数（客观体征，无大模型参与）。"""
-
-        for task in self._tasks.values():
-            if task.condition_kind is not ConditionKind.HEART_RATE_THRESHOLD:
+    def tick(self, now: datetime) -> list[str]:
+        """机械快轨心跳：纯 Python 判定，命中即跃迁 READY，LLM 调用恒 0。"""
+        now_dt = as_utc(now)
+        due_epoch = now_dt.timestamp()
+        matured: set[str] = set()
+        # 到期堆（注册时经 bisect 保持有序）：O(命中数) 弹出
+        while self._due_heap and self._due_heap[0][0] <= due_epoch:
+            _, task_id = self._due_heap.pop(0)
+            record = self._records.get(task_id)
+            if record is None or record.stage is not SchedulerStage.DORMANT:
                 continue
-            threshold = float(task.condition_params.get("threshold_bpm", 95.0))
-            streak = self._evening_hr_streaks.get(task.task_id, 0)
-            self._evening_hr_streaks[task.task_id] = (
-                streak + 1 if bpm > threshold else 0
-            )
-
-    def evaluate_level1(self, snapshot: Mapping[str, Any]) -> list[str]:
-        """机械快轨批量判定：全部客观物理条件，纯 Python，0 大模型。
-
-        ``snapshot`` 支持键：``now``（datetime）、``location``（str）、
-        ``heart_rate_bpm``（float）。返回本轮跃迁至 READY 的任务 ID。
-        """
-
-        started = time.perf_counter()
-        now = snapshot.get("now")
-        location = snapshot.get("location")
-        newly_ready: list[str] = []
-        evaluated = 0
-
-        for task in self._tasks.values():
-            if task.state is not ConditionalTaskState.DORMANT or task.level != 1:
+            if task_id not in self._time_pending:
                 continue
-            evaluated += 1
-            hit = False
-            kind = task.condition_kind
-            params = task.condition_params
-            if kind is ConditionKind.TIME_DUE:
-                due_at = params["due_at"]
-                hit = now is not None and as_utc(now) >= as_utc(due_at)
-            elif kind is ConditionKind.GEOFENCE_ENTER:
-                hit = location is not None and location in params.get("locations", ())
-            elif kind is ConditionKind.HEART_RATE_THRESHOLD:
-                required = int(params.get("required_consecutive_days", 3))
-                streak = self._evening_hr_streaks.get(task.task_id, 0)
-                if "heart_rate_bpm" in snapshot:
-                    bpm = float(snapshot["heart_rate_bpm"])
-                    threshold = float(params.get("threshold_bpm", 95.0))
-                    if bpm > threshold:
-                        streak += 1
-                        self._evening_hr_streaks[task.task_id] = streak
-                hit = streak >= required
-            if hit:
-                self.transition(task.task_id, ConditionalTaskState.READY)
-                task.ready_at = now
-                newly_ready.append(task.task_id)
+            if all(
+                cond.evaluate(now=now_dt, state=self._state)
+                for cond in record.level1_conditions()
+            ):
+                matured.add(task_id)
+        if not matured:
+            # 无到期命中：仅做廉价堆检查即返回（防 1ms 门禁被全表扫描拖垮）
+            return []
+        promoted = [tid for tid in matured if self._promote_level1(tid, now_dt)]
+        return sorted(promoted)
 
-        self.level1_evaluations += evaluated
-        self.last_level1_latency_ms = (time.perf_counter() - started) * 1000.0
-        return newly_ready
+    def _recheck_geo_tasks(self, *, now: datetime) -> list[str]:
+        if not self._geo_watchers:
+            return []
+        now_dt = as_utc(now)
+        promoted = []
+        for task_id in sorted(self._geo_watchers):
+            record = self._records[task_id]
+            if record.stage is not SchedulerStage.DORMANT or record.has_level2:
+                continue  # Level-2 任务等唤醒捎带，机械信号不得替它跃迁
+            if self._all_level1_true(record, now_dt):
+                if self._promote(task_id, now_dt, via="level1_mechanical"):
+                    promoted.append(task_id)
+        return promoted
 
-    # -- Level-2 机会式捎带：绝不自主唤醒大模型 ---------------------------------
+    def _recheck_bio_tasks(self, *, metric: str, now: datetime) -> list[str]:
+        watchers = self._bio_watchers.get(metric, set())
+        if not watchers:
+            return []
+        now_dt = as_utc(now)
+        promoted = []
+        for task_id in sorted(list(watchers)):
+            record = self._records[task_id]
+            if record.stage is not SchedulerStage.DORMANT or record.has_level2:
+                continue
+            if self._all_level1_true(record, now_dt):
+                if self._promote(task_id, now_dt, via="level1_mechanical"):
+                    promoted.append(task_id)
+        return promoted
 
-    def piggyback_level2(
+    def _all_level1_true(self, record: ScheduledTaskRecord, now_dt: datetime) -> bool:
+        if record.has_level2:
+            # 复合任务：Level-2 的语义条件不能由机械轨代答
+            return False
+        self.level1_evaluations += 1
+        return all(cond.evaluate(now=now_dt, state=self._state) for cond in record.conditions)
+
+    def _promote_level1(self, task_id: str, now_dt: datetime) -> bool:
+        record = self._records[task_id]
+        if record.has_level2:
+            return False
+        return self._promote(task_id, now_dt, via="level1_mechanical")
+
+    # ------------------------------------------------------------------
+    # Level-2 机会式捎带（Opportunistic Piggyback）
+    # ------------------------------------------------------------------
+
+    def on_user_wake(
         self,
         *,
-        user_initiated: bool,
-        scene: str | None,
-        llm_sink: Callable[[tuple[ConditionalTask, ...], str], dict[str, bool]],
+        now: datetime,
+        scene_tags: Iterable[str],
+        semantic_evaluator: SemanticEvaluator | None,
     ) -> list[str]:
-        """机会式捎带评估：仅用户主动唤醒且场景相关时顺路执行。
+        """用户主动唤醒的唯一语义评估入口。
 
-        ``llm_sink`` 接收（匹配到的休眠任务元组, 场景）并返回
-        ``{task_id: 是否成熟}`` 裁决；每次捎带恰好计 1 次大模型调用。
-        非用户主动或场景不匹配时原路返回，大模型调用次数严格为 0。
+        - 未注入评估器：什么都不发生（绝不自主调用模型）；
+        - 每次唤醒内，每个任务至多被评估 1 次；
+        - 任务自身的 Level-1 物理前提必须先通过。
         """
-
-        if not user_initiated or not scene:
+        tags = frozenset(scene_tags)
+        now_dt = as_utc(now)
+        self._wake_evaluations_this_wake.clear()
+        if semantic_evaluator is None or not self._level2_tasks:
             return []
-        candidates = tuple(
-            t
-            for t in self._tasks.values()
-            if t.state is ConditionalTaskState.DORMANT
-            and t.condition_kind is ConditionKind.SEMANTIC_SCENE
-            and t.condition_params.get("scene") == scene
+        promoted = []
+        for task_id, record in sorted(self._level2_tasks.items()):
+            if record.stage is not SchedulerStage.DORMANT:
+                continue
+            semantic = [c for c in record.conditions if c.track == "level2_semantic"]
+            if not all(tags >= cond.required_tags for cond in semantic):
+                continue
+            if semantic[0].needs_physical_gate and not all(
+                cond.evaluate(now=now_dt, state=self._state)
+                for cond in record.level1_conditions()
+            ):
+                # 复合任务（如"回到上海办公室 且 非深度专注"）：
+                # 机械前提未满足时，连语义评估的机会式调用都不允许发生
+                continue
+            if self._wake_evaluations_this_wake.get(task_id, 0) >= 1:
+                continue  # 每次唤醒至多一次评估
+            self._wake_evaluations_this_wake[task_id] = (
+                self._wake_evaluations_this_wake.get(task_id, 0) + 1
+            )
+            self.llm_calls += 1
+            verdict = bool(
+                semantic_evaluator(record, {"scene_tags": sorted(tags), "now": now_dt.isoformat()})
+            )
+            if verdict and self._promote(task_id, now_dt, via="level2_piggyback"):
+                promoted.append(task_id)
+        return promoted
+
+    # ------------------------------------------------------------------
+    # 状态机（唯一合法链路）
+    # ------------------------------------------------------------------
+
+    def start(self, task_id: str, *, now: datetime | None = None) -> ScheduledTaskRecord:
+        return self._transition(task_id, SchedulerStage.RUNNING, now=now)
+
+    def complete(self, task_id: str, *, now: datetime | None = None) -> ScheduledTaskRecord:
+        return self._transition(task_id, SchedulerStage.COMPLETED, now=now)
+
+    def stage_of(self, task_id: str) -> SchedulerStage:
+        return self._records[task_id].stage
+
+    def _transition(
+        self,
+        task_id: str,
+        target: SchedulerStage,
+        *,
+        now: datetime | None,
+    ) -> ScheduledTaskRecord:
+        record = self._records.get(task_id)
+        if record is None:
+            raise KeyError(f"unknown task: {task_id}")
+        allowed = _LEGAL_TRANSITIONS[record.stage]
+        if target not in allowed:
+            self.illegal_transition_attempts += 1
+            raise IllegalStateTransitionError(
+                f"task {task_id}: {record.stage.value} -> {target.value} is not a legal "
+                "transition (only DORMANT -> READY -> RUNNING -> COMPLETED is admitted)"
+            )
+        at = as_utc(now) if now is not None else utc_now()
+        previous = record.stage
+        record.stage = target
+        if target is SchedulerStage.READY:
+            record.promoted_at = at
+        elif target is SchedulerStage.COMPLETED:
+            record.completed_at = at
+        self.transition_log.append((task_id, previous.value, target.value, at))
+        return record
+
+    def _promote(self, task_id: str, now_dt: datetime, *, via: str) -> bool:
+        record = self._records[task_id]
+        if record.stage is not SchedulerStage.DORMANT:
+            return False
+        self._transition(task_id, SchedulerStage.READY, now=now_dt)
+        record.promoted_via = via
+        return True
+
+    # ------------------------------------------------------------------
+    # 看板装配与 Prompt 渲染（DORMANT 物理隐形）
+    # ------------------------------------------------------------------
+
+    VISIBLE_STAGES = (SchedulerStage.READY, SchedulerStage.RUNNING, SchedulerStage.COMPLETED)
+
+    def board_snapshot(self, now: datetime | None = None) -> dict[str, Any]:
+        """单看板装配：DORMANT 条目不进入输出流，只以纯数字计数存在。"""
+        visible = [
+            {
+                "task_id": r.task_id,
+                "title": r.title,
+                "stage": r.stage.value,
+                "promoted_via": r.promoted_via,
+            }
+            for r in self._records.values()
+            if r.stage in self.VISIBLE_STAGES
+        ]
+        dormant_count = sum(
+            1 for r in self._records.values() if r.stage is SchedulerStage.DORMANT
         )
-        if not candidates:
-            return []
-        self.llm_calls += 1
-        verdicts = llm_sink(candidates, scene)
-        newly_ready: list[str] = []
-        for task in candidates:
-            if verdicts.get(task.task_id):
-                self.transition(task.task_id, ConditionalTaskState.READY)
-                newly_ready.append(task.task_id)
-        return newly_ready
+        return {
+            "generated_at": (as_utc(now) if now is not None else utc_now()).isoformat(),
+            "items": sorted(visible, key=lambda item: item["task_id"]),
+            "dormant_count": dormant_count,
+        }
 
-    # -- 执行链 ---------------------------------------------------------------
+    def render_llm_prompt_context(self, now: datetime | None = None) -> str:
+        """常规会话唯一可见面：仅 READY/RUNNING 行进入 prompt。"""
+        lines: list[str] = []
+        for item in self.board_snapshot(now)["items"]:
+            if item["stage"] not in (SchedulerStage.READY.value, SchedulerStage.RUNNING.value):
+                continue
+            lines.append(f"- [{item['stage']}] {item['title']} ({item['task_id']})")
+        prompt = "\n".join(lines)
+        self.prompt_token_total = _approx_tokens(prompt)
+        # 门禁审计：DORMANT 任务的 prompt 贡献被结构性钉死为 0，
+        # 这里逐条复核（若任何 DORMANT 文本混入渲染，本值必然偏离）。
+        for record in self._records.values():
+            if record.stage is SchedulerStage.DORMANT:
+                if record.title in prompt:
+                    raise AssertionError(
+                        f"DORMANT task {record.task_id} leaked into prompt render"
+                    )
+                self.dormant_token_contributions[record.task_id] = 0
+        return prompt
 
-    def start_task(self, task_id: str) -> ConditionalTask:
-        """READY -> RUNNING；DORMANT 直接触发执行将被状态机拦截。"""
+    def dormant_task_token_cost(self, task_id: str) -> int:
+        """DORMANT 任务的 prompt Token 成本：结构上恒为 0。"""
+        record = self._records[task_id]
+        if record.stage is not SchedulerStage.DORMANT:
+            raise ValueError(f"{task_id} is not DORMANT (stage={record.stage.value})")
+        return 0
 
-        return self.transition(task_id, ConditionalTaskState.RUNNING)
-
-    def complete_task(self, task_id: str) -> ConditionalTask:
-        return self.transition(task_id, ConditionalTaskState.COMPLETED)
+    def stats(self) -> dict[str, int]:
+        by_stage: dict[str, int] = {stage.value: 0 for stage in SchedulerStage}
+        for record in self._records.values():
+            by_stage[record.stage.value] += 1
+        return {
+            "registered": len(self._records),
+            **{f"stage_{k}": v for k, v in by_stage.items()},
+            "level1_evaluations": self.level1_evaluations,
+            "level1_llm_calls": self.level1_llm_calls,
+            "llm_calls": self.llm_calls,
+            "prompt_token_total": self.prompt_token_total,
+            "illegal_transition_attempts": self.illegal_transition_attempts,
+        }

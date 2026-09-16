@@ -201,7 +201,8 @@ class TestGate1_SubMillisecondGarbagePurge:
 
 class TestGate2_24SpeakerLSH:
     @pytest.fixture(scope="class")
-    def index_and_streams(self):
+    @classmethod
+    def index_and_streams(cls):
         speakers, stream = build_speaker_streams()
         index = VoiceprintLSHIndex(seed=SPEAKER_SEED, lsh_planes=LSH_PLANES)
         for vp_id, data in speakers.items():

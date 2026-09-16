@@ -676,6 +676,10 @@ class FactAnchor(BaseModel):
 
         return self
 
+    @property
+    def sha256(self) -> str:
+        return self.payload_sha256
+
     def covers(self, target_time: datetime) -> bool:
         """事实的发生区间是否覆盖某个历史时刻（开区间边界视为无界）。"""
 
@@ -988,6 +992,16 @@ class EpistemicWorldLens:
         for fact in facts:
             anchors.extend(self.register_fact(fact, entity_ids=entity_ids))
         return tuple(anchors)
+
+    def record_observation(
+        self,
+        observation: WorldObject | Mapping[str, Any],
+        *,
+        involved_entity_ids: str | Iterable[str] | None = None,
+    ) -> str:
+        """多方工单 API 兼容：委托给 register_fact，返回首个锚点 SHA-256。"""
+        anchors = self.register_fact(observation, entity_ids=involved_entity_ids)
+        return anchors[0].sha256 if anchors else ""
 
     def _build_anchor(
         self,
@@ -1364,13 +1378,16 @@ class EpistemicWorldLens:
           两种视图返回的事实 payload 与 SHA-256 完全相同。
         """
 
-        return self.query_slice_view(
+        view = self.query_slice_view(
             entity_id,
             target_time,
             as_of_cutoff,
             include_superseded=include_superseded,
             slice_mode=slice_mode,
-        ).model_dump(mode="json")
+        )
+        dump = view.model_dump(mode="json")
+        dump["overlay_suppressed_by_cutoff"] = view.coverage.hidden_by_cutoff_overlays
+        return dump
 
     def query_slice_view(
         self,

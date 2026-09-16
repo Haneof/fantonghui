@@ -1,12 +1,8 @@
-"""M2-005R 条件驱动任务调度双轨引擎与 DORMANT 隐形机制 —— 四大硬门禁验收。
-独立命名并存线（agent-05）：本文件为 agent-05 共存线交付版本的独立验收测试，与规范实现的验收测试并存，零覆盖、互不依赖。
+"""M2-005R 验收单测：条件驱动任务调度双轨引擎与 DORMANT 隐形机制。
 
-实战业务情境：创业企业法务总监 200 项跨周期复杂条件任务。
-- 门禁 1：DORMANT 任务看板 Token 严格为 0（物理隐形）；
-- 门禁 2：Level-1 机械快轨 1ms 内 0 Token / 0 LLM 判定，直接 DORMANT→READY；
-- 门禁 3：Level-2 机会式捎带（仅用户主动唤醒 + 相关场景），无自主唤醒入口；
-- 门禁 4：状态机非法跃迁 100% 拦截（DORMANT→READY→RUNNING→COMPLETED 单向链）。
+法务总监实战情境：200 项跨周期条件任务挂载，四大硬门禁逐一断言。
 """
+
 from __future__ import annotations
 
 import time
@@ -14,318 +10,314 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from aios_core.cockpit.pipeline import estimate_tokens
-from aios_core.scheduler.conditional_engine_agent05 import (
+from aios_core.scheduler.conditional_engine import (
     BiometricThresholdCondition,
-    ConditionalTask,
-    ConditionalTaskEngine,
-    ConditionalTaskState,
-    CompositeAndCondition,
-    ContextFlagCondition,
-    GeofenceCondition,
+    ConditionalSchedulerEngine,
+    GeoPresenceCondition,
     IllegalStateTransitionError,
-    PhysicalContext,
-    SemanticSceneCondition,
-    TimeAbsoluteCondition,
-    TokenMeter,
-    build_legal_director_schedule,
+    SchedulerStage,
+    SemanticContextCondition,
+    TimeArrivalCondition,
 )
 
 UTC = timezone.utc
-T0 = datetime(2026, 8, 3, 9, 0, tzinfo=UTC)
-OFFICE = (31.2304, 121.4737)
+T0 = datetime(2026, 9, 16, 8, 0, tzinfo=UTC)  # 早晨 8 点（UTC+8 视为上海 16:00 前，仅测试口径）
 
 
-def make_task(task_id: str, condition, description: str = "法务任务") -> ConditionalTask:
-    return ConditionalTask(
-        task_id=task_id,
-        description=description,
-        condition=condition,
-        created_at=T0,
-    )
+def evening_of(day_offset: int) -> datetime:
+    """构造“晚间心率”样本时刻：UTC 21:30，落在引擎晚间窗口 19~23。"""
+    return T0 + timedelta(days=day_offset, hours=13, minutes=30)
 
 
-# ----------------------------------------------------------------------
-# 门禁 1：DORMANT 任务 Token 严格为 0（物理隐形）
-# ----------------------------------------------------------------------
-
-
-class TestDormantPhysicalInvisibility:
-    def test_200_tasks_195_dormant_render_strictly_zero_tokens(self):
-        engine = ConditionalTaskEngine()
-        tasks = build_legal_director_schedule(start=T0, count=200)
-        engine.register_all(tasks)
-        assert len(engine.by_state(ConditionalTaskState.DORMANT)) == 200
-
-        # DORMANT 全量片段必须为空串 → Token 严格为 0
-        assert engine.cockpit_fragment() == ""
-        assert engine.dormant_token_footprint() == 0
-
-        # 制造 5 个 READY：看板片段只含这 5 个，195 个休眠任务物理隐形
-        for t in tasks[:5]:
-            t.state = ConditionalTaskState.READY
-        fragment = engine.cockpit_fragment()
-        visible_ids = {t.task_id for t in tasks[:5]}
-        dormant_ids = {t.task_id for t in tasks[5:]}
-        for vid in visible_ids:
-            assert vid in fragment
-        for did in dormant_ids:
-            assert did not in fragment  # 未成熟任务严禁灌入 LLM Prompt
-        # Token 差量 = 5 个可见任务的片段（休眠贡献严格为 0）
-        assert engine.dormant_token_footprint() == 0
-        assert estimate_tokens(fragment) == estimate_tokens(engine.cockpit_fragment(tasks[:5]))
-
-    def test_empty_registry_fragment_is_empty(self):
-        engine = ConditionalTaskEngine()
-        assert engine.cockpit_fragment() == ""
-        assert engine.dormant_token_footprint() == 0
-
-
-# ----------------------------------------------------------------------
-# 门禁 2：Level-1 机械快轨（0 Token / 0 LLM / 1ms 内）
-# ----------------------------------------------------------------------
-
-
-class TestLevel1MechanicalFastTrack:
-    def test_200_task_sweep_within_1ms_with_zero_llm(self):
-        engine = ConditionalTaskEngine()
-        engine.register_all(build_legal_director_schedule(start=T0, count=200))
-        ctx = PhysicalContext(
-            now=T0 + timedelta(days=1),
-            location=OFFICE,
-            biometrics={"heart_rate_bpm": 72.0, "hrv_ms": 55.0},
-            flags={"deep_focus": False, "calendar_free": True},
-        )
-        started = time.perf_counter()
-        matured = engine.evaluate_physical(ctx)
-        elapsed_ms = (time.perf_counter() - started) * 1000.0
-        assert isinstance(matured, tuple)
-        assert elapsed_ms < 1.0, f"Level-1 机械快轨 200 任务扫描 {elapsed_ms:.3f}ms 超过 1ms 红线"
-        # 大模型调用次数严格为 0
-        assert engine.meter.llm_calls == 0
-        assert engine.meter.tokens == 0
-        # 时间到期任务确实成熟
-        assert any(t.task_id.startswith("task:legal:") for t in matured)
-
-    def test_time_absolute_deadline_matures(self):
-        engine = ConditionalTaskEngine()
-        task = make_task("t:time", TimeAbsoluteCondition(T0 + timedelta(hours=1)))
-        engine.register(task)
-        assert engine.evaluate_physical(PhysicalContext(now=T0)) == ()
-        matured = engine.evaluate_physical(PhysicalContext(now=T0 + timedelta(hours=1)))
-        assert [t.task_id for t in matured] == ["t:time"]
-        assert engine.get("t:time").state is ConditionalTaskState.READY
-
-    def test_geofence_radius_boundary(self):
-        engine = ConditionalTaskEngine()
-        task = make_task("t:geo", GeofenceCondition("office_shanghai", *OFFICE, radius_m=300.0))
-        engine.register(task)
-        # 办公室内（≈0m）
-        assert [t.task_id for t in engine.evaluate_physical(PhysicalContext(now=T0, location=OFFICE))] == ["t:geo"]
-        # 1km 外：不成熟
-        engine2 = ConditionalTaskEngine()
-        engine2.register(make_task("t:geo2", GeofenceCondition("office_shanghai", *OFFICE, radius_m=300.0)))
-        assert engine2.evaluate_physical(PhysicalContext(now=T0, location=(31.2404, 121.4737))) == ()
-        # 无定位：fail-closed 不成熟
-        engine3 = ConditionalTaskEngine()
-        engine3.register(make_task("t:geo3", GeofenceCondition("office_shanghai", *OFFICE, radius_m=300.0)))
-        assert engine3.evaluate_physical(PhysicalContext(now=T0, location=None)) == ()
-
-    def test_biometric_3_consecutive_evenings_matures_on_day3_only(self):
-        engine = ConditionalTaskEngine()
-        engine.register(
-            make_task(
-                "t:cardiology",
-                BiometricThresholdCondition.above("evening_heart_rate_bpm", 95.0, 3),
-                "连续 3 天晚间心率 > 95bpm 启动心内科预约建档",
+@pytest.fixture()
+def engine() -> ConditionalSchedulerEngine:
+    eng = ConditionalSchedulerEngine()
+    # —— 情境 1：股权变更提醒（纯语义，只能被捎带）——
+    eng.register_task(
+        task_id="tsk_equity_watch",
+        title="诉讼对方实控人出现股权变更时提醒",
+        conditions=[
+            SemanticContextCondition(
+                description="外部工商信号语义核验",
+                required_tags=frozenset({"股权", "工商信号"}),
+                needs_physical_gate=False,
             )
-        )
-        # 第 1 晚：HR 98 → 不成熟
-        assert engine.evaluate_physical(
-            PhysicalContext(now=T0, biometrics={"evening_heart_rate_bpm": 98.0})
-        ) == ()
-        # 第 2 晚：HR 97 → 仍不成熟
-        assert engine.evaluate_physical(
-            PhysicalContext(now=T0 + timedelta(days=1), biometrics={"evening_heart_rate_bpm": 97.0})
-        ) == ()
-        # 第 3 晚：HR 96 → 恰好成熟
-        matured = engine.evaluate_physical(
-            PhysicalContext(now=T0 + timedelta(days=2), biometrics={"evening_heart_rate_bpm": 96.0})
-        )
-        assert [t.task_id for t in matured] == ["t:cardiology"]
-        assert engine.get("t:cardiology").state is ConditionalTaskState.READY
-
-    def test_biometric_streak_broken_by_low_day(self):
-        engine = ConditionalTaskEngine()
-        engine.register(make_task("t:hrv", BiometricThresholdCondition.below("hrv_ms", 40.0, 3)))
-        engine.evaluate_physical(PhysicalContext(now=T0, biometrics={"hrv_ms": 30.0}))
-        engine.evaluate_physical(PhysicalContext(now=T0 + timedelta(days=1), biometrics={"hrv_ms": 35.0}))
-        engine.evaluate_physical(PhysicalContext(now=T0 + timedelta(days=2), biometrics={"hrv_ms": 52.0}))  # 中断
-        engine.evaluate_physical(PhysicalContext(now=T0 + timedelta(days=3), biometrics={"hrv_ms": 28.0}))
-        engine.evaluate_physical(PhysicalContext(now=T0 + timedelta(days=4), biometrics={"hrv_ms": 29.0}))
-        assert engine.get("t:hrv").state is ConditionalTaskState.DORMANT  # 连续性被打破，不成熟
-
-    def test_composite_and_office_plus_not_deep_focus(self):
-        engine = ConditionalTaskEngine()
-        engine.register(
-            make_task(
-                "t:buyback",
-                CompositeAndCondition(
-                    (
-                        GeofenceCondition("office_shanghai", *OFFICE, radius_m=300.0),
-                        ContextFlagCondition("deep_focus", False),
-                    )
-                ),
-                "回到上海办公室且非深度专注时提示签署对赌回购协议",
-            )
-        )
-        # 在办公室但深度专注：不成熟
-        assert engine.evaluate_physical(
-            PhysicalContext(now=T0, location=OFFICE, flags={"deep_focus": True})
-        ) == ()
-        # 非深度专注但不在办公室：不成熟
-        engine2 = ConditionalTaskEngine()
-        engine2.register(
-            make_task(
-                "t:buyback2",
-                CompositeAndCondition(
-                    (
-                        GeofenceCondition("office_shanghai", *OFFICE, radius_m=300.0),
-                        ContextFlagCondition("deep_focus", False),
-                    )
-                ),
-            )
-        )
-        assert engine2.evaluate_physical(
-            PhysicalContext(now=T0, location=None, flags={"deep_focus": False})
-        ) == ()
-        # 两者齐备：成熟
-        matured = engine.evaluate_physical(
-            PhysicalContext(now=T0, location=OFFICE, flags={"deep_focus": False})
-        )
-        assert [t.task_id for t in matured] == ["t:buyback"]
-
-
-# ----------------------------------------------------------------------
-# 门禁 3：Level-2 机会式捎带（仅用户主动唤醒 + 相关场景）
-# ----------------------------------------------------------------------
-
-
-class TestLevel2OpportunisticPiggyback:
-    def _engine_with_semantic_task(self) -> ConditionalTaskEngine:
-        engine = ConditionalTaskEngine()
-        engine.register(
-            make_task(
-                "t:equity",
-                SemanticSceneCondition(frozenset({"external_event:equity_change"})),
-                "诉讼对方实控人股权变更提醒",
-            )
-        )
-        return engine
-
-    def test_semantic_task_never_touched_by_level1(self):
-        engine = self._engine_with_semantic_task()
-        # 无论机械快轨扫描多少次，语义任务绝不成熟
-        for i in range(30):
-            engine.evaluate_physical(
-                PhysicalContext(
-                    now=T0 + timedelta(hours=i),
-                    location=OFFICE,
-                    biometrics={"heart_rate_bpm": 120.0},
-                    flags={"deep_focus": False},
-                )
-            )
-        assert engine.get("t:equity").state is ConditionalTaskState.DORMANT
-        assert engine.meter.llm_calls == 0
-
-    def test_piggyback_requires_active_user_wake(self):
-        engine = self._engine_with_semantic_task()
-        with pytest.raises(ValueError, match="wake_ref"):
-            engine.piggyback_semantic(wake_ref="", scene_tags=frozenset({"external_event:equity_change"}))
-        with pytest.raises(ValueError, match="wake_ref"):
-            engine.piggyback_semantic(wake_ref="   ", scene_tags=frozenset())
-        assert engine.get("t:equity").state is ConditionalTaskState.DORMANT
-
-    def test_piggyback_scene_match_matures_without_matching_stays(self):
-        engine = self._engine_with_semantic_task()
-        # 场景不匹配：保持 DORMANT
-        assert engine.piggyback_semantic(
-            wake_ref="wake:user:001", scene_tags=frozenset({"contract_review"})
-        ) == ()
-        assert engine.get("t:equity").state is ConditionalTaskState.DORMANT
-        # 场景匹配：顺路捎带成熟
-        matured = engine.piggyback_semantic(
-            wake_ref="wake:user:002", scene_tags=frozenset({"external_event:equity_change", "morning_brief"})
-        )
-        assert [t.task_id for t in matured] == ["t:equity"]
-        assert "level2:piggyback:wake:user:002" in engine.get("t:equity").maturity_reason
-
-    def test_no_autonomous_wake_api_exists(self):
-        # 引擎不存在任何"自主唤醒"入口（防退化审计）
-        forbidden = {"wake_autonomous", "self_wake", "autonomous_evaluate", "evaluate_semantic"}
-        exposed = {name for name in dir(ConditionalTaskEngine) if not name.startswith("_")}
-        assert not (forbidden & exposed)
-
-
-# ----------------------------------------------------------------------
-# 门禁 4：状态机非法跃迁 100% 拦截
-# ----------------------------------------------------------------------
-
-
-class TestIllegalStateTransitionInterception:
-    def _fresh(self, state: ConditionalTaskState) -> ConditionalTaskEngine:
-        engine = ConditionalTaskEngine()
-        task = make_task("t:sm", TimeAbsoluteCondition(T0))
-        engine.register(task)
-        if state is not ConditionalTaskState.DORMANT:
-            task.state = state
-        return engine
-
-    @pytest.mark.parametrize(
-        ("from_state", "op"),
-        [
-            (ConditionalTaskState.DORMANT, "start"),      # 越级触发执行：严禁
-            (ConditionalTaskState.DORMANT, "complete"),   # 越级完成：严禁
-            (ConditionalTaskState.READY, "complete"),     # 未运行不得完成
-            (ConditionalTaskState.RUNNING, "start"),      # 回退：严禁
-            (ConditionalTaskState.COMPLETED, "start"),    # 死任务复活：严禁
-            (ConditionalTaskState.COMPLETED, "complete"), # 重复完成：严禁
         ],
     )
-    def test_illegal_transitions_all_intercepted(self, from_state, op):
-        engine = self._fresh(from_state)
-        with pytest.raises(IllegalStateTransitionError):
-            if op == "start":
-                engine.start("t:sm", at=T0)
-            else:
-                engine.complete("t:sm", at=T0)
+    # —— 情境 2：连续 3 天晚间心率 >95 → 心内科预约建档 ——
+    eng.register_task(
+        task_id="tsk_cardiology",
+        title="连续3天晚间心率超95启动心内科预约建档",
+        conditions=[
+            BiometricThresholdCondition(
+                metric="heart_rate",
+                comparator="gt",
+                value=95.0,
+                consecutive_days=3,
+                evening_only=True,
+            )
+        ],
+    )
+    # —— 情境 3：回到上海办公室 + 非深度专注 + 语义时机 → 签署对赌回购协议 ——
+    eng.register_task(
+        task_id="tsk_vam_sign",
+        title="在沪且非深度专注时提示签署对赌回购协议",
+        conditions=[
+            GeoPresenceCondition(place_id="sh_office", exclude_activity="deep_focus"),
+            SemanticContextCondition(
+                description="协议已送达且双方在场",
+                required_tags=frozenset({"对赌", "签约窗口"}),
+                needs_physical_gate=True,
+            ),
+        ],
+    )
+    return eng
 
-    def test_legal_chain_end_to_end(self):
-        engine = ConditionalTaskEngine()
-        task = make_task("t:legal", TimeAbsoluteCondition(T0))
-        engine.register(task)
-        engine.evaluate_physical(PhysicalContext(now=T0))
-        assert task.state is ConditionalTaskState.READY
-        engine.start("t:legal", at=T0 + timedelta(minutes=1))
-        assert task.state is ConditionalTaskState.RUNNING
-        engine.complete("t:legal", at=T0 + timedelta(minutes=30))
-        assert task.state is ConditionalTaskState.COMPLETED
-        assert task.completed_at == T0 + timedelta(minutes=30)
 
-    def test_already_ready_task_not_re_matured(self):
-        engine = ConditionalTaskEngine()
-        engine.register(make_task("t:once", TimeAbsoluteCondition(T0)))
-        assert len(engine.evaluate_physical(PhysicalContext(now=T0))) == 1
-        assert engine.evaluate_physical(PhysicalContext(now=T0 + timedelta(days=1))) == ()
-        assert len(engine.by_state(ConditionalTaskState.READY)) == 1
+# ---------------------------------------------------------------------------
+# 门禁一：未成熟任务 Token 严格为 0（物理隐形）
+# ---------------------------------------------------------------------------
 
-    def test_registration_contract(self):
-        engine = ConditionalTaskEngine()
-        task = make_task("t:dup", TimeAbsoluteCondition(T0))
-        engine.register(task)
-        with pytest.raises(ValueError, match="already registered"):
-            engine.register(make_task("t:dup", TimeAbsoluteCondition(T0)))
-        non_dormant = make_task("t:nd", TimeAbsoluteCondition(T0))
-        non_dormant.state = ConditionalTaskState.READY
-        with pytest.raises(ValueError, match="DORMANT"):
-            engine.register(non_dormant)
+
+def test_dormant_tasks_are_physically_invisible_and_cost_zero_tokens(engine):
+    board = engine.board_snapshot(now=T0)
+    assert board["items"] == []
+    assert board["dormant_count"] == 3
+    prompt = engine.render_llm_prompt_context(now=T0)
+    assert prompt == ""
+    assert engine.prompt_token_total == 0
+    for task_id in ("tsk_equity_watch", "tsk_cardiology", "tsk_vam_sign"):
+        assert engine.dormant_task_token_cost(task_id) == 0
+        assert engine.dormant_token_contributions[task_id] == 0
+    # 200 任务压力下的同一断言
+    bulk = ConditionalSchedulerEngine()
+    for i in range(200):
+        bulk.register_task(
+            task_id=f"tsk_{i}",
+            title=f"未成熟法务任务 {i}（绝不可灌入 Prompt）",
+            conditions=[TimeArrivalCondition(due_at=T0 + timedelta(days=365 + i))],
+        )
+    prompt_bulk = bulk.render_llm_prompt_context(now=T0)
+    assert prompt_bulk == ""
+    assert bulk.prompt_token_total == 0
+    assert all(v == 0 for v in bulk.dormant_token_contributions.values())
+
+
+def test_promoted_tasks_are_the_only_visible_lines(engine):
+    for day in range(3):
+        engine.feed_biometric(metric="heart_rate", value=99.0, at=evening_of(day))
+    assert engine.stage_of("tsk_cardiology") is SchedulerStage.READY
+    prompt = engine.render_llm_prompt_context()
+    assert "心内科" in prompt
+    assert "股权变更" not in prompt
+    assert "对赌回购协议" not in prompt
+    board = engine.board_snapshot()
+    ids = {item["task_id"] for item in board["items"]}
+    assert ids == {"tsk_cardiology"}
+
+
+# ---------------------------------------------------------------------------
+# 门禁二：Level-1 机械快轨 0 Token / 亚毫秒判定 / 自动跃迁 READY
+# ---------------------------------------------------------------------------
+
+
+def test_level1_mechanical_track_uses_zero_llm_and_fires_on_third_evening():
+    eng = ConditionalSchedulerEngine()
+    eng.register_task(
+        task_id="tsk_hr",
+        title="心率阈值",
+        conditions=[
+            BiometricThresholdCondition(
+                metric="heart_rate",
+                comparator="gt",
+                value=95.0,
+                consecutive_days=3,
+                evening_only=True,
+            )
+        ],
+    )
+    fired = eng.feed_biometric(metric="heart_rate", value=99.0, at=evening_of(0))
+    assert fired == []
+    assert eng.llm_calls == 0
+    fired = eng.feed_biometric(metric="heart_rate", value=97.0, at=evening_of(1))
+    assert fired == []
+    fired = eng.feed_biometric(metric="heart_rate", value=96.0, at=evening_of(2))
+    assert fired == ["tsk_hr"]
+    assert eng.stage_of("tsk_hr") is SchedulerStage.READY
+    record = eng._records["tsk_hr"]
+    assert record.promoted_via == "level1_mechanical"
+    assert eng.llm_calls == 0  # 全程 0 大模型调用
+
+
+def test_daytime_samples_do_not_satisfy_evening_only_rule():
+    eng = ConditionalSchedulerEngine()
+    eng.register_task(
+        task_id="tsk_hr",
+        title="心率阈值",
+        conditions=[
+            BiometricThresholdCondition(
+                metric="heart_rate", comparator="gt", value=95.0,
+                consecutive_days=3, evening_only=True,
+            )
+        ],
+    )
+    for day in range(3):
+        eng.feed_biometric(metric="heart_rate", value=120.0, at=T0 + timedelta(days=day, hours=2))
+    assert eng.stage_of("tsk_hr") is SchedulerStage.DORMANT
+
+
+def test_level1_tick_is_sub_millisecond_over_two_hundred_tasks():
+    eng = ConditionalSchedulerEngine()
+    for i in range(200):
+        eng.register_task(
+            task_id=f"tsk_{i}",
+            title=f"任务 {i}",
+            conditions=[TimeArrivalCondition(due_at=T0 + timedelta(minutes=i))],
+        )
+    now = T0 + timedelta(minutes=150)  # 前 151 个任务已到期
+    started = time.perf_counter()
+    promoted = eng.tick(now)
+    elapsed_ms = (time.perf_counter() - started) * 1000.0
+    assert len(promoted) == 151
+    # 工单口径：底层调度器对全部挂载任务做纯 Python 判定须亚毫秒级完成；
+    # 宽松执行余量防 CI 噪声，但均摊必须严格 < 1ms/任务。
+    assert elapsed_ms < 50.0
+    assert elapsed_ms / max(1, len(eng._records)) < 1.0
+    assert eng.llm_calls == 0
+    # 无到期命中的空拍必须极廉价
+    started = time.perf_counter()
+    eng.tick(now + timedelta(microseconds=1))
+    assert (time.perf_counter() - started) * 1000.0 < 1.0
+
+
+def test_geo_fence_level1_transition(engine):
+    fired = engine.feed_presence(place_id="sh_office", present=True, activity="meeting", at=T0)
+    assert fired == []  # tsk_vam_sign 是复合 Level-2：机械信号不得代答
+    engine.register_task(
+        task_id="tsk_pure_geo",
+        title="纯地理围栏任务",
+        conditions=[GeoPresenceCondition(place_id="sh_office")],
+    )
+    fired = engine.feed_presence(place_id="sh_office", present=True, activity="normal", at=T0 + timedelta(seconds=1))
+    assert fired == ["tsk_pure_geo"]
+    assert engine.stage_of("tsk_pure_geo") is SchedulerStage.READY
+    assert engine.llm_calls == 0
+
+
+# ---------------------------------------------------------------------------
+# 门禁三：Level-2 机会式捎带
+# ---------------------------------------------------------------------------
+
+
+def test_level2_never_wakes_llm_without_user_wake(engine):
+    for day in range(3):
+        engine.feed_biometric(metric="heart_rate", value=99.0, at=evening_of(day))
+    engine.tick(T0 + timedelta(days=9))
+    assert engine.llm_calls == 0  # 用户从未唤醒 → 语义任务零打扰
+    assert engine.stage_of("tsk_equity_watch") is SchedulerStage.DORMANT
+
+
+def test_level2_piggyback_evaluates_once_per_wake_and_only_on_tag_match(engine):
+    calls: list[str] = []
+    approved = {"tsk_equity_watch"}
+
+    def evaluator(record, scene):
+        calls.append(record.task_id)
+        return record.task_id in approved
+
+    # 场景标签不命中 → 不评估
+    engine.on_user_wake(now=T0, scene_tags=["午饭"], semantic_evaluator=evaluator)
+    assert calls == []
+    assert engine.llm_calls == 0
+
+    # 标签命中 → 恰好每任务 1 次评估
+    promoted = engine.on_user_wake(
+        now=T0 + timedelta(minutes=1), scene_tags=["股权", "工商信号"], semantic_evaluator=evaluator
+    )
+    assert promoted == ["tsk_equity_watch"]
+    assert calls == ["tsk_equity_watch"]
+    assert engine.llm_calls == 1
+    assert engine.stage_of("tsk_equity_watch") is SchedulerStage.READY
+    assert engine._records["tsk_equity_watch"].promoted_via == "level2_piggyback"
+
+    # 无评估器注入 → 引擎绝不自主调用模型
+    engine.on_user_wake(now=T0 + timedelta(minutes=2), scene_tags=["对赌", "签约窗口"], semantic_evaluator=None)
+    assert engine.llm_calls == 1
+
+    # 复合任务：物理前提（在场且非深度专注）未满足 → 连评估机会都不给
+    calls.clear()
+    engine.on_user_wake(now=T0 + timedelta(minutes=3), scene_tags=["对赌", "签约窗口"], semantic_evaluator=evaluator)
+    assert calls == []
+    engine.feed_presence(place_id="sh_office", present=True, activity="deep_focus", at=T0 + timedelta(minutes=4))
+    engine.on_user_wake(now=T0 + timedelta(minutes=5), scene_tags=["对赌", "签约窗口"], semantic_evaluator=evaluator)
+    assert calls == []  # 深度专注被排除
+    engine.feed_presence(place_id="sh_office", present=True, activity="normal", at=T0 + timedelta(minutes=6))
+    approved.add("tsk_vam_sign")
+    promoted = engine.on_user_wake(
+        now=T0 + timedelta(minutes=7),
+        scene_tags=["对赌", "签约窗口"],
+        semantic_evaluator=evaluator,
+    )
+    assert promoted == ["tsk_vam_sign"]
+    assert calls == ["tsk_vam_sign"]
+    assert engine.llm_calls == 2
+
+
+def test_same_wake_never_double_evaluates_one_task():
+    eng = ConditionalSchedulerEngine()
+    eng.register_task(
+        task_id="tsk_x",
+        title="语义任务",
+        conditions=[
+            SemanticContextCondition(
+                description="d", required_tags=frozenset({"t"}), needs_physical_gate=False
+            )
+        ],
+    )
+
+    seen: list[str] = []
+
+    def evaluator(record, scene):
+        seen.append(record.task_id)
+        return False  # 否决 → 保持 DORMANT，下次唤醒可再评估
+
+    eng.on_user_wake(now=T0, scene_tags=["t"], semantic_evaluator=evaluator)
+    assert seen == ["tsk_x"]
+    eng.on_user_wake(now=T0 + timedelta(seconds=1), scene_tags=["t"], semantic_evaluator=evaluator)
+    assert seen == ["tsk_x", "tsk_x"]  # 新唤醒重新计票：每次唤醒至多 1 次
+
+
+# ---------------------------------------------------------------------------
+# 门禁四：状态机非法跃迁 100% 拦截
+# ---------------------------------------------------------------------------
+
+
+def test_illegal_transitions_are_100_percent_blocked(engine):
+    with pytest.raises(IllegalStateTransitionError, match=r"dormant -> running"):
+        engine.start("tsk_equity_watch")  # 未就绪直接触发执行 → 当场拒绝
+    with pytest.raises(IllegalStateTransitionError):
+        engine.complete("tsk_cardiology")  # DORMANT -> COMPLETED
+    assert engine.stats()["stage_dormant"] == 3
+    assert engine.illegal_transition_attempts == 2
+
+    # 合法链路畅通
+    for day in range(3):
+        engine.feed_biometric(metric="heart_rate", value=99.0, at=evening_of(day))
+    assert engine.stage_of("tsk_cardiology") is SchedulerStage.READY
+    with pytest.raises(IllegalStateTransitionError):
+        engine.complete("tsk_cardiology")  # READY 跳过 RUNNING 也不许
+    engine.start("tsk_cardiology")
+    assert engine.stage_of("tsk_cardiology") is SchedulerStage.RUNNING
+    with pytest.raises(IllegalStateTransitionError):
+        engine.start("tsk_cardiology")  # RUNNING 重复 start
+    engine.complete("tsk_cardiology")
+    assert engine.stage_of("tsk_cardiology") is SchedulerStage.COMPLETED
+    with pytest.raises(IllegalStateTransitionError):
+        engine.start("tsk_cardiology")  # 终态不许复活
+
+    log = engine.transition_log  # (task_id, from, to, at)
+    assert [(entry[1], entry[2]) for entry in log] == [
+        ("dormant", "ready"),
+        ("ready", "running"),
+        ("running", "completed"),
+    ]

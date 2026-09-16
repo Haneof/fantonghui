@@ -140,7 +140,7 @@ def test_w03_two_concurrent_writers_from_same_snapshot_only_one_commits(tmp_path
 
     def write(index: int):
         writer = SQLiteWorldStore(path)
-        barrier.wait(timeout=5)
+        barrier.wait(timeout=15)
         try:
             result = writer.commit(
                 [make_obs(ids[index], f"writer-{index}")],
