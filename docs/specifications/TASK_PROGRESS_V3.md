@@ -33,7 +33,8 @@
 | **#7** | C03 认知 | `TASK-M5-002-DIM-LIFECYCLE` | 维度生命周期（跨域3天/试用30天/每日1次反思配额）与高阶提炼挂载 | **CLOSED (3/3 PASS)** | `src/aios_core/cognition/dimension_engine.py`<br>`tests/cognition/test_dimension_lifecycle.py` |
 | **#8** | C08 人设 | `TASK-M5-003-RAPPORT-MIRROR` | AI 自我镜面审视、动态羁绊与像人三档姿态决策机 | **CLOSED (7/7 PASS)** | `src/aios_core/cognition/self_reflection.py`<br>`tests/cognition/test_self_reflection.py` |
 | **#9** | C05 决策 | `TASK-M5-004-ACTION-ADVISOR` | 共生决策推演引擎（送礼推演/老王防诈阻击/早搏熔断，带因果证据引用） | **CLOSED (3/3 PASS)** | `src/aios_core/cognition/symbiotic_advisor.py`<br>`tests/cognition/test_symbiotic_advisor.py` |
-| **#10**| 考场评测 | `TASK-M5-005-AGENT-ARENA` | 独立 Agent 虚拟人生千人千面战训考场与全景诊断器 | **EXECUTING** | 派发云端大兵团多 Agent 战队并发实测与经验沉淀 |
+| **#10**| 考场评测 | `TASK-M5-005-AGENT-ARENA` | 独立 Agent 虚拟人生千人千面战训考场与全景诊断器 | **CLOSED** | 派发云端大兵团多 Agent 战队并发实测与经验沉淀 |
+| **#11**| 清洗竞技 | `TASK-DISPATCH-ARENA-10K` | 数据清洗与事实提纯 10K 竞技场第一轮交叉大考 | **ROUND 1 REVIEWED** | 3支做题战队 60,000 题答卷全量审查完毕，发布官方天梯裁决令：`reports/cleaning_arena/CHIEF_ARCHITECT_REVIEW_ROUND1.md` |
 
 ---
 
@@ -260,3 +261,24 @@
 - **全库单元与集成测试**：`python -m pytest -q` → **1343 passed, 0 failed (100% 满堂绿)**。
 - **AST 语法安全门禁**：`governance/ci/lint_assert_msg_ast.py` → 扫描 244 个 .py 文件，0 报警，PASS。
 - **全库零占位符**：全库无 `# TODO`、`FIXME` 与任何形式的假代码。
+
+---
+
+## 十、数据清洗与事实提纯竞技场第一轮审查总账与官方天梯榜（ROUND 1 REVIEWED）
+
+> **官方审查文号**：`AIOS-CA-REV-20260916-01`（详见 `reports/cleaning_arena/CHIEF_ARCHITECT_REVIEW_ROUND1.md`）  
+> **审查对象**：`arena/01a0aa2c-fantonghui`、`arena/01a0aa2d-fantonghui`、`arena/01a0aa2e-fantonghui`  
+> **解题总量**：60,000 道次（100% 完成做题、阅卷、归因与机制进化）
+
+### 1. 官方天梯排行榜 (Official Leaderboard)
+| 排名 | 战队标识 | 参赛分支 | 主攻题库 (10K/卷) | 最终均分 / PASS 率 | 幻觉数 | 垃圾剪枝率 | P0 旁路最差时延 | 评定级别 |
+|:---:|:---|:---|:---|:---:|:---:|:---:|:---:|:---:|
+| 🥇 **冠军** | **`agent-aa2e`** | `arena/01a0aa2e-fantonghui` | `fantonghui` (10K) | **100.00 / 100.0%** | **0** | **100%** (36,133/36,133) | **0.053 ms** | **特等战神·机制典范** |
+| 🥈 **亚军** | **`01a0aa2c-fantonghui`** | `arena/01a0aa2c-fantonghui` | `agent-a9f6` (10K真盲卷)<br>`agent-11` (10K) | **98.76 / 92.70%** (a9f6)<br>71.03 / 47.31% (agent-11) | **0**<br>0 | **100%** (144,424/144,424) | **0.044 ms** | **破案先锋·理论天花板** |
+| 🥉 **季军** | **`01a0aa2d-fantonghui`** | `arena/01a0aa2d-fantonghui` | 4套全量 (40K题矩阵) | 86.01 / 73.16% (a9ff)<br>84.55 / 68.22% (a9f6)<br>78.67 / 47.00% (fantonghui)<br>76.12 / 68.46% (agent-11) | 51<br>0<br>603<br>36 | **100%** | 2.55 ms | **重装劳模·限期整改** |
+
+### 2. 仲裁与主干熔铸令
+- **主干吸收**：`agent-aa2e` 五步流水线（声纹首道过滤、传感器测谎、语境 R1/R2 约束、专属词簇消歧）+ `01a0aa2c` 盲卷防火墙与实体安全边界，熔铸为 AIOS 3.0 统一 `EdgeStreamPurifier V3`；
+- **打假通报**：`01a0aa2c` 实证 `agent-11` 存在 51.6% 不可观测锚点与标答内嵌缺陷，诚实解题上限即为 71 分，已签发出题方整改单；
+- **违宪惩戒**：`01a0aa2d` 在 `fantonghui` 题库因粗糙抢速产生 603 处幻觉，严重违背“铁律一（质量第一）”，予以黄牌扣分并驳回答卷，限期整改。
+
