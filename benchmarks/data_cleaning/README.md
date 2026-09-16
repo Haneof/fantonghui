@@ -7,10 +7,10 @@
 
 | 文件 | 内容 | 题量 | 体积 |
 | --- | --- | --- | --- |
-| `questions/questions_agent-01a0a9fd.jsonl` | 标准交付题库（明文 JSONL，每行一道 `CleaningQuestion`） | 10,000 | ~50 MB |
-| `ground_truth/gt_agent-01a0a9fd.jsonl` | 对应标答（方向性同义词簇 + 实体锚点 + 垃圾 ID） | 10,000 | ~17 MB |
-| `questions/questions_agent-01a0a9fd_30k.jsonl.gz` | 全量 30,000 道（gzip，`gunzip` 后即标准 JSONL） | 30,000 | ~33 MB |
-| `ground_truth/gt_agent-01a0a9fd_30k.jsonl.gz` | 全量标答（gzip） | 30,000 | ~7 MB |
+| `questions/questions_agent-01a0a9fd.jsonl` | 标准交付题库（明文 JSONL，每行一道 `CleaningQuestion`） | 10,000 | 52.7 MB |
+| `ground_truth/gt_agent-01a0a9fd.jsonl` | 对应标答（方向性同义词簇 + 实体锚点 + 垃圾 ID） | 10,000 | 17.2 MB |
+| `questions/questions_agent-01a0a9fd_30k.jsonl.gz` | 全量 30,000 道（gzip，`gunzip` 后即标准 JSONL） | 30,000 | 34.8 MB |
+| `ground_truth/gt_agent-01a0a9fd_30k.jsonl.gz` | 全量标答（gzip） | 30,000 | 7.2 MB |
 | `reports/generation_report_agent-01a0a9fd.md` | 审计报告（配比 / 唯一率 / 陷阱分布 / 方言覆盖） | — | — |
 | `reports/manifest_agent-01a0a9fd.json` | 清单（种子、编号区间、逐文件 SHA256、因子库规模） | — | — |
 | `reports/question_schema_agent-01a0a9fd.json` | 字段字典（五大数据流的紧凑键名与语义说明） | — | — |
