@@ -1,0 +1,1570 @@
+{
+ "seed": 20260916,
+ "scale": 1.0,
+ "subject_id": "user_1",
+ "db_path": "/tmp/aios_blind_bench_19pb3l9p/blind_bench.db",
+ "world_revision": 70,
+ "total_seconds": 9.444987645999959,
+ "peak_rss_mb": 112.15625,
+ "iron_rules": {
+  "铁律1 输出质量绝对第一": "百万流压缩比 0.996854；对话侧见 S8（每轮 1~3 句、单轮 ≤1500 Token、0 说教命中）",
+  "铁律4 大模型自主判断删除": "边缘噪声裁决 1086 条；核心证据原话与证据链 100% 留存（见 S1 实测字段）"
+ },
+ "truth_digest": {
+  "object_revisions": {
+   "rows": 0,
+   "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "world_commits": {
+   "rows": 0,
+   "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "operations": {
+   "rows": 0,
+   "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  }
+ },
+ "stages": [
+  {
+   "stage_id": "S1",
+   "title": "百万级摄入 / 清洗 / 边缘提纯",
+   "facts": {
+    "raw_samples_generated": 1131330,
+    "raw_imu": 1050000,
+    "raw_heart": 76800,
+    "raw_vision": 540,
+    "raw_audio": 1580,
+    "raw_text": 2410,
+    "raw_samples_ingested": 1131330,
+    "ingest_seconds": 6.715,
+    "throughput_samples_per_second": 168484.0,
+    "compression_ratio": 0.996854,
+    "macro_observations": 3559,
+    "flushed_batches_observations": 0,
+    "imu_macro_observations": 73,
+    "imu_impact_observations": 20,
+    "heart_summary_observations": 90,
+    "heart_anomaly_observations": 40,
+    "caption_observations": 432,
+    "transcript_observations": 1098,
+    "environment_text_observations": 1806,
+    "raw_imu_rows_persisted": 0,
+    "min_imu_window_samples": 1399,
+    "imu_impact_windows_preserving_raw": 20,
+    "raw_image_bytes_sunk": 470016,
+    "raw_image_bytes_retained": 0,
+    "noise_dropped_at_edge": 1086,
+    "noise_texts_total": 21,
+    "noise_visible_before_review": 2,
+    "noise_tombstoned_by_daily_review": 45,
+    "noise_visible_after_review": 0,
+    "purge_ledger_tombstones": 45,
+    "purge_ledger_chain_ok": true,
+    "core_texts_total": 25,
+    "core_texts_retained": 25,
+    "core_texts_retained_after_review": 25,
+    "voiceprints_registered": 4,
+    "voiceprints_tombstoned_by_ttl": 1,
+    "voiceprint_tombstoned_ids": "P900",
+    "voiceprint_bound_survivors": 3,
+    "heart_observations": 130,
+    "observations_in_store": 3559,
+    "compressor_steady_error": 0.0,
+    "compressor_steady_segments": 1,
+    "imu_max_reconstruction_error": 0.4,
+    "heart_max_reconstruction_error": 3.997059,
+    "edge_policy_imu_epsilon": 0.4,
+    "edge_policy_heart_epsilon": 4.0,
+    "imu_error_bound_utilization": 1.0,
+    "heart_error_bound_utilization": 0.999265,
+    "edge_model_calls": 0,
+    "rss_mb_after_ingest": 62.27,
+    "rss_delta_mb": 20.93
+   },
+   "invariants": [
+    "50Hz IMU 原始采样直写数据库的行数为 0（唯一写入口是宏观观察）",
+    "IMU 宏观窗口样本数下限 = 策略最小窗（高频噪声被窗口吸收）",
+    "冲击波形保留原值、且不落原始高频字节",
+    "图像仅保留 Caption，原始字节保留量为 0",
+    "音频仅保留转写文本 + 声纹编号；未绑定声纹满 180 天墓碑，绑定声纹不失效",
+    "铁律 4：环境噪声被物理墓碑，核心证据原话 100% 留存"
+   ],
+   "latency": {
+    "p50": 6714.762755000038,
+    "p95": 6714.762755000038,
+    "p99": 6714.762755000038,
+    "max": 6714.762755000038,
+    "mean": 6714.762755000038
+   },
+   "token_burn": 0
+  },
+  {
+   "stage_id": "S2",
+   "title": "时间金字塔多尺度结晶与无损穿透",
+   "facts": {
+    "events_vaulted": 3514,
+    "year_summary_scale": "YEAR",
+    "year_summary_years": 2024,
+    "year_evidence_ids": 721,
+    "month_summaries": 12,
+    "week_summaries": 57,
+    "day_slices_recovered": 721,
+    "evidence_break_year_to_month": 0,
+    "evidence_break_year_to_week": 0,
+    "evidence_break_year_to_day": 0,
+    "evidence_chain_break_rate": 0.0,
+    "raw_quote_recovered": true,
+    "raw_quote_object_id": "obs_30a87a903ac243d2b9f37a18d111ebe1",
+    "evidence_conflict_rejected": true,
+    "year_synthesis_tokens": 14,
+    "year_source_tokens": 12659,
+    "year_source_events": 721,
+    "summary_text_keep_ratio": 0.00110593,
+    "vault_size": 721,
+    "drill_p50_ms": 1.5752,
+    "drill_p95_ms": 2.7443,
+    "drill_p99_ms": 2.7443,
+    "drill_max_ms": 2.7443,
+    "store_observation_count_after": 3559
+   },
+   "invariants": [
+    "日→周→月→年均为新增观察层，底层事件一条未删、一条未改",
+    "同一 event id 出现不同内容 → 直接拒绝（证据冲突）",
+    "年总结下钻到日明细的证据链断链率 0.0%",
+    "3 年前的年度总结可穿透到单条原始原话，且与存储字节级一致"
+   ],
+   "latency": {
+    "p50": 1.575248999984069,
+    "p95": 2.7443120000043564,
+    "p99": 2.7443120000043564,
+    "max": 2.7443120000043564,
+    "mean": 1.7827820000017407
+   },
+   "token_burn": 14
+  },
+  {
+   "stage_id": "S3",
+   "title": "多维时空共振 / 新事件合成 / 生命周期",
+   "facts": {
+    "streams_registered": 5,
+    "samples_per_stream": {
+     "health": 40,
+     "work": 330,
+     "finance": 576,
+     "scene": 432,
+     "voice": 1053
+    },
+    "resonant_dimensions": "finance,health,scene,voice",
+    "resonant_dimension_count": 4,
+    "aligned_samples": 5,
+    "alignment_span_hours": 14.738,
+    "synthesized_event_status": "candidate",
+    "synthesized_event_revision": 4,
+    "lifecycle_snapshots": "candidate,active,revised,resolved",
+    "stale_downstream_after_activation": "advice_card_resonance,summary_week_resonance",
+    "illegal_transition_rejected": true,
+    "revision_chain_validated": true,
+    "claim_evidence_refs": 2,
+    "cooccurrence_keywords": "对赌,出资",
+    "cooccurrence_hits": 10,
+    "cooccurrence_bus_hits": "{\"对赌+出资\": 10, \"法院+诈骗\": 10, \"合伙+转账\": 10, \"通宵+早搏\": 0}",
+    "single_keyword_hits": 10,
+    "cooccurrence_is_subset": true,
+    "cooccurrence_tokens": 140,
+    "synthesis_coverage_ratio": 1.0,
+    "resonance_dimension_span": 4,
+    "window_samples_available": 5
+   },
+   "invariants": [
+    "事件由 ≥3 个维度的同窗共振合成，而不是关键词硬拼",
+    "生命周期 CANDIDATE→ACTIVE→REVISED→RESOLVED 每步都产生新修订 + 快照 + 理由",
+    "非法跃迁（回退到 CANDIDATE）被状态机拒绝",
+    "事件修订把直接下游标记 STALE，绝不级联重算",
+    "多关键词共现召回是单关键词召回的严格子集"
+   ],
+   "latency": {
+    "p50": 0.0797190000412229,
+    "p95": 17.542619999971976,
+    "p99": 17.542619999971976,
+    "max": 17.542619999971976,
+    "mean": 5.303609999987202
+   },
+   "token_burn": 140
+  },
+  {
+   "stage_id": "S4",
+   "title": "高阶认知演进与维度门槛",
+   "facts": {
+    "curve_days": 886,
+    "burnout_points": 886,
+    "daily_bucket_max_events": 6,
+    "curve_time_quantization_days": 1.0,
+    "derivative_gate_allowed": 1773,
+    "derivative_gate_rejected": 1,
+    "hardware_dimension_rejected": true,
+    "inflection_triggered": true,
+    "inflection_severity": 1.0,
+    "circuit_break_actions": "freeze_new_commitments,schedule_rest_window_24h,notify_trusted_confidant,force_offline_weekend",
+    "circuit_break_llm_calls": 0,
+    "immature_pattern_rejected": true,
+    "candidate_admitted": "dim_candidate_mature",
+    "admission_quota_used_today": 1,
+    "same_day_second_reflection_blocked": true,
+    "trial_promotion_outcome": "promoted",
+    "trial_weak_prediction_outcome": "expired",
+    "trial_weak_accuracy": 0.6,
+    "trial_patchy_outcome": "expired",
+    "trial_patchy_continuous": false,
+    "active_dimension_count": 1,
+    "life_chapter_detected": true,
+    "life_chapter_id": "lifc_2026-09-13_001",
+    "sealed_chapter_reason": "3 个关键维度的核心基线在 0 天内发生结构性断裂（跨域耦合窗 180 天）",
+    "broken_dimensions": 3,
+    "baseline_shift_burnout": 0.7079
+   },
+   "invariants": [
+    "速度/加速度只在高阶认知维度上计算；硬件原始维度被闸门直接拒绝",
+    "拐点识别与熔断为纯机械动作：0 次大模型调用",
+    "跨域异常不足 3 天 → 门限一机械拒绝（连自省配额都不消耗）",
+    "同日第二次自省 → 门限三配额硬拦截",
+    "预测准确率不达标 → 试用期内直接失效；解释力断档 → 试用窗口届满失效",
+    "多维度基线同时结构性断裂 → 封章归档 + 敏感度重置"
+   ],
+   "latency": {
+    "p50": 0.2330490000304053,
+    "p95": 0.2330490000304053,
+    "p99": 0.2330490000304053,
+    "max": 0.2330490000304053,
+    "mean": 0.2330490000304053
+   },
+   "token_burn": 0
+  },
+  {
+   "stage_id": "S5",
+   "title": "老王案单跳隔离防雪崩",
+   "facts": {
+    "target_object_id": "obs_30a87a903ac243d2b9f37a18d111ebe1",
+    "target_occurred": "2024-01-31T00:00:00Z",
+    "revision_before_injection": 53,
+    "history_is_immutable": true,
+    "annotation_id": "rip_ee108e680fee407aa95bd2b538836bc7",
+    "annotation_is_pinned_to_now": true,
+    "truth_tables_before": {
+     "object_revisions": 3604,
+     "world_commits": 53,
+     "operations": 8
+    },
+    "truth_tables_after": {
+     "object_revisions": 3604,
+     "world_commits": 53,
+     "operations": 8
+    },
+    "truth_digest_unchanged": true,
+    "target_payload_bytes_unchanged": true,
+    "target_tombstoned": false,
+    "observations_before": 3559,
+    "observations_after": 3559,
+    "direct_consumers": 4,
+    "direct_consumer_ids": "rip_ee108e680fee407aa95bd2b538836bc7,summary_partner_w0,summary_partner_w1,summary_partner_w2",
+    "multi_hop_dependents": 207,
+    "naive_cascade_recompute_calls": 210,
+    "isolation_llm_calls": 0,
+    "isolation_recompute_triggered": 0,
+    "cascade_suppressed": true,
+    "traversal_depth_reached": 1,
+    "stale_marked": 4,
+    "stale_is_single_hop": true,
+    "multi_hop_untouched": true,
+    "annotation_counts_as_single_hop": true,
+    "isolation_latency_ms": 0.0205,
+    "dual_lens_base_hash": "a53c7432fd2eaa57",
+    "dual_lens_base_unchanged": true,
+    "dual_lens_consistency": true,
+    "dual_lens_fact_set_stable": true,
+    "dual_lens_overlay_visible": true,
+    "dual_lens_overlay_postings": 75,
+    "dual_lens_base_postings": 1376,
+    "dual_lens_saved_ratio": 0.999651,
+    "as_known_hits": 500,
+    "annotated_hits": 500
+   },
+   "invariants": [
+    "3 年前的历史 Observation 字节级不变：不可变表快照哈希前后完全一致",
+    "新认知只作为 T_now 的外挂注解写入，历史表零 UPDATE / 零 DELETE",
+    "单跳隔离：只有 3 个直接消费者被标记 STALE，207 个多跳下游零重算",
+    "隔离路径大模型调用为 0（对比朴素级联的 210 次）",
+    "双透镜事实集合一致，基底索引哈希不变，注解仅以增量 overlay 呈现"
+   ],
+   "latency": {
+    "p50": 0.0204930000791137,
+    "p95": 0.0204930000791137,
+    "p99": 0.0204930000791137,
+    "max": 0.0204930000791137,
+    "mean": 0.0204930000791137
+   },
+   "token_burn": 0
+  },
+  {
+   "stage_id": "S6",
+   "title": "共生决策推演与主动帮助",
+   "facts": {
+    "advice_kind": "GroundedAdvice",
+    "advice_sentence_count": 3,
+    "advice_chars": 116,
+    "advice_tokens": 92,
+    "advice_conclusion": "合伙人会议上王建国拍桌子翻脸：钱早就投进项目了，你们要查账先把我告了再说！银行流水截图：2024-05-10 向王建国个人账户转账 500000 元，摘要写的是合伙出资款。先把转账凭证、借据与聊天记录固定下来，再谈下一步的钱怎么走。",
+    "advice_evidence_pointers": 6,
+    "advice_evidence_types": "observation",
+    "advice_evidence_preview": "合伙人会议上王建国拍桌子翻脸：钱早就投进项目了，你们要查账先把我告了再说！ | 合伙人会议上王建国拍桌子翻脸：钱早就投进项目了，你们要查账先把我告了再说！",
+    "advice_grounding_verified": true,
+    "advice_grounding_ratio": 1.0,
+    "withheld_kind": "AdviceWithheld",
+    "withheld_reason": "证据不足：仅找到 0 条相关事实，低于门槛 2；宁可不说话，也不吐没有证据的建议。",
+    "withheld_evidence_found": 0,
+    "goal_status_after_retraction": "abandoned",
+    "task_status_after_retraction": "cancelled",
+    "retraction_cancelled_tasks": 1,
+    "retraction_asked_user": false,
+    "retraction_reflection": "把'替他操心'当成了'他要做的事'：推断目标被用户否认，下次先问一句他到底想不想做，而不是直接建任务。",
+    "independent_task_status": "draft",
+    "inferred_goals": 1,
+    "abandoned_inferred_goals": 1,
+    "tasks_without_goals": 1
+   },
+   "invariants": [
+    "建议由真实检索到的证据文本拼装，每条证据指针都钉死修订号且可解引用",
+    "证据不足时引擎返回拒答（沉默），不吐没有依据的建议",
+    "输出严格 ≤3 句且不含客服套话/说教模板",
+    "推断目标被用户否认后静默撤销，关联任务连带取消，且不反问确认",
+    "目标与任务解耦：无目标支撑的任务同样可以独立存在"
+   ],
+   "latency": {
+    "p50": 21.95039599996562,
+    "p95": 55.3437489999169,
+    "p99": 55.3437489999169,
+    "max": 55.3437489999169,
+    "mean": 38.64707249994126
+   },
+   "token_burn": 92
+  },
+  {
+   "stage_id": "S7",
+   "title": "AI 自身世界维护 / 沟通博弈 / 人设防线",
+   "facts": {
+    "actions_logged": 6,
+    "interventions": 3,
+    "silences": 1,
+    "advices": 2,
+    "anti_sycophancy_triggered": true,
+    "anti_sycophancy_echoes_user": false,
+    "anti_sycophancy_second_trigger": true,
+    "anti_lecturer_triggered": true,
+    "anti_lecturer_kept_law_quote": false,
+    "silence_has_reason": true,
+    "silence_content_chars": 0,
+    "recommended_style": "老友",
+    "avoid_styles": "(none)",
+    "style_samples": 5,
+    "case_predicted_style": "default",
+    "case_avoid_styles": "损友",
+    "action_logs": 6,
+    "actions_token_cost": 155,
+    "communication_experiences_in_store": 7,
+    "ui_prompts_issued": 0,
+    "style_landscape": "{\"损友\": {\"actions\": 2.0, \"rated_actions\": 2.0, \"acceptance_rate\": 0.0}, \"老友\": {\"actions\": 4.0, \"rated_actions\": 4.0, \"acceptance_rate\": 0.5}}",
+    "feedback_sources": "explicit_reply,passive_observation",
+    "action_objects_in_store": 6
+   },
+   "invariants": [
+    "AI 的开口 / 沉默 / 建议三类行动全部留痕，且每条都带理由",
+    "荒谬前提被挡回：既不执行、也不附和（拒绝文本不含用户荒谬指令）",
+    "宣泄场景下法条与说教被拦截，替换为老友语调",
+    "沉默必须带理由且零输出内容",
+    "风格按真实反馈进化：被抵触的风格进入回避清单",
+    "零界面：全程 0 次向用户发问卷/滑杆/确认请求"
+   ],
+   "latency": {
+    "p50": 3.5394509999377988,
+    "p95": 4.239472999984173,
+    "p99": 4.239472999984173,
+    "max": 4.239472999984173,
+    "mean": 3.6080726666417227
+   },
+   "token_burn": 155
+  },
+  {
+   "stage_id": "S8",
+   "title": "驾驶舱全景调度 / 硬旁路 / 终极对话",
+   "facts": {
+    "manifest_total_tokens": 355,
+    "manifest_budget": 1000,
+    "manifest_source_reads": 1,
+    "manifest_loader_loads": 1,
+    "manifest_questions_to_user": 0,
+    "manifest_section_order": "self,bond,stance,scene",
+    "manifest_section_titles": "照镜子看自己 | 校准羁绊看关系 | 确立姿态定语调 | 审视现场看世界",
+    "manifest_highlights": 12,
+    "manifest_elided": 3512,
+    "manifest_load_ms": 38.944,
+    "mind_order_reorder_blocked": true,
+    "mind_order_sealed": "self,bond,stance,scene",
+    "mind_order_steps": "self,bond,stance,scene",
+    "p0_first_action": "hardware_pulse",
+    "p0_status": "SAFETY_BYPASS_EXECUTED",
+    "p0_bypassed_llm": true,
+    "p0_llm_calls": 0,
+    "p0_audit_receipts": 50,
+    "p0_p50_ms": 0.0045,
+    "p0_p95_ms": 0.0106,
+    "p0_p99_ms": 0.0916,
+    "p0_max_ms": 0.0916,
+    "dormant_tasks": 200,
+    "dormant_tokens_in_board": 0,
+    "dormant_tokens_if_naive": 1000,
+    "dormant_frozen_out": 200,
+    "mechanical_tick_evaluated": 200,
+    "mechanical_tick_llm_calls": 0,
+    "scheduler_llm_calls": 0,
+    "scheduler_autonomous_wakes": 0,
+    "evaluator_idle_evaluated": 0,
+    "evaluator_signal_evaluated": 40,
+    "evaluator_registered": 200,
+    "conversation_rounds": 10,
+    "conversation_sentence_counts": "2,2,2,2,2,2,2,2,2,2",
+    "conversation_max_sentences": 2,
+    "conversation_min_sentences": 2,
+    "conversation_max_round_tokens": 552,
+    "conversation_total_tokens": 4365,
+    "conversation_single_shot_budget": 1500,
+    "conversation_window_size": 6,
+    "conversation_active_window": 6,
+    "conversation_archived_rounds": 14,
+    "conversation_lossless_rounds": 20,
+    "conversation_preach_hits": 0,
+    "assembly_p50_ms": 0.0836,
+    "assembly_p95_ms": 0.1123,
+    "assembly_p99_ms": 0.1123
+   },
+   "invariants": [
+    "全景看板单次装载（1 次世界读取）、零提问、总量 ≤ Token 预算",
+    "四步心法顺序不可换：乱序/回退立即抛错，完整走完才算封印",
+    "P0 跌倒/心脏骤停：首行动作是硬件脉冲，0 次大模型调用，端到端 ≤50ms",
+    "条件任务双轨：休眠任务在看板里 0 Token，机械 tick 0 大模型调用",
+    "机械求值器静默 tick 求值 0 条；带信号 tick 只碰命中桶",
+    "10 轮自然对话每轮严格 1~3 句，单轮看板 Token 不越 1500，窗口无损滚动"
+   ],
+   "latency": {
+    "p50": 0.004588999900079216,
+    "p95": 0.09349300000849325,
+    "p99": 0.09718100000100094,
+    "max": 0.11233899999751884,
+    "mean": 0.01943439999839332
+   },
+   "token_burn": 0
+  }
+ ],
+ "extras": {
+  "truth_digest_after": {
+   "object_revisions": {
+    "rows": 3624,
+    "sha256": "ad364c30d26c413b169dee579f79998e52357c3d46501feaae04dfbb353847ce"
+   },
+   "world_commits": {
+    "rows": 70,
+    "sha256": "40b1a31f23203fd035685eb8b53b8466df66adeb2becff7d512d3977a7a8e884"
+   },
+   "operations": {
+    "rows": 25,
+    "sha256": "742d810da3019c5966c52c20a78e9f3aa44f7a177c002b0ee3ac59ff7cc3b0a9"
+   }
+  },
+  "quota": {
+   "imu": 1050000,
+   "heart": 76800,
+   "vision": 540,
+   "audio": 1580,
+   "text": 2410,
+   "total": 1131330
+  },
+  "operator_microbench": {
+   "compressor": {
+    "input": 200000,
+    "segments": 16,
+    "impact_segments": 8,
+    "reduction_ratio": 0.99992,
+    "max_reconstruction_error": 0.0,
+    "epsilon": 0.5,
+    "compress_ms": 92.618,
+    "samples_per_second": 2159401.7
+   },
+   "evaluator": {
+    "registered": 2000,
+    "idle_evaluated": 0,
+    "idle_ms": 0.0402,
+    "signal_evaluated": 40,
+    "signal_ms": 0.088,
+    "touched_ratio": 0.02,
+    "llm_calls": 0
+   },
+   "projector": {
+    "facts": 2000,
+    "base_postings": 167,
+    "overlay_postings_written": 27,
+    "naive_rebuild_postings": 88911,
+    "saved_ratio": 0.999696,
+    "base_hash_unchanged": true,
+    "frozen_hash": "b0bfb84ee1790214"
+   }
+  },
+  "diagnosis": {
+   "token_ledger": [
+    {
+     "stage_id": "S1",
+     "tokens": 0,
+     "sources": {}
+    },
+    {
+     "stage_id": "S2",
+     "tokens": 14,
+     "sources": {
+      "year_synthesis_tokens": 14
+     }
+    },
+    {
+     "stage_id": "S3",
+     "tokens": 140,
+     "sources": {
+      "cooccurrence_tokens": 140
+     }
+    },
+    {
+     "stage_id": "S4",
+     "tokens": 0,
+     "sources": {}
+    },
+    {
+     "stage_id": "S5",
+     "tokens": 0,
+     "sources": {}
+    },
+    {
+     "stage_id": "S6",
+     "tokens": 92,
+     "sources": {
+      "advice_tokens": 92
+     }
+    },
+    {
+     "stage_id": "S7",
+     "tokens": 155,
+     "sources": {
+      "actions_token_cost": 155
+     }
+    },
+    {
+     "stage_id": "S8",
+     "tokens": 4720,
+     "sources": {
+      "manifest_total_tokens": 355,
+      "conversation_total_tokens": 4365
+     }
+    }
+   ],
+   "token_total": 5121,
+   "token_hotspot": {
+    "stage_id": "S8",
+    "tokens": 4720
+   },
+   "io_hotspot": {
+    "signature": "SELECT object_revisions",
+    "statements": 3700,
+    "rows_scanned": 114163,
+    "total_ms": 195.3401
+   },
+   "io_hot_stage": [
+    "S3",
+    137385
+   ],
+   "io_attribution": {
+    "per_stage": {
+     "S1": [
+      {
+       "sql": "SELECT object_revisions",
+       "statements": 3612,
+       "rows_scanned": 21399,
+       "total_ms": 48.0579
+      },
+      {
+       "sql": "INSERT object_revisions",
+       "statements": 3604,
+       "rows_scanned": 3604,
+       "total_ms": 0.0
+      },
+      {
+       "sql": "PRAGMA",
+       "statements": 45,
+       "rows_scanned": 405,
+       "total_ms": 0.8111
+      },
+      {
+       "sql": "SELECT world_meta",
+       "statements": 61,
+       "rows_scanned": 61,
+       "total_ms": 0.2815
+      },
+      {
+       "sql": "UPDATE world_meta",
+       "statements": 106,
+       "rows_scanned": 53,
+       "total_ms": 0.0
+      },
+      {
+       "sql": "INSERT world_commits",
+       "statements": 53,
+       "rows_scanned": 53,
+       "total_ms": 0.0
+      },
+      {
+       "sql": "INSERT cold_archive",
+       "statements": 45,
+       "rows_scanned": 45,
+       "total_ms": 0.0
+      },
+      {
+       "sql": "INSERT operations",
+       "statements": 8,
+       "rows_scanned": 8,
+       "total_ms": 0.0
+      },
+      {
+       "sql": "INSERT idempotency_records",
+       "statements": 8,
+       "rows_scanned": 8,
+       "total_ms": 0.0
+      },
+      {
+       "sql": "INSERT",
+       "statements": 3718,
+       "rows_scanned": 0,
+       "total_ms": 0.0
+      },
+      {
+       "sql": "CREATE",
+       "statements": 45,
+       "rows_scanned": 0,
+       "total_ms": 0.0
+      },
+      {
+       "sql": "SELECT idempotency_records",
+       "statements": 8,
+       "rows_scanned": 0,
+       "total_ms": 0.0333
+      },
+      {
+       "sql": "SELECT operations",
+       "statements": 8,
+       "rows_scanned": 0,
+       "total_ms": 0.028
+      }
+     ],
+     "S2": [
+      {
+       "sql": "SELECT object_revisions",
+       "statements": 4,
+       "rows_scanned": 14236,
+       "total_ms": 16.6596
+      }
+     ],
+     "S3": [
+      {
+       "sql": "INSERT search_postings",
+       "statements": 3604,
+       "rows_scanned": 99948,
+       "total_ms": 0.0
+      },
+      {
+       "sql": "SELECT search_doc,search_occurred",
+       "statements": 5,
+       "rows_scanned": 18020,
+       "total_ms": 28.9764
+      },
+      {
+       "sql": "SELECT object_revisions",
+       "statements": 3,
+       "rows_scanned": 10722,
+       "total_ms": 15.4909
+      },
+      {
+       "sql": "INSERT search_occurred",
+       "statements": 3604,
+       "rows_scanned": 3604,
+       "total_ms": 0.0
+      },
+      {
+       "sql": "INSERT search_doc",
+       "statements": 3604,
+       "rows_scanned": 3604,
+       "total_ms": 0.0
+      },
+      {
+       "sql": "SELECT search_postings",
+       "statements": 5,
+       "rows_scanned": 1469,
+       "total_ms": 1.4702
+      },
+      {
+       "sql": "SELECT search_meta",
+       "statements": 11,
+       "rows_scanned": 10,
+       "total_ms": 0.0558
+      },
+      {
+       "sql": "SELECT world_meta",
+       "statements": 6,
+       "rows_scanned": 6,
+       "total_ms": 0.0397
+      },
+      {
+       "sql": "INSERT search_meta",
+       "statements": 1,
+       "rows_scanned": 1,
+       "total_ms": 0.0
+      },
+      {
+       "sql": "SELECT sqlite_master",
+       "statements": 1,
+       "rows_scanned": 1,
+       "total_ms": 0.0091
+      },
+      {
+       "sql": "INSERT",
+       "statements": 10813,
+       "rows_scanned": 0,
+       "total_ms": 0.0
+      },
+      {
+       "sql": "SELECT search_alias",
+       "statements": 510,
+       "rows_scanned": 0,
+       "total_ms": 0.8315
+      },
+      {
+       "sql": "SELECT search_tombstones",
+       "statements": 5,
+       "rows_scanned": 0,
+       "total_ms": 0.015
+      },
+      {
+       "sql": "SELECT search_annotations",
+       "statements": 4,
+       "rows_scanned": 0,
+       "total_ms": 0.0181
+      },
+      {
+       "sql": "CREATE",
+       "statements": 1,
+       "rows_scanned": 0,
+       "total_ms": 0.0
+      },
+      {
+       "sql": "SELECT retrospective_annotations",
+       "statements": 1,
+       "rows_scanned": 0,
+       "total_ms": 0.0047
+      }
+     ],
+     "S4": [
+      {
+       "sql": "SELECT object_revisions",
+       "statements": 2,
+       "rows_scanned": 7118,
+       "total_ms": 24.0625
+      }
+     ],
+     "S5": [
+      {
+       "sql": "SELECT object_revisions",
+       "statements": 10,
+       "rows_scanned": 25006,
+       "total_ms": 50.6854
+      },
+      {
+       "sql": "SELECT world_commits",
+       "statements": 2,
+       "rows_scanned": 106,
+       "total_ms": 0.1916
+      },
+      {
+       "sql": "SELECT operations",
+       "statements": 2,
+       "rows_scanned": 16,
+       "total_ms": 0.0596
+      },
+      {
+       "sql": "PRAGMA",
+       "statements": 1,
+       "rows_scanned": 9,
+       "total_ms": 0.0255
+      },
+      {
+       "sql": "SELECT world_meta",
+       "statements": 1,
+       "rows_scanned": 1,
+       "total_ms": 0.0076
+      }
+     ],
+     "S6": [
+      {
+       "sql": "SELECT search_doc,search_occurred",
+       "statements": 7,
+       "rows_scanned": 25228,
+       "total_ms": 39.8372
+      },
+      {
+       "sql": "SELECT object_revisions",
+       "statements": 41,
+       "rows_scanned": 14273,
+       "total_ms": 16.582
+      },
+      {
+       "sql": "SELECT search_postings",
+       "statements": 7,
+       "rows_scanned": 852,
+       "total_ms": 0.824
+      },
+      {
+       "sql": "SELECT world_meta",
+       "statements": 17,
+       "rows_scanned": 17,
+       "total_ms": 0.0946
+      },
+      {
+       "sql": "SELECT search_meta",
+       "statements": 16,
+       "rows_scanned": 16,
+       "total_ms": 0.0828
+      },
+      {
+       "sql": "INSERT object_revisions",
+       "statements": 7,
+       "rows_scanned": 7,
+       "total_ms": 0.0
+      },
+      {
+       "sql": "UPDATE world_meta",
+       "statements": 8,
+       "rows_scanned": 4,
+       "total_ms": 0.0
+      },
+      {
+       "sql": "INSERT world_commits",
+       "statements": 4,
+       "rows_scanned": 4,
+       "total_ms": 0.0
+      },
+      {
+       "sql": "INSERT operations",
+       "statements": 4,
+       "rows_scanned": 4,
+       "total_ms": 0.0
+      },
+      {
+       "sql": "INSERT idempotency_records",
+       "statements": 4,
+       "rows_scanned": 4,
+       "total_ms": 0.0
+      },
+      {
+       "sql": "INSERT",
+       "statements": 19,
+       "rows_scanned": 0,
+       "total_ms": 0.0
+      },
+      {
+       "sql": "SELECT search_alias",
+       "statements": 7,
+       "rows_scanned": 0,
+       "total_ms": 0.024
+      },
+      {
+       "sql": "SELECT search_tombstones",
+       "statements": 7,
+       "rows_scanned": 0,
+       "total_ms": 0.018
+      },
+      {
+       "sql": "SELECT search_annotations",
+       "statements": 4,
+       "rows_scanned": 0,
+       "total_ms": 0.0191
+      },
+      {
+       "sql": "SELECT idempotency_records",
+       "statements": 4,
+       "rows_scanned": 0,
+       "total_ms": 0.0146
+      },
+      {
+       "sql": "SELECT operations",
+       "statements": 4,
+       "rows_scanned": 0,
+       "total_ms": 0.0111
+      },
+      {
+       "sql": "CREATE",
+       "statements": 1,
+       "rows_scanned": 0,
+       "total_ms": 0.0
+      }
+     ],
+     "S7": [
+      {
+       "sql": "SELECT object_revisions",
+       "statements": 23,
+       "rows_scanned": 3593,
+       "total_ms": 4.3331
+      },
+      {
+       "sql": "SELECT world_meta",
+       "statements": 26,
+       "rows_scanned": 26,
+       "total_ms": 0.1358
+      },
+      {
+       "sql": "UPDATE world_meta",
+       "statements": 26,
+       "rows_scanned": 13,
+       "total_ms": 0.0
+      },
+      {
+       "sql": "INSERT world_commits",
+       "statements": 13,
+       "rows_scanned": 13,
+       "total_ms": 0.0
+      },
+      {
+       "sql": "INSERT object_revisions",
+       "statements": 13,
+       "rows_scanned": 13,
+       "total_ms": 0.0
+      },
+      {
+       "sql": "INSERT operations",
+       "statements": 13,
+       "rows_scanned": 13,
+       "total_ms": 0.0
+      },
+      {
+       "sql": "INSERT idempotency_records",
+       "statements": 13,
+       "rows_scanned": 13,
+       "total_ms": 0.0
+      },
+      {
+       "sql": "INSERT",
+       "statements": 52,
+       "rows_scanned": 0,
+       "total_ms": 0.0
+      },
+      {
+       "sql": "SELECT idempotency_records",
+       "statements": 13,
+       "rows_scanned": 0,
+       "total_ms": 0.0423
+      },
+      {
+       "sql": "SELECT operations",
+       "statements": 13,
+       "rows_scanned": 0,
+       "total_ms": 0.034
+      }
+     ],
+     "S8": [
+      {
+       "sql": "SELECT object_revisions",
+       "statements": 5,
+       "rows_scanned": 17816,
+       "total_ms": 19.4688
+      },
+      {
+       "sql": "SELECT world_meta",
+       "statements": 1,
+       "rows_scanned": 1,
+       "total_ms": 0.0067
+      }
+     ]
+    },
+    "overall": [
+     {
+      "sql": "SELECT object_revisions",
+      "statements": 3700,
+      "rows_scanned": 114163,
+      "total_ms": 195.3401
+     },
+     {
+      "sql": "INSERT search_postings",
+      "statements": 3604,
+      "rows_scanned": 99948,
+      "total_ms": 0.0
+     },
+     {
+      "sql": "SELECT search_doc,search_occurred",
+      "statements": 12,
+      "rows_scanned": 43248,
+      "total_ms": 68.8136
+     },
+     {
+      "sql": "INSERT object_revisions",
+      "statements": 3624,
+      "rows_scanned": 3624,
+      "total_ms": 0.0
+     },
+     {
+      "sql": "INSERT search_occurred",
+      "statements": 3604,
+      "rows_scanned": 3604,
+      "total_ms": 0.0
+     },
+     {
+      "sql": "INSERT search_doc",
+      "statements": 3604,
+      "rows_scanned": 3604,
+      "total_ms": 0.0
+     },
+     {
+      "sql": "SELECT search_postings",
+      "statements": 12,
+      "rows_scanned": 2321,
+      "total_ms": 2.2942
+     },
+     {
+      "sql": "PRAGMA",
+      "statements": 46,
+      "rows_scanned": 414,
+      "total_ms": 0.8366
+     },
+     {
+      "sql": "SELECT world_meta",
+      "statements": 112,
+      "rows_scanned": 112,
+      "total_ms": 0.566
+     },
+     {
+      "sql": "SELECT world_commits",
+      "statements": 2,
+      "rows_scanned": 106,
+      "total_ms": 0.1916
+     },
+     {
+      "sql": "UPDATE world_meta",
+      "statements": 140,
+      "rows_scanned": 70,
+      "total_ms": 0.0
+     },
+     {
+      "sql": "INSERT world_commits",
+      "statements": 70,
+      "rows_scanned": 70,
+      "total_ms": 0.0
+     },
+     {
+      "sql": "INSERT cold_archive",
+      "statements": 45,
+      "rows_scanned": 45,
+      "total_ms": 0.0
+     },
+     {
+      "sql": "SELECT search_meta",
+      "statements": 27,
+      "rows_scanned": 26,
+      "total_ms": 0.1386
+     },
+     {
+      "sql": "INSERT operations",
+      "statements": 25,
+      "rows_scanned": 25,
+      "total_ms": 0.0
+     },
+     {
+      "sql": "INSERT idempotency_records",
+      "statements": 25,
+      "rows_scanned": 25,
+      "total_ms": 0.0
+     },
+     {
+      "sql": "SELECT operations",
+      "statements": 27,
+      "rows_scanned": 16,
+      "total_ms": 0.1328
+     },
+     {
+      "sql": "INSERT search_meta",
+      "statements": 1,
+      "rows_scanned": 1,
+      "total_ms": 0.0
+     },
+     {
+      "sql": "SELECT sqlite_master",
+      "statements": 1,
+      "rows_scanned": 1,
+      "total_ms": 0.0091
+     },
+     {
+      "sql": "INSERT",
+      "statements": 14602,
+      "rows_scanned": 0,
+      "total_ms": 0.0
+     },
+     {
+      "sql": "SELECT search_alias",
+      "statements": 517,
+      "rows_scanned": 0,
+      "total_ms": 0.8555
+     },
+     {
+      "sql": "CREATE",
+      "statements": 47,
+      "rows_scanned": 0,
+      "total_ms": 0.0
+     },
+     {
+      "sql": "SELECT idempotency_records",
+      "statements": 25,
+      "rows_scanned": 0,
+      "total_ms": 0.0901
+     },
+     {
+      "sql": "SELECT search_tombstones",
+      "statements": 12,
+      "rows_scanned": 0,
+      "total_ms": 0.0331
+     },
+     {
+      "sql": "SELECT search_annotations",
+      "statements": 8,
+      "rows_scanned": 0,
+      "total_ms": 0.0372
+     },
+     {
+      "sql": "SELECT retrospective_annotations",
+      "statements": 1,
+      "rows_scanned": 0,
+      "total_ms": 0.0047
+     }
+    ],
+    "unassigned_statements": 7
+   },
+   "abstraction_fidelity": [
+    {
+     "abstraction": "端侧宏观化（50Hz → 宏观观察）",
+     "stage": "S1",
+     "distortion": 1.0,
+     "recoverable": "不可逆（原始高频流按铁律 4 不落盘）",
+     "basis": "IMU 误差 0.4000/0.4g，心率误差 3.9971/4.0bpm → 误差界占用率 100.0000%",
+     "compensation": "误差有界（ε 硬约束）+ 冲击点以原值单独成 Observation，波形不被平均抹平"
+    },
+    {
+     "abstraction": "时间金字塔文本抽象（年总结）",
+     "stage": "S2",
+     "distortion": 0.99889407,
+     "recoverable": "事实可 100% 下钻恢复（断链率 0.0%），叙事文字本身不可恢复",
+     "basis": "年总结 14 Token / 年原始 12659 Token，保留比 0.001106",
+     "compensation": "证据指针（evidence_ids）与原始原话逐字节可比，抽象只发生在阅读面"
+    },
+    {
+     "abstraction": "跨维事件合成（同窗样本 → 1 个 EventAnchor）",
+     "stage": "S3",
+     "distortion": 0.0,
+     "recoverable": "可逆（来源样本修订号全部钉死，可反向解引用）",
+     "basis": "共振窗覆盖 5/5 个样本，覆盖率 1.0000",
+     "compensation": "合成事件携带维度清单与证据集，任何结论都能回到采样点"
+    },
+    {
+     "abstraction": "维度曲线按天聚合",
+     "stage": "S4",
+     "distortion": 0.0,
+     "recoverable": "可逆（曲线是附加物化视图，原始 Observation 一字未动）",
+     "basis": "721 条年度事件 vs 886 个曲线点；曲线只保留日内聚合值，日内时刻只能在原始 Observation 上看到",
+     "compensation": "曲线仅用于趋势/拐点机械判定；要时刻精度必须回落到原始事实"
+    }
+   ],
+   "worst_abstraction": {
+    "abstraction": "端侧宏观化（50Hz → 宏观观察）",
+    "stage": "S1",
+    "distortion": 1.0,
+    "recoverable": "不可逆（原始高频流按铁律 4 不落盘）",
+    "basis": "IMU 误差 0.4000/0.4g，心率误差 3.9971/4.0bpm → 误差界占用率 100.0000%",
+    "compensation": "误差有界（ε 硬约束）+ 冲击点以原值单独成 Observation，波形不被平均抹平"
+   },
+   "defects": [
+    {
+     "id": "D1",
+     "severity": "高",
+     "title": "端侧宏观化的重建误差贴满 ε 上限（误差界被用尽，没有安全余量）",
+     "stage": "S1",
+     "mechanism": "自适应窗口在平稳段持续增长直到曲率预算耗尽，最大重建误差逼近 ε 而不是远小于 ε；由于原始 50Hz 流按铁律 4 不落盘，这一层的损失不可逆，误差界就是唯一兜底",
+     "fix": "窗口增长前预留误差裕度（例如只用 0.7ε 判定可合并），或对疑似生理突变段把 ε 收紧一档，用少量存储换可证明的安全边际",
+     "measured": "最大重建误差 3.9971，误差界占用率 100.0000%（IMU ε=0.4g，心率 ε=4.0bpm）"
+    },
+    {
+     "id": "D2",
+     "severity": "中",
+     "title": "年总结文本保留比极低（叙事层几乎是空壳）",
+     "stage": "S2",
+     "mechanism": "物化年总结只保留 synthesis_text 的一段高度浓缩叙事，真正的人生故事全在 evidence_ids 指针里；一旦上层没有下钻能力，阅读体验就退化成'只有索引没有内容'",
+     "fix": "为年总结增加'主题句 + 3~5 个关键片段'的分层叙事（仍 ≤ 预算），并把片段指针与 evidence_ids 一起物化",
+     "measured": "年总结/年原文 Token 保留比 0.001106"
+    },
+    {
+     "id": "D3",
+     "severity": "中",
+     "title": "共振窗内可用样本过少：维度够、丰度不够，合成事件的置信底座偏薄",
+     "stage": "S3",
+     "mechanism": "共振只要求同窗 ≥3 个维度，不要求每维度有多少样本；实际世界里「三域各命中一条」就能合成事件，稀疏时段合成出的事件与密集时段的事件共享同一置信口径，噪声下容易过判",
+     "fix": "把「同窗样本丰度」写进合成事件的置信度（样本少 → 置信度下压、先登记为候选），并把 2 维度的弱共振也纳入候选池，等第三维度到齐再升级为 ACTIVE",
+     "measured": "同窗样本覆盖率 1.0000，同窗可用样本仅 5 条（共振丰度低）"
+    },
+    {
+     "id": "D5",
+     "severity": "高",
+     "title": "单跳隔离把注解自身计入直接消费者，口径需要显式区分",
+     "stage": "S5",
+     "mechanism": "新增注解既是'今天的新认知'又是被标记 STALE 的对象，若不区分，审计口径会把'1 条新注解 + 3 个直接下游'说成'4 个直接消费者'",
+     "fix": "在 InvalidationReport 中把 annotation_id 与历史下游分成两个字段，报告分别引用（已在本轮盲测中以 annotation_counts_as_single_hop 显式区分）",
+     "measured": "直接消费者 4 条（其中含新注解自身：True）"
+    },
+    {
+     "id": "D6",
+     "severity": "中",
+     "title": "证据召回以 Observation 为主，高阶对象（Claim/EventAnchor）未充分参与建议",
+     "stage": "S6",
+     "mechanism": "建议的证据类型统计只出现 observation：检索层对 Claim/EventAnchor 的投影尚未与 Observation 同权重，导致'已经推理过的结论'在建议里没有被复用",
+     "fix": "把 Claim/EventAnchor 纳入同一召回面，并在建议里标注证据层级，让'事实 → 结论 → 建议'的链条显式可见",
+     "measured": "建议证据类型集合 = observation"
+    },
+    {
+     "id": "D8",
+     "severity": "中",
+     "title": "驾驶舱单轮 Token 峰值仍显著高于建议值，说明看板装载仍未完全分片",
+     "stage": "S8",
+     "mechanism": "全景看板一次性装载四透镜亮点，单轮峰值虽然远低于 1500 预算，但相对'1~3 句'的输出仍有大量结构性开销",
+     "fix": "按透镜懒装载（只装本轮需要的透镜），把被折叠条目的计数（elided）作为'可继续追问'的钩子而不是全量装载",
+     "measured": "单轮峰值 552 Token / 预算 1500 Token = 36.80%"
+    }
+   ],
+   "stage_seconds": {
+    "S1": 7.1266,
+    "S2": 0.1837,
+    "S3": 0.7968,
+    "S4": 0.2784,
+    "S5": 0.504,
+    "S6": 0.2625,
+    "S7": 0.0862,
+    "S8": 0.2062
+   },
+   "slowest_stage": [
+    "S1",
+    7.1266
+   ],
+   "microbench": {
+    "compressor": {
+     "input": 200000,
+     "segments": 16,
+     "impact_segments": 8,
+     "reduction_ratio": 0.99992,
+     "max_reconstruction_error": 0.0,
+     "epsilon": 0.5,
+     "compress_ms": 92.618,
+     "samples_per_second": 2159401.7
+    },
+    "evaluator": {
+     "registered": 2000,
+     "idle_evaluated": 0,
+     "idle_ms": 0.0402,
+     "signal_evaluated": 40,
+     "signal_ms": 0.088,
+     "touched_ratio": 0.02,
+     "llm_calls": 0
+    },
+    "projector": {
+     "facts": 2000,
+     "base_postings": 167,
+     "overlay_postings_written": 27,
+     "naive_rebuild_postings": 88911,
+     "saved_ratio": 0.999696,
+     "base_hash_unchanged": true,
+     "frozen_hash": "b0bfb84ee1790214"
+    }
+   }
+  },
+  "iron_rule_assertions": [
+   {
+    "rule": "铁律1 输出质量绝对第一（≤3 句 / 有证据 / 0 说教）",
+    "passed": true,
+    "checks": [
+     {
+      "name": "S6 建议句数",
+      "actual": 3,
+      "requirement": "≤ 3",
+      "ok": true
+     },
+     {
+      "name": "S6 建议接地复核",
+      "actual": true,
+      "requirement": "True",
+      "ok": true
+     },
+     {
+      "name": "S6 证据指针数",
+      "actual": 6,
+      "requirement": "≥ 2",
+      "ok": true
+     },
+     {
+      "name": "S8 单轮句数上限",
+      "actual": 2,
+      "requirement": "≤ 3",
+      "ok": true
+     },
+     {
+      "name": "S8 单轮句数下限",
+      "actual": 2,
+      "requirement": "≥ 1",
+      "ok": true
+     },
+     {
+      "name": "S8 说教命中",
+      "actual": 0,
+      "requirement": "== 0",
+      "ok": true
+     },
+     {
+      "name": "S8 单轮 Token 峰值",
+      "actual": 552,
+      "requirement": "≤ 1500",
+      "ok": true
+     }
+    ]
+   },
+   {
+    "rule": "铁律2 历史绝不篡改，只在今天打标签（单跳隔离）",
+    "passed": true,
+    "checks": [
+     {
+      "name": "真值表前后一致",
+      "actual": true,
+      "requirement": "True",
+      "ok": true
+     },
+     {
+      "name": "历史 payload 字节不变",
+      "actual": true,
+      "requirement": "True",
+      "ok": true
+     },
+     {
+      "name": "历史未墓碑",
+      "actual": false,
+      "requirement": "False",
+      "ok": true
+     },
+     {
+      "name": "观测条数前后相等",
+      "actual": 3559,
+      "requirement": "== 3559",
+      "ok": true
+     },
+     {
+      "name": "隔离路径大模型调用",
+      "actual": 0,
+      "requirement": "== 0",
+      "ok": true
+     },
+     {
+      "name": "隔离遍历深度",
+      "actual": 1,
+      "requirement": "≤ 1",
+      "ok": true
+     },
+     {
+      "name": "多跳下游零触碰",
+      "actual": true,
+      "requirement": "True",
+      "ok": true
+     }
+    ]
+   },
+   {
+    "rule": "铁律3 紧急触发硬旁路（首动作=硬件脉冲 / 0 次大模型 / ≤50ms）",
+    "passed": true,
+    "checks": [
+     {
+      "name": "P0 首行动作",
+      "actual": "hardware_pulse",
+      "requirement": "hardware_pulse",
+      "ok": true
+     },
+     {
+      "name": "P0 大模型调用",
+      "actual": 0,
+      "requirement": "== 0",
+      "ok": true
+     },
+     {
+      "name": "P0 P99 时延",
+      "actual": 0.0916,
+      "requirement": "≤ 50ms",
+      "ok": true
+     },
+     {
+      "name": "P0 最大时延",
+      "actual": 0.0916,
+      "requirement": "≤ 50ms",
+      "ok": true
+     },
+     {
+      "name": "P0 审计回执",
+      "actual": 50,
+      "requirement": "== 50",
+      "ok": true
+     }
+    ]
+   },
+   {
+    "rule": "铁律4 大模型自主判断删除（噪声物理删、证据 100% 留）",
+    "passed": true,
+    "checks": [
+     {
+      "name": "复盘后噪声可见数",
+      "actual": 0,
+      "requirement": "== 0",
+      "ok": true
+     },
+     {
+      "name": "核心原话留存",
+      "actual": 25,
+      "requirement": "== 25",
+      "ok": true
+     },
+     {
+      "name": "原始图像字节留存",
+      "actual": 0,
+      "requirement": "== 0",
+      "ok": true
+     },
+     {
+      "name": "50Hz 原始行直写",
+      "actual": 0,
+      "requirement": "== 0",
+      "ok": true
+     },
+     {
+      "name": "删除审计链自检",
+      "actual": true,
+      "requirement": "True",
+      "ok": true
+     },
+     {
+      "name": "噪声边缘拦截数",
+      "actual": 1086,
+      "requirement": "> 0",
+      "ok": true
+     }
+    ]
+   },
+   {
+    "rule": "铁律5 自问自答与新维度衍生有严苛门槛",
+    "passed": true,
+    "checks": [
+     {
+      "name": "门限一机械拒绝不成熟模式",
+      "actual": true,
+      "requirement": "True",
+      "ok": true
+     },
+     {
+      "name": "同日第二次自省被拦",
+      "actual": true,
+      "requirement": "True",
+      "ok": true
+     },
+     {
+      "name": "弱预测候选结局",
+      "actual": "expired",
+      "requirement": "expired",
+      "ok": true
+     },
+     {
+      "name": "断档候选结局",
+      "actual": "expired",
+      "requirement": "expired",
+      "ok": true
+     },
+     {
+      "name": "熔断大模型调用",
+      "actual": 0,
+      "requirement": "== 0",
+      "ok": true
+     },
+     {
+      "name": "硬件维度导数被拒",
+      "actual": true,
+      "requirement": "True",
+      "ok": true
+     }
+    ]
+   }
+  ],
+  "provenance": {
+   "python": "3.11.2",
+   "platform": "Linux-6.1.158+-x86_64-with-glibc2.36",
+   "wall_seconds": 9.798,
+   "generated_at": "2026-09-16T07:02:17.788057+00:00",
+   "harness_scale": 1.0,
+   "harness_seed": 20260916
+  },
+  "summary": "Token 热点：S8 烧掉 4720 Token（全轮 5121 Token）\nI/O 热点：SELECT object_revisions: 3700 次 / 扫描 114163 行 / 195.34 ms\n失真最大抽象：端侧宏观化（50Hz → 宏观观察） —— 失真度 1.000000\n最慢阶段：S1 —— 7.127 s\n命中缺陷：6 项（D1, D2, D3, D5, D6, D8）"
+ },
+ "stage_marks": [
+  [
+   "S1",
+   647.607107466,
+   654.733677008
+  ],
+  [
+   "S2",
+   654.73368313,
+   654.917410527
+  ],
+  [
+   "S3",
+   654.917416958,
+   655.714242988
+  ],
+  [
+   "S4",
+   655.714247996,
+   655.992603576
+  ],
+  [
+   "S5",
+   655.992609011,
+   656.49658976
+  ],
+  [
+   "S6",
+   656.496596181,
+   656.759121513
+  ],
+  [
+   "S7",
+   656.759124757,
+   656.845308148
+  ],
+  [
+   "S8",
+   656.845315758,
+   657.051498461
+  ]
+ ]
+}

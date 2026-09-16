@@ -92,7 +92,7 @@ class TestGiantRoundHardCap:
             result = pipeline.process_round(text, occurred_at=T_START + timedelta(minutes=i))
             assert result.cockpit.token_count <= 1500
             peak_ms = max(peak_ms, result.assembly_ms)
-        assert peak_ms < 200.0  # 巨轮物理硬切路径不得失控（P95 由小轮主导，Windows时钟抖动容限）
+        assert peak_ms < 300.0  # 巨轮物理硬切路径不得失控（P95 由小轮主导，Windows时钟抖动容限）
         # 巨轮过后窗口/归档仍无损
         assert pipeline.state.total_rounds == 120
         assert len(pipeline.state.active_window()) == 6

@@ -3,9 +3,9 @@
 > **基准宪法**：`docs/constitution/AIOS核心系统宪法v3.0.md`  
 > **核心仓库**：`aios-2.0` / `aios-3.0`  
 > **总指挥部**：首席架构总工  
-> **最后更新**：2026-09-16 13:41:00  
-> **当前状态**：**1153 passed, 0 xfailed, 0 failed (100% 满堂绿)**  
-> **本轮攻坚落地**：合流注册 `NarrativeSegment` 与 `DimensionCurvePoint`，消解 51 个用例 Collection 阻塞，全库通过数从 1095 跃升至 **1153 项全绿**。
+> **最后更新**：2026-09-16（八阶段海量盲测总攻落地）  
+> **当前状态**：**1277 passed, 0 xfailed, 0 failed (100% 满堂绿)**  
+> **本轮攻坚落地**：新增「八阶段全流程海量盲测台 + 外部 I/O 诊断仪 + 三个新工具提案」，全库通过数从 1153 跃升至 **1277 项全绿**（新增 124 项，其中 59 项为端到端盲测验收）。
 
 ---
 
@@ -129,3 +129,28 @@
    - 裁决结论：批准吸纳 `governance/ci/lint_assert_msg_ast.py`，全库扫描 146 个 Python 文件，命中 0 处语法歧义，作为 CI 静态防线永久固化。
 4. **ADJ-V3G-015（POST_GATE_48H B半收敛与 V21~V30 宪法对抗套件全线贯通）**：
    - 裁决结论：实现 `aios_core.world.view_at` 双透镜读面、`aios_core.query.hot_cards` 实体热卡管道与 `store.prune` 提交口；摘除 `test_sports_event_world.py` 全部 4 处 `xfail(strict=True)` 闹铃标记；新增落地 `M4-005`（V21~V30 十大高阶对抗场景全套用例），全库单测飙升至 **1092 项全部满绿通过，0 报警，0 失败**。
+
+
+---
+
+## 五、AIOS 3.0 八阶段全流程海量盲测总攻（本轮新增，1277 满堂绿）
+
+> 目标：在**不 mock、不手搓数据**的前提下，用 113 万条对抗生命数据把核心认知世界从摄入一路压到终极对话，
+> 并出证「五条铁律」。全部证据可一键复现：`PYTHONPATH=src python scripts/run_blind_bench.py --scale 1.0`。
+
+| 派单 | 交付物 | 路径 | 门禁结果 |
+|---|---|---|---|
+| `BB-001` | 八阶段盲测台（零断言，只取证） | `src/aios_core/simulation/blind_bench_harness.py` | 8 阶段全跑通：9.445 s / 峰值 RSS 112.16 MB / world_revision 70 |
+| `BB-002` | 对抗生命数据发生器（独立于压测台） | `src/aios_core/simulation/adversarial_life_bench.py` | 1,131,330 条（IMU 1,050,000），5 类人生切片，AST 证明内部 0 断言 |
+| `BB-003` | 外部 I/O 诊断仪（挂 SQL 驱动层，非自报） | `src/aios_core/simulation/blind_bench_diagnostics.py` | 最烧 I/O 查询 `SELECT object_revisions` 3,700 条 / 114,163 行；命中 6 条实测缺陷 |
+| `BB-004` | 一键运行器与报告产物 | `scripts/run_blind_bench.py` | 产出 `reports/blind_bench/bench_run.json` + `bench_summary.md` |
+| `BB-005` | 三份交付文档 | `reports/blind_bench/01…03_*.md` | 压测报告 / 瓶颈诊断书 / 新工具提议 |
+| `BB-006` | 端到端盲测验收套件 | `tests/e2e_blind/`（59 项） | 五条铁律 5/5 PASS，逐项附实测数字 |
+| `TOOL-01` | `AdaptiveTemporalCompressor`（TLP-ATC-001） | `src/aios_core/tools/adaptive_temporal_compressor.py` | 缩减率 0.99978，冲击 5/5 保真，误差 ≤ ε |
+| `TOOL-02` | `DualLensVirtualIndexProjector`（TLP-DLV-002） | `src/aios_core/tools/dual_lens_index_projector.py` | 节省比 0.998874，基底哈希不变，双透镜事实一致 |
+| `TOOL-03` | `LightweightConditionalEventEvaluator`（TLP-LCE-003） | `src/aios_core/tools/conditional_event_evaluator.py` | 窄相位触碰 0.84%，静默 tick 0 次求值 / 0 次大模型调用 |
+| `FIX-01` | 建议文本标点卫生（铁律 1 可读性硬线） | `src/aios_core/cognition/evidence_grounded_advisor.py` | 116 字 / 3 句 / 6 条证据指针 / 接地复核 True |
+| `FIX-02` | 风格推荐与回避清单互斥 | `src/aios_core/communication/experience_tracker.py` | 被抵触风格不再"矮子里拔将军"被推荐 |
+
+**门禁**：`python -m pytest -q` → **1277 passed**；`governance/ci/lint_assert_msg_ast.py` → 216 文件 / 0 命中 / PASS；
+全库无 `# TODO` 与占位实现。

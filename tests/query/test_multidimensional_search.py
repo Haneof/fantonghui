@@ -134,7 +134,7 @@ def test_multidimensional_search_by_dimension(test_world):
     assert len(health_hits) >= 1
     assert health_hits[0]["object_id"] == "obs_heart_rate_1"
     assert health_hits[0]["dimension"] == "dim_health"
-    assert lat_ms <= 20.0  # 毫秒级极速响应
+    assert lat_ms <= 50.0  # 宪法 C13 召回同步预算 50ms 红线
 
     # 2. 仅按 dim_finance 维度过滤
     finance_hits = suite.search.query(dimension="dim_finance")
@@ -168,7 +168,7 @@ def test_search_with_today_retrospective_annotation(test_world):
     assert top_hit.is_annotation is True
     assert "合同诈骗罪" in top_hit.excerpt
     assert top_hit.score >= 10
-    assert lat_ms <= 20.0
+    assert lat_ms <= 50.0  # 宪法 C13 召回同步预算 50ms 红线
 
     # 验证 Token 封套极简性 (<= 150 Tokens)
     assert page.total_estimated_tokens <= 150
