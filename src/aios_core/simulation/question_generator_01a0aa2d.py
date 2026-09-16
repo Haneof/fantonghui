@@ -1642,6 +1642,31 @@ def _red_lines(dim: str, intent: str) -> List[str]:
     return table.get(dim, ["不得反向判定的事实"])
 
 
+# 平静维度锚点：方向同义词簇 + 红线判据（防止把噪声碎片或凭空推断当成实质事件）
+_QUIET_ANCHORS: Dict[str, Dict[str, Any]] = {
+    "dim:health": {
+        "synonyms": ("无实质变动", "身体无异常", "体征平稳", "全天无不适", "未见健康事件"),
+        "red_lines": ("凭空推断出跌倒、心悸、住院、确诊等健康事件", "把背景噪声或他人症状记成佩戴者的健康事实"),
+    },
+    "dim:social": {
+        "synonyms": ("无实质变动", "人际无事", "社交如常", "未见冲突或亲密互动", "仅常规联络"),
+        "red_lines": ("凭空推断出争吵、分手、和解、背叛等人际事件", "把群消息、营销短信、路人对话当成人际关系事实"),
+    },
+    "dim:emotion": {
+        "synonyms": ("无实质变动", "情绪平稳", "心境如常", "无明显起伏", "未见情绪事件"),
+        "red_lines": ("凭空推断出崩溃、狂喜、抑郁发作等情绪事件", "把带情绪的噪声文案（广告、段子、口头禅）当成真实情绪状态"),
+    },
+    "dim:finance": {
+        "synonyms": ("无实质变动", "财务如常", "无资金动作", "未见收支异常", "日常消费"),
+        "red_lines": ("凭空推断出借贷、投资、被骗、大额支出等财务事件", "把营销/诈骗短信当成佩戴者的真实财务事实"),
+    },
+    "dim:career": {
+        "synonyms": ("无实质变动", "工作如常", "事业无波动", "无明显职场事件", "仅日常任务"),
+        "red_lines": ("凭空推断出离职、晋升、被裁、项目成败等职场事件", "把招聘广告或他人工作内容当成佩戴者的事业事实"),
+    },
+}
+
+
 def _directional_ground_truth(persona: Mapping[str, Any], arc: Mapping[str, Any], focus: str,
                               rendered: Sequence[Mapping[str, Any]], difficulty: str) -> Dict[str, Any]:
     """老大法定格式：全局日总结 + 健康/人际/情绪/财务/事业五维方向性锚点（含同义词与红线）。"""
@@ -1658,7 +1683,14 @@ def _directional_ground_truth(persona: Mapping[str, Any], arc: Mapping[str, Any]
                 "red_lines": "；".join(_red_lines(dim, item["signal"]["intent"])),
             }
         else:
-            anchors[dim] = f"无实质变动：当日{_DIM_CN[dim]}仅有常规日常与噪声碎片"
+            # 老大法定：五维锚点一律同构——即使当日该维度平静，也必须给出
+            #【可接受的方向同义词】与【绝对偏离的红线判据】，杜绝“无标答可依”的判分空白。
+            anchors[dim] = {
+                "core": f"无实质变动：当日{_DIM_CN[dim]}仅有常规日常与噪声碎片",
+                "acceptable_synonyms": list(_QUIET_ANCHORS[dim]["synonyms"]),
+                "red_lines": "；".join(_QUIET_ANCHORS[dim]["red_lines"]),
+                "is_quiet": True,
+            }
     keywords: List[str] = []
     for item in rendered:
         keywords.extend(item["keywords"])

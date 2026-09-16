@@ -143,3 +143,10 @@ def test_committed_10k_bank_matches_manifest():
     assert sum(1 for _ in questions.open(encoding="utf-8")) == 10_000
     assert sum(1 for _ in gt.open(encoding="utf-8")) == 10_000
     assert summary["verify"]["problem_total"] == 0
+    for line in questions.open(encoding="utf-8"):
+        dgt = json.loads(line)["directional_ground_truth"]
+        assert set(ANCHOR_DIMS) <= set(dgt), "五维锚点必须齐全"
+        for dim in ANCHOR_DIMS:
+            anchor = dgt[dim]
+            assert isinstance(anchor, dict), f"{dim} 锚点必须携带同义词簇与红线，不得退化为纯字符串"
+            assert anchor["core"] and anchor["acceptable_synonyms"] and anchor["red_lines"]

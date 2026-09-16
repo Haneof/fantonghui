@@ -3,9 +3,9 @@
   "seed": 20260916,
   "questions": 10000,
   "ground_truth_records": 10000,
-  "questions_sha256": "a108286235ce32616b6c95a1a107ec00b4d13be20c1e2b039531e3a91747b3df",
+  "questions_sha256": "f49535825797fa4bedd1a8560dc15bd878b608a128536df1cb5159f71e3da879",
   "ground_truth_sha256": "4dc444d36ad0e43ae759a0f87454427830a6cdd50679c7b3a795a31958b85313",
-  "questions_bytes": 71251174,
+  "questions_bytes": 82035129,
   "ground_truth_bytes": 10458709,
   "focus_counts": {
     "sensor": 3000,
