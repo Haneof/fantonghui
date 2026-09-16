@@ -59,3 +59,15 @@ data/
 # Env & secrets
 .env
 .env.*
+
+# AIOS 3.0 数据清洗对抗考场：大体量题库与答卷不入库
+# 题库为对手战队产物（见各自 arena/* 分支），答卷为可复现的生成物。
+# 复现命令见 benchmarks/data_cleaning/reports/BATTLE_REPORT_agent_01a0aa2e.md
+benchmarks/data_cleaning/questions/*.jsonl
+benchmarks/data_cleaning/answers/*.jsonl
+.arena_dev/
+
+# AIOS 3.0 全天生活流考场：1 万人份题库不入库（约 92 MB，确定性可复现）
+# 复现命令见 benchmarks/daily_life/EXAM_SPEC_agent_01a0aa2e.md
+# 校验基准：MANIFEST.json 内的 sha256
+benchmarks/daily_life/questions/*.jsonl

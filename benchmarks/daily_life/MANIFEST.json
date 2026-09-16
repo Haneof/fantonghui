@@ -1,0 +1,95 @@
+{
+  "generator_agent": "agent-01a0aa2e",
+  "exam_type": "DAILY_LIFE_MULTIDIM_SUMMARY",
+  "total_questions": 10000,
+  "unique_question_ids": 10000,
+  "seed": 20260916,
+  "sha256": "940d6fedb62bd1bc652155b0fad94b9b1386feb427de4851e83647dc11f2094e",
+  "dimensions": [
+    "dim:global_summary",
+    "dim:health",
+    "dim:social",
+    "dim:emotion",
+    "dim:finance",
+    "dim:career"
+  ],
+  "avg_slices_per_question": 33.53,
+  "avg_key_events_per_question": 8.15,
+  "total_slices": 335325,
+  "distribution": {
+    "difficulty": {
+      "ADVERSARIAL": 2019,
+      "HARD": 2987,
+      "MEDIUM": 3245,
+      "EASY": 1749
+    },
+    "career": {
+      "PROJECT_ROLLBACK": 713,
+      "COLLEAGUE_CREDIT_STEAL": 677,
+      "PROMOTION_BLOCKED": 742,
+      "TRAINING_DAY": 655,
+      "PROMOTION_GRANTED": 677,
+      "BIG_DEAL_CLOSED": 727,
+      "PUBLIC_CRITICISM": 735,
+      "RESIGNATION_THOUGHT": 738,
+      "NEW_RESPONSIBILITY": 663,
+      "ROUTINE_STEADY": 718,
+      "AUDIT_PRESSURE": 749,
+      "OVERTIME_CRUNCH": 725,
+      "EXAM_PASSED": 757,
+      "CLIENT_COMPLAINT": 724
+    },
+    "social": {
+      "SOCIAL_QUIET": 638,
+      "NEW_FRIENDSHIP": 986,
+      "IN_LAW_CONFLICT": 551,
+      "FRIEND_FALLOUT": 900,
+      "NEIGHBOR_DISPUTE": 972,
+      "COUPLE_QUARREL": 666,
+      "PARENT_ILLNESS": 957,
+      "OLD_FRIEND_REUNION": 964,
+      "RECONCILIATION": 696,
+      "CHILD_SCHOOL_ISSUE": 391,
+      "FAMILY_GATHERING": 953,
+      "PET_LOSS": 949,
+      "PROPOSAL_ACCEPTED": 184,
+      "BREAKUP": 193
+    },
+    "health": {
+      "BLOOD_PRESSURE_ALERT": 748,
+      "COLD_ONSET": 824,
+      "MIGRAINE_ATTACK": 762,
+      "SKIPPED_MEALS": 827,
+      "EMOTIONAL_TACHYCARDIA": 1020,
+      "MINOR_INJURY": 821,
+      "STEADY_BASELINE": 794,
+      "PANIC_EPISODE": 1079,
+      "ALCOHOL_NIGHT": 774,
+      "GASTRIC_TROUBLE": 802,
+      "EXERCISE_RECOVERY": 781,
+      "CHRONIC_FATIGUE": 768
+    },
+    "finance": {
+      "SALARY_IN": 851,
+      "MORTGAGE_DEDUCT": 869,
+      "MEDICAL_BILL": 853,
+      "INVESTMENT_LOSS": 842,
+      "DEBT_COLLECTED": 843,
+      "DAILY_SMALL_SPEND": 784,
+      "UNEXPECTED_EXPENSE": 865,
+      "RENT_PAID": 838,
+      "CREDIT_CARD_REPAY": 866,
+      "BONUS_RECEIVED": 829,
+      "LOAN_TO_FRIEND": 765,
+      "SCAM_ATTEMPT": 795
+    },
+    "emotion": {
+      "PRESSURE_ANXIOUS": 3086,
+      "RELIEF_AFTER_STRESS": 2241,
+      "MIXED_TURBULENT": 767,
+      "CRISIS_COLLAPSE": 2099,
+      "UPLIFTED_JOY": 1682,
+      "STEADY_CALM": 125
+    }
+  }
+}

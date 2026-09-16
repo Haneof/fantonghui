@@ -1,0 +1,547 @@
+{
+  "question_id": "Q_agent-01a0aa2e_00001",
+  "generator_agent": "agent-01a0aa2e",
+  "exam_type": "DAILY_LIFE_MULTIDIM_SUMMARY",
+  "difficulty": "ADVERSARIAL",
+  "persona": {
+    "persona_id": "P00001",
+    "name": "唐浩然",
+    "gender": "男",
+    "age": 52,
+    "city": "广州",
+    "occupation": "电力巡检员",
+    "marital_status": "恋爱异地",
+    "work_scene": "线路巡检",
+    "boss_title": "班组长",
+    "peer_title": "同行巡检",
+    "partner_label": "女友"
+  },
+  "arc_signature": {
+    "career": "PROJECT_ROLLBACK",
+    "social": "SOCIAL_QUIET",
+    "health": "BLOOD_PRESSURE_ALERT",
+    "finance": "SALARY_IN",
+    "emotion": "PRESSURE_ANXIOUS"
+  },
+  "cleaned_daily_stream": [
+    {
+      "slice_id": "s001",
+      "timestamp": "07:00",
+      "modality": "SENSOR",
+      "source": "手环体征",
+      "content": "晨起唤醒，昨夜睡眠5.5小时，静息心率69bpm",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s002",
+      "timestamp": "07:08",
+      "modality": "APP",
+      "source": "天气",
+      "content": "今日广州多云转阴，最高16℃，出门记得带伞。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s003",
+      "timestamp": "07:08",
+      "modality": "APP",
+      "source": "新闻",
+      "content": "【要闻速递】今日重点资讯5条，点击查看摘要。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s004",
+      "timestamp": "07:24",
+      "modality": "MIC",
+      "source": "唐浩然",
+      "content": "闹钟响第三遍了……再躺五分钟。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s005",
+      "timestamp": "07:30",
+      "modality": "MIC",
+      "source": "唐浩然",
+      "content": "钥匙呢……刚还在手上。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s006",
+      "timestamp": "07:38",
+      "modality": "MIC",
+      "source": "电梯邻居",
+      "content": "早啊，今天这么早出门。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s007",
+      "timestamp": "07:48",
+      "modality": "MIC",
+      "source": "唐浩然",
+      "content": "牛奶又忘买了，今天面包干噎着吃吧。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s008",
+      "timestamp": "08:19",
+      "modality": "APP",
+      "source": "音乐",
+      "content": "为您推荐每日30首，已开始播放。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s009",
+      "timestamp": "08:20",
+      "modality": "APP",
+      "source": "健康APP",
+      "content": "晨起血压 152/96 mmHg，已连续3天偏高，建议就医评估。",
+      "is_key_event": true
+    },
+    {
+      "slice_id": "s010",
+      "timestamp": "08:29",
+      "modality": "APP",
+      "source": "地铁",
+      "content": "您乘坐的线路目前运行正常。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s011",
+      "timestamp": "08:31",
+      "modality": "APP",
+      "source": "日程",
+      "content": "今日待办3项：线路巡检、回复邮件、取快递。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s012",
+      "timestamp": "08:44",
+      "modality": "APP",
+      "source": "运动",
+      "content": "昨日步数未达标，今天加油补上。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s013",
+      "timestamp": "08:46",
+      "modality": "MIC",
+      "source": "早餐摊老板",
+      "content": "老规矩？豆浆加个蛋是吧。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s014",
+      "timestamp": "08:59",
+      "modality": "MIC",
+      "source": "唐浩然",
+      "content": "这早高峰挤得，鞋都快掉了。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s015",
+      "timestamp": "09:10",
+      "modality": "APP",
+      "source": "导航",
+      "content": "当前路段拥堵，预计延误12分钟。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s016",
+      "timestamp": "09:19",
+      "modality": "MIC",
+      "source": "地铁广播",
+      "content": "前方到站，请从右侧车门下车。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s017",
+      "timestamp": "09:24",
+      "modality": "MIC",
+      "source": "唐浩然",
+      "content": "哈哈哈没有的事，你别听他们瞎说。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s018",
+      "timestamp": "10:17",
+      "modality": "APP",
+      "source": "系统",
+      "content": "您的密码将在7天后过期，请及时修改。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s019",
+      "timestamp": "10:30",
+      "modality": "APP",
+      "source": "银行",
+      "content": "【招商银行】您尾号4510账户工资入账2000元，余额已更新。",
+      "is_key_event": true
+    },
+    {
+      "slice_id": "s020",
+      "timestamp": "10:39",
+      "modality": "APP",
+      "source": "工作群",
+      "content": "【HR】本月生日会定在周五下午，欢迎参加。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s021",
+      "timestamp": "11:10",
+      "modality": "APP",
+      "source": "工作群",
+      "content": "【班组长】线上出故障了，线路巡检先停，全员排查！",
+      "is_key_event": true
+    },
+    {
+      "slice_id": "s022",
+      "timestamp": "11:16",
+      "modality": "APP",
+      "source": "工作群",
+      "content": "【行政】今日下午三点消防演练，请配合疏散。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s023",
+      "timestamp": "11:22",
+      "modality": "MIC",
+      "source": "同行巡检",
+      "content": "空调开太低了吧，我这儿冻得慌。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s024",
+      "timestamp": "11:42",
+      "modality": "MIC",
+      "source": "同行巡检",
+      "content": "刚定位到是我们这块儿的问题，得回滚，今晚别想早走了。",
+      "is_key_event": true
+    },
+    {
+      "slice_id": "s025",
+      "timestamp": "12:50",
+      "modality": "MIC",
+      "source": "同行巡检",
+      "content": "中午一起吃个饭？楼下新开那家。",
+      "is_key_event": true
+    },
+    {
+      "slice_id": "s026",
+      "timestamp": "13:31",
+      "modality": "MIC",
+      "source": "同行巡检",
+      "content": "喝咖啡不？我下楼带一杯。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s027",
+      "timestamp": "13:50",
+      "modality": "MIC",
+      "source": "前台",
+      "content": "唐浩然，你的快递到了，在前台。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s028",
+      "timestamp": "14:52",
+      "modality": "APP",
+      "source": "会议",
+      "content": "您有一个会议将在15分钟后开始。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s029",
+      "timestamp": "15:22",
+      "modality": "MIC",
+      "source": "唐浩然",
+      "content": "这剧演得也太气人了，编剧出来挨打。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s030",
+      "timestamp": "15:28",
+      "modality": "APP",
+      "source": "考勤",
+      "content": "今日打卡成功，本月全勤。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s031",
+      "timestamp": "15:51",
+      "modality": "APP",
+      "source": "邮件",
+      "content": "您有4封未读邮件，其中1封标记为重要。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s032",
+      "timestamp": "17:04",
+      "modality": "APP",
+      "source": "家人群",
+      "content": "【唐浩然】我这边都挺好的，你们放心，别操心我。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s033",
+      "timestamp": "17:16",
+      "modality": "APP",
+      "source": "游戏",
+      "content": "您的队伍连败3局，排位分下降28点。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s034",
+      "timestamp": "17:17",
+      "modality": "MIC",
+      "source": "唐浩然",
+      "content": "这个表格改了八遍了，真服了。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s035",
+      "timestamp": "18:06",
+      "modality": "APP",
+      "source": "视频",
+      "content": "您关注的UP主更新了新视频。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s036",
+      "timestamp": "18:10",
+      "modality": "APP",
+      "source": "社交",
+      "content": "您有3条新动态和2条评论。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s037",
+      "timestamp": "18:39",
+      "modality": "APP",
+      "source": "水电",
+      "content": "本月燃气费8元已自动扣缴。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s038",
+      "timestamp": "20:15",
+      "modality": "MIC",
+      "source": "唐浩然",
+      "content": "回滚做完了，复盘报告我明天补。",
+      "is_key_event": true
+    },
+    {
+      "slice_id": "s039",
+      "timestamp": "20:41",
+      "modality": "APP",
+      "source": "外卖",
+      "content": "您的订单骑手已取餐，预计18分钟送达。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s040",
+      "timestamp": "21:24",
+      "modality": "MIC",
+      "source": "唐浩然",
+      "content": "明天得早起，今晚早点睡……应该吧。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s041",
+      "timestamp": "21:24",
+      "modality": "MIC",
+      "source": "唐浩然",
+      "content": "今天这饭点得，凉透了。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s042",
+      "timestamp": "21:40",
+      "modality": "APP",
+      "source": "女友",
+      "content": "到家了吗？早点睡。",
+      "is_key_event": true
+    },
+    {
+      "slice_id": "s043",
+      "timestamp": "22:12",
+      "modality": "APP",
+      "source": "购物",
+      "content": "您收藏的商品降价了，点击查看。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s044",
+      "timestamp": "22:40",
+      "modality": "MIC",
+      "source": "唐浩然",
+      "content": "得找时间去医院看看了，老这么高不是办法。",
+      "is_key_event": true
+    },
+    {
+      "slice_id": "s045",
+      "timestamp": "22:59",
+      "modality": "APP",
+      "source": "读书",
+      "content": "今日阅读打卡已完成，连续93天。",
+      "is_key_event": false
+    },
+    {
+      "slice_id": "s046",
+      "timestamp": "23:30",
+      "modality": "SENSOR",
+      "source": "手环体征",
+      "content": "进入夜间休息，全天步数15301步",
+      "is_key_event": false
+    }
+  ],
+  "directional_ground_truth": {
+    "dim:global_summary": {
+      "semantic_intent": "PROJECT_ROLLBACK__SOCIAL_QUIET",
+      "core_content": "唐浩然（52岁电力巡检员）的这一天：线上生产事故导致线路巡检紧急回滚，被迫加班排查复盘，项目进度受阻；全天人际互动维持日常水平，与同事午餐、与女友例行问候，无关系波动；晨起血压152/96mmHg且连续三日偏高，APP发出就医建议，本人计划就诊。全天主线为全天处于高压焦虑状态，事业受挫叠加人际摩擦，情绪以烦躁、憋闷与自我怀疑为主基调",
+      "acceptable_directions": [
+        "事故",
+        "低落",
+        "例行",
+        "加班",
+        "压抑",
+        "回滚",
+        "平常",
+        "平稳",
+        "憋闷",
+        "排查",
+        "故障",
+        "无波动",
+        "日常",
+        "正常",
+        "烦躁",
+        "焦虑",
+        "进度受阻"
+      ],
+      "red_line_deviations": [
+        "一切顺利",
+        "兴奋",
+        "分手",
+        "幸福",
+        "开心",
+        "心情舒畅",
+        "按时交付",
+        "提前完成",
+        "激烈冲突",
+        "绝交",
+        "重大变故",
+        "零故障"
+      ]
+    },
+    "dim:health": {
+      "semantic_intent": "BLOOD_PRESSURE_ALERT",
+      "core_content": "晨起血压152/96mmHg且连续三日偏高，APP发出就医建议，本人计划就诊",
+      "acceptable_directions": [
+        "血压高",
+        "高血压",
+        "血压偏高",
+        "就医建议",
+        "健康预警",
+        "指标异常",
+        "需要就诊",
+        "风险"
+      ],
+      "red_line_deviations": [
+        "血压正常",
+        "指标全优",
+        "身体健康",
+        "无需就医"
+      ]
+    },
+    "dim:social": {
+      "semantic_intent": "SOCIAL_QUIET",
+      "core_content": "全天人际互动维持日常水平，与同事午餐、与女友例行问候，无关系波动",
+      "acceptable_directions": [
+        "平常",
+        "日常",
+        "无波动",
+        "正常",
+        "平稳",
+        "例行",
+        "维持",
+        "没什么事"
+      ],
+      "red_line_deviations": [
+        "分手",
+        "绝交",
+        "激烈冲突",
+        "重大变故",
+        "关系破裂"
+      ]
+    },
+    "dim:emotion": {
+      "semantic_intent": "PRESSURE_ANXIOUS",
+      "core_content": "全天处于高压焦虑状态，事业受挫叠加人际摩擦，情绪以烦躁、憋闷与自我怀疑为主基调",
+      "acceptable_directions": [
+        "焦虑",
+        "烦躁",
+        "憋闷",
+        "压抑",
+        "低落",
+        "郁闷",
+        "自我怀疑",
+        "疲惫",
+        "心累",
+        "不痛快",
+        "窝火",
+        "情绪差"
+      ],
+      "red_line_deviations": [
+        "开心",
+        "兴奋",
+        "幸福",
+        "心情舒畅",
+        "无忧无虑",
+        "轻松愉快"
+      ]
+    },
+    "dim:finance": {
+      "semantic_intent": "SALARY_IN",
+      "core_content": "上午工资2000元到账，当月现金流转正，资产端获得补充",
+      "acceptable_directions": [
+        "发工资",
+        "工资到账",
+        "入账",
+        "收入",
+        "进账",
+        "现金流",
+        "资产增加",
+        "到手"
+      ],
+      "red_line_deviations": [
+        "欠薪",
+        "没发工资",
+        "被扣光",
+        "零收入",
+        "倒欠"
+      ]
+    },
+    "dim:career": {
+      "semantic_intent": "PROJECT_ROLLBACK",
+      "core_content": "线上生产事故导致线路巡检紧急回滚，被迫加班排查复盘，项目进度受阻",
+      "acceptable_directions": [
+        "事故",
+        "故障",
+        "回滚",
+        "加班",
+        "排查",
+        "进度受阻",
+        "项目受挫",
+        "生产问题",
+        "紧急处理",
+        "工作受阻",
+        "延期"
+      ],
+      "red_line_deviations": [
+        "一切顺利",
+        "按时交付",
+        "零故障",
+        "提前完成",
+        "工作轻松"
+      ]
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "bank": "benchmarks/daily_life/questions/questions_01a0aa2e-fantonghui.jsonl",
+  "total_questions": 10000,
+  "unique_question_ids": 10000,
+  "duplicate_question_ids": 0,
+  "failed_questions": 0,
+  "pass_rate": 1.0,
+  "violation_histogram": {},
+  "failure_samples": [],
+  "verdict": "ALL_GREEN"
+}

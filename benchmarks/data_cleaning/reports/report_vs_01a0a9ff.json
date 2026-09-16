@@ -1,0 +1,136 @@
+{
+  "generator_agent": "01a0a9ff-fantonghui",
+  "solver_agent": "agent-01a0aa2e",
+  "total_questions": 10000,
+  "calibration_size": 2000,
+  "evaluated": 8000,
+  "mean_score": 93.3,
+  "pass_rate": 0.8416,
+  "metrics": {
+    "direction_match_rate": 0.9341,
+    "entity_recall_rate": 0.8973,
+    "dimension_accuracy": 0.9341,
+    "junk_prune_rate": 1.0,
+    "hallucination_per_question": 0.0559
+  },
+  "by_difficulty": {
+    "ADVERSARIAL": {
+      "count": 1601,
+      "mean_score": 92.01,
+      "pass_rate": 0.8351,
+      "junk_prune_rate": 1.0
+    },
+    "EASY": {
+      "count": 1597,
+      "mean_score": 93.41,
+      "pass_rate": 0.8297,
+      "junk_prune_rate": 1.0
+    },
+    "HARD": {
+      "count": 2351,
+      "mean_score": 92.74,
+      "pass_rate": 0.8299,
+      "junk_prune_rate": 1.0
+    },
+    "MEDIUM": {
+      "count": 2451,
+      "mean_score": 94.6,
+      "pass_rate": 0.865,
+      "junk_prune_rate": 1.0
+    }
+  },
+  "p0_safety_bypass": {
+    "triggered_questions": 4053,
+    "trigger_rate": 0.5066,
+    "max_latency_ms": 8.0796,
+    "mean_latency_ms": 0.022797,
+    "p0_budget_ms": 50.0,
+    "budget_respected": true,
+    "llm_calls": 0
+  },
+  "model_calibration": {
+    "calibration_questions": 1500,
+    "holdout_questions": 500,
+    "context_weight": 0.5,
+    "junk_f1": 1.0,
+    "intent_accuracy": 0.9279,
+    "cardinality_accuracy": 0.954,
+    "entity_recall": 0.9599,
+    "entity_policy": [
+      0.0,
+      96
+    ],
+    "notes": [
+      "意图知识库覆盖 40 类语义方向",
+      "场景先验权重 context_weight=0.5（内部留出集自动择优）",
+      "锚点实体策略 min_ratio=0.0 max=96（内部留出集自动择优）"
+    ]
+  },
+  "failure_attribution": [
+    {
+      "error_type": "FACT_UNDER_RECALL",
+      "occurrences": 578,
+      "sample_question_ids": [
+        "Q_01a0a9ff-fantonghui_02009",
+        "Q_01a0a9ff-fantonghui_02038",
+        "Q_01a0a9ff-fantonghui_02042",
+        "Q_01a0a9ff-fantonghui_02051",
+        "Q_01a0a9ff-fantonghui_02052",
+        "Q_01a0a9ff-fantonghui_02065",
+        "Q_01a0a9ff-fantonghui_02072",
+        "Q_01a0a9ff-fantonghui_02095"
+      ],
+      "root_cause_analysis": "部分真值事实未被提纯出来，预算或显著性判定过于保守。",
+      "upgrade_action_taken": "放宽 cardinality 上限并启用次优语义方向补位，填满零风险预算。"
+    },
+    {
+      "error_type": "HALLUCINATION",
+      "occurrences": 447,
+      "sample_question_ids": [
+        "Q_01a0a9ff-fantonghui_02016",
+        "Q_01a0a9ff-fantonghui_02063",
+        "Q_01a0a9ff-fantonghui_02074",
+        "Q_01a0a9ff-fantonghui_02077",
+        "Q_01a0a9ff-fantonghui_02120",
+        "Q_01a0a9ff-fantonghui_02124",
+        "Q_01a0a9ff-fantonghui_02126",
+        "Q_01a0a9ff-fantonghui_02131"
+      ],
+      "root_cause_analysis": "提交事实数超出真值，凭空多报被重罚。",
+      "upgrade_action_taken": "收紧 cardinality 预测，宁可少报不可多报（每条幻觉扣 15 分）。"
+    },
+    {
+      "error_type": "ENTITY_MISSED",
+      "occurrences": 336,
+      "sample_question_ids": [
+        "Q_01a0a9ff-fantonghui_02051",
+        "Q_01a0a9ff-fantonghui_02065",
+        "Q_01a0a9ff-fantonghui_02072",
+        "Q_01a0a9ff-fantonghui_02101",
+        "Q_01a0a9ff-fantonghui_02111",
+        "Q_01a0a9ff-fantonghui_02215",
+        "Q_01a0a9ff-fantonghui_02232",
+        "Q_01a0a9ff-fantonghui_02242"
+      ],
+      "root_cause_analysis": "锚点实体（人物/金额/时间）召回不足，事实虽对但证据链不完整。",
+      "upgrade_action_taken": "放宽锚点实体策略 min_ratio，并把声纹绑定名册与发信人并入实体证据链。"
+    },
+    {
+      "error_type": "INTENT_DRIFT",
+      "occurrences": 239,
+      "sample_question_ids": [
+        "Q_01a0a9ff-fantonghui_02006",
+        "Q_01a0a9ff-fantonghui_02076",
+        "Q_01a0a9ff-fantonghui_02090",
+        "Q_01a0a9ff-fantonghui_02151",
+        "Q_01a0a9ff-fantonghui_02212",
+        "Q_01a0a9ff-fantonghui_02348",
+        "Q_01a0a9ff-fantonghui_02371",
+        "Q_01a0a9ff-fantonghui_02454"
+      ],
+      "root_cause_analysis": "片段孤立看语义模糊，未借助同场景其他证据做因果比对，方向判偏。",
+      "upgrade_action_taken": "增大场景先验权重 context_weight，让同场景片段互相佐证，纠正孤立片段的方向漂移。"
+    }
+  ],
+  "throughput_ms_per_question": 13.393
+}
