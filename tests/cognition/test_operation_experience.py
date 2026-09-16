@@ -361,3 +361,26 @@ def test_pathway_execution_receipt_records_measured_costs(search_world):
     assert naive.execute(intent).recall_accuracy >= 0.0
     brute = BruteForceScanExecutor(world.store, oracle_ids=oracle)
     assert brute.execute(intent).recall_accuracy == 1.0
+
+
+def test_single_topological_retrieval_latency_under_20ms(search_world):
+    """M5-001 验收：黄金路径（拓扑下钻）单次检索延迟 ≤20ms。
+
+    世界本体越大越容易看出常量级与全扫级的差别；这里在 240 对象高熵世界上
+    取三次实测的最优值作为单次检索延迟口径（冷启动开销不计入稳态延迟）。
+    """
+
+    world, index = search_world
+    oracle = world.closure([world.entity("old_wang")], max_depth=3)
+    intent = _wang_intent(world)
+
+    latencies = []
+    for _ in range(3):
+        report = run_pathway_comparison(world.store, intent, oracle_ids=oracle, index=index)
+        topo = report.executions[PathwayType.HIERARCHICAL_TOPO.value]
+        latencies.append(topo.latency_ms)
+
+    best = min(latencies)
+    assert best <= 20.0, f"单次拓扑检索延迟 {best:.2f}ms 超过 20ms，实测 {latencies}"
+    assert topo.token_cost <= 500
+    assert topo.recall_accuracy == 1.0

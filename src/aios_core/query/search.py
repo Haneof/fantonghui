@@ -29,10 +29,11 @@ FTS5 仍是可替换适配器（第 18 条反教条）：对外只暴露 ``co_se
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import sqlite3
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -66,6 +67,7 @@ _TIME_FIELDS: dict[str, tuple[str, ...]] = {
 _TYPE_BOOST: dict[str, int] = {"event": 2, "claim": 1, "task": 1}
 _EXCERPT_LIMIT = 200
 _WATERMARK_KEY = "search_watermark_world_revision"
+_ANNO_FINGERPRINT_KEY = "search_annotation_fingerprint"
 _CATCHUP_MAX_ROWS = 50_000
 
 
@@ -105,6 +107,16 @@ def derive_dimension(payload: dict, object_type: str) -> str:
         return "dim_work"
 
     return "dim_general"
+
+
+def _annotation_fingerprint(rows: list[sqlite3.Row]) -> str:
+    """外挂注记清单指纹：判断「今天挂的标签」是否需要重新进投影。"""
+
+    digest = hashlib.sha1()
+    for row in sorted(rows, key=lambda r: str(r[0])):
+        digest.update("|".join(str(col) for col in tuple(row)[:5]).encode("utf-8"))
+        digest.update(b"\n")
+    return digest.hexdigest()
 
 
 def tokens_for(text: str) -> set[str]:
@@ -330,10 +342,12 @@ class WorldSearchIndex:
 
         target = int(self._store.current_world_revision())
         start = self.watermark()
-        if start >= target:
-            return 0
-        rows = self._store.revisions_after(start, limit=max_rows)
+        # 世界本体没有新 revision 时，外挂注记仍可能刚刚挂载：注记不产生
+        # revision，其同步必须独立于索引水位，否则「今天挂的标签今天可召回」
+        # 会退化成「等下一次世界提交才可见」（宪法第二十章）。
+        rows = self._store.revisions_after(start, limit=max_rows) if start < target else []
         if not rows:
+            self.sync_annotations()
             return 0
         cut = int(rows[-1]["world_revision"])
         if len(rows) >= max_rows and int(rows[0]["world_revision"]) != cut:
@@ -356,6 +370,52 @@ class WorldSearchIndex:
             self._catch_up_annotations(conn)
             conn.commit()
         return len(rows)
+
+    def sync_annotations(self) -> int:
+        """把外挂注记同步进检索投影（不依赖世界版本水位）。
+
+        注记是「今天挂的解释图层」，它不产生 ``world_revision``；索引追平世界
+        本体之后新挂的注记，只有本方法能让它立即可召回（宪法第二十章）。
+
+        语义与 ``catch_up`` 一致：幂等、可重复调用；注记清单指纹未变化时
+        直接返回 0，且不开启任何写事务。
+        """
+
+        with self._connect() as conn:
+            if not self._annotations_pending(conn):
+                return 0
+            conn.execute("BEGIN IMMEDIATE")
+            synced = self._catch_up_annotations(conn)
+            conn.commit()
+        return synced
+
+    def _annotations_pending(self, conn: sqlite3.Connection) -> bool:
+        """只读比对注记清单指纹：判断是否需要重新投影。"""
+
+        rows = self._select_annotation_rows(conn)
+        if rows is None:
+            return False
+        stored = conn.execute(
+            "SELECT value FROM search_meta WHERE key=?", (_ANNO_FINGERPRINT_KEY,)
+        ).fetchone()
+        return (str(stored["value"]) if stored else "") != _annotation_fingerprint(rows)
+
+    def _select_annotation_rows(self, conn: sqlite3.Connection) -> list[sqlite3.Row] | None:
+        """读外挂注记清单；底层没有注记表时返回 None（投影可独立重建）。"""
+
+        try:
+            cur = conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='retrospective_annotations'"
+            )
+            if not cur.fetchone():
+                return None
+            return conn.execute(
+                "SELECT annotation_id, target_object_id, target_object_type, "
+                "reinterpretation_claim, is_invalidating, created_at, created_by "
+                "FROM retrospective_annotations"
+            ).fetchall()
+        except sqlite3.Error:
+            return None
 
     def rebuild(self) -> int:
         self.drop_projection()
@@ -448,6 +508,67 @@ class WorldSearchIndex:
             ordered,
         ).fetchall()
         return {(r["object_id"], int(r["revision"])): int(r["hit_tokens"]) for r in rows}
+
+    def ring_adjacency(
+        self,
+        object_ids: Sequence[str],
+        *,
+        limit: int = 50,
+    ) -> dict[str, list[str]]:
+        """拓扑下钻专用：**同层一次批读**入边指针环。
+
+        返回 ``{给定对象: [指向它的对象 id]}``：语义与逐点调用
+        ``search_mind(entity_id=...)`` 的入边环一致（``ref`` / ``ent`` 两类指针，
+        去掉墓碑与自身，按发生时间降序），但把 N 次单点检索压成一次 SQL。
+
+        为什么必须批读：逐点检索每次都要开一条 SQLite 连接并重建 token 集，
+        连接开销是 N 倍；「拓扑分级下钻」若按点走，单次检索延迟会被 N 拖到
+        20ms 以上。批读后延迟与世界规模、跳数都只成一次 SQL 常数关系。
+        """
+
+        ids = [str(i) for i in object_ids if str(i)]
+        if not ids:
+            return {}
+        token_owner: dict[str, str] = {}
+        for oid in ids:
+            token_owner.setdefault(_id_token("ref", oid), oid)
+            token_owner.setdefault(_id_token("ent", oid), oid)
+        ordered = sorted(token_owner)
+        placeholders = ", ".join("?" for _ in ordered)
+
+        with self._connect() as conn:
+            tombstones = {str(r[0]) for r in conn.execute("SELECT object_id FROM search_tombstones")}
+            rows = conn.execute(
+                f"""
+                SELECT p.token AS token, p.object_id AS object_id, p.revision AS revision,
+                       o.occurred_start_us AS occurred_start_us
+                FROM search_postings p
+                JOIN search_occurred o ON o.object_id = p.object_id AND o.revision = p.revision
+                JOIN search_doc d ON d.object_id = p.object_id AND d.revision = p.revision
+                WHERE p.token IN ({placeholders})
+                ORDER BY o.occurred_start_us DESC
+                """,
+                ordered,
+            ).fetchall()
+
+        ring: dict[str, list[str]] = {}
+        seen: dict[str, set[str]] = {}
+        for row in rows:
+            owner = token_owner.get(str(row["token"]))
+            if owner is None:
+                continue
+            oid = str(row["object_id"])
+            if oid == owner or oid in tombstones:
+                continue
+            bucket = ring.setdefault(owner, [])
+            if len(bucket) >= limit:
+                continue
+            visited = seen.setdefault(owner, set())
+            if oid in visited:
+                continue
+            visited.add(oid)
+            bucket.append(oid)
+        return ring
 
     def co_search(
         self,
@@ -652,18 +773,18 @@ class WorldSearchIndex:
                           hits=hits[:limit], ambiguous_keywords=ambiguous)
 
 
-    def _catch_up_annotations(self, conn: sqlite3.Connection) -> None:
-        """同步外挂注记表（retrospective_annotations）进入多维搜索投影。"""
+    def _catch_up_annotations(self, conn: sqlite3.Connection) -> int:
+        """同步外挂注记表（retrospective_annotations）进入多维搜索投影。
+
+        返回本次投影的注记条数；同步完成后写入清单指纹，供
+        ``sync_annotations`` 判断注记是否有变化（幂等，不重复写）。
+        """
+
         try:
-            # 检查底层 store 是否有 retrospective_annotations 表
-            cur = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='retrospective_annotations'")
-            if not cur.fetchone():
-                return
-            rows = conn.execute(
-                "SELECT annotation_id, target_object_id, target_object_type, "
-                "reinterpretation_claim, is_invalidating, created_at, created_by "
-                "FROM retrospective_annotations"
-            ).fetchall()
+            rows = self._select_annotation_rows(conn)
+            if rows is None:
+                return 0
+            fingerprint = _annotation_fingerprint(rows)
             for r in rows:
                 anno_id = str(r[0])
                 target_id = str(r[1])
@@ -706,8 +827,13 @@ class WorldSearchIndex:
                     "occurred_start_us, occurred_end_us, dimension) VALUES(?,?,?,?,?,?,?)",
                     (anno_id, 1, "user_1", "reinterpretation", us, us, dim),
                 )
+            conn.execute(
+                "INSERT OR REPLACE INTO search_meta(key, value) VALUES(?, ?)",
+                (_ANNO_FINGERPRINT_KEY, fingerprint),
+            )
+            return len(rows)
         except Exception:
-            pass
+            return 0
 
     def search_mind(
         self,
@@ -731,6 +857,10 @@ class WorldSearchIndex:
         wm_before = self.watermark()
         if wm_before < current:
             self.catch_up()
+        else:
+            # 索引已追平世界，但注记可能刚挂上：稳态下同样要保证
+            # 「今天挂的标签今天可召回」（宪法第二十章）。
+            self.sync_annotations()
         wm = self.watermark()
 
         search_tokens: set[str] = set()
