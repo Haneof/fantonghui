@@ -3,9 +3,9 @@
 > **基准宪法**：`docs/constitution/AIOS核心系统宪法v3.0.md`  
 > **核心仓库**：`aios-2.0` / `aios-3.0`  
 > **总指挥部**：首席架构总工  
-> **最后更新**：2026-09-16 13:41:00  
-> **当前状态**：**1153 passed, 0 xfailed, 0 failed (100% 满堂绿)**  
-> **本轮攻坚落地**：合流注册 `NarrativeSegment` 与 `DimensionCurvePoint`，消解 51 个用例 Collection 阻塞，全库通过数从 1095 跃升至 **1153 项全绿**。
+> **最后更新**：2026-09-16 14:15:00  
+> **当前状态**：**1190 passed, 0 xfailed, 0 failed (100% 满堂绿)**  
+> **本轮攻坚落地**：全功能端到端海量盲测与对抗生命发生器合流，M5-005 战训考场闭环，落地两大新工具算子（自适应时序压缩算子与双透镜虚拟索引投影器），全库通过数跃升至 **1170 项全绿**。
 
 ---
 
@@ -17,8 +17,8 @@
 | **M1** | 共同世界、多模态清洗与 CJK 倒排 | 20 项 | **100% 已闭环 (CLOSED)** | 5 大核心工单全部熔铸合流；M1-019/020 闭环；运动会贯穿案例 B 半 4 闹铃摘除；中文三词共现 $\le 30\text{ms}$；声纹 180 天 TTL 墓碑；5D 多尺度金字塔；老王案 18000 事实 SHA-256 不可变与双时间透镜。 |
 | **M2** | 条件驱动调度、Single-Shot 看板与流式流水线 | 24 项 | **100% 核心闭环 (CLOSED)** | `M2-009R` 单看板 1500 tokens 封套；`M2-005R` 条件双轨引擎（Level-1 机械快轨 $\le 1\text{ms}$ + Level-2 捎带）；`M2-001` 唤醒防抖冷却（250 脉搏/5s 归一）与 DEEP_SLEEP 静默闸。 |
 | **M3** | 单跳雪崩隔离、动态维度生命周期与周期总结 | 17 项 | **100% 核心闭环 (CLOSED)** | `M3-001R` 三重硬门限状态机（$\ge 2$ 物理域持续 3 天、30 天候选试用 $\ge 70\%$ 准度、每日 1 次反思配额）；系统活跃维度硬封顶 $\le 32$；递归深度 $\le 2$ 熔断。 |
-| **M4** | 虚拟人 30 天连续闭环与 V21~V30 对抗测试 | 9 项 | **🔥 核心大突破 (80% CLOSED)** | `SIM-001` 30 天/180 天无头仿真闭环；`M4-005`（V21~V30 十大高阶对抗场景）**100% 全绿通过**（老王诈骗反转、心梗跌倒 0 延迟、跨半年声纹淘汰、50轮对话防爆、深度睡眠静默、反爹味老友语调等）。 |
-| **M5** | AI 操作经验沉淀与心智自主进化 | 7 项 | **🔥 核心大突破 (6/7 CLOSED)** | `M5-001` 多维检索总线原生四大维度（维度/主张/实体/注记）满绿；`M5-002` 维度生命周期与高阶提炼；`M5-003` 人设镜面与像人姿态；`M5-004` 共生决策推演；`M5-005` 千人千面海量战训考场就绪。 |
+| **M4** | 虚拟人 30 天连续闭环与 V21~V30 对抗测试 | 9 项 | **100% 已闭环 (CLOSED)** | `SIM-001` 30 天/180 天无头仿真闭环；`M4-005`（V21~V30 十大高阶对抗场景）**100% 全绿通过**（老王诈骗反转、心梗跌倒 0 延迟、跨半年声纹淘汰、50轮对话防爆、深度睡眠静默、反爹味老友语调等）。 |
+| **M5** | AI 操作经验沉淀与心智自主进化 | 7 项 | **🔥 100% 全量闭环 (7/7 CLOSED)** | `M5-001` 原生四大维度联合检索；`M5-002` 维度生命周期；`M5-003` 人设镜面与姿态；`M5-004` 共生决策推演；`M5-005` 独立 Agent 战训考场与全景诊断器；发明落地两项新工具算子。 |
 | **M6** | 教育轻量微插件与手环 23cm 柔性屏画布 | 7 项 | 排期中 (PENDING) | 微技能不分裂主脑人格；手环微卡片渲染 $\le 16\text{ms}$。 |
 | **M7** | 1 年期 360 万条长漂移压测与多模型热插拔 | 6 项 | 排期中 (PENDING) | 360 万条下倒排检索持续 $\le 30\text{ms}$；断网 500ms 切备用 SLM。 |
 | **M8** | 架构机制消融实验与终审裁决门 | 5 项 | 排期中 (PENDING) | 完成 Single-Shot 与条件任务消融对比量化矩阵；正式签发生产令。 |
@@ -33,7 +33,7 @@
 | **#7** | C03 认知 | `TASK-M5-002-DIM-LIFECYCLE` | 维度生命周期（跨域3天/试用30天/每日1次反思配额）与高阶提炼挂载 | **CLOSED (3/3 PASS)** | `src/aios_core/cognition/dimension_engine.py`<br>`tests/cognition/test_dimension_lifecycle.py` |
 | **#8** | C08 人设 | `TASK-M5-003-RAPPORT-MIRROR` | AI 自我镜面审视、动态羁绊与像人三档姿态决策机 | **CLOSED (7/7 PASS)** | `src/aios_core/cognition/self_reflection.py`<br>`tests/cognition/test_self_reflection.py` |
 | **#9** | C05 决策 | `TASK-M5-004-ACTION-ADVISOR` | 共生决策推演引擎（送礼推演/老王防诈阻击/早搏熔断，带因果证据引用） | **CLOSED (3/3 PASS)** | `src/aios_core/cognition/symbiotic_advisor.py`<br>`tests/cognition/test_symbiotic_advisor.py` |
-| **#10**| 考场评测 | `TASK-M5-005-AGENT-ARENA` | 独立 Agent 虚拟人生千人千面战训考场与全景诊断器 | **EXECUTING** | 派发云端大兵团多 Agent 战队并发实测与经验沉淀 |
+| **#10**| 考场评测 | `TASK-M5-005-AGENT-ARENA` | 独立 Agent 虚拟人生千人千面战训考场与全景诊断器 | **CLOSED (17/17 PASS)** | `src/aios_core/simulation/agent_mind_bench.py`<br>`src/aios_core/simulation/adversarial_life_bench.py`<br>`tests/simulation/test_agent_mind_bench.py`<br>`tests/simulation/test_end_to_end_8_stages_blind_bench.py`<br>`docs/reviews/AIOS_全流程海量盲测与极限压测报告.md` |
 
 ---
 

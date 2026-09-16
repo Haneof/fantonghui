@@ -1,8 +1,18 @@
-"""双透镜虚拟索引投影器单测"""
+"""双透镜虚拟索引投影器全量单测"""
 from datetime import datetime, timedelta, timezone
+import pytest
 
-from aios_core.tools.dual_lens_projector import DualLensVirtualIndexProjector
-from aios_core.world.retrospective_annotation import RetrospectiveAnnotation
+from aios_core.contracts.enums import ProposalStatus
+from aios_core.tools.dual_lens_projector import (
+    DualLensVirtualIndexProjector,
+    LensMode,
+    create_dual_lens_projector_tool_proposal,
+)
+from aios_core.tools.proposal_pipeline import ToolProposalPipeline
+from aios_core.world.retrospective_annotation import (
+    ImmutableFactLedger,
+    RetrospectiveAnnotation,
+)
 
 UTC = timezone.utc
 
@@ -70,3 +80,76 @@ def test_memory_overhead_bounded():
     after = proj.stats.virtual_memory_overhead_bytes
     assert after == 256  # single annotation overhead
     assert after < len(facts) * 10
+
+
+def test_dual_lens_query_isolation():
+    ledger = ImmutableFactLedger()
+    t_loan = datetime(2024, 5, 10, 10, 0, tzinfo=UTC)
+    t_chat = datetime(2024, 11, 15, 14, 0, tzinfo=UTC)
+    t_verdict = datetime(2026, 9, 16, 9, 0, tzinfo=UTC)
+
+    # 1. 写入两年前的合伙借款与聊天事实
+    ledger.record_fact(
+        fact_id="fact_loan",
+        entity_id="ent_wang",
+        occurred_at=t_loan,
+        kind="contract",
+        payload={"text": "老王签署合伙协议，转账借款50万"},
+    )
+    ledger.record_fact(
+        fact_id="fact_chat",
+        entity_id="ent_wang",
+        occurred_at=t_chat,
+        kind="chat",
+        payload={"text": "老王发微信承诺下季度连本带息偿还"},
+    )
+
+    # 2. 挂载今天学到的刑事判决重估注记
+    anno = RetrospectiveAnnotation(
+        annotation_id="anno_fraud_2026",
+        target_entity_id="ent_wang",
+        semantic_overlay="【司法定性】：已被法院以合同诈骗罪定罪判刑，系失信欺诈行为",
+        target_time_start=datetime(2024, 1, 1, tzinfo=UTC),
+        target_time_end=datetime(2026, 9, 16, 8, 59, tzinfo=UTC),
+        learned_at=t_verdict,
+        recorded_at=t_verdict,
+        source_statement_ref="朝阳法院刑事判决书",
+    )
+
+    projector = DualLensVirtualIndexProjector(ledger, [anno])
+
+    # 3. 透镜测试 A：当时已知透镜 (AS_KNOWN，回溯至 2024 年底)
+    t_cutoff_2024 = datetime(2024, 12, 31, 23, 59, tzinfo=UTC)
+    res_past = projector.query_with_lens(
+        search_terms=["老王", "借款"],
+        lens_mode=LensMode.AS_KNOWN,
+        as_of_cutoff=t_cutoff_2024,
+    )
+    assert len(res_past.matched_facts) == 1
+    assert res_past.matched_facts[0].fact_id == "fact_loan"
+    assert res_past.matched_facts[0].active_overlay is None
+    assert res_past.matched_facts[0].is_invalidated is False
+    assert res_past.overlays_suppressed_count >= 1
+
+    # 4. 透镜测试 B：当前认知透镜 (ANNOTATED，今日认知)
+    res_today = projector.query_with_lens(
+        search_terms=["老王", "借款"],
+        lens_mode=LensMode.ANNOTATED,
+    )
+    assert len(res_today.matched_facts) == 1
+    assert res_today.matched_facts[0].fact_id == "fact_loan"
+    assert res_today.matched_facts[0].payload["text"] == "老王签署合伙协议，转账借款50万"
+    assert res_today.matched_facts[0].active_overlay is not None
+    assert "合同诈骗罪" in res_today.matched_facts[0].active_overlay
+    assert res_today.matched_facts[0].is_invalidated is True
+    assert res_today.overlays_applied_count >= 1
+    assert res_today.query_latency_ms <= 10.0
+
+
+def test_dual_lens_proposal_lifecycle():
+    pipeline = ToolProposalPipeline()
+    proposal = create_dual_lens_projector_tool_proposal(subject_id="user_admin")
+    pipeline.submit_proposal(proposal)
+    pipeline.review_proposal(proposal.object_id, "approve")
+    executed = pipeline.execute_proposal(proposal.object_id)
+    assert executed.status == ProposalStatus.EXECUTED
