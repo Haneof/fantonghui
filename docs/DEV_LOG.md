@@ -427,3 +427,33 @@ M1 Gate 未开。本批全部以**预开工件**落 arena 工作分支：不改 
 - 正式 50 万修订版 G-M1P 压测脚本待 M1 Gate 后跑在目标硬件上；CI 只跑降规模冒烟。
 - 检索核未接入会话/唤醒运行路径（Gate 约束）；M2-002 届时直接消费
   `triggerable_commits_after`。
+
+## 2026-09-16 M0-022R 签核包 + M1-019 施工图（编号勘误批）
+
+### 背景与治理边界
+M1 Gate 未开。本批全部为**文档与静态守卫**：不出运行面代码、不动 M1 表行；
+签核包把批准/驳回各自压成单步机械动作，并把全部偏差主动摊开给签核人。
+
+### 执行步骤
+1. `governance/M0-022R_ratification_package.md`：三合一复审对象全集（v2.0 集 /
+   R4 delta / CAM 55 项）、批准与驳回的单步动作、**五项风险摊开**——含两项
+   主动披露：预开工件先于 Gate（R1）、M1-017 题名"FTS5"与自持倒排核的字面
+   偏差需修订裁决（R2）；驳回路径显式覆盖 `20e7733` 预开工件的零残留回退。
+2. `governance/issues/M1-019_blueprint.md`：PRUNED tombstone 施工图。编号勘误
+   如实备案：上轮收尾把"唤醒回路"误称 M1-019（实为 M2-002/016/019/021；
+   M1-019=归档任务），本批按设计书 §3.4 实号出件。核心裁决：tombstone=append
+   新修订（复用 store `latest+1` 既有路径）；`revision_kind` 只活在表里、
+   pydantic 契约零漂移；三条件合取执行体离线、模型只有提案权；
+   `world.prune` 经 MAINTENANCE⇔PRUNE 契约强检走 triggerable 过滤器结构性
+   豁免——复盘批量归档不会放大成唤醒风暴（R2 永动机封死点的归档侧）。
+3. 静态守卫先行落码 `tests/architecture/test_no_object_deletion.py`（R4-07a）：
+   真相表禁 DELETE/DROP/TRUNCATE 全域扫描 + 防自嗨的假违例探针 + 显式豁免通道
+   （`# r4-07-exempt rename-rebuild`，M0-023 迁移重建的 DROP 旧壳即首个合法
+   使用者）。不等 Gate 的理由：它锁的是当下已成立的 append-only 承诺。
+
+### 测试
+- 全量：`596 passed / 1 failed`（+2 守卫用例；唯一失败仍为既知环境项 b8）。
+
+### 已知限制
+- 签核包的 R1/R2 裁决项悬置期间，M1-017 销账与预开工件转正均不得发生；
+  R4-07b/c 动态与对应层审计器按施工图排 Gate 后。

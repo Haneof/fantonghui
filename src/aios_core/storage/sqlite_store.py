@@ -347,7 +347,8 @@ class SQLiteWorldStore:
             """
         )
         migrated = conn.execute("SELECT COUNT(*) FROM world_commits_m023").fetchone()[0]
-        conn.execute("DROP TABLE world_commits")
+        # 数据已完整复制进 world_commits_m023，DROP 的是待替换旧壳——非物理删除。
+        conn.execute("DROP TABLE world_commits")  # r4-07-exempt rename-rebuild
         conn.execute("ALTER TABLE world_commits_m023 RENAME TO world_commits")
         conn.execute(
             """
