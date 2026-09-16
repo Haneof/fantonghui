@@ -3,9 +3,9 @@
 > **基准宪法**：`docs/constitution/AIOS核心系统宪法v3.0.md`  
 > **核心仓库**：`aios-2.0` / `aios-3.0`  
 > **总指挥部**：首席架构总工  
-> **最后更新**：2026-09-16（八阶段海量盲测总攻落地与 PR #24 熔铸合流）  
-> **当前状态**：**1327 passed, 0 xfailed, 0 failed (100% 满堂绿)**  
-> **本轮攻坚落地**：熔铸合流 PR #24（`01a0a8c2` 战队），正式落地「457 万条全流程海量盲测 + 8 大纯代码新工具算子 + 五大铁律自动核账套件 + P0 级跑步基线误判为跌倒缺陷修复」，全库通过数从 1277 跃升至 **1327 项全绿**（新增 50 项，AST 扫描 238 文件 0 报警）。
+> **最后更新**：2026-09-16（云端全兵团大考启动、Master Dispatch #11 签发、44 个废弃分支物理清扫完毕）  
+> **当前状态**：**1343 passed, 0 xfailed, 0 failed (100% 满堂绿)**  
+> **本轮攻坚落地**：签发 Master Dispatch #11，正式启动 30+ 云端大模型分布式对抗大考（每战队自出 10,000 道题 + 1对多跨 Git 交叉做卷）。全面部署《方向性语义匹配评估器（DirectionalSemanticMatcher）》，严格落实老大“方向正确即给分，杜绝死抠字眼”与“错题归因进化”指示；物理删除远端 44 个废弃分支，完成基线分支大清扫，全库测试跃升至 **1343 项全绿**。
 
 ---
 
@@ -233,4 +233,30 @@
 ### 2. 全量最新门禁断言
 - **全库单元与集成测试**：`python -m pytest -q` → **1340 passed, 0 failed (100% 满堂绿)**。
 - **AST 语法安全门禁**：`governance/ci/lint_assert_msg_ast.py` → 扫描 243 个 .py 文件，0 报警，PASS。
+- **全库零占位符**：全库无 `# TODO`、`FIXME` 与任何形式的假代码。
+
+---
+
+## 九、云端全兵团多 Agent 分布式对抗大考——数据清洗竞技场全面启动（Master Dispatch #11，1343 满堂绿）
+
+> **最高指令长（老大）法定铁律指示（2026-09-16）**：  
+> 1. “不用接入外部 API！让几十个大模型开发团队接管 AIOS 底座，自己进行测试！”  
+> 2. “第一步：数据清洗！每个大模型独立出 1 万道题目，涵盖传感器/MIC录音/声纹/APP聊天/用户对话等高熵生活流！”  
+> 3. “大模型之间互相做题，绝对不做出题人自己的题目，而是 1 对多，1 个大模型做其他所有大模型的题目！”  
+> 4. “答案不能写死，只能以方向为准确答案！不能事实是发生了吵架，模型提取成了吵闹就判错！”  
+> 5. “用大量的测试进行经验总结，然后提高模型的清洗准确度！这才是真正的测试！”  
+> 6. “你先将没有用的分支清理干净，不要到时候你都找不到出的题目在哪里！”
+
+### 1. 核心架构与工程交付
+| 交付组件 | 路径 | 职责与技术特性 |
+|---|---|---|
+| `Master Dispatch #11` | `governance/dispatches/TASK_DISPATCH_MASSIVE_DATA_CLEANING_ARENA_10K.md` | 30+ 云端大模型出卷、1对多交叉做卷、阅卷与归因总结全流程派工总单与提示词模板。 |
+| `cleaning_arena_protocol.py` | `src/aios_core/simulation/cleaning_arena_protocol.py` | 统一数据清洗协议：`DirectionalSemanticFact`、`CleaningQuestion`、`CleaningAnswerSubmission`、`DirectionalSemanticMatcher`（近义簇、实体交集、意图容差、方向判定）。 |
+| 评测单测集 | `tests/simulation/test_cleaning_arena_protocol.py` | 验证老王案吵架 vs 吵闹方向吻合全额给分、恋爱/欢庆方向偏离扣分、自出题自做违纪判 0 分一票否决。 |
+| 标准题库目录 | `benchmarks/data_cleaning/{questions,ground_truth,answers,reports}/` | 标准四级目录与 `.gitkeep` 归档就绪，杜绝分支迷航。 |
+| Git 分支大清扫 | 远程仓库 `origin` | 彻底物理删除 44 个历史废弃/重复/合并分支（包括全部旧 `arena/*` 与 `constitution/v1.4-r0`），远端主线干净如新。 |
+
+### 2. 全量最新门禁断言
+- **全库单元与集成测试**：`python -m pytest -q` → **1343 passed, 0 failed (100% 满堂绿)**。
+- **AST 语法安全门禁**：`governance/ci/lint_assert_msg_ast.py` → 扫描 244 个 .py 文件，0 报警，PASS。
 - **全库零占位符**：全库无 `# TODO`、`FIXME` 与任何形式的假代码。
