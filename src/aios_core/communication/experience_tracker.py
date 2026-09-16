@@ -23,20 +23,29 @@ class ExperienceTracker:
         return success_count / len(experiences)
 
     def get_effective_style(self, scenario: str) -> Optional[str]:
+        """在**未被回避**的风格里挑接受率最高的一种。
+
+        回避清单（抵触率 >= 0.5）与推荐名单必须互斥：一种刚被用户抵触的风格
+        不允许因为"矮子里拔将军"再次被推荐；一个都没有合格时返回 None，
+        由上层使用基础人设语调，而不是把踩雷风格再端上去。
+        """
+
         scenario_exps = self.get_experiences_by_scenario(scenario)
         if not scenario_exps:
             return None
-            
-        styles = set(e.style for e in scenario_exps)
+
+        avoided = set(self.get_avoidance_list(scenario))
         best_style = None
-        best_rate = -1.0
-        
-        for style in styles:
+        best_rate = 0.0
+
+        for style in sorted(set(e.style for e in scenario_exps)):
+            if style in avoided:
+                continue
             rate = self.get_success_rate(scenario, style)
             if rate > best_rate:
                 best_rate = rate
                 best_style = style
-                
+
         return best_style
 
     def get_avoidance_list(self, scenario: str, threshold: float = 0.5) -> list[str]:
