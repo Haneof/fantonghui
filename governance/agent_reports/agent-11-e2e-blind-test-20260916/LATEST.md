@@ -3,7 +3,8 @@
 **批次代号**：`agent-11-e2e-blind-test-20260916`
 **工单**：E2E 总纲 —— 8 阶段端到端海量盲测（4 交付物：压测报告 / 瓶颈诊断书 / 新机制与新工具提议 / 代码+测试 100% 绿）
 **分支**：`arena/01a0a700-fantonghui`（会话锁定分支；工单如要求其他分支名，映射提请总师知悉）
-**验收结果**：全仓 **1,291 collected / 0 failed / 0 error**（含本批次新增 42 项）；
+**验收结果**：全仓 **1,322 collected / 0 failed / 0 error**（含本批次新增 42 项；
+与并行线 arena01 的 E2E 交付 rebase 合并后全绿）；
 官方 2M 压测 **8/8 阶段通过，25 条铁律断言 100% 通过，LLM 严格 0**
 
 ## 0. 批次态势与交付清单
@@ -111,7 +112,12 @@ ToolProposal 一等对象落世界（object_id：`tool_proposal_adaptive_timeser
 | `tests/tools/test_adaptive_timeseries_compressor.py` | 8 | 空输入 / 非法参数 / 常量零误差+校验和复算 / 近静态噪声封顶 / 冲击全保留 / 电平跳变 / 真实 bench 200k 流（保峰+确定性+总校验和链接哈希）/ 结果不可变 |
 | `tests/tools/test_cooccurrence_recall_accelerator.py` | 9 | 成对召回=撕逼事件 / 逐词召回==基线 / 4 词+成对对撞 identical / 零命中两侧一致 / top 排序 / postings 契约 / proposal 生命周期 SUBMITTED→EXECUTED |
 
-全仓回归：**1,291 collected，exit 0，零失败零错误**。
+全仓回归：**1,322 collected（rebase 合并 arena01 并行线后），exit 0，零失败零错误**。
+
+> **并行线处置**：rebase 前检出远端 `bd1a885`——并行会话 arena01 已独立交付同一总纲
+>（`massive_life_bench_arena01*` / `adaptive_temporal_compactor` / `dual_lens_projector`，
+> 均 `_arena01` 或独立命名，与本报表命名零冲突）。两线交付并存，供 ADJ 裁决熔铸时对照；
+> TASK_PROGRESS_V3.md 已追加双线总账小节（§三.3）。
 
 ## 6. 已知局限（诚实披露）
 

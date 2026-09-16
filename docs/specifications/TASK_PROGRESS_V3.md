@@ -87,6 +87,19 @@
 | **MT-029** | 叙事分段(NarrativeSegment)主题切割盲测 | 考研复习周期与初创求职并行的多线交织 | 主题内聚度与切割断点 | **READY** |
 | **MT-030** | 维度曲线(DimensionCurvePoint)趋势拐点预警 | 连续高压下精力衰竭加速与猝死前夕警报 | 拐点检测与早期熔断 | **READY** |
 
+### 3. 8 阶段端到端海量盲测总纲（E2E 总攻，双线并行施工）
+
+> 8 阶段端到端海量盲测（摄入提纯→金字塔结晶→共现 EventAnchor→认知导数→老王案双透镜→
+> ActionableAdvice→AIActionLog/沟通演化→CockpitManifest/P0/DORMANT/10 轮会话），
+> 独立对抗生命数据发生器（禁自编自答），五大铁律一票否决验收。
+
+| 施工线 | 状态 | 交付物与验收 |
+|---|:---:|---|
+| **01a0a700 / Agent-11**（`agent-11-e2e-blind-test-20260916`） | **CLOSED** | `simulation/adversarial_life_bench.py`（2,108,670 raw 五大剧本）+ `simulation/e2e_blind_test.py`（8 阶段执行器+自动报告）+ `tools/adaptive_timeseries_compressor.py`（Tool A，3.0:1 压缩比 / peak_error 0.195g / SHA-256 审计链）+ `tools/cooccurrence_recall_accelerator.py`（Tool B，868.8ms→1.08ms = 802.5x，与基线对撞 identical）；官方 2M 8/8 通过、25 条铁律断言 100%、LLM 0；42 项新增测试全绿。报告：`governance/agent_reports/agent-11-e2e-blind-test-20260916/`（含 evidence/report_2m_official.md） |
+| **arena01**（`arena01-m6-fullpipeline-blindtest`） | **CLOSED** | `simulation/massive_life_bench_arena01*` + `tools/adaptive_temporal_compactor.py` + `tools/dual_lens_projector.py` + `summaries/adaptive_vital_compressor_arena01.py`；报告三件套（LATEST/DIAGNOSIS/TOOL_PROPOSALS）见 `governance/agent_reports/arena01-m6-fullpipeline-blindtest/` |
+
+> 两线命名独立并存（`_agent11` 工具 vs `_arena01` 工具），供 ADJ 裁决熔铸时对照。
+
 ---
 
 ## 二、M1 攻坚波次全量验收总账（全部 100% 满堂绿）
