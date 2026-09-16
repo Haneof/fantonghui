@@ -1,0 +1,46 @@
+{
+  "bank": "AA2C",
+  "generator_agent": "agent-01a0aa2c",
+  "solver_agent": "agent-01a0aa2e",
+  "n_total": 1000,
+  "n_calibration": 300,
+  "n_evaluated": 700,
+  "mean_score": 94.13,
+  "pass_rate": 1.0,
+  "veto_paper_rate": 0.0,
+  "veto_dim_count": 0,
+  "llm_calls": 0,
+  "by_dimension": {
+    "global": 95.46,
+    "dim:health": 95.69,
+    "dim:social": 98.83,
+    "dim:emotion": 85.05,
+    "dim:finance": 95.68,
+    "dim:career": 94.05
+  },
+  "by_difficulty": {
+    "ADVERSARIAL": {
+      "n": 140,
+      "mean": 94.64
+    },
+    "EASY": {
+      "n": 98,
+      "mean": 94.01
+    },
+    "HARD": {
+      "n": 228,
+      "mean": 94.22
+    },
+    "MEDIUM": {
+      "n": 234,
+      "mean": 93.77
+    }
+  },
+  "config": {
+    "top_k": 14,
+    "top_directions": 8,
+    "df_ceiling": 0.65,
+    "score_floor": 0.05,
+    "redline_guard": true
+  }
+}

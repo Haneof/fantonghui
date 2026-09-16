@@ -1,0 +1,42 @@
+{
+  "bank": "AA2D",
+  "generator_agent": "01a0aa2d-fantonghui",
+  "solver_agent": "agent-01a0aa2e",
+  "n_total": 10000,
+  "n_calibration": 2000,
+  "n_evaluated": 8000,
+  "mean_score": 92.48,
+  "pass_rate": 0.9711,
+  "veto_paper_rate": 0.0,
+  "veto_dim_count": 0,
+  "llm_calls": 0,
+  "by_dimension": {
+    "global_daily_summary": 97.96,
+    "dim:health": 80.41,
+    "dim:social": 80.47,
+    "dim:emotion": 97.05,
+    "dim:finance": 99.98,
+    "dim:career": 95.36
+  },
+  "by_difficulty": {
+    "ADVERSARIAL": {
+      "n": 1234,
+      "mean": 92.44
+    },
+    "HARD": {
+      "n": 5736,
+      "mean": 92.0
+    },
+    "MEDIUM": {
+      "n": 1030,
+      "mean": 95.22
+    }
+  },
+  "config": {
+    "top_k": 14,
+    "top_directions": 8,
+    "df_ceiling": 0.65,
+    "score_floor": 0.05,
+    "redline_guard": true
+  }
+}
