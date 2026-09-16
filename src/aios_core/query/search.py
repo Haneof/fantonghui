@@ -1,9 +1,30 @@
-"""M5 multidimensional mind search and three-path execution substrate.
+"""M1-017/M1-018 预开工内核：世界检索的投影面（宪法第 89/36/95/96/27/86.4 条）。
 
-The engine joins Dimension, Claim, Entity, Observation, and Annotation records
-behind one bounded result contract.  It deliberately exposes three execution
-paths so operation experience can compare measured cost without pretending
-that a cheap low-recall query is intelligent.
+治理声明
+--------
+本模块是 **M1 的预开工件**：M0-022R 签核、M1 Gate 开启之前，不得接入任何
+运行路径（唤醒/会话/工作台）。它只依赖 `SQLiteWorldStore` 的公共读面
+（``revisions_after`` / ``current_world_revision``），保持"唯一写入服务"
+边界：索引是可重建投影，坏了删表重建，永不与真相争辩。
+
+为什么自研倒排而第一版不用 FTS5
+--------------------------------
+本构建的 FTS5 `unicode61` 不做 CJK 分词、`trigram` 拒绝两个字符的查询
+（"妈妈"这类双字中文词必然失配）。宪法第 89 条的入口是中文关键词共现，
+因此 v1 直接实现设计书 §3.4-T2 的物理计划：
+
+    posting-AND 交集 ∩ occurred 时间过滤 ∩ 实体消歧前置 ∩ 双视图截止
+
+FTS5 仍是可替换适配器（第 18 条反教条）：对外只暴露 ``co_search``。
+
+三条硬纪律
+----------
+1. **白名单抽取**：只索引契约文本字段，禁止把 payload 整包拷进索引（第 18 条
+   反冗余；haystack 是检索辅助位，可整体重建）；
+2. **消歧先于交集**（第 36 条）：别名解析出的实体编号参与匹配；歧义别名不
+   自动二选一，标记 ``ambiguous`` 交还调用方；
+3. **水位即诚实**（第 86.4 条）：任何返回都携带 ``lag``；strict 模式下落后
+   直接 STALE_INDEX，禁止把旧索引装成新世界。
 """
 
 from __future__ import annotations
@@ -11,81 +32,106 @@ from __future__ import annotations
 import json
 import re
 import sqlite3
-from collections import defaultdict
-from collections.abc import Iterable, Sequence
-from datetime import UTC, datetime
-from enum import StrEnum
-from itertools import pairwise
-from math import ceil
+from collections.abc import Iterator
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
-from threading import RLock
-from typing import Any, ClassVar
+from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from aios_core.contracts.time import as_utc
 
-from aios_core.contracts.time import as_utc, require_aware
+_WORD_RE = re.compile(r"[a-z0-9_]+")
+_CJK_RUN_RE = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]+")
+_ID_STRIP_RE = re.compile(r"[^a-z0-9]")
 
-_WORD_RE = re.compile(r"[a-z0-9_]+", re.IGNORECASE)
-_CJK_RE = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]+")
-
-
-class SearchPathway(StrEnum):
-    BRUTE_FORCE_SCAN = "brute_force_scan"
-    KEYWORD_SEARCH = "keyword_search"
-    HIERARCHICAL_TOPO = "hierarchical_topo"
-
-
-class MindObjectType(StrEnum):
-    DIMENSION = "dimension"
-    CLAIM = "claim"
-    ENTITY = "entity"
-    OBSERVATION = "observation"
-    ANNOTATION = "annotation"
-    EVENT = "event"
-    RELATION = "relation"
-
-
-class ConservativeTokenMeter:
-    """Dependency-free output envelope using UTF-8 bytes as strict units."""
-
-    @staticmethod
-    def count(text: str) -> int:
-        return len(text.encode("utf-8"))
-
-    @staticmethod
-    def truncate(text: str, limit: int) -> str:
-        if limit < 0:
-            raise ValueError("token limit must be non-negative")
-        return text.encode("utf-8")[:limit].decode("utf-8", errors="ignore")
-
-    @staticmethod
-    def estimate_context_tokens(text: str) -> int:
-        """Comparable BPE estimate for pathway input-cost receipts only."""
-
-        return max(1, ceil(len(text.encode("utf-8")) / 4))
+# 白名单：object_type -> 可索引文本字段（契约内声明，绝不整包拷贝）。
+_TEXT_FIELDS: dict[str, tuple[str, ...]] = {
+    "claim": ("content",),
+    "observation": ("value",),
+    "event": ("title", "interpretation"),
+    "task": ("title", "next_step"),
+    "entity": ("canonical_name",),
+    "goal": ("title", "description"),
+    "prediction": ("expected_change", "reasoning"),
+    "reinterpretation": ("statement",),
+    "life_chapter": ("chapter_title",),
+    "communication_experience": ("scenario", "style", "tone"),
+}
+_TIME_FIELDS: dict[str, tuple[str, ...]] = {
+    "event": ("event_time",),
+    "prediction": ("time_window",),
+    "relation": ("valid_time",),
+    "reinterpretation": ("valid_time",),
+}
+_TYPE_BOOST: dict[str, int] = {"event": 2, "claim": 1, "task": 1}
+_EXCERPT_LIMIT = 200
+_WATERMARK_KEY = "search_watermark_world_revision"
+_CATCHUP_MAX_ROWS = 50_000
 
 
-def _tokens(text: str) -> frozenset[str]:
-    lowered = text.casefold()
-    result = set(_WORD_RE.findall(lowered))
-    for run in _CJK_RE.findall(lowered):
-        if len(run) == 1:
-            result.add(run)
-        result.update(left + right for left, right in pairwise(run))
-    return frozenset(result)
+
+def derive_dimension(payload: dict, object_type: str) -> str:
+    """宪法第十七章：多维时空维度推导（健康/财务/社交/工作/通用）。"""
+    dim = payload.get("dimension")
+    if isinstance(dim, str) and dim.strip():
+        return dim.strip()
+    dims = payload.get("dimensions")
+    if isinstance(dims, list) and dims and isinstance(dims[0], str):
+        return dims[0].strip()
+
+    src = str(payload.get("source_kind", "")).lower()
+    if src in ("biometrics", "heart_rate", "sleep", "sensor", "arrhythmia", "health"):
+        return "dim_health"
+    if src in ("transaction", "bank", "receipt", "finance", "loan", "contract"):
+        return "dim_finance"
+    if src in ("chat", "call", "audio", "message", "social"):
+        return "dim_social"
+    if src in ("work_log", "calendar", "meeting", "code", "work"):
+        return "dim_work"
+
+    content_blob = ""
+    for k in ("content", "value", "title", "interpretation", "statement", "purpose"):
+        v = payload.get(k)
+        if isinstance(v, str):
+            content_blob += " " + v
+    content_blob = content_blob.lower()
+    if any(w in content_blob for w in ("心率", "早搏", "理疗", "膝盖", "健康", "医院", "血压", "睡眠")):
+        return "dim_health"
+    if any(w in content_blob for w in ("借款", "转账", "元", "合伙", "判决", "诈骗", "还款", "投资", "消费")):
+        return "dim_finance"
+    if any(w in content_blob for w in ("恋爱", "前任", "争吵", "母亲", "老妈", "朋友", "生日", "小林")):
+        return "dim_social"
+    if any(w in content_blob for w in ("加班", "代码", "上线", "版本", "会议", "工作", "q3")):
+        return "dim_work"
+
+    return "dim_general"
 
 
 def tokens_for(text: str) -> set[str]:
-    """Backward-compatible public tokenizer (ASCII words + CJK bigrams)."""
+    """ASCII 词元 + CJK 二元组（bi-gram）。
 
-    return set(_tokens(text))
+    双字中文词（"妈妈""生日"）在 bi-gram 下即完整词元；长句命中为"所有
+    bigram 共现"的近似召回，由 ``co_search`` 的 haystack 子串复核保证精确。
+    """
+
+    lowered = text.lower()
+    tokens = set(_WORD_RE.findall(lowered))
+    for run in _CJK_RUN_RE.findall(lowered):
+        if len(run) == 1:
+            tokens.add(run)
+        tokens.update(a + b for a, b in zip(run, run[1:]))
+    return tokens
 
 
 def normalize_alias(text: str) -> str:
-    return " ".join(text.casefold().split())
+    return " ".join(text.strip().lower().split())
 
 
-def _iter_ref_ids(node: Any) -> Iterable[str]:
+def _id_token(kind: str, object_id: str) -> str:
+    return kind + _ID_STRIP_RE.sub("", object_id.lower())
+
+
+def _iter_ref_ids(node: Any) -> Iterator[str]:
     if isinstance(node, dict):
         object_id = node.get("object_id")
         if isinstance(object_id, str) and "revision" in node:
@@ -97,442 +143,315 @@ def _iter_ref_ids(node: Any) -> Iterable[str]:
             yield from _iter_ref_ids(item)
 
 
-def derive_dimension(payload: dict[str, Any], object_type: str) -> str:
-    """Derive a stable dimension without copying arbitrary payload fields."""
+def _extent_us(payload: dict, object_type: str) -> tuple[int | None, int | None]:
+    extent = None
+    for name in _TIME_FIELDS.get(object_type, ()) + ("occurred",):
+        candidate = payload.get(name)
+        if isinstance(candidate, dict) and not candidate.get("unknown", False):
+            extent = candidate
+            break
+    if extent is None:
+        for fallback_key in ("learned_at", "recorded_at"):
+            val = payload.get(fallback_key)
+            if isinstance(val, str):
+                try:
+                    us = int(as_utc(datetime.fromisoformat(val), "extent").timestamp() * 1_000_000)
+                    return us, us
+                except (ValueError, TypeError):
+                    pass
+        return None, None
 
-    explicit = payload.get("dimension")
-    if isinstance(explicit, str) and explicit.strip():
-        return explicit.strip().casefold()
-    dimensions = payload.get("dimensions")
-    if isinstance(dimensions, list):
-        for item in dimensions:
-            if isinstance(item, str) and item.strip():
-                return item.strip().casefold()
+    def _us(value: Any) -> int | None:
+        if not isinstance(value, str):
+            return None
+        try:
+            return int(as_utc(datetime.fromisoformat(value), "extent").timestamp() * 1_000_000)
+        except ValueError:
+            return None
 
-    source = str(payload.get("source_kind", "")).casefold()
-    source_dimensions = {
-        "biometrics": "dim_health",
-        "heart_rate": "dim_health",
-        "sleep": "dim_health",
-        "transaction": "dim_finance",
-        "bank": "dim_finance",
-        "loan": "dim_finance",
-        "contract": "dim_finance",
-        "chat": "dim_social",
-        "message": "dim_social",
-        "meeting": "dim_work",
-        "work_log": "dim_work",
-    }
-    if source in source_dimensions:
-        return source_dimensions[source]
-
-    text = " ".join(
-        value
-        for key in ("content", "value", "title", "description", "semantic_overlay")
-        if isinstance((value := payload.get(key)), str)
-    ).casefold()
-    if any(term in text for term in ("心率", "早搏", "膝盖", "睡眠", "血压")):
-        return "dim_health"
-    if any(term in text for term in ("借款", "诈骗", "判决", "合同", "转账")):
-        return "dim_finance"
-    if any(term in text for term in ("母亲", "朋友", "聊天", "生日")):
-        return "dim_social"
-    if any(term in text for term in ("会议", "加班", "代码", "工作")):
-        return "dim_work"
-    if object_type.casefold() == MindObjectType.DIMENSION.value:
-        return str(payload.get("name", "dim_general")).strip().casefold()
-    return "dim_general"
+    return _us(extent.get("start")), _us(extent.get("end"))
 
 
-class MindDocument(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, str_strip_whitespace=True)
-
-    object_id: str = Field(min_length=1, max_length=240)
-    revision: int = Field(default=1, ge=1)
-    object_type: MindObjectType
-    dimension: str = Field(min_length=1, max_length=160)
-    entity_id: str | None = Field(default=None, min_length=1, max_length=240)
-    text: str = Field(min_length=1, max_length=100_000)
-    occurred_at: datetime
-    aliases: frozenset[str] = Field(default_factory=frozenset)
-    related_entity_ids: frozenset[str] = Field(default_factory=frozenset)
-    related_object_ids: frozenset[str] = Field(default_factory=frozenset)
-
-    @field_validator("occurred_at")
-    @classmethod
-    def occurred_at_must_be_aware(cls, value: datetime) -> datetime:
-        require_aware(value, "occurred_at")
-        return value
-
-    @field_validator("dimension")
-    @classmethod
-    def normalize_dimension(cls, value: str) -> str:
-        return value.casefold()
-
-
-class MindSearchQuery(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, str_strip_whitespace=True)
-
-    keywords: tuple[str, ...] = Field(default_factory=tuple, max_length=12)
-    dimension: str | None = Field(default=None, min_length=1, max_length=160)
-    entity_id: str | None = Field(default=None, min_length=1, max_length=240)
-    linked_object_id: str | None = Field(default=None, min_length=1, max_length=240)
-    object_types: tuple[MindObjectType, ...] = Field(default_factory=tuple)
-    time_start: datetime | None = None
-    time_end: datetime | None = None
-    include_annotations: bool = False
-    limit: int = Field(default=4, ge=1, le=50)
-
-    @field_validator("keywords")
-    @classmethod
-    def normalize_keywords(cls, values: tuple[str, ...]) -> tuple[str, ...]:
-        normalized = tuple(dict.fromkeys(value.strip().casefold() for value in values))
-        if any(not value for value in normalized):
-            raise ValueError("keywords must not contain blanks")
-        return normalized
-
-    @field_validator("dimension")
-    @classmethod
-    def normalize_optional_dimension(cls, value: str | None) -> str | None:
-        return value.casefold() if value is not None else None
-
-    @field_validator("time_start", "time_end")
-    @classmethod
-    def query_times_must_be_aware(
-        cls, value: datetime | None, info: Any
-    ) -> datetime | None:
-        require_aware(value, info.field_name)
-        return value
-
-    @model_validator(mode="after")
-    def time_range_must_be_ordered(self) -> MindSearchQuery:
-        if (
-            self.time_start is not None
-            and self.time_end is not None
-            and as_utc(self.time_end) < as_utc(self.time_start)
-        ):
-            raise ValueError("time_end cannot precede time_start")
-        if (
-            not self.keywords
-            and self.dimension is None
-            and self.entity_id is None
-            and self.linked_object_id is None
-        ):
-            raise ValueError(
-                "search requires keywords, dimension, entity_id, or linked_object_id"
-            )
-        return self
-
-
-class MindSearchHit(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
+@dataclass(frozen=True)
+class SearchHit:
     object_id: str
-    revision: int = Field(ge=1)
-    object_type: MindObjectType
-    entity_id: str | None = None
+    revision: int
+    object_type: str
+    subject_id: str
+    score: int
+    excerpt: str
+
+
+@dataclass
+class SearchPage:
+    status: str  # "ok" | "stale_index"
+    lag: int
+    world_revision: int
+    index_watermark: int
+    hits: list[SearchHit] = field(default_factory=list)
+    ambiguous_keywords: dict[str, list[str]] = field(default_factory=dict)
+
+
+
+@dataclass(frozen=True)
+class MindSearchHit:
+    object_id: str
+    revision: int
+    object_type: str
+    subject_id: str
+    score: int
     dimension: str
     excerpt: str
-    score: int = Field(ge=0)
     is_annotation: bool = False
-    related_entity_ids: tuple[str, ...] = ()
-    estimated_tokens: int = Field(ge=1, le=150)
-
-    @property
-    def subject_id(self) -> str:
-        """Compatibility name used by the original co_search result contract."""
-
-        return self.entity_id or "user_1"
-
-    @model_validator(mode="after")
-    def hit_receipt_matches_excerpt(self) -> MindSearchHit:
-        physical = ConservativeTokenMeter.count(self.excerpt)
-        if self.estimated_tokens != physical:
-            raise ValueError("estimated_tokens must match physical UTF-8 excerpt")
-        return self
+    related_entity_ids: list[str] = field(default_factory=list)
+    estimated_tokens: int = 0
 
 
-class MindSearchPage(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
-    status: str = "ok"
-    pathway: SearchPathway = SearchPathway.HIERARCHICAL_TOPO
-    hits: tuple[MindSearchHit, ...] = Field(default_factory=tuple, max_length=50)
-    total_estimated_tokens: int = Field(default=0, ge=0, le=500)
+@dataclass
+class MindSearchPage:
+    status: str  # "ok" | "stale_index"
+    lag: int
+    world_revision: int
+    index_watermark: int
+    hits: list[MindSearchHit] = field(default_factory=list)
+    total_estimated_tokens: int = 0
     query_intent: str = ""
-    ambiguous_keywords: dict[str, list[str]] = Field(default_factory=dict)
-    lag: int = Field(default=0, ge=0)
-    world_revision: int = Field(default=0, ge=0)
-    index_watermark: int = Field(default=0, ge=0)
-
-    @model_validator(mode="after")
-    def page_receipt_matches_hits(self) -> MindSearchPage:
-        expected = sum(hit.estimated_tokens for hit in self.hits)
-        if self.total_estimated_tokens != expected:
-            raise ValueError("page token receipt must equal hit envelopes")
-        return self
 
 
-class PathwaySearchResult(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
+class WorldSearchIndex:
+    """Rebuildable projection index over one AIOS world database."""
 
-    page: MindSearchPage
-    inspected_document_count: int = Field(ge=0)
-    context_token_cost: int = Field(ge=0)
-
-
-class MultidimensionalSearchEngine:
-    """In-memory projection with optional SQLiteWorldStore catch-up."""
-
-    MAX_SINGLE_HIT_TOKENS: ClassVar[int] = 150
-    MAX_PAGE_TOKENS: ClassVar[int] = 500
-
-    def __init__(
-        self,
-        db_path: str | Path | None = None,
-        *,
-        store: Any | None = None,
-        documents: Iterable[MindDocument] = (),
-    ) -> None:
-        self.db_path = str(db_path) if db_path is not None else None
+    def __init__(self, db_path: str | Path, *, store: Any) -> None:
+        self.db_path = str(db_path)
         self._store = store
-        self._documents: dict[tuple[str, int], MindDocument] = {}
-        self._tokens_by_key: dict[tuple[str, int], frozenset[str]] = {}
-        self._postings: dict[str, set[tuple[str, int]]] = defaultdict(set)
-        self._dimensions: dict[str, set[tuple[str, int]]] = defaultdict(set)
-        self._entities: dict[str, set[tuple[str, int]]] = defaultdict(set)
-        self._object_links: dict[str, set[tuple[str, int]]] = defaultdict(set)
-        self._annotations_by_target: dict[str, set[tuple[str, int]]] = defaultdict(set)
-        self._aliases: dict[str, set[str]] = defaultdict(set)
-        self._entity_aliases: dict[str, set[str]] = defaultdict(set)
-        self._types: dict[MindObjectType, set[tuple[str, int]]] = defaultdict(set)
-        self._lock = RLock()
-        self._watermark = 0
-        for document in documents:
-            self.add_document(document)
+        self._ensure_schema()
 
-    def add_document(self, document: MindDocument) -> None:
-        normalized = MindDocument.model_validate(document)
-        key = (normalized.object_id, normalized.revision)
-        with self._lock:
-            previous = self._documents.get(key)
-            if previous is not None:
-                if previous != normalized:
-                    raise ValueError(
-                        f"document revision already indexed with different content: {key}"
-                    )
-                return
-            self._documents[key] = normalized
-            document_tokens = _tokens(normalized.text)
-            self._tokens_by_key[key] = document_tokens
-            for token in document_tokens:
-                self._postings[token].add(key)
-            self._dimensions[normalized.dimension].add(key)
-            self._types[normalized.object_type].add(key)
-            self._object_links[normalized.object_id].add(key)
-            for object_id in normalized.related_object_ids:
-                self._object_links[object_id].add(key)
-                if normalized.object_type is MindObjectType.ANNOTATION:
-                    self._annotations_by_target[object_id].add(key)
-            if normalized.entity_id is not None:
-                self._entities[normalized.entity_id].add(key)
-            for entity_id in normalized.related_entity_ids:
-                self._entities[entity_id].add(key)
-            if normalized.object_type is MindObjectType.ENTITY:
-                entity_id = normalized.object_id
-                names = {normalized.text, *normalized.aliases}
-                for name in names:
-                    alias = normalize_alias(name)
-                    if alias:
-                        self._aliases[alias].add(entity_id)
-                        self._entity_aliases[entity_id].add(alias)
+    # ---------------- schema / lifecycle ----------------
 
-    def watermark(self) -> int:
-        return self._watermark
+    def _connect(self) -> sqlite3.Connection:
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA busy_timeout = 30000")
+        return conn
 
-    def lag(self) -> int:
-        if self._store is None:
-            return 0
-        try:
-            return max(0, int(self._store.current_world_revision()) - self._watermark)
-        except (AttributeError, TypeError, ValueError):
-            return 0
+    def _ensure_schema(self) -> None:
+        with self._connect() as conn:
+            conn.executescript(
+                """
+                CREATE TABLE IF NOT EXISTS search_postings(
+                    token TEXT NOT NULL,
+                    object_id TEXT NOT NULL,
+                    revision INTEGER NOT NULL,
+                    PRIMARY KEY(token, object_id, revision)
+                );
+                CREATE TABLE IF NOT EXISTS search_occurred(
+                    object_id TEXT NOT NULL,
+                    revision INTEGER NOT NULL,
+                    subject_id TEXT NOT NULL,
+                    object_type TEXT NOT NULL,
+                    occurred_start_us INTEGER,
+                    occurred_end_us INTEGER,
+                    dimension TEXT DEFAULT '',
+                    PRIMARY KEY(object_id, revision)
+                );
+                CREATE TABLE IF NOT EXISTS search_annotations(
+                    annotation_id TEXT PRIMARY KEY,
+                    target_object_id TEXT NOT NULL,
+                    target_object_type TEXT NOT NULL,
+                    reinterpretation_claim TEXT NOT NULL,
+                    is_invalidating INTEGER NOT NULL,
+                    created_at TEXT NOT NULL,
+                    created_by TEXT NOT NULL,
+                    dimension TEXT DEFAULT ''
+                );
+                CREATE TABLE IF NOT EXISTS search_doc(
+                    object_id TEXT NOT NULL,
+                    revision INTEGER NOT NULL,
+                    haystack TEXT NOT NULL,
+                    excerpt TEXT NOT NULL,
+                    PRIMARY KEY(object_id, revision)
+                );
+                CREATE TABLE IF NOT EXISTS search_alias(
+                    alias_norm TEXT NOT NULL,
+                    entity_object_id TEXT NOT NULL,
+                    PRIMARY KEY(alias_norm, entity_object_id)
+                );
+                CREATE TABLE IF NOT EXISTS search_tombstones(
+                    object_id TEXT PRIMARY KEY
+                );
+                CREATE TABLE IF NOT EXISTS search_meta(
+                    key TEXT PRIMARY KEY,
+                    value TEXT NOT NULL
+                );
+                """
+            )
+            try:
+                conn.execute("ALTER TABLE search_occurred ADD COLUMN dimension TEXT DEFAULT ''")
+            except Exception:
+                pass
 
     def drop_projection(self) -> None:
-        """Drop only the rebuildable in-memory projection, never world truth."""
+        """索引可弃（第 86.4 条：投影坏了删掉重建，不许与真相谈判）。"""
 
-        with self._lock:
-            self._documents.clear()
-            self._tokens_by_key.clear()
-            self._postings.clear()
-            self._dimensions.clear()
-            self._entities.clear()
-            self._object_links.clear()
-            self._annotations_by_target.clear()
-            self._aliases.clear()
-            self._entity_aliases.clear()
-            self._types.clear()
-            self._watermark = 0
+        with self._connect() as conn:
+            conn.executescript(
+                """
+                DROP TABLE IF EXISTS search_postings;
+                DROP TABLE IF EXISTS search_occurred;
+                DROP TABLE IF EXISTS search_doc;
+                DROP TABLE IF EXISTS search_alias;
+                DROP TABLE IF EXISTS search_tombstones;
+                DROP TABLE IF EXISTS search_meta;
+                DROP TABLE IF EXISTS search_annotations;
+                """
+            )
+        self._ensure_schema()
+
+    # ---------------- watermarks ----------------
+
+    def watermark(self) -> int:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT value FROM search_meta WHERE key=?", (_WATERMARK_KEY,)
+            ).fetchone()
+        return int(row["value"]) if row else 0
+
+    def lag(self) -> int:
+        return max(0, int(self._store.current_world_revision()) - self.watermark())
+
+    # ---------------- incremental build ----------------
+
+    def catch_up(self, *, max_rows: int = _CATCHUP_MAX_ROWS) -> int:
+        """Apply commit-order deltas. Returns number of rows indexed.
+
+        Truncation is cut at a world-revision boundary so a partial batch can
+        never leave a watermark that skips objects of one logical commit.
+        """
+
+        target = int(self._store.current_world_revision())
+        start = self.watermark()
+        if start >= target:
+            return 0
+        rows = self._store.revisions_after(start, limit=max_rows)
+        if not rows:
+            return 0
+        cut = int(rows[-1]["world_revision"])
+        if len(rows) >= max_rows and int(rows[0]["world_revision"]) != cut:
+            # 截断必须落在逻辑提交边界：丢掉可能残缺的尾组，
+            # 水位绝不越过未完整索引的 world_revision（已知限制：单提交
+            # 行数超过 max_rows 时需要流式重建，属 M1 Gate 后扩展）
+            while rows and int(rows[-1]["world_revision"]) == cut:
+                rows.pop()
+            if not rows:
+                return 0
+            cut = int(rows[-1]["world_revision"])
+        with self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            for row in rows:
+                self._index_row(conn, row)
+            conn.execute(
+                "INSERT OR REPLACE INTO search_meta(key, value) VALUES(?, ?)",
+                (_WATERMARK_KEY, str(cut)),
+            )
+            self._catch_up_annotations(conn)
+            conn.commit()
+        return len(rows)
 
     def rebuild(self) -> int:
         self.drop_projection()
-        return self.catch_up()
+        applied = 0
+        while True:
+            n = self.catch_up()
+            applied += n
+            if n == 0:
+                return applied
 
-    def catch_up(self) -> int:
-        """Project supported durable objects and either annotation schema."""
-
-        if self._store is None:
-            return 0
-        current_revision = self._current_world_revision()
-        if self._watermark >= current_revision:
-            return 0
-        added_before = len(self._documents)
-        type_map = {
-            "dimension_definition": MindObjectType.DIMENSION,
-            "claim": MindObjectType.CLAIM,
-            "entity": MindObjectType.ENTITY,
-            "observation": MindObjectType.OBSERVATION,
-            "event": MindObjectType.EVENT,
-            "relation": MindObjectType.RELATION,
-        }
-        for durable_type, mind_type in type_map.items():
-            try:
-                payloads = self._store.list_payloads(object_type=durable_type)
-            except (AttributeError, TypeError, ValueError):
-                try:
-                    from aios_core.contracts.enums import ObjectType
-
-                    payloads = self._store.list_payloads(
-                        object_type=ObjectType(durable_type)
-                    )
-                except (AttributeError, TypeError, ValueError):
-                    continue
-            for payload in payloads:
-                document = self._payload_document(payload, mind_type)
-                if document is not None:
-                    self.add_document(document)
-        self._catch_up_annotations()
+    def _index_row(self, conn: sqlite3.Connection, row: dict) -> None:
+        object_id = str(row["object_id"])
+        revision = int(row["revision"])
+        object_type = str(row["object_type"])
+        subject_id = str(row["subject_id"])
         try:
-            self._watermark = int(self._store.current_world_revision())
-        except (AttributeError, TypeError, ValueError):
-            pass
-        return len(self._documents) - added_before
+            payload = json.loads(row["payload_json"])
+        except (TypeError, ValueError):
+            return  # 损坏行：跳过并留给水位审计，索引绝不反向污染世界
+        if not isinstance(payload, dict):
+            return
 
-    def search_mind(
-        self,
-        keywords: Sequence[str] = (),
-        *,
-        dimension: str | None = None,
-        claim_id: str | None = None,
-        entity_id: str | None = None,
-        annotation_id: str | None = None,
-        object_types: Sequence[MindObjectType | str] | None = None,
-        time_range: tuple[datetime, datetime] | None = None,
-        include_annotations: bool = True,
-        limit: int = 20,
-        pathway: SearchPathway = SearchPathway.HIERARCHICAL_TOPO,
-    ) -> MindSearchPage:
-        if claim_id is not None and annotation_id is not None:
-            raise ValueError("claim_id and annotation_id cannot be combined")
-        query = MindSearchQuery(
-            keywords=tuple(keywords),
-            dimension=dimension,
-            entity_id=entity_id,
-            linked_object_id=annotation_id or claim_id,
-            object_types=tuple(MindObjectType(item) for item in (object_types or ())),
-            time_start=time_range[0] if time_range is not None else None,
-            time_end=time_range[1] if time_range is not None else None,
-            include_annotations=include_annotations,
-            limit=limit,
-        )
-        return self.execute_pathway(pathway, query).page
+        texts: list[str] = []
+        for name in _TEXT_FIELDS.get(object_type, ()):
+            value = payload.get(name)
+            if isinstance(value, str) and value.strip():
+                texts.append(value.strip())
+        tokens: set[str] = set()
+        for text in texts:
+            tokens |= tokens_for(text)
 
-    def execute_pathway(
-        self,
-        pathway: SearchPathway,
-        query: MindSearchQuery,
-    ) -> PathwaySearchResult:
-        normalized_pathway = SearchPathway(pathway)
-        normalized_query = MindSearchQuery.model_validate(query)
-        if self._store is not None and self.lag() > 0:
-            self.catch_up()
-        with self._lock:
-            if normalized_pathway is SearchPathway.BRUTE_FORCE_SCAN:
-                candidate_keys = set(self._documents)
-                inspected_keys = set(self._documents)
-                matched = self._filter_exact(candidate_keys, normalized_query)
-            elif normalized_pathway is SearchPathway.KEYWORD_SEARCH:
-                candidate_keys = self._naive_keyword_candidates(normalized_query)
-                inspected_keys = set(candidate_keys)
-                matched = self._filter_structured(candidate_keys, normalized_query)
-            else:
-                candidate_keys = self._topological_candidates(normalized_query)
-                inspected_keys = set(candidate_keys)
-                matched = self._filter_exact(candidate_keys, normalized_query)
+        revision_kind = row.get("revision_kind", "content")
+        if revision_kind == "tombstone":
+            conn.execute("INSERT OR REPLACE INTO search_tombstones(object_id) VALUES(?)", (object_id,))
+            return
 
-            if normalized_query.include_annotations and matched:
-                target_ids = {self._documents[key].object_id for key in matched}
-                for target_id in target_ids:
-                    matched.update(self._annotations_by_target.get(target_id, ()))
+        tokens.add(_id_token("sub", subject_id))
+        for ref_id in _iter_ref_ids(payload):
+            tokens.add(_id_token("ref", ref_id))
 
-            ranked = sorted(
-                (self._documents[key] for key in matched),
-                key=lambda document: self._rank_key(document, normalized_query),
-            )[: normalized_query.limit]
-            page = self._bounded_page(
-                ranked,
-                normalized_query,
-                normalized_pathway,
-            )
-            if normalized_pathway is SearchPathway.HIERARCHICAL_TOPO:
-                context_cost = page.total_estimated_tokens
-            else:
-                context_cost = sum(
-                    ConservativeTokenMeter.estimate_context_tokens(
-                        self._documents[key].text
+        if object_type == "entity":
+            tokens.add(_id_token("ent", object_id))
+            names = [payload.get("canonical_name"), *(payload.get("aliases") or [])]
+            for name in names:
+                if isinstance(name, str) and name.strip():
+                    tokens |= tokens_for(name)
+                    conn.execute(
+                        "INSERT OR IGNORE INTO search_alias(alias_norm, entity_object_id) VALUES(?, ?)",
+                        (normalize_alias(name), object_id),
                     )
-                    for key in inspected_keys
-                )
-            return PathwaySearchResult(
-                page=page,
-                inspected_document_count=len(inspected_keys),
-                context_token_cost=context_cost,
+
+        haystack = "\n".join(texts)
+        joined = haystack.lower()
+        dim = derive_dimension(payload, object_type)
+        tokens.add(_id_token("dim", dim))
+        if tokens:
+            conn.executemany(
+                "INSERT OR IGNORE INTO search_postings(token, object_id, revision) VALUES(?,?,?)",
+                [(token, object_id, revision) for token in tokens],
             )
 
-    def search_by_dimension(
-        self,
-        dimension: str,
-        keywords: Sequence[str] = (),
-        limit: int = 20,
-    ) -> MindSearchPage:
-        return self.search_mind(keywords, dimension=dimension, limit=limit)
+        start_us, end_us = _extent_us(payload, object_type)
+        conn.execute(
+            """
+            INSERT OR REPLACE INTO search_occurred(
+                object_id, revision, subject_id, object_type, occurred_start_us, occurred_end_us, dimension
+            ) VALUES(?,?,?,?,?,?,?)
+            """,
+            (object_id, revision, subject_id, object_type, start_us, end_us, dim),
+        )
+        conn.execute(
+            "INSERT OR REPLACE INTO search_doc(object_id, revision, haystack, excerpt) VALUES(?,?,?,?)",
+            (object_id, revision, joined, haystack[:_EXCERPT_LIMIT]),
+        )
 
-    def search_by_claim(
-        self,
-        claim_id: str,
-        keywords: Sequence[str] = (),
-        limit: int = 20,
-    ) -> MindSearchPage:
-        return self.search_mind(keywords, claim_id=claim_id, limit=limit)
+    # ---------------- query ----------------
 
-    def search_by_entity(
-        self,
-        entity_id: str,
-        keywords: Sequence[str] = (),
-        limit: int = 20,
-    ) -> MindSearchPage:
-        return self.search_mind(keywords, entity_id=entity_id, limit=limit)
-
-    def search_by_annotation(
-        self,
-        annotation_id: str,
-        limit: int = 20,
-    ) -> MindSearchPage:
-        return self.search_mind(annotation_id=annotation_id, limit=limit)
+    def _postings_for(self, conn: sqlite3.Connection, tokens: set[str]) -> dict[tuple[str, int], int]:
+        if not tokens:
+            return {}
+        ordered = sorted(tokens)
+        placeholders = ",".join("?" for _ in ordered)
+        rows = conn.execute(
+            f"""
+            SELECT object_id, revision, COUNT(*) AS hit_tokens
+            FROM search_postings
+            WHERE token IN ({placeholders})
+            GROUP BY object_id, revision
+            """,
+            ordered,
+        ).fetchall()
+        return {(r["object_id"], int(r["revision"])): int(r["hit_tokens"]) for r in rows}
 
     def co_search(
         self,
-        keywords: Sequence[str],
+        keywords: list[str],
         *,
         subject: str | None = None,
         time_range: tuple[datetime, datetime] | None = None,
@@ -541,414 +460,487 @@ class MultidimensionalSearchEngine:
         view: str = "ANNOTATED",
         as_of: datetime | None = None,
         include_tombstones: bool = True,
-    ) -> MindSearchPage:
-        """Backward-compatible co-occurrence intersection over bounded hits."""
-
-        del view, as_of, include_tombstones
-        if not keywords or any(not keyword.strip() for keyword in keywords):
-            raise ValueError("co_search requires non-blank keywords")
-        if strict_freshness and self.lag() > 0:
-            return MindSearchPage(
-                status="stale_index",
-                lag=self.lag(),
-                world_revision=self._current_world_revision(),
-                index_watermark=self._watermark,
-            )
-        if self._store is not None and self.lag() > 0:
+    ) -> SearchPage:
+        if not keywords or any(not kw.strip() for kw in keywords):
+            raise ValueError("co_search requires non-blank keywords (第 89 条共现,不是单点通配)")
+        current = int(self._store.current_world_revision())
+        wm_before = self.watermark()
+        if strict_freshness and wm_before < current:
+            return SearchPage(status="stale_index", lag=current - wm_before,
+                              world_revision=current, index_watermark=wm_before)
+        if wm_before < current:
             self.catch_up()
-        query = MindSearchQuery(
-            keywords=tuple(keywords),
-            entity_id=subject,
-            time_start=time_range[0] if time_range is not None else None,
-            time_end=time_range[1] if time_range is not None else None,
-            include_annotations=False,
-            limit=limit,
+        wm = self.watermark()
+
+        per_kw: list[dict[tuple[str, int], int]] = []
+        ambiguous: dict[str, list[str]] = {}
+        with self._connect() as conn:
+            for kw in keywords:
+                tokens = set(tokens_for(kw))
+                ent_rows = conn.execute(
+                    "SELECT entity_object_id FROM search_alias WHERE alias_norm=?",
+                    (normalize_alias(kw),),
+                ).fetchall()
+                ent_ids = sorted({r["entity_object_id"] for r in ent_rows})
+                if len(ent_ids) > 1:
+                    ambiguous[kw] = ent_ids  # 第 36 条：不自动合并身份
+                elif len(ent_ids) == 1:
+                    eid = ent_ids[0]
+                    tokens.add(_id_token("ent", eid))
+                    tokens.add(_id_token("ref", eid))
+                    # 唯一解析到单实体→按别名全集展开召回（"母亲"→"妈妈"文本命中；
+                    # 身份仍锚定实体编号，不改写任何对象）
+                    for (alias,) in conn.execute(
+                        "SELECT alias_norm FROM search_alias WHERE entity_object_id = ?", (eid,)
+                    ):
+                        tokens |= tokens_for(alias)
+                hits = self._postings_for(conn, tokens)
+                if not hits:
+                    return SearchPage(status="ok", lag=current - wm, world_revision=current,
+                                      index_watermark=wm, ambiguous_keywords=ambiguous)
+                _ = tokens  # per-keyword token 集已折叠进 postings 命中
+                per_kw.append(hits)
+            candidates = set.intersection(*(set(h) for h in per_kw))
+            if not candidates:
+                return SearchPage(status="ok", lag=current - wm, world_revision=current,
+                                  index_watermark=wm, ambiguous_keywords=ambiguous)
+            page = self._finalize(conn, candidates, keywords, per_kw,
+                                  subject=subject, time_range=time_range, limit=limit,
+                                  lag=current - wm, current=current, wm=wm, ambiguous=ambiguous,
+                                  view=view, as_of=as_of, include_tombstones=include_tombstones)
+        return page
+
+    def _finalize(
+        self, conn: sqlite3.Connection, candidates: set[tuple[str, int]], keywords: list[str],
+        per_kw: list[dict[tuple[str, int], int]], *, subject: str | None, time_range, limit: int,
+        lag: int, current: int, wm: int, ambiguous: dict[str, list[str]],
+        view: str = "ANNOTATED", as_of: datetime | None = None, include_tombstones: bool = True,
+    ) -> SearchPage:
+        if not include_tombstones:
+            tombstones = {
+                r[0] for r in conn.execute("SELECT object_id FROM search_tombstones").fetchall()
+            }
+            if hasattr(self._store, "is_latest_pruned"):
+                def _is_pruned_or_refs_pruned(oid: str, rev: int) -> bool:
+                    if oid in tombstones or self._store.is_latest_pruned(oid):
+                        return True
+                    try:
+                        p = self._store.get_payload(oid, revision=rev)
+                        for ref_id in _iter_ref_ids(p):
+                            if ref_id in tombstones or self._store.is_latest_pruned(ref_id):
+                                return True
+                            if ref_id.startswith("evidence_"):
+                                try:
+                                    ev_p = self._store.get_payload(ref_id)
+                                    for m in ev_p.get("member_refs", []):
+                                        if isinstance(m, dict):
+                                            mid = m.get("object_id")
+                                            if mid and (mid in tombstones or self._store.is_latest_pruned(mid)):
+                                                return True
+                                except Exception:
+                                    pass
+                    except Exception:
+                        pass
+                    return False
+                candidates = {c for c in candidates if not _is_pruned_or_refs_pruned(c[0], c[1])}
+            else:
+                candidates = {c for c in candidates if c[0] not in tombstones}
+
+        if view == "AS_KNOWN" and as_of is not None:
+            as_of_us = int(as_utc(as_of, "as_of").timestamp() * 1_000_000)
+            valid_candidates = set()
+            for oid, rev in candidates:
+                row = conn.execute(
+                    "SELECT occurred_start_us FROM search_occurred WHERE object_id=? AND revision=?",
+                    (oid, rev),
+                ).fetchone()
+                if row and row["occurred_start_us"] is not None:
+                    if row["occurred_start_us"] <= as_of_us:
+                        valid_candidates.add((oid, rev))
+                else:
+                    try:
+                        p = self._store.get_payload(oid, revision=rev)
+                        lat = p.get("learned_at")
+                        if lat:
+                            l_us = int(as_utc(datetime.fromisoformat(lat), "lat").timestamp() * 1_000_000)
+                            if l_us <= as_of_us:
+                                valid_candidates.add((oid, rev))
+                        else:
+                            valid_candidates.add((oid, rev))
+                    except Exception:
+                        valid_candidates.add((oid, rev))
+            candidates = valid_candidates
+        pairs = sorted(candidates)
+        # 50 万修订下的物理计划纪律（G-M1P/T2-I 禁扫描）：候选对经临时表
+        # WITHOUT ROWID 主键 join，杜绝行值 IN 退化为 SCAN search_occurred。
+        conn.execute(
+            "CREATE TEMP TABLE IF NOT EXISTS search_candidates("
+            "object_id TEXT NOT NULL, revision INTEGER NOT NULL,"
+            "PRIMARY KEY(object_id, revision)) WITHOUT ROWID"
         )
-        with self._lock:
-            groups: list[set[tuple[str, int]]] = []
-            ambiguous: dict[str, list[str]] = {}
-            for keyword in query.keywords:
-                keyword_tokens = _tokens(keyword)
-                resolved = self._aliases.get(normalize_alias(keyword), set())
-                if len(resolved) > 1:
-                    ambiguous[keyword] = sorted(resolved)
-                expanded_tokens = set(keyword_tokens)
-                for entity_id in resolved:
-                    for alias in self._entity_aliases.get(entity_id, ()):
-                        expanded_tokens.update(_tokens(alias))
-                candidates: set[tuple[str, int]] = set()
-                for token in expanded_tokens:
-                    candidates.update(self._postings.get(token, ()))
-                for entity_id in resolved:
-                    candidates.update(self._entities.get(entity_id, ()))
-                candidates = {
-                    key
-                    for key in candidates
-                    if self._keyword_matches_document(keyword, resolved, key)
-                }
-                if not candidates:
-                    return MindSearchPage(
-                        lag=self.lag(),
-                        world_revision=self._current_world_revision(),
-                        index_watermark=self._watermark,
-                        ambiguous_keywords=ambiguous,
-                        query_intent=" ".join(query.keywords),
-                    )
-                groups.append(candidates)
-            matched = set.intersection(*groups)
-            matched = self._filter_structured(matched, query)
-            ranked = sorted(
-                (self._documents[key] for key in matched),
-                key=lambda document: self._rank_key(document, query),
-            )[:limit]
-            page = self._bounded_page(
-                ranked,
-                query,
-                SearchPathway.HIERARCHICAL_TOPO,
+        conn.execute("DELETE FROM search_candidates")
+        conn.executemany("INSERT INTO search_candidates VALUES (?,?)", pairs)
+        params: list[Any] = []
+        sql = """
+            SELECT o.object_id, o.revision, o.object_type, o.subject_id,
+                   o.occurred_start_us, o.occurred_end_us,
+                   d.haystack, d.excerpt
+            FROM search_candidates c
+            JOIN search_occurred o ON o.object_id = c.object_id AND o.revision = c.revision
+            JOIN search_doc d ON d.object_id = o.object_id AND d.revision = o.revision
+            WHERE 1=1
+        """
+        if subject is not None:
+            sql += " AND o.subject_id = ?"
+            params.append(subject)
+        if time_range is not None:
+            t0 = int(time_range[0].astimezone(timezone.utc).timestamp() * 1_000_000)
+            t1 = int(time_range[1].astimezone(timezone.utc).timestamp() * 1_000_000)
+            sql += (
+                " AND o.occurred_start_us IS NOT NULL"
+                " AND NOT (COALESCE(o.occurred_end_us, o.occurred_start_us) < ? OR o.occurred_start_us > ?)"
             )
-            return page.model_copy(update={"ambiguous_keywords": ambiguous})
+            params.extend([t0, t1])
+        rows = conn.execute(sql + " ORDER BY o.occurred_start_us DESC, o.object_id", params).fetchall()
 
-    def _current_world_revision(self) -> int:
-        if self._store is None:
-            return self._watermark
-        try:
-            return int(self._store.current_world_revision())
-        except (AttributeError, TypeError, ValueError):
-            return self._watermark
+        best: dict[str, sqlite3.Row] = {}
+        for row in rows:  # 同对象取最新可见 revision（pinned 语义由调用方在展开层处理）
+            best.setdefault(row["object_id"], row)
 
-    def _keyword_matches_document(
-        self,
-        keyword: str,
-        resolved_entity_ids: set[str],
-        key: tuple[str, int],
-    ) -> bool:
-        document = self._documents[key]
-        if keyword.casefold() in document.text.casefold():
-            return True
-        if _tokens(keyword) <= self._tokens_by_key[key]:
-            return True
-        for entity_id in resolved_entity_ids:
-            if any(
-                _tokens(alias) <= self._tokens_by_key[key]
-                for alias in self._entity_aliases.get(entity_id, ())
-            ):
-                return True
-        linked_entities = {
-            document.entity_id,
-            *document.related_entity_ids,
-        }
-        return bool(resolved_entity_ids & linked_entities)
-
-    def _naive_keyword_candidates(self, query: MindSearchQuery) -> set[tuple[str, int]]:
-        query_tokens = self._query_tokens(query)
-        if not query_tokens:
-            return set(self._documents)
-        candidates: set[tuple[str, int]] = set()
-        for token in query_tokens:
-            candidates.update(self._postings.get(token, ()))
-        return candidates
-
-    def _topological_candidates(self, query: MindSearchQuery) -> set[tuple[str, int]]:
-        candidates = set(self._documents)
-        if query.dimension is not None:
-            candidates &= self._dimensions.get(query.dimension, set())
-        if query.entity_id is not None:
-            candidates &= self._entities.get(query.entity_id, set())
-        if query.linked_object_id is not None:
-            candidates &= self._object_links.get(query.linked_object_id, set())
-        if query.object_types:
-            allowed: set[tuple[str, int]] = set()
-            for object_type in query.object_types:
-                allowed.update(self._types.get(object_type, ()))
-            candidates &= allowed
-        for keyword in query.keywords:
-            candidates &= self._candidate_keys_for_keyword(keyword)
-        return candidates
-
-    def _filter_exact(
-        self,
-        keys: set[tuple[str, int]],
-        query: MindSearchQuery,
-    ) -> set[tuple[str, int]]:
-        return {
-            key
-            for key in self._filter_structured(keys, query)
-            if all(
-                self._keyword_matches_document(
-                    keyword,
-                    self._aliases.get(normalize_alias(keyword), set()),
-                    key,
-                )
-                for keyword in query.keywords
-            )
-        }
-
-    def _candidate_keys_for_keyword(self, keyword: str) -> set[tuple[str, int]]:
-        resolved = self._aliases.get(normalize_alias(keyword), set())
-        variants = {normalize_alias(keyword)}
-        for entity_id in resolved:
-            variants.update(self._entity_aliases.get(entity_id, ()))
-        candidates: set[tuple[str, int]] = set()
-        for variant in variants:
-            variant_candidates = set(self._documents)
-            for token in _tokens(variant):
-                variant_candidates &= self._postings.get(token, set())
-            candidates.update(variant_candidates)
-        for entity_id in resolved:
-            candidates.update(self._entities.get(entity_id, ()))
-        return {
-            key
-            for key in candidates
-            if self._keyword_matches_document(keyword, resolved, key)
-        }
-
-    def _filter_structured(
-        self,
-        keys: set[tuple[str, int]],
-        query: MindSearchQuery,
-    ) -> set[tuple[str, int]]:
-        return {
-            key for key in keys if self._matches_structured(self._documents[key], query)
-        }
-
-    @staticmethod
-    def _matches_structured(document: MindDocument, query: MindSearchQuery) -> bool:
-        if query.dimension is not None and document.dimension != query.dimension:
-            return False
-        if query.entity_id is not None and query.entity_id not in {
-            document.entity_id,
-            *document.related_entity_ids,
-        }:
-            return False
-        if query.linked_object_id is not None and query.linked_object_id not in {
-            document.object_id,
-            *document.related_object_ids,
-        }:
-            return False
-        if query.object_types and document.object_type not in query.object_types:
-            return False
-        occurred = as_utc(document.occurred_at)
-        if query.time_start is not None and occurred < as_utc(query.time_start):
-            return False
-        return not (query.time_end is not None and occurred > as_utc(query.time_end))
-
-    def _bounded_page(
-        self,
-        documents: list[MindDocument],
-        query: MindSearchQuery,
-        pathway: SearchPathway,
-    ) -> MindSearchPage:
-        remaining = self.MAX_PAGE_TOKENS
-        hits: list[MindSearchHit] = []
-        query_tokens = self._query_tokens(query)
-        for index, document in enumerate(documents):
-            documents_left = len(documents) - index
-            budget = min(
-                self.MAX_SINGLE_HIT_TOKENS,
-                max(1, remaining // max(1, documents_left)),
-            )
-            excerpt = ConservativeTokenMeter.truncate(document.text, budget)
-            physical_count = ConservativeTokenMeter.count(excerpt)
-            if physical_count == 0:
+        hits: list[SearchHit] = []
+        for row in best.values():
+            haystack = row["haystack"] or ""
+            ok = True
+            for kw in keywords:
+                kwl = kw.strip().lower()
+                if kwl in haystack:
+                    continue
+                # 文本不命中时，仅当该关键词已被实体编号解析（引用命中）才放行
+                resolved = sorted({r["entity_object_id"] for r in conn.execute(
+                    "SELECT entity_object_id FROM search_alias WHERE alias_norm=?", (normalize_alias(kw),))})
+                if len(resolved) == 1:
+                    alias_variants = [r[0] for r in conn.execute(
+                        "SELECT alias_norm FROM search_alias WHERE entity_object_id = ?", (resolved[0],))]
+                    if any(v in haystack for v in alias_variants):
+                        continue
+                    token = _id_token("ent", resolved[0])
+                    has_link = conn.execute(
+                        "SELECT 1 FROM search_postings WHERE token=? AND object_id=? AND revision=? LIMIT 1",
+                        (token, row["object_id"], row["revision"]),
+                    ).fetchone()
+                    token2 = _id_token("ref", resolved[0])
+                    has_link = has_link or conn.execute(
+                        "SELECT 1 FROM search_postings WHERE token=? AND object_id=? AND revision=? LIMIT 1",
+                        (token2, row["object_id"], row["revision"]),
+                    ).fetchone()
+                    if has_link:
+                        continue
+                ok = False
+                break
+            if not ok:
                 continue
-            remaining -= physical_count
-            hits.append(
-                MindSearchHit(
-                    object_id=document.object_id,
-                    revision=document.revision,
-                    object_type=document.object_type,
-                    entity_id=document.entity_id,
-                    dimension=document.dimension,
-                    excerpt=excerpt,
-                    score=(
-                        len(
-                            query_tokens
-                            & self._tokens_by_key[
-                                (document.object_id, document.revision)
-                            ]
-                        )
-                        + (
-                            10
-                            if document.object_type is MindObjectType.ANNOTATION
-                            else 0
-                        )
-                    ),
-                    is_annotation=document.object_type is MindObjectType.ANNOTATION,
-                    related_entity_ids=tuple(sorted(document.related_entity_ids)),
-                    estimated_tokens=physical_count,
-                )
-            )
-        intent_parts = list(query.keywords)
-        if query.dimension is not None:
-            intent_parts.append(f"dim:{query.dimension}")
-        if query.entity_id is not None:
-            intent_parts.append(f"entity:{query.entity_id}")
-        if query.linked_object_id is not None:
-            intent_parts.append(f"object:{query.linked_object_id}")
-        return MindSearchPage(
-            pathway=pathway,
-            hits=tuple(hits),
-            total_estimated_tokens=sum(hit.estimated_tokens for hit in hits),
-            query_intent=" ".join(intent_parts),
-            lag=self.lag(),
-            world_revision=self._current_world_revision(),
-            index_watermark=self._watermark,
-        )
+            pair = (row["object_id"], int(row["revision"]))
+            score = sum(hits.get(pair, 0) for hits in per_kw)  # 共现证据数：各关键词命中词元之和
+            score += _TYPE_BOOST.get(row["object_type"], 0)
+            hits.append(SearchHit(
+                object_id=row["object_id"], revision=int(row["revision"]),
+                object_type=row["object_type"], subject_id=row["subject_id"],
+                score=score, excerpt=row["excerpt"] or "",
+            ))
+        hits.sort(key=lambda h: (-h.score, h.object_id))
+        return SearchPage(status="ok", lag=lag, world_revision=current, index_watermark=wm,
+                          hits=hits[:limit], ambiguous_keywords=ambiguous)
 
-    def _rank_key(
-        self,
-        document: MindDocument,
-        query: MindSearchQuery,
-    ) -> tuple[int, int, float, str]:
-        token_matches = len(
-            self._query_tokens(query)
-            & self._tokens_by_key[(document.object_id, document.revision)]
-        )
-        return (
-            -int(document.object_type is MindObjectType.ANNOTATION),
-            -token_matches,
-            -as_utc(document.occurred_at).timestamp(),
-            document.object_id,
-        )
 
-    @staticmethod
-    def _query_tokens(query: MindSearchQuery) -> frozenset[str]:
-        tokens: set[str] = set()
-        for keyword in query.keywords:
-            tokens.update(_tokens(keyword))
-        return frozenset(tokens)
-
-    @staticmethod
-    def _payload_document(
-        payload: dict[str, Any],
-        object_type: MindObjectType,
-    ) -> MindDocument | None:
-        text_parts: list[str] = []
-        for field_name in (
-            "name",
-            "description",
-            "content",
-            "canonical_name",
-            "aliases",
-            "value",
-            "title",
-            "interpretation",
-        ):
-            value = payload.get(field_name)
-            if isinstance(value, str):
-                text_parts.append(value)
-            elif isinstance(value, list):
-                text_parts.extend(str(item) for item in value if isinstance(item, str))
-            elif field_name == "value" and value is not None:
-                text_parts.append(
-                    json.dumps(value, ensure_ascii=False, sort_keys=True, default=str)
-                )
-        if not text_parts:
-            return None
-        occurred = payload.get("occurred")
-        occurred_value = occurred.get("start") if isinstance(occurred, dict) else None
-        timestamp_raw = occurred_value or payload.get("learned_at")
+    def _catch_up_annotations(self, conn: sqlite3.Connection) -> None:
+        """同步外挂注记表（retrospective_annotations）进入多维搜索投影。"""
         try:
-            timestamp = (
-                datetime.fromisoformat(timestamp_raw)
-                if isinstance(timestamp_raw, str)
-                else datetime.now(UTC)
-            )
-            require_aware(timestamp, "document timestamp")
-        except ValueError:
-            return None
-        subject = payload.get("subject_id")
-        entity_id = (
-            str(payload.get("object_id"))
-            if object_type is MindObjectType.ENTITY
-            else str(subject)
-            if isinstance(subject, str)
-            else None
-        )
-        related_object_ids = frozenset(_iter_ref_ids(payload))
-        related_entity_ids = frozenset(
-            object_id
-            for object_id in related_object_ids
-            if object_id.startswith(("ent_", "entity_"))
-        )
-        aliases = payload.get("aliases", ())
-        return MindDocument(
-            object_id=str(payload["object_id"]),
-            revision=int(payload.get("revision", 1)),
-            object_type=object_type,
-            dimension=derive_dimension(payload, object_type.value),
-            entity_id=entity_id,
-            text="；".join(text_parts),
-            occurred_at=timestamp,
-            aliases=frozenset(
-                alias for alias in aliases if isinstance(alias, str) and alias.strip()
-            )
-            if isinstance(aliases, list)
-            else frozenset(),
-            related_entity_ids=related_entity_ids,
-            related_object_ids=related_object_ids,
-        )
+            # 检查底层 store 是否有 retrospective_annotations 表
+            cur = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='retrospective_annotations'")
+            if not cur.fetchone():
+                return
+            rows = conn.execute(
+                "SELECT annotation_id, target_object_id, target_object_type, "
+                "reinterpretation_claim, is_invalidating, created_at, created_by "
+                "FROM retrospective_annotations"
+            ).fetchall()
+            for r in rows:
+                anno_id = str(r[0])
+                target_id = str(r[1])
+                target_type = str(r[2])
+                claim_text = str(r[3])
+                is_inv = int(r[4])
+                created_at = str(r[5])
+                created_by = str(r[6])
+                dim = derive_dimension({"value": claim_text}, "reinterpretation")
 
-    def _catch_up_annotations(self) -> None:
-        if self.db_path is None or not Path(self.db_path).is_file():
-            return
-        try:
-            with sqlite3.connect(self.db_path) as connection:
-                columns = {
-                    row[1]
-                    for row in connection.execute(
-                        "PRAGMA table_info(retrospective_annotations)"
+                tokens = set(tokens_for(claim_text))
+                tokens.add(_id_token("sub", "user_1"))
+                tokens.add(_id_token("ref", target_id))
+                tokens.add(_id_token("ent", target_id))
+                tokens.add(_id_token("anno", anno_id))
+                tokens.add(_id_token("dim", dim))
+
+                conn.execute(
+                    "INSERT OR REPLACE INTO search_annotations(annotation_id, target_object_id, target_object_type, "
+                    "reinterpretation_claim, is_invalidating, created_at, created_by, dimension) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                    (anno_id, target_id, target_type, claim_text, is_inv, created_at, created_by, dim),
+                )
+                if tokens:
+                    conn.executemany(
+                        "INSERT OR IGNORE INTO search_postings(token, object_id, revision) VALUES(?,?,?)",
+                        [(t, anno_id, 1) for t in tokens],
                     )
-                }
-                if not columns:
-                    return
-                if {"annotation_id", "target_entity_id", "semantic_overlay"} <= columns:
-                    rows = connection.execute(
-                        "SELECT annotation_id, target_entity_id, semantic_overlay, "
-                        "target_time_start, learned_at FROM retrospective_annotations"
+                conn.execute(
+                    "INSERT OR REPLACE INTO search_doc(object_id, revision, haystack, excerpt) VALUES(?,?,?,?)",
+                    (anno_id, 1, claim_text.lower(), claim_text[:_EXCERPT_LIMIT]),
+                )
+                us = 0
+                try:
+                    us = int(datetime.fromisoformat(created_at).astimezone(timezone.utc).timestamp() * 1_000_000)
+                except Exception:
+                    pass
+                conn.execute(
+                    "INSERT OR REPLACE INTO search_occurred(object_id, revision, subject_id, object_type, "
+                    "occurred_start_us, occurred_end_us, dimension) VALUES(?,?,?,?,?,?,?)",
+                    (anno_id, 1, "user_1", "reinterpretation", us, us, dim),
+                )
+        except Exception:
+            pass
+
+    def search_mind(
+        self,
+        keywords: Sequence[str] = (),
+        *,
+        dimension: Optional[str] = None,
+        claim_id: Optional[str] = None,
+        entity_id: Optional[str] = None,
+        annotation_id: Optional[str] = None,
+        object_types: Optional[Sequence[str]] = None,
+        time_range: Optional[Tuple[datetime, datetime]] = None,
+        include_annotations: bool = True,
+        limit: int = 20,
+    ) -> MindSearchPage:
+        """宪法第二十章：多维心智联合感知检索入口。
+
+        原生支持按**维度（Dimension）、主张（Claim）、实体（Entity）、注记（Annotation）**
+        的多维正交联合精准检索，兼具时空窗剪裁与极简 Token 输出。
+        """
+        current = int(self._store.current_world_revision())
+        wm_before = self.watermark()
+        if wm_before < current:
+            self.catch_up()
+        wm = self.watermark()
+
+        search_tokens: set[str] = set()
+        for kw in keywords:
+            search_tokens |= tokens_for(kw)
+        if entity_id:
+            search_tokens.add(_id_token("ent", entity_id))
+            search_tokens.add(_id_token("ref", entity_id))
+        if claim_id:
+            search_tokens.add(_id_token("ref", claim_id))
+        if annotation_id:
+            search_tokens.add(_id_token("anno", annotation_id))
+
+        with self._connect() as conn:
+            # 如果提供了 search_tokens，根据 postings 交集加速
+            if search_tokens:
+                expanded_tokens = set(search_tokens)
+                for kw in keywords:
+                    ent_rows = conn.execute(
+                        "SELECT entity_object_id FROM search_alias WHERE alias_norm=?",
+                        (normalize_alias(kw),),
                     ).fetchall()
-                    for annotation_id, entity_id, text, occurred, learned in rows:
-                        timestamp = datetime.fromisoformat(occurred or learned)
-                        self.add_document(
-                            MindDocument(
-                                object_id=annotation_id,
-                                object_type=MindObjectType.ANNOTATION,
-                                dimension=derive_dimension(
-                                    {"semantic_overlay": text}, "annotation"
-                                ),
-                                entity_id=entity_id,
-                                text=text,
-                                occurred_at=timestamp,
-                                related_entity_ids=frozenset({entity_id}),
+                    for (eid,) in ent_rows:
+                        expanded_tokens.add(_id_token("ent", eid))
+                        expanded_tokens.add(_id_token("ref", eid))
+                        for (anorm,) in conn.execute(
+                            "SELECT alias_norm FROM search_alias WHERE entity_object_id=?", (eid,)
+                        ):
+                            expanded_tokens |= tokens_for(anorm)
+
+                hits_map = self._postings_for(conn, expanded_tokens)
+                candidate_pairs = set(hits_map.keys())
+            else:
+                candidate_pairs = None
+
+            params: list[Any] = []
+            clauses = ["1=1"]
+            if dimension:
+                clauses.append("o.dimension = ?")
+                params.append(dimension)
+            if claim_id:
+                clauses.append("(o.object_id = ? OR o.object_id IN (SELECT object_id FROM search_postings WHERE token = ?))")
+                params.extend([claim_id, _id_token("ref", claim_id)])
+            if annotation_id:
+                clauses.append("(o.object_id = ? OR o.object_id IN (SELECT target_object_id FROM search_annotations WHERE annotation_id = ?))")
+                params.extend([annotation_id, annotation_id])
+            if object_types:
+                placeholders = ",".join("?" for _ in object_types)
+                clauses.append(f"o.object_type IN ({placeholders})")
+                params.extend(object_types)
+            if time_range:
+                t0 = int(time_range[0].astimezone(timezone.utc).timestamp() * 1_000_000)
+                t1 = int(time_range[1].astimezone(timezone.utc).timestamp() * 1_000_000)
+                clauses.append(
+                    "o.occurred_start_us IS NOT NULL AND NOT (COALESCE(o.occurred_end_us, o.occurred_start_us) < ? OR o.occurred_start_us > ?)"
+                )
+                params.extend([t0, t1])
+
+            # 排除墓碑
+            tombstones = {r[0] for r in conn.execute("SELECT object_id FROM search_tombstones").fetchall()}
+
+            where_sql = " AND ".join(clauses)
+            sql = f"""
+                SELECT o.object_id, o.revision, o.object_type, o.subject_id, o.dimension,
+                       d.haystack, d.excerpt
+                FROM search_occurred o
+                JOIN search_doc d ON d.object_id = o.object_id AND d.revision = o.revision
+                WHERE {where_sql}
+                ORDER BY o.occurred_start_us DESC
+            """
+            rows = conn.execute(sql, params).fetchall()
+
+            mind_hits: list[MindSearchHit] = []
+            total_toks = 0
+            retrieved_object_ids: set[str] = set()
+
+            for r in rows:
+                oid = r["object_id"]
+                rev = int(r["revision"])
+                if oid in tombstones:
+                    continue
+                if candidate_pairs is not None and (oid, rev) not in candidate_pairs:
+                    continue
+
+                haystack = r["haystack"] or ""
+                matched_all = True
+                for kw in keywords:
+                    if kw.lower() in haystack:
+                        continue
+                    resolved = sorted({
+                        row[0] for row in conn.execute(
+                            "SELECT entity_object_id FROM search_alias WHERE alias_norm=?", (normalize_alias(kw),)
+                        ).fetchall()
+                    })
+                    if resolved:
+                        alias_variants = [row[0] for row in conn.execute(
+                            "SELECT alias_norm FROM search_alias WHERE entity_object_id = ?", (resolved[0],)
+                        ).fetchall()]
+                        if any(v in haystack for v in alias_variants):
+                            continue
+                        tok1 = _id_token("ent", resolved[0])
+                        tok2 = _id_token("ref", resolved[0])
+                        has_link = conn.execute(
+                            "SELECT 1 FROM search_postings WHERE token IN (?,?) AND object_id=? LIMIT 1",
+                            (tok1, tok2, oid),
+                        ).fetchone()
+                        if has_link:
+                            continue
+
+                    matched_all = False
+                    break
+
+                if not matched_all:
+                    continue
+
+                is_anno = (r["object_type"] == "reinterpretation")
+                excerpt = r["excerpt"] or ""
+                est_tok = max(10, len(excerpt) // 3)
+                total_toks += est_tok
+                retrieved_object_ids.add(oid)
+
+                mind_hits.append(
+                    MindSearchHit(
+                        object_id=oid,
+                        revision=rev,
+                        object_type=r["object_type"],
+                        subject_id=r["subject_id"],
+                        score=10 if is_anno else _TYPE_BOOST.get(r["object_type"], 1),
+                        dimension=r["dimension"] or "dim_general",
+                        excerpt=excerpt,
+                        is_annotation=is_anno,
+                        estimated_tokens=est_tok,
+                    )
+                )
+                if len(mind_hits) >= limit:
+                    break
+
+            # 伴随外挂注记联动（如果包含注记且命中列表中有被注记的目标）
+            if include_annotations and retrieved_object_ids:
+                placeholders = ",".join("?" for _ in retrieved_object_ids)
+                anno_rows = conn.execute(
+                    f"""
+                    SELECT annotation_id, target_object_id, target_object_type,
+                           reinterpretation_claim, dimension
+                    FROM search_annotations
+                    WHERE target_object_id IN ({placeholders})
+                    """,
+                    list(retrieved_object_ids),
+                ).fetchall()
+                for ar in anno_rows:
+                    aid = str(ar[0])
+                    if aid not in retrieved_object_ids:
+                        claim_txt = str(ar[3])
+                        est_a_tok = max(10, len(claim_txt) // 3)
+                        total_toks += est_a_tok
+                        mind_hits.append(
+                            MindSearchHit(
+                                object_id=aid,
+                                revision=1,
+                                object_type="reinterpretation",
+                                subject_id="user_1",
+                                score=15,  # 外挂注记拥有最高解释权
+                                dimension=str(ar[4]) or "dim_general",
+                                excerpt=f"[外挂注记/老王案] 指向 {ar[1]}: {claim_txt}",
+                                is_annotation=True,
+                                estimated_tokens=est_a_tok,
                             )
                         )
-                elif {
-                    "annotation_id",
-                    "target_object_id",
-                    "reinterpretation_claim",
-                } <= columns:
-                    rows = connection.execute(
-                        "SELECT annotation_id, target_object_id, "
-                        "reinterpretation_claim, created_at FROM retrospective_annotations"
-                    ).fetchall()
-                    for annotation_id, target_id, text, created_at in rows:
-                        self.add_document(
-                            MindDocument(
-                                object_id=annotation_id,
-                                object_type=MindObjectType.ANNOTATION,
-                                dimension=derive_dimension(
-                                    {"semantic_overlay": text}, "annotation"
-                                ),
-                                text=text,
-                                occurred_at=datetime.fromisoformat(created_at),
-                                related_object_ids=frozenset({target_id}),
-                            )
-                        )
-        except (sqlite3.DatabaseError, OSError, TypeError, ValueError):
-            return
+
+            # 排序：外挂注记与核心主张排在最前
+            mind_hits.sort(key=lambda h: (-h.score, -h.revision))
+
+            intent_parts = list(keywords)
+            if dimension:
+                intent_parts.append(f"dim:{dimension}")
+            if claim_id:
+                intent_parts.append(f"claim:{claim_id}")
+            if entity_id:
+                intent_parts.append(f"entity:{entity_id}")
+            if annotation_id:
+                intent_parts.append(f"anno:{annotation_id}")
+
+            return MindSearchPage(
+                status="ok",
+                lag=current - wm,
+                world_revision=current,
+                index_watermark=wm,
+                hits=mind_hits[:limit],
+                total_estimated_tokens=total_toks,
+                query_intent=" ".join(intent_parts) or "all",
+            )
+
+    # ---------------- 快捷多维原语接口 ----------------
+
+    def search_by_dimension(self, dimension: str, keywords: Sequence[str] = (), limit: int = 20) -> MindSearchPage:
+        """按特定维度聚焦检索（如 dim_health, dim_finance, dim_social, dim_work）。"""
+        return self.search_mind(keywords=keywords, dimension=dimension, limit=limit)
+
+    def search_by_claim(self, claim_id: str, keywords: Sequence[str] = (), limit: int = 20) -> MindSearchPage:
+        """按主张与证据链因果检索。"""
+        return self.search_mind(keywords=keywords, claim_id=claim_id, limit=limit)
+
+    def search_by_entity(self, entity_id: str, keywords: Sequence[str] = (), limit: int = 20) -> MindSearchPage:
+        """按实体关系网络检索。"""
+        return self.search_mind(keywords=keywords, entity_id=entity_id, limit=limit)
+
+    def search_by_annotation(self, annotation_id: str, limit: int = 20) -> MindSearchPage:
+        """按外挂解释图层检索。"""
+        return self.search_mind(annotation_id=annotation_id, limit=limit)
 
 
-# Compatibility exports retained for M1-017 callers.
-SearchHit = MindSearchHit
-SearchPage = MindSearchPage
-WorldSearchIndex = MultidimensionalSearchEngine
+# 别名导出与类型对齐（最高法统命名规范）
+MultidimensionalSearchEngine = WorldSearchIndex

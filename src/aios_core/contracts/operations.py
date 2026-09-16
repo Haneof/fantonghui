@@ -5,6 +5,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from .enums import MaintenanceClass, SourceClass
 from .ids import new_operation_id
 
 
@@ -18,6 +19,17 @@ class OperationRequest(BaseModel):
     expected_world_revision: int = Field(ge=0)
     reason: str = Field(min_length=1)
     idempotency_key: str = Field(min_length=1)
+    # --- R4-02 (M0-023): 写入来源分类。默认 AI_COGNITION 保持既有调用方兼容。 ---
+    source_class: SourceClass = SourceClass.AI_COGNITION
+    maintenance_class: MaintenanceClass | None = None
+
+    @model_validator(mode="after")
+    def validate_source_class(self) -> "OperationRequest":
+        if self.source_class is SourceClass.MAINTENANCE and self.maintenance_class is None:
+            raise ValueError("MAINTENANCE writes must declare maintenance_class")
+        if self.source_class is not SourceClass.MAINTENANCE and self.maintenance_class is not None:
+            raise ValueError("maintenance_class is only valid for MAINTENANCE writes")
+        return self
 
     @model_validator(mode="after")
     def validate_nonblank_identity_fields(self) -> "OperationRequest":

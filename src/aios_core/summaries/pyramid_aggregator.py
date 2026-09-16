@@ -1,367 +1,563 @@
-"""Lossless five-level temporal summary pointer pyramid.
+"""M1-010R 5D 时空多尺度连续聚合器与时间金字塔物化视图。
 
-Summary nodes are an additional observation layer: they contain pointers and
-content hashes, never replacements for source observations.  The hierarchy is
-``year -> quarter -> month -> week-of-month -> day -> observation`` so every
-leaf has exactly one deterministic drill-down path.
+落实宪法第二十五至二十七条铁律（最高违宪红线）：
+
+1. **总结绝不是压缩删除！** 总结是一个全新的观察层，绝不修改、绝不删除底层事实；
+2. **原始事实永存**：``generate_materialized_rollup`` 生成月/年总结后，日记录与
+   底层原始事件字节级保留在证据保险库（evidence vault）中，vault 只读、永驻内存，
+   绝不允许任何代码路径执行删除或覆盖（呼应"老王案：历史绝不篡改"铁律）；
+3. **多尺度金字塔物化视图**：DAY < WEEK < MONTH < YEAR 四层物化，支撑手环端侧
+   5D 滑动条从 1 秒到 10 年（``CONTINUOUS_ZOOM_SECONDS``）连续无损缩放与逐级下钻。
+
+5D 聚合函数：物理距离 (x, y, z) × 时间衰减 (t) × 羁绊权重 (r) × 可信度 (c)
+
+- 时间衰减 t：近因系数 ``recency = (t_event - t_start) / span``，跨度末端为 1.0，
+  向跨度起点方向线性衰减（span 为 0 时视为 1.0）；
+- 物理距离 xyz：邻近系数 ``prox = 1 / (1 + sqrt(x^2 + y^2 + z^2))``，
+  距坐标原点越近权重越高；
+- 事件权重 ``w = c * r * recency * prox``，用于合成文本中的 5D 总权重与时空加权重心；
+  缺失 5D 描述字段的字段按缺省中性值 1.0 处理，并计入 ``missingness_ratio``。
+
+无损下钻：``drill_down(summary_id, target_sub_scale)``
+
+- 目标尺度为 DAY：返回底层原始事件 dict 的深拷贝列表（完好无损、按时间序），
+  调用方对结果的任何修改都无法污染证据保险库；
+- 目标尺度为中间层（WEEK / MONTH）：返回父总结时间跨度内该层物化出的
+  ``TimePyramidSummary`` 子总结列表，其 evidence_ids 之并集与父总结严格相等，
+  且子总结可以继续逐级下钻直至 DAY 层原始事件；
+- 下钻是纯读操作：O(log n + k) 窗口定位 + O(k) 物化，典型规模下响应 <= 45ms。
 """
-
 from __future__ import annotations
 
-import hashlib
-from collections import defaultdict
-from dataclasses import dataclass
-from datetime import UTC, datetime
-from enum import StrEnum
+import copy
+import math
+from bisect import bisect_left, bisect_right
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, Tuple
 
-from aios_core.operations.adaptive_temporal_compressor import (
-    CompressedObservation,
-    RawSemanticClass,
-)
-
-
-class TemporalGranularity(StrEnum):
-    DAY = "day"
-    WEEK = "week"
-    MONTH = "month"
-    QUARTER = "quarter"
-    YEAR = "year"
-
-
-@dataclass(frozen=True, slots=True)
-class TemporalSummaryNode:
-    node_id: str
-    granularity: TemporalGranularity
-    period_key: str
-    start_ns: int
-    end_ns: int
-    child_node_ids: tuple[str, ...]
-    observation_refs: tuple[str, ...]
-    source_sha256: str
-    source_count: int
-    representative_observation_ref: str
-    summary_text: str
-
-
-@dataclass(frozen=True, slots=True)
-class PyramidBuildReceipt:
-    source_observation_count: int
-    unique_leaf_count: int
-    summary_node_count: int
-    year_root_count: int
-    duplicate_leaf_refs: int
-    broken_pointer_count: int
-    evidence_chain_break_rate: float
-
-
-class LosslessTemporalPyramid:
-    """Build and navigate a deterministic pointer-only temporal hierarchy."""
-
-    def __init__(self) -> None:
-        self._observations: dict[str, CompressedObservation] = {}
-        self._nodes: dict[str, TemporalSummaryNode] = {}
-        self._parent_by_node: dict[str, str] = {}
-        self._day_by_observation: dict[str, str] = {}
-        self._roots: tuple[str, ...] = ()
-        self._receipt: PyramidBuildReceipt | None = None
-
-    def build(
-        self,
-        observations: tuple[CompressedObservation, ...],
-    ) -> PyramidBuildReceipt:
-        if self._receipt is not None:
-            raise RuntimeError("pyramid instances are single-build")
-        duplicates = 0
-        for observation in observations:
-            previous = self._observations.get(observation.observation_id)
-            if previous is not None:
-                if previous != observation:
-                    raise ValueError(
-                        "observation id has conflicting immutable content: "
-                        f"{observation.observation_id}"
-                    )
-                duplicates += 1
-                continue
-            self._observations[observation.observation_id] = observation
-
-        leaves_by_day: dict[tuple[int, int, int], list[str]] = defaultdict(list)
-        for observation in self._observations.values():
-            dt = datetime.fromtimestamp(
-                observation.occurred_at_ns / 1_000_000_000,
-                tz=UTC,
-            )
-            leaves_by_day[(dt.year, dt.month, dt.day)].append(
-                observation.observation_id
-            )
-
-        child_groups: dict[tuple[int, int, int], list[str]] = defaultdict(list)
-        for day_key in sorted(leaves_by_day):
-            year, month, day = day_key
-            observation_ids = tuple(sorted(leaves_by_day[day_key]))
-            node = self._make_leaf_node(day_key, observation_ids)
-            self._nodes[node.node_id] = node
-            for observation_id in observation_ids:
-                self._day_by_observation[observation_id] = node.node_id
-            child_groups[(year, month, (day - 1) // 7 + 1)].append(node.node_id)
-
-        weeks_by_month: dict[tuple[int, int], list[str]] = defaultdict(list)
-        for week_key in sorted(child_groups):
-            year, month, week = week_key
-            node = self._make_parent_node(
-                TemporalGranularity.WEEK,
-                f"{year:04d}-{month:02d}-W{week}",
-                tuple(child_groups[week_key]),
-            )
-            self._register_parent(node)
-            weeks_by_month[(year, month)].append(node.node_id)
-
-        months_by_quarter: dict[tuple[int, int], list[str]] = defaultdict(list)
-        for month_key in sorted(weeks_by_month):
-            year, month = month_key
-            node = self._make_parent_node(
-                TemporalGranularity.MONTH,
-                f"{year:04d}-{month:02d}",
-                tuple(weeks_by_month[month_key]),
-            )
-            self._register_parent(node)
-            months_by_quarter[(year, (month - 1) // 3 + 1)].append(node.node_id)
-
-        quarters_by_year: dict[int, list[str]] = defaultdict(list)
-        for quarter_key in sorted(months_by_quarter):
-            year, quarter = quarter_key
-            node = self._make_parent_node(
-                TemporalGranularity.QUARTER,
-                f"{year:04d}-Q{quarter}",
-                tuple(months_by_quarter[quarter_key]),
-            )
-            self._register_parent(node)
-            quarters_by_year[year].append(node.node_id)
-
-        roots: list[str] = []
-        for year in sorted(quarters_by_year):
-            node = self._make_parent_node(
-                TemporalGranularity.YEAR,
-                str(year),
-                tuple(quarters_by_year[year]),
-            )
-            self._register_parent(node)
-            roots.append(node.node_id)
-        self._roots = tuple(roots)
-
-        broken = self._count_broken_pointers()
-        unique_leaf_count = len(self._observations)
-        break_rate = broken / unique_leaf_count if unique_leaf_count else 0.0
-        self._receipt = PyramidBuildReceipt(
-            source_observation_count=len(observations),
-            unique_leaf_count=unique_leaf_count,
-            summary_node_count=len(self._nodes),
-            year_root_count=len(self._roots),
-            duplicate_leaf_refs=duplicates,
-            broken_pointer_count=broken,
-            evidence_chain_break_rate=break_rate,
-        )
-        return self._receipt
-
-    @property
-    def roots(self) -> tuple[TemporalSummaryNode, ...]:
-        return tuple(self._nodes[node_id] for node_id in self._roots)
-
-    @property
-    def receipt(self) -> PyramidBuildReceipt:
-        if self._receipt is None:
-            raise RuntimeError("pyramid has not been built")
-        return self._receipt
-
-    def get_node(self, node_id: str) -> TemporalSummaryNode:
-        try:
-            return self._nodes[node_id]
-        except KeyError as exc:
-            raise KeyError(f"unknown summary node: {node_id}") from exc
-
-    def get_observation(self, observation_id: str) -> CompressedObservation:
-        try:
-            return self._observations[observation_id]
-        except KeyError as exc:
-            raise KeyError(f"unknown observation: {observation_id}") from exc
-
-    def expand(self, node_id: str) -> tuple[str, ...]:
-        """Return every source observation under a node without copying payloads."""
-
-        root = self.get_node(node_id)
-        pending = [root]
-        leaves: list[str] = []
-        while pending:
-            node = pending.pop()
-            leaves.extend(node.observation_refs)
-            pending.extend(
-                self.get_node(child_id) for child_id in reversed(node.child_node_ids)
-            )
-        return tuple(leaves)
-
-    def drill_path(
-        self,
-        root_node_id: str,
-        observation_id: str,
-    ) -> tuple[str, ...]:
-        """Return year-to-leaf pointer path ending in the observation id."""
-
-        self.get_node(root_node_id)
-        self.get_observation(observation_id)
-        try:
-            current = self._day_by_observation[observation_id]
-        except KeyError as exc:  # pragma: no cover - guarded by build invariants
-            raise RuntimeError("observation is not attached to a day node") from exc
-        reverse_path = [current]
-        while current in self._parent_by_node:
-            current = self._parent_by_node[current]
-            reverse_path.append(current)
-        path = tuple(reversed(reverse_path)) + (observation_id,)
-        if path[0] != root_node_id:
-            raise ValueError(
-                f"observation {observation_id} is not below root {root_node_id}"
-            )
-        return path
-
-    def direct_drill(self, observation_id: str) -> CompressedObservation:
-        """Constitutional fast path: callers may bypass every summary layer."""
-
-        return self.get_observation(observation_id)
-
-    def verify_lossless(self) -> bool:
-        if self._receipt is None or self._count_broken_pointers() != 0:
-            return False
-        expanded: list[str] = []
-        for root in self._roots:
-            expanded.extend(self.expand(root))
-        return (
-            len(expanded) == len(set(expanded))
-            and set(expanded) == set(self._observations)
-            and all(
-                root.representative_observation_ref in self.expand(root.node_id)
-                for root in self.roots
-            )
-            and all(self._verify_node_hash(node) for node in self._nodes.values())
-        )
-
-    def _make_leaf_node(
-        self,
-        day_key: tuple[int, int, int],
-        observation_ids: tuple[str, ...],
-    ) -> TemporalSummaryNode:
-        year, month, day = day_key
-        observations = [self._observations[item] for item in observation_ids]
-        digest = self._hash_parts(
-            *(observation.source_sha256 for observation in observations)
-        )
-        period = f"{year:04d}-{month:02d}-{day:02d}"
-        representative = next(
-            (
-                item
-                for item in observations
-                if item.semantic_class
-                in {RawSemanticClass.CORE_QUOTE, RawSemanticClass.KEY_EVIDENCE}
-            ),
-            observations[0],
-        )
-        return TemporalSummaryNode(
-            node_id=f"summary_day_{period}_{digest[:12]}",
-            granularity=TemporalGranularity.DAY,
-            period_key=period,
-            start_ns=min(item.occurred_at_ns for item in observations),
-            end_ns=max(item.occurred_at_ns for item in observations),
-            child_node_ids=(),
-            observation_refs=observation_ids,
-            source_sha256=digest,
-            source_count=len(observation_ids),
-            representative_observation_ref=representative.observation_id,
-            summary_text=(
-                f"{period}: {len(observation_ids)} retained observations; "
-                f"representative evidence: {representative.summary[:96]}"
-            ),
-        )
-
-    def _make_parent_node(
-        self,
-        granularity: TemporalGranularity,
-        period_key: str,
-        child_ids: tuple[str, ...],
-    ) -> TemporalSummaryNode:
-        children = [self._nodes[item] for item in child_ids]
-        digest = self._hash_parts(*(child.source_sha256 for child in children))
-        source_count = sum(child.source_count for child in children)
-        representative_ref = next(
-            (
-                child.representative_observation_ref
-                for child in children
-                if self._observations[
-                    child.representative_observation_ref
-                ].semantic_class
-                in {RawSemanticClass.CORE_QUOTE, RawSemanticClass.KEY_EVIDENCE}
-            ),
-            children[0].representative_observation_ref,
-        )
-        return TemporalSummaryNode(
-            node_id=f"summary_{granularity.value}_{period_key}_{digest[:12]}",
-            granularity=granularity,
-            period_key=period_key,
-            start_ns=min(child.start_ns for child in children),
-            end_ns=max(child.end_ns for child in children),
-            child_node_ids=child_ids,
-            observation_refs=(),
-            source_sha256=digest,
-            source_count=source_count,
-            representative_observation_ref=representative_ref,
-            summary_text=(
-                f"{period_key}: {source_count} source observations via "
-                f"{len(child_ids)} {children[0].granularity.value} nodes; "
-                "macro thread remains pinned to representative evidence "
-                f"{representative_ref}"
-            ),
-        )
-
-    def _register_parent(self, node: TemporalSummaryNode) -> None:
-        self._nodes[node.node_id] = node
-        for child_id in node.child_node_ids:
-            if child_id in self._parent_by_node:
-                raise ValueError(f"summary node has multiple parents: {child_id}")
-            self._parent_by_node[child_id] = node.node_id
-
-    def _count_broken_pointers(self) -> int:
-        broken = 0
-        for node in self._nodes.values():
-            broken += sum(child not in self._nodes for child in node.child_node_ids)
-            broken += sum(
-                observation not in self._observations
-                for observation in node.observation_refs
-            )
-        return broken
-
-    def _verify_node_hash(self, node: TemporalSummaryNode) -> bool:
-        if node.observation_refs:
-            expected = self._hash_parts(
-                *(
-                    self._observations[item].source_sha256
-                    for item in node.observation_refs
-                )
-            )
-        else:
-            expected = self._hash_parts(
-                *(self._nodes[item].source_sha256 for item in node.child_node_ids)
-            )
-        return expected == node.source_sha256
-
-    @staticmethod
-    def _hash_parts(*parts: str) -> str:
-        hasher = hashlib.sha256()
-        for part in parts:
-            hasher.update(part.encode("ascii"))
-            hasher.update(b"\x00")
-        return hasher.hexdigest()
-
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 __all__ = [
-    "LosslessTemporalPyramid",
-    "PyramidBuildReceipt",
-    "TemporalGranularity",
-    "TemporalSummaryNode",
+    "CONTINUOUS_ZOOM_SECONDS",
+    "SCALE_ORDER",
+    "PyramidAggregator",
+    "PyramidError",
+    "TimePyramidSummary",
+    "finer_than",
 ]
+
+#: 细 -> 粗 的时间尺度序。索引越小越细粒度（下钻只能向更小索引方向进行）。
+SCALE_ORDER: Tuple[str, ...] = ("DAY", "WEEK", "MONTH", "YEAR")
+
+#: 手环端侧 5D 滑动条连续缩放范围（秒）：从 1 秒到 10 年。
+CONTINUOUS_ZOOM_SECONDS: Tuple[int, int] = (1, 10 * 365 * 24 * 3600)
+
+#: 5D 描述字段：物理距离 (x, y, z) × 时间衰减 (t，即事件 time) × 羁绊权重 (r) × 可信度 (c)。
+_FIVE_D_FIELDS: Tuple[str, ...] = ("x", "y", "z", "r", "c")
+
+_SCALE_RANK: Dict[str, int] = {scale: index for index, scale in enumerate(SCALE_ORDER)}
+
+
+class PyramidError(ValueError):
+    """金字塔聚合协议错误。
+
+    覆盖：非法尺度、非法 dimension_id、空事件窗口、未知 summary_id / event_id、
+    非法下钻方向（只能向更细尺度下钻）、以及证据冲突（同一 id 原始事实被改写）。
+    """
+
+
+def _normalize_scale(scale: Any) -> str:
+    if isinstance(scale, str) and scale.strip().upper() in _SCALE_RANK:
+        return scale.strip().upper()
+    raise PyramidError(f"invalid scale {scale!r}; expected one of {list(SCALE_ORDER)}")
+
+
+def finer_than(fine_scale: str, coarse_scale: str) -> bool:
+    """``fine_scale`` 是否严格细于（低于）``coarse_scale`` 的尺度。"""
+    return _SCALE_RANK[_normalize_scale(fine_scale)] < _SCALE_RANK[_normalize_scale(coarse_scale)]
+
+
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def _as_utc(value: Any, *, field_name: str, event_id: str) -> datetime:
+    """把事件时间归一化为 aware UTC。
+
+    - ``datetime``：naive 视为 UTC，aware 转换为 UTC；
+    - ISO 字符串：``datetime.fromisoformat`` 解析（支持 ``Z`` 后缀），同样规则归一化。
+    """
+    if isinstance(value, datetime):
+        parsed = value
+    elif isinstance(value, str):
+        try:
+            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError as exc:
+            raise PyramidError(
+                f"event {event_id!r} field {field_name!r} is not a valid ISO datetime: {value!r}"
+            ) from exc
+    else:
+        raise PyramidError(
+            f"event {event_id!r} field {field_name!r} must be a datetime or ISO string, "
+            f"got {type(value).__name__}"
+        )
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def _unit_factor(value: Any, field_name: str, event_id: str) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise PyramidError(f"event {event_id!r} field {field_name!r} must be a number, got {value!r}")
+    number = float(value)
+    if math.isnan(number) or number < 0.0 or number > 1.0:
+        raise PyramidError(
+            f"event {event_id!r} field {field_name!r} must be within [0, 1], got {value!r}"
+        )
+    return number
+
+
+def _window_key(utc_time: datetime, scale: str) -> int:
+    """目标尺度自然窗口的整数分组键（随时间单调递增，支撑 O(k) 无分配分组）。"""
+    if scale == "WEEK":
+        iso = utc_time.date().isocalendar()
+        return iso.year * 53 + iso.week
+    if scale == "MONTH":
+        return utc_time.year * 12 + (utc_time.month - 1)
+    return utc_time.year  # YEAR
+
+
+def _copy_event(value: Any, memo: Dict[int, Any]) -> Any:
+    """事件载荷的结构化深拷贝：容器（dict/list/set）递归复制，不可变标量共享。
+
+    与 ``copy.deepcopy`` 对 dict/list 的隔离语义等价（含环保护），但省去
+    ``__reduce_ex__`` 分派与类型分派表查找，大规模下钻（万级事件）时显著更快，
+    保证下钻响应 <= 45ms 红线。调用方拿到的是全新容器树，任何篡改都无法污染
+    证据保险库原件。
+    """
+    if isinstance(value, dict):
+        cached = memo.get(id(value))
+        if cached is not None:
+            return cached
+        result: Dict[Any, Any] = {}
+        memo[id(value)] = result
+        for key, item in value.items():
+            result[key] = _copy_event(item, memo)
+        return result
+    if isinstance(value, list):
+        cached = memo.get(id(value))
+        if cached is not None:
+            return cached
+        result_list: List[Any] = []
+        memo[id(value)] = result_list
+        for item in value:
+            result_list.append(_copy_event(item, memo))
+        return result_list
+    if isinstance(value, set):
+        cached = memo.get(id(value))
+        if cached is not None:
+            return cached
+        result_set: set = set()
+        memo[id(value)] = result_set
+        for item in value:
+            result_set.add(_copy_event(item, memo))
+        return result_set
+    if isinstance(value, tuple):
+        # 元组可携带可变元素（({"k":1},)），必须逐元素递归；全部元素与原件同一
+        # （纯不可变元组）时共享原件——零开销快路，语义仍与 deepcopy 等价。
+        copied = tuple(_copy_event(item, memo) for item in value)
+        if all(a is b for a, b in zip(copied, value)):
+            return value
+        memo[id(value)] = copied
+        return copied
+    if isinstance(value, frozenset):
+        copied_items = [_copy_event(item, memo) for item in value]
+        originals = set(value)
+        if all(
+            any(a is b for b in originals if type(a) is type(b) and a == b)
+            for a in copied_items
+        ):
+            return value
+        return frozenset(copied_items)
+    return value
+
+
+def _describe_event(
+    payload: Dict[str, Any], event_id: str
+) -> Tuple[float, bool, Optional[Tuple[float, float, float]]]:
+    """写入路径一次性完成 5D 描述校验与基础权重计算。
+
+    返回 ``(base_weight, has_full_5d, xyz)``：
+
+    - ``base_weight = c * r * prox``，缺失字段按中性值 1.0 处理；
+    - ``prox = 1 / (1 + sqrt(x^2 + y^2 + z^2))``（仅在 5D 完整时生效）；
+    - 校验失败（c/r 越界、xyz 非数值）在写入时立即抛出 ``PyramidError``，
+      使下钻/物化读路径保持纯计算、零校验开销（<= 45ms 红线的关键）。
+    """
+    missing = [key for key in _FIVE_D_FIELDS if key not in payload]
+    has_full_5d = not missing
+
+    xyz: Optional[Tuple[float, float, float]] = None
+    for key in ("x", "y", "z"):
+        if key in payload and (
+            isinstance(payload[key], bool) or not isinstance(payload[key], (int, float))
+        ):
+            raise PyramidError(
+                f"event {event_id!r} field {key!r} must be a number, got {payload[key]!r}"
+            )
+    if has_full_5d:
+        x = float(payload["x"])
+        y = float(payload["y"])
+        z = float(payload["z"])
+        xyz = (x, y, z)
+
+    base_weight = 1.0
+    if "c" in payload:
+        base_weight *= _unit_factor(payload["c"], "c", event_id)
+    if "r" in payload:
+        base_weight *= _unit_factor(payload["r"], "r", event_id)
+    if xyz is not None:
+        distance = math.sqrt(xyz[0] ** 2 + xyz[1] ** 2 + xyz[2] ** 2)
+        base_weight *= 1.0 / (1.0 + distance)
+
+    return base_weight, has_full_5d, xyz
+
+
+class TimePyramidSummary(BaseModel):
+    """时间金字塔物化总结视图（新观察层，不替代、不压缩、不删除底层事实）。"""
+
+    model_config = ConfigDict(extra="forbid")
+
+    summary_id: str = Field(min_length=1)
+    scale: str = Field(..., description="DAY / WEEK / MONTH / YEAR")
+    start_time: datetime
+    end_time: datetime
+    dimension_id: str = Field(min_length=1)
+    headline: str = Field(min_length=1)
+    synthesis_text: str = Field(min_length=1)
+    evidence_ids: List[str] = Field(min_length=1)
+    missingness_ratio: float = Field(default=0.0, ge=0.0, le=1.0)
+
+    @model_validator(mode="after")
+    def _validate_pyramid_contract(self) -> "TimePyramidSummary":
+        if self.scale not in _SCALE_RANK:
+            raise ValueError(f"scale must be one of {list(SCALE_ORDER)}, got {self.scale!r}")
+        try:
+            inverted = self.start_time > self.end_time
+        except TypeError as exc:
+            raise ValueError(
+                "start_time and end_time must share comparable timezone awareness"
+            ) from exc
+        if inverted:
+            raise ValueError("start_time must not be after end_time")
+        if len(set(self.evidence_ids)) != len(self.evidence_ids):
+            raise ValueError("evidence_ids must not contain duplicates")
+        return self
+
+
+@dataclass
+class _VaultEvent:
+    """证据保险库中的底层原始事件（深拷贝、只读、永存）。
+
+    ``base_weight`` / ``has_full_5d`` / ``xyz`` 在写入时一次性预计算，
+    下钻物化读路径只做纯算术，不再重复校验与开方。
+    """
+
+    payload: Dict[str, Any]
+    event_id: str
+    utc_time: datetime
+    base_weight: float = 1.0
+    has_full_5d: bool = True
+    xyz: Optional[Tuple[float, float, float]] = None
+
+
+@dataclass
+class _PyramidRecord:
+    """物化总结的内部索引记录，支撑 O(log n + k) 无损下钻。"""
+
+    summary_id: str
+    scale: str
+    dimension_id: str
+    start_utc: datetime
+    end_utc: datetime
+    events: List[_VaultEvent] = field(default_factory=list)
+    utc_times: List[datetime] = field(default_factory=list)
+
+
+class PyramidAggregator:
+    """5D 时空多尺度时间金字塔物化聚合器。
+
+    宪法不变量（第二十五至二十七条铁律）：
+
+    - 任何 ``generate_materialized_rollup`` 调用只**新增**高层物化视图，绝不修改、
+      绝不删除底层事件；
+    - 底层事件在首次出现时被深拷贝进证据保险库 ``_vault``，vault 只读、原始事实
+      永存；同一 event id 再次出现时内容必须与原件逐字节一致，否则抛出
+      ``PyramidError``（证据冲突），杜绝任何覆盖式改写；
+    - ``drill_down`` 为纯读操作，任何下钻结果都是深拷贝，调用方篡改结果
+      无法污染 vault。
+    """
+
+    def __init__(self, *, clock: Optional[Callable[[], datetime]] = None) -> None:
+        self._clock = clock or _utc_now
+        self._vault: Dict[str, _VaultEvent] = {}
+        self._summaries: Dict[str, TimePyramidSummary] = {}
+        self._records: Dict[str, _PyramidRecord] = {}
+
+    # ------------------------------------------------------------------
+    # 物化聚合
+    # ------------------------------------------------------------------
+
+    def generate_materialized_rollup(
+        self,
+        scale: str,
+        dimension_id: str,
+        events: List[Dict[str, Any]],
+        *,
+        now: Optional[datetime] = None,
+    ) -> TimePyramidSummary:
+        """聚合生成单层物化总结视图。
+
+        绝不删除底层 events：每个事件被深拷贝进证据保险库后，仅提取高阶物化层。
+        ``now`` 用于 summary_id 的时间戳，缺省使用注入时钟（``clock`` 参数）。
+        """
+        normalized_scale = _normalize_scale(scale)
+        _validate_dimension_id(dimension_id)
+        if not isinstance(events, (list, tuple)) or len(events) == 0:
+            raise PyramidError("events must be a non-empty list of event dicts")
+        stamp = now if now is not None else self._clock()
+
+        vault_events = [self._ingest_event(event) for event in events]
+        vault_events.sort(key=lambda v: (v.utc_time, v.event_id))
+
+        unique_events: List[_VaultEvent] = []
+        seen_ids: set = set()
+        for vault_event in vault_events:
+            if vault_event.event_id not in seen_ids:
+                seen_ids.add(vault_event.event_id)
+                unique_events.append(vault_event)
+
+        return self._materialize(
+            normalized_scale, dimension_id, unique_events, now=stamp, id_base=None
+        )
+
+    # ------------------------------------------------------------------
+    # 无损下钻
+    # ------------------------------------------------------------------
+
+    def drill_down(self, summary_id: str, target_sub_scale: str) -> List[Any]:
+        """无损下钻：从高层总结回溯到目标细粒度尺度的明细。
+
+        - ``target_sub_scale == "DAY"``：返回底层原始事件深拷贝列表（完好无损，
+          按时间序），证据链 100% 可回溯；
+        - ``target_sub_scale`` 为中间层（WEEK / MONTH）：返回父总结时间跨度内
+          该层物化的 ``TimePyramidSummary`` 子总结列表，evidence_ids 并集与父
+          总结严格相等，且子总结可继续下钻；
+        - 只能向严格更细的尺度下钻；下钻为纯读操作，响应目标 <= 45ms。
+        """
+        record = self._records.get(summary_id)
+        if record is None:
+            raise PyramidError(f"unknown summary_id: {summary_id!r}")
+        target = _normalize_scale(target_sub_scale)
+        if not finer_than(target, record.scale):
+            raise PyramidError(
+                f"drill_down target {target} must be strictly finer than summary scale "
+                f"{record.scale} (down-drill only, scale order: {' < '.join(SCALE_ORDER)})"
+            )
+
+        low = bisect_left(record.utc_times, record.start_utc)
+        high = bisect_right(record.utc_times, record.end_utc)
+        window_events = record.events[low:high]
+
+        if target == "DAY":
+            return [_copy_event(vault_event.payload, {}) for vault_event in window_events]
+
+        groups: Dict[int, List[_VaultEvent]] = {}
+        for vault_event in window_events:
+            key = _window_key(vault_event.utc_time, target)
+            groups.setdefault(key, []).append(vault_event)
+
+        sub_summaries: List[TimePyramidSummary] = []
+        for index, group_events in enumerate(groups.values()):
+            sub_summaries.append(
+                self._materialize(
+                    target,
+                    record.dimension_id,
+                    group_events,
+                    now=self._clock(),
+                    id_base=f"sub_{target.lower()}_{summary_id}_{index:03d}",
+                )
+            )
+        return sub_summaries
+
+    # ------------------------------------------------------------------
+    # 只读查询接口
+    # ------------------------------------------------------------------
+
+    def get_summary(self, summary_id: str) -> TimePyramidSummary:
+        """按 summary_id 取回物化总结。"""
+        try:
+            return self._summaries[summary_id].model_copy(deep=True)
+        except KeyError:
+            raise PyramidError(f"unknown summary_id: {summary_id!r}") from None
+
+    def summary_ids(self) -> List[str]:
+        """当前已物化的全部 summary_id（含下钻产出的子总结）。"""
+        return list(self._summaries)
+
+    def vault_size(self) -> int:
+        """证据保险库中永存的底层原始事件数量。"""
+        return len(self._vault)
+
+    def get_raw_event(self, event_id: str) -> Dict[str, Any]:
+        """取回底层原始事件的深拷贝（宪法审计入口：原始事实永存可验证）。"""
+        try:
+            return _copy_event(self._vault[event_id].payload, {})
+        except KeyError:
+            raise PyramidError(f"unknown event_id: {event_id!r}") from None
+
+    # ------------------------------------------------------------------
+    # 内部实现
+    # ------------------------------------------------------------------
+
+    def _ingest_event(self, event: Any) -> _VaultEvent:
+        if not isinstance(event, dict):
+            raise PyramidError(f"event must be a dict, got {type(event).__name__}")
+        event_id = event.get("id")
+        if not isinstance(event_id, str) or not event_id.strip():
+            raise PyramidError("each event requires a non-empty string field 'id'")
+        if "time" not in event:
+            raise PyramidError(f"event {event_id!r} is missing required field 'time'")
+
+        payload = copy.deepcopy(event)
+        utc_time = _as_utc(payload["time"], field_name="time", event_id=event_id)
+        base_weight, has_full_5d, xyz = _describe_event(payload, event_id)
+
+        existing = self._vault.get(event_id)
+        if existing is not None:
+            if existing.payload != payload:
+                raise PyramidError(
+                    f"evidence conflict: event {event_id!r} is already preserved in the "
+                    "vault with different content; raw facts are permanent and may not be overwritten"
+                )
+            return existing
+
+        vault_event = _VaultEvent(
+            payload=payload,
+            event_id=event_id,
+            utc_time=utc_time,
+            base_weight=base_weight,
+            has_full_5d=has_full_5d,
+            xyz=xyz,
+        )
+        self._vault[event_id] = vault_event
+        return vault_event
+
+    def _materialize(
+        self,
+        scale: str,
+        dimension_id: str,
+        vault_events: List[_VaultEvent],
+        *,
+        now: datetime,
+        id_base: Optional[str],
+    ) -> TimePyramidSummary:
+        if not vault_events:
+            raise PyramidError("cannot materialize an empty window")
+
+        span_start = vault_events[0].utc_time
+        span_end = vault_events[-1].utc_time
+        span_seconds = (span_end - span_start).total_seconds()
+
+        total_weight = 0.0
+        weighted_coords = [0.0, 0.0, 0.0]
+        centroid_weight = 0.0
+        missing_count = 0
+        for vault_event in vault_events:
+            if span_seconds > 0:
+                # 时间衰减 t：近因系数，跨度末端 1.0 -> 起点 0.0
+                weight = vault_event.base_weight * (
+                    (vault_event.utc_time - span_start).total_seconds() / span_seconds
+                )
+            else:
+                weight = vault_event.base_weight
+            if not vault_event.has_full_5d:
+                missing_count += 1
+            total_weight += weight
+            if vault_event.has_full_5d:
+                xyz = vault_event.xyz
+                assert xyz is not None  # 写入路径已保证 5D 完整 <=> xyz 非空
+                weighted_coords[0] += xyz[0] * weight
+                weighted_coords[1] += xyz[1] * weight
+                weighted_coords[2] += xyz[2] * weight
+                centroid_weight += weight
+
+        count = len(vault_events)
+        centroid = None
+        if centroid_weight > 0:
+            centroid = tuple(coord / centroid_weight for coord in weighted_coords)
+
+        headline = f"{scale} 阶段性演变概览"
+        synthesis = (
+            f"在此跨度内沉淀了 {count} 项核心事实，关系稳步加深。"
+            f"5D 聚合：总权重 {total_weight:.3f}"
+        )
+        if centroid is not None:
+            synthesis += (
+                f"，时空重心 ({centroid[0]:.2f}, {centroid[1]:.2f}, {centroid[2]:.2f})"
+            )
+        synthesis += "。"
+
+        summary_id = self._alloc_summary_id(scale, dimension_id, now, id_base)
+        summary = TimePyramidSummary(
+            summary_id=summary_id,
+            scale=scale,
+            start_time=span_start,
+            end_time=span_end,
+            dimension_id=dimension_id,
+            headline=headline,
+            synthesis_text=synthesis,
+            evidence_ids=[vault_event.event_id for vault_event in vault_events],
+            missingness_ratio=missing_count / count,
+        )
+        record = _PyramidRecord(
+            summary_id=summary_id,
+            scale=scale,
+            dimension_id=dimension_id,
+            start_utc=span_start,
+            end_utc=span_end,
+            events=vault_events,
+            utc_times=[vault_event.utc_time for vault_event in vault_events],
+        )
+        # 注册表存深拷贝：返回给调用方的 summary 对象被就地篡改不污染物化视图
+        self._summaries[summary_id] = summary.model_copy(deep=True)
+        self._records[summary_id] = record
+        return summary
+
+    def _alloc_summary_id(
+        self,
+        scale: str,
+        dimension_id: str,
+        now: datetime,
+        id_base: Optional[str],
+    ) -> str:
+        if id_base is not None:
+            # 子总结 id 由 (父 id, 目标尺度, 窗口序号) 决定：对不变 vault 幂等可重放。
+            return id_base
+        base = f"sum_{scale.lower()}_{dimension_id}_{int(now.timestamp())}"
+        candidate = base
+        suffix = 2
+        while candidate in self._summaries:
+            candidate = f"{base}_{suffix}"
+            suffix += 1
+        return candidate
+
+
+def _validate_dimension_id(dimension_id: Any) -> str:
+    if not isinstance(dimension_id, str) or not dimension_id.strip():
+        raise PyramidError(
+            f"dimension_id must be a non-empty string, got {dimension_id!r}"
+        )
+    return dimension_id.strip()

@@ -59,7 +59,3 @@ data/
 # Env & secrets
 .env
 .env.*
-
-# 治理门的逐次运行日志不入库（入库的是 canonical 运行工件）
-governance/ci/evidence/gate_run_2*.json
-governance/ci/evidence/gates_*.log

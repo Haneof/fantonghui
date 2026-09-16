@@ -22,7 +22,7 @@
     python3 governance/ci/lint_assert_msg_ast.py --json OUT.json  # 同时写工件
     python3 governance/ci/lint_assert_msg_ast.py --self-test      # 探测器自证（必须开火 + 不误报）
 
-退出码：命中 > 0 ⇒ 1；无命中 ⇒ 0；`--self-test` 失败 ⇒ 2。
+退出码：命中 > 0 => 1；无命中 => 0；`--self-test` 失败 => 2。
 """
 
 from __future__ import annotations
@@ -67,7 +67,7 @@ def scan_source(text: str, rel: str) -> list[dict]:
         return [{
             "file": rel, "line": exc.lineno or 0, "kind": "SYNTAX_ERROR",
             "source": (exc.text or "").strip()[:200],
-            "why": f"文件无法解析（{exc.msg}）⇒ 本检查器对它无覆盖，必须先修语法",
+            "why": f"文件无法解析（{exc.msg}）=> 本检查器对它无覆盖，必须先修语法",
         }]
     for node in ast.walk(tree):
         if isinstance(node, ast.Assert) and isinstance(node.msg, MSG_EXPR_TYPES):
@@ -76,7 +76,7 @@ def scan_source(text: str, rel: str) -> list[dict]:
                 "line": node.lineno,
                 "kind": "ASSERT_MSG_IS_COMPARISON",
                 "source": ast.unparse(node)[:240],
-                "why": ("逗号后的比较表达式是断言消息，仅在断言失败时求值 ⇒ 该核对从未执行；"
+                "why": ("逗号后的比较表达式是断言消息，仅在断言失败时求值 => 该核对从未执行；"
                         "失败诊断退化为 AssertionError: False/True，无法定位"),
                 "fix": "拆成两条 assert；消息位改用字符串或 f-string 描述期望值",
             })
@@ -139,7 +139,7 @@ def self_test() -> int:
     ok = len(broken) == 1 and broken[0]["kind"] == "SYNTAX_ERROR"
     failures += 0 if ok else 1
     print(f"  [{'命中' if ok else '失败'}] 语法错误文件被上报而非静默跳过: {broken[0]['kind'] if broken else '无'}")
-    print(f"探测器自证：{len(cases) + 1} 项，失败 {failures} 项 ⇒ "
+    print(f"探测器自证：{len(cases) + 1} 项，失败 {failures} 项 => "
           f"{'探测器可信（会开火且不误报）' if failures == 0 else '探测器不可信'}")
     return 0 if failures == 0 else 2
 
@@ -160,7 +160,7 @@ def main(argv: list[str] | None = None) -> int:
 
     print(f"AST 检查器 v{TOOL_VERSION}：判据 {rep['detector']}")
     print(f"扫描 {rep['scanned_files']} 个 .py 文件（roots = {' '.join(rep['roots'])}）")
-    print(f"命中 {rep['hit_count']} 处 ⇒ VERDICT = {rep['verdict']}")
+    print(f"命中 {rep['hit_count']} 处 => VERDICT = {rep['verdict']}")
     for hit in rep["hits"]:
         print(f"\n  {hit['file']}:{hit['line']}  [{hit['kind']}]")
         if hit["source"]:

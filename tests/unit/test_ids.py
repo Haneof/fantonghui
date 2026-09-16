@@ -48,6 +48,14 @@ def test_prefixes_frozen_mapping():
         ObjectType.OUTCOME: "out",
         ObjectType.OPERATION_EXPERIENCE: "exp",
         ObjectType.TOOL_PROPOSAL: "tlp",
+        ObjectType.PREDICTION: "prd",
+        ObjectType.LIFE_CHAPTER: "lfc",
+        ObjectType.REINTERPRETATION: "rip",
+        ObjectType.COMMUNICATION_EXPERIENCE: "cxp",
+        ObjectType.BUDGET_POLICY: "bgp",
+        ObjectType.ASSEMBLY_POLICY: "asp",
+        ObjectType.NARRATIVE_SEGMENT: "nsg",
+        ObjectType.DIMENSION_CURVE_POINT: "dcp",
     }
     assert ids_module._PREFIXES == expected
 

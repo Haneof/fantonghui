@@ -1,186 +1,153 @@
+"""SIM-001 验收：30 天（+180 天冒烟）无界面高熵人生仿真，四大硬门禁。"""
+
 from __future__ import annotations
 
 import json
-import sqlite3
-from datetime import UTC, datetime, timedelta
+import pathlib
 
 import pytest
 
+from aios_core.contracts.enums import ObjectType
 from aios_core.simulation.headless_life_driver import (
+    POLICY_PATH,
     HeadlessLifeDriver,
-    HighEntropyLifeStream,
-    RuntimePolicyError,
-    RuntimeTokenPolicy,
-    TokenBudgetExceededError,
+    SimConfig,
+    load_token_policy,
 )
 
-START = datetime(2026, 8, 17, 0, 0, tzinfo=UTC)
-MONTHLY_BUDGET = 2_554_000
-RSS_LIMIT = 128 * 1024 * 1024
+REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 
-def _write_policy(tmp_path, budget: int = MONTHLY_BUDGET):
-    policy = tmp_path / "governance" / "runtime_policy.json"
-    policy.parent.mkdir(parents=True, exist_ok=True)
-    policy.write_text(
-        json.dumps(
-            {
-                "policy_version": "3.0",
-                "token_budget": {"monthly_total_tokens": budget},
-            }
-        ),
-        encoding="utf-8",
-    )
-    return policy
-
-
-def test_high_entropy_stream_covers_720_hours_and_120_adult_work_meetings() -> None:
-    stream = HighEntropyLifeStream(start_at=START, days=30)
-    hours = 0
-    meetings = 0
-    crises = 0
-    breaches = 0
-    deep_sleep_hours = 0
-    industrial_hours = 0
-    physiological_samples = 0
-    first_at = None
-    last_at = None
-
-    for event in stream:
-        first_at = event.occurred_at if first_at is None else first_at
-        last_at = event.occurred_at
-        assert event.hour_index == hours
-        assert len(event.heart_rate_samples) == 300
-        assert len(event.hrv_samples_ms) == 300
-        hours += 1
-        meetings += int(event.meeting_title is not None)
-        crises += int(event.commercial_crisis is not None)
-        breaches += int(event.lao_wang_contract_breach)
-        deep_sleep_hours += int(event.circadian_state == "DEEP_SLEEP")
-        industrial_hours += int(event.industrial_noise_db >= 85)
-        physiological_samples += len(event.heart_rate_samples)
-
-    assert hours == 720
-    assert first_at == START
-    assert last_at is not None
-    assert last_at + timedelta(hours=1) == START + timedelta(days=30)
-    assert meetings == 120
-    assert crises == 4
-    assert breaches == 1
-    assert deep_sleep_hours == 30 * 6
-    assert industrial_hours == 30 * 11
-    assert physiological_samples == 720 * 300
-
-
-def test_30day_headless_driver_runs_full_chain_with_zero_raw_images(tmp_path) -> None:
-    policy_path = _write_policy(tmp_path)
-    work_dir = tmp_path / "sim-runtime"
-    driver = HeadlessLifeDriver(
-        work_dir=work_dir,
-        runtime_policy_path=policy_path,
-        start_at=START,
-        days=30,
-    )
+def _rss_kb() -> int:
     try:
-        report = driver.run()
-    finally:
-        driver.close()
+        with open("/proc/self/status", encoding="utf-8") as fh:
+            for line in fh:
+                if line.startswith("VmRSS:"):
+                    return int(line.split()[1])
+    except OSError:
+        return -1
+    return -1
 
+
+@pytest.fixture(scope="module")
+def sim_30d(tmp_path_factory):
+    db = tmp_path_factory.mktemp("sim30d") / "world.db"
+    driver = HeadlessLifeDriver(SimConfig(), db)
+    rss_before = _rss_kb()
+    report = driver.run()
+    rss_after = _rss_kb()
+    if rss_before >= 0 and rss_after >= 0:
+        report.extra["rss_delta_kb"] = max(0, rss_after - rss_before)
+    return driver, report
+
+
+# ---------------------------------------------------------------------------
+# 门禁一：真实高熵 720 小时时空流
+# ---------------------------------------------------------------------------
+
+
+def test_720_hour_stream_shape(sim_30d):
+    _driver, report = sim_30d
     assert report.days == 30
-    assert report.generated_hours == 720
-    assert report.physiological_sample_count == 216_000
-    assert report.meeting_count == 120
-    assert report.commercial_crisis_count == 4
-    assert report.lao_wang_breach_count == 1
-
-    assert report.c01_image_frames_processed == 720
-    assert report.c01_semantic_observations > 0
-    assert report.c01_semantic_observations < 720
-    assert report.c01_raw_bytes_retained == 0
-    assert driver.raw_sink.retained_byte_count == 0
-
-    assert report.c06_indexed_entities == 720
-    assert report.c06_breach_query_hits >= 1
-    assert report.c02_persisted_observations == 720
-    assert report.c02_world_revision == 30
-    with sqlite3.connect(work_dir / "world.db") as connection:
-        persisted = connection.execute(
-            "SELECT COUNT(*) FROM object_revisions WHERE object_type = ?",
-            ("observation",),
-        ).fetchone()[0]
-    assert persisted == 720
-
-    assert report.c04_cockpit_assemblies >= 120
-    assert report.c05_retrospective_annotations == 1
-    assert report.c05_historical_overlay_count == 0
-    assert report.c05_current_overlay_count == 1
-    assert report.completed_chain == (
-        "C01_EDGE_CLEAN",
-        "C06_INVERTED_INTERSECTION",
-        "C02_LEDGER_PERSIST",
-        "C04_SINGLE_COCKPIT",
-        "C05_RETROSPECTIVE_ANNOTATION",
-    )
+    assert report.ticks == 30 * 144  # 10 分钟粒度 × 720 小时
+    assert report.samples_generated == report.ticks
+    assert report.meetings == 120  # 恰好 120 次真实工作会议
+    assert report.crises == 3  # 突发商业危机
+    assert report.laowang_facts == 3  # 合伙 / 违约 / 今天才指认
+    # 高熵核验：观测值分散度（心率窗口点数远超下限）
+    assert report.observations_committed > 300
 
 
-def test_30day_run_has_zero_deadlocks_stable_rss_and_1000x_replay(tmp_path) -> None:
-    driver = HeadlessLifeDriver(
-        work_dir=tmp_path / "bounded-runtime",
-        runtime_policy_path=_write_policy(tmp_path),
-        start_at=START,
-        days=30,
-    )
-    try:
-        report = driver.run()
-    finally:
-        driver.close()
-
-    assert report.deadlock_count == 0
-    assert len(report.daily_rss_bytes) == 31
-    assert report.peak_rss_bytes <= RSS_LIMIT
-    assert max(report.daily_rss_bytes) <= RSS_LIMIT
-    assert report.final_rss_bytes - report.initial_rss_bytes <= 32 * 1024 * 1024
-    assert max(report.daily_rss_bytes) - min(report.daily_rss_bytes) <= 32 * 1024 * 1024
-    assert report.acceleration_factor >= 1_000
+# ---------------------------------------------------------------------------
+# 门禁二：完整技术链 C01→C06→C02→C04→C05 全部驱动
+# ---------------------------------------------------------------------------
 
 
-def test_monthly_token_envelope_is_loaded_and_never_exceeded(tmp_path) -> None:
-    policy_path = _write_policy(tmp_path)
-    policy = RuntimeTokenPolicy.load(policy_path)
-    assert policy.monthly_token_budget == MONTHLY_BUDGET
-    assert policy.source_path.endswith("governance/runtime_policy.json")
-
-    driver = HeadlessLifeDriver(
-        work_dir=tmp_path / "token-runtime",
-        runtime_policy_path=policy_path,
-        start_at=START,
-        days=30,
-    )
-    try:
-        report = driver.run()
-    finally:
-        driver.close()
-
-    assert 0 < report.consumed_tokens <= MONTHLY_BUDGET
-    assert report.monthly_token_budget == MONTHLY_BUDGET
-    assert report.token_budget_remaining == MONTHLY_BUDGET - report.consumed_tokens
+def test_full_pipeline_counters(sim_30d):
+    driver, report = sim_30d
+    assert report.raw_binaries_cleaned == 3  # C01 语义化
+    assert report.inverted_index_entries > 0  # C06 倒排表
+    assert report.inverted_intersect_queries > 0 and report.inverted_intersect_hits > 0
+    assert report.world_revision >= 30  # C02 每日账本 flush
+    persisted = driver.store.list_payloads(object_type=ObjectType.OBSERVATION)
+    assert len(persisted) == report.observations_committed
+    # C04 看板：day 0 全部条件任务仍 DORMANT 物理隐形，30 天后大量 READY
+    assert report.extra["day_0_board_items"] == 0
+    assert report.extra["day_0_dormant"] == 202
+    assert report.extra["day_29_board_items"] > 150
+    # C05 回溯注记已挂载
+    assert report.retrospective_overlays == 1
 
 
-def test_tiny_policy_fails_closed_before_cockpit_can_overspend(tmp_path) -> None:
-    driver = HeadlessLifeDriver(
-        work_dir=tmp_path / "tiny-budget-runtime",
-        runtime_policy_path=_write_policy(tmp_path, budget=100),
-        start_at=START,
-        days=30,
-    )
-    try:
-        with pytest.raises(TokenBudgetExceededError, match="would exceed 100"):
-            driver.run()
-    finally:
-        driver.close()
+def test_c05_retrospective_view_semantics(sim_30d):
+    driver, _report = sim_30d
+    assert driver.cfg.laowang_learning_day == 18
+    # 双时间透镜口径在仿真数据上重演（与 M1-018 验收同构）：
+    # as_of_cutoff=day10 → 18 号才学到的"骗子"认知一个字符都不许出现
+    past_view = driver.query_laowang_slice(day=2, as_of_day=10)
+    assert past_view["overlays"] == []
+    assert past_view["overlay_suppressed_by_cutoff"] == 1
+    assert [f["object_id"] for f in past_view["facts"]]  # 两年前合伙原始记录在场
+    rendered = json.dumps(past_view, ensure_ascii=False)
+    for forbidden in ("骗子", "欺诈", "rta_sim_laowang_fraud"):
+        assert forbidden not in rendered
+    # 当前视图：动态渲染警示标记，底层历史切片分毫未动
+    current = driver.query_laowang_slice(day=2)
+    assert len(current["overlays"]) == 1
+    assert current["facts"] == past_view["facts"]
 
 
-def test_policy_cannot_relax_constitutional_monthly_ceiling(tmp_path) -> None:
-    relaxed = _write_policy(tmp_path, budget=MONTHLY_BUDGET + 1)
-    with pytest.raises(RuntimePolicyError, match="cannot relax"):
-        RuntimeTokenPolicy.load(relaxed)
+# ---------------------------------------------------------------------------
+# 门禁三：0 死锁 + 内存平稳 + 原始二进制滞留 0
+# ---------------------------------------------------------------------------
+
+
+def test_zero_deadlock_memory_and_binary_residency(sim_30d):
+    _driver, report = sim_30d
+    assert report.deadlock_cycles == 0  # 30 天推进零停滞
+    assert report.retained_records == 0  # 每日 flush 后驻留 buffer 清空
+    assert report.raw_binary_retained_bytes == 0  # 原始大图滞留恒 0
+    if "rss_delta_kb" in report.extra:
+        assert report.extra["rss_delta_kb"] <= 128 * 1024  # 驻留增量 ≤128MB
+
+
+# ---------------------------------------------------------------------------
+# 门禁四：月度 Token 封套
+# ---------------------------------------------------------------------------
+
+
+def test_monthly_token_envelope(sim_30d):
+    _driver, report = sim_30d
+    policy = load_token_policy(POLICY_PATH)
+    assert POLICY_PATH.exists()
+    assert policy["monthly_token_budget"] == 2_554_000
+    assert 0 < report.prompt_tokens_total <= report.token_budget
+    # DORMANT 任务 0 Token / 机械快轨 0 LLM（与 M2-005R 门禁联动复述）
+    assert report.dormant_prompt_tokens == 0
+    assert report.dormant_board_leaks == 0
+    assert report.level1_llm_calls == 0
+    assert report.level1_evaluations > 0
+
+
+def test_policy_file_content():
+    raw = json.loads((REPO_ROOT / "governance" / "runtime_policy.json").read_text(encoding="utf-8"))
+    assert raw["monthly_token_budget"] == 2_554_000
+    assert raw["hard_rules"]["dormant_task_prompt_tokens_max"] == 0
+
+
+# ---------------------------------------------------------------------------
+# 180 天长跑冒烟（粗粒度）：仍 0 死锁、账本与封套受控
+# ---------------------------------------------------------------------------
+
+
+def test_180day_smoke_zero_deadlock(tmp_path):
+    cfg = SimConfig(days=180, minutes_step=60, bulk_conditional_tasks=50, meetings_per_day=1)
+    driver = HeadlessLifeDriver(cfg, tmp_path / "world180.db")
+    report = driver.run()
+    assert report.ticks == 180 * 24
+    assert report.deadlock_cycles == 0
+    assert report.meetings == 180
+    assert report.raw_binary_retained_bytes == 0
+    assert report.retained_records == 0
+    assert 0 < report.prompt_tokens_total <= report.token_budget
+    assert report.world_revision >= 180

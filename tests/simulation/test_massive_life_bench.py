@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 
 from aios_core.contracts.enums import EventStatus
-from aios_core.simulation.massive_life_bench import (
+from aios_core.simulation.massive_life_bench_receipt import (
     BENCHMARK_VERSION,
     OFFICIAL_MINIMUM_RECORDS,
     AppendOnlyEventLifecycle,
@@ -39,7 +39,7 @@ def official_report(
         [
             sys.executable,
             "-m",
-            "aios_core.simulation.massive_life_bench",
+            "aios_core.simulation.massive_life_bench_receipt",
             "--samples",
             str(OFFICIAL_MINIMUM_RECORDS),
             "--output-dir",

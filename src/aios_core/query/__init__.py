@@ -1,20 +1,11 @@
 """Query layer - 时间镜头、搜索、下钻、对齐等只读能力。
 
-此层封装 storage 的历史读取与 knowledge cutoff 逻辑。
-
-边界约定：**读取世界对象一律经 ``SQLiteWorldStore``，不得直接对
-``object_revisions`` 等 M0 冻结表写 SQL。**
-
-唯一例外是 ``cjk_inverted_index``（M1-017）：它只操作自己创建的两张
-派生加速侧表（``topological_cjk_terms`` / ``entity_co_occurrence_edges``），
-既不 ``ALTER`` 也不查询任何冻结表；这些表可随时从 ``object_revisions``
-全量重建，属于可丢弃的索引缓存，不是世界数据。
+此层封装 storage 的历史读取与 knowledge cutoff 逻辑，禁止直接 SQL。
 """
 
 from .cjk_inverted_index import (
     CJKTopologicalInvertedIndex,
-    CoOccurrenceEdge,
-    ScoredHit,
+    ensure_cjk_schema,
     tokenize_cjk_overlapping,
 )
 from .epistemic_projection import (
@@ -25,18 +16,55 @@ from .epistemic_projection import (
     dual_lens_projection_tool_proposal,
 )
 from .history import HistoricalQueryResult, HistoricalWorldQuery, QueryCoverage
+from .hyperlink_traverser import (
+    MAX_DEPTH,
+    AmbiguousAlias,
+    AmbiguousEntityAliasError,
+    AnchorNode,
+    EntityHyperlinkGraphTraverser,
+    EntityNode,
+    EvidenceSetNode,
+    HyperlinkLevel,
+    HyperlinkTraversalError,
+    HyperlinkTraversalResult,
+    IndexBuildReport,
+    IndexWatermark,
+    ObservationNode,
+    StaleHyperlinkIndexError,
+    TraversalContinuation,
+    TraversalCoverage,
+    UnknownEntityError,
+    normalize_alias,
+)
 
 __all__ = [
+    "MAX_DEPTH",
+    "AmbiguousAlias",
+    "AmbiguousEntityAliasError",
+    "AnchorNode",
     "CJKTopologicalInvertedIndex",
-    "CoOccurrenceEdge",
     "DualLensProjectionIndex",
+    "EntityHyperlinkGraphTraverser",
+    "EntityNode",
     "EpistemicProjection",
+    "EvidenceSetNode",
     "HistoricalQueryResult",
     "HistoricalWorldQuery",
+    "HyperlinkLevel",
+    "HyperlinkTraversalError",
+    "HyperlinkTraversalResult",
     "ImmutableProjectionFact",
+    "IndexBuildReport",
+    "IndexWatermark",
+    "ObservationNode",
     "ProjectionOverlay",
     "QueryCoverage",
-    "ScoredHit",
+    "StaleHyperlinkIndexError",
+    "TraversalContinuation",
+    "TraversalCoverage",
+    "UnknownEntityError",
     "dual_lens_projection_tool_proposal",
+    "ensure_cjk_schema",
+    "normalize_alias",
     "tokenize_cjk_overlapping",
 ]

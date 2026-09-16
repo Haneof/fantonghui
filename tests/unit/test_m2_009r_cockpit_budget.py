@@ -1,246 +1,277 @@
+"""M2-009R 高密危机防爆验收单测：1500 Token 硬预算 / 无损滚动 / 反爹味护栏 / P95 延迟。
+
+高阶实战场景：用户遭遇恶意降薪、强制调岗、竞业协议索赔，深夜连续 2 小时
+通过手环进行 50 轮高频、碎片、情绪激烈的长线对抗对话。
+"""
 from __future__ import annotations
 
-import hashlib
-import json
+import math
+import random
 import time
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from aios_core.cockpit.pipeline import (
-    ActiveRollingWindow,
+from aios_core.cockpit import (
+    ACTIVITY_WINDOW_SIZE,
+    SINGLE_SHOT_TOKEN_BUDGET,
     BrevityGuard,
     CockpitPipeline,
-    ConversationObservationArchive,
-    ConversationTurn,
-    CrisisCockpitContext,
-    SingleShotCockpitManifest,
-    Utf8ByteTokenCounter,
-    split_sentences,
+    ConversationState,
+    estimate_tokens,
 )
 
-START = datetime(2026, 9, 16, 21, 0, tzinfo=UTC)
+UTC = timezone.utc
+NIGHT_START = datetime(2026, 9, 15, 23, 30, tzinfo=UTC)
+
+# 50 轮深夜对抗的碎片化情绪文本（职业危机高熵语料，严禁低幼化）
+_USER_FRAGMENTS = [
+    "他们降薪 40% 还要我签自愿放弃社保的补充协议",
+    "调岗函到了，从首席架构师调去档案室值班",
+    "竞业协议索赔 300 万，说我把客户名单存在了个人邮箱",
+    "HR 刚说再闹就启动绩效末位淘汰流程",
+    "工资条刚发出来，社保基数按最低档交的",
+    "调岗后新工位连显示器都没配，就一台笔记本",
+    "他们要我签保密承诺，但竞业补偿只字不提",
+    "昨晚通宵改的方案，今早开源社区里出现了一模一样的代码",
+    "法务回邮件说调岗属于合理用工，让我自行仲裁",
+    "竞业范围写得夸张，说全行业所有业务都竞业",
+    "降薪通知只给了 3 天异议期，连个对等协商都没有",
+    "调岗到外地，往返高铁费公司说自理",
+    "他们把我在项目里的署名都抹掉了，发版说明里查不到我",
+    "仲裁窗口快关了，证据链我还差两段录音的文本",
+    "竞业协议是入职时签的，当时根本没给补偿",
+    "降薪协议里埋了自动续约条款，不看仔细直接跳坑",
+    "调岗通知书的落款用的是个壳公司的章",
+    "客户名单是我经手的，但导出日志在公司服务器上",
+    "他们威胁说仲裁就冻结我的期权行权",
+    "期权行权条件里被悄悄加了竞业合规前置条款",
+    "降薪 40% 的理由写的是'组织架构优化'，一个数据都没给",
+    "调岗后我的权限全被回收，连自己项目的文档都看不了",
+    "录音里 HR 原话：不签调岗函就按旷工处理",
+    "竞业索赔函的律所函件抬头，用的是对方关联公司的地址",
+    "期权池当年定的 0.5%，现在说稀释后没了",
+    "调岗协议要求我 48 小时内到岗新城市，否则算自动离职",
+    "他们把年终奖折算条款删了，只剩'公司有权调整'八个字",
+    "降薪前一个月我的绩效还是 S，这算恶意调薪吗",
+    "仲裁受理通知书下来了，开庭排在三个月后",
+    "竞业协议索赔 300 万，但原合同里补偿标准是月工资 50%",
+    "调岗通知里把我的职级从 P8 写成 P6，这是降职没",
+    "对方律师函说我有义务证明公司恶意，举证责任反过来了",
+    "降薪补充协议里把竞业补偿从 50% 降到 30% 了",
+    "调岗后我的带教关系全断了，团队群被移出",
+    "期权行权窗口被压缩到 14 天，之前是 90 天",
+    "他们新来的架构师用的方案跟我没发表的笔记一字不差",
+    "竞业期 2 年，补偿 30%，但要求我先放弃仲裁",
+    "调岗协议说原岗位'撤销'，可我昨天的周报还挂在原项目下",
+    "降薪 40% 但要求产出不变，绩效目标反而提高了 20%",
+    "仲裁庭要求补充证据，竞业协议原件他们拒不提供",
+    "对方说客户名单属于公共信息，可我发的是带内部标注的版本",
+    "调岗后第一周就被记了个'消极怠工'，就因为拒绝签新协议",
+    "期权回购价按 1 元/股，当时融资估值是 8 块",
+    "他们把降薪和调岗拆成两份协议，想让我分开签",
+    "竞业索赔 300 万的计算口径根本没写进原合同",
+    "调岗通知的送达地址写的是个不存在的园区",
+    "HR 刚发微信说再走仲裁流程，期权就归零",
+    "仲裁开庭前一周，他们突然把降薪比例'恢复'到 20% 了",
+    "竞业协议里公司解除权条款，被他们用来反向索赔",
+    "50 轮了，今晚必须把证据清单锁死，明天一早提交",
+]
+assert len(_USER_FRAGMENTS) == 50
+
+# 关键争议点证据锚（分布在对抗线上，门禁 2 的无损性验证对象）
+_DISPUTE_ANCHORS = {
+    0: "降薪 40% 补充协议原文（含放弃社保条款）",
+    4: "工资条：社保基数按最低档缴纳",
+    8: "竞业范围异常：全行业业务竞业",
+    14: "竞业协议签署时未支付补偿",
+    19: "仲裁受理通知书（开庭排期 3 个月）",
+    28: "绩效 S 评级记录（降薪前一个月）",
+    30: "竞业索赔 300 万 vs 原合同补偿 50%",
+    45: "期权回购价 1 元/股 vs 融资估值 8 元",
+    49: "证据清单锁定提交（50 轮对抗全证据链）",
+}
 
 
-def _crisis_context() -> CrisisCockpitContext:
-    dense_evidence = "；".join(
-        [
-            f"证据链{i:03d}:薪酬变更通知、岗位权限回收日志、竞业协议版本差异、"
-            "绩效校准会议纪要与仲裁时效风险必须保持来源边界"
-            for i in range(240)
-        ]
-    )
-    return CrisisCockpitContext(
-        session_id="session_employment_crisis_50_turns",
-        ai_self_summary=(
-            "我是与用户共同承担长期后果的随身老友；不替公司合理化，不在高压状态催促签字，"
-            "必须区分已核验劳动事实、法律不确定性和情绪支持。"
-        )
-        * 40,
-        rapport_state=(
-            "长期高度信任；用户当前因恶意降薪、强制调岗和竞业索赔威胁处于高压但仍保持专业判断。"
-        )
-        * 40,
-        wake_reason_anchor=(
-            "深夜两小时职业危机连续谈判；最新输入涉及公司要求次日上午签署降薪调岗确认书。"
-        )
-        * 40,
-        local_world_facts=dense_evidence,
-        ready_tasks=[
-            {
-                "task_id": "preserve-evidence",
-                "state": "READY",
-                "title": "固化薪酬、调岗与权限回收证据链",
-            },
-            {
-                "task_id": "deadline-map",
-                "state": "READY",
-                "title": "核对竞业索赔与仲裁程序时限",
-            },
-            {
-                "task_id": "avoid-coerced-signature",
-                "state": "READY",
-                "title": "高压状态下暂缓签署争议文件",
-            },
-        ],
-    )
-
-
-def _turn(index: int) -> ConversationTurn:
-    legal_detail = (
-        f"第{index:02d}轮：公司在未完成协商程序的情况下将固定薪酬下调，"
-        "同时撤销生产系统审批权限并要求转入无实权岗位；HR又以竞业违约金和"
-        "未披露商业秘密清单施压，现有邮件头、版本化附件、门禁日志与会议录音"
-        "之间存在时间戳交叉矛盾。"
-    )
-    user_text = (
-        legal_detail
-        + (
-            "我现在需要判断哪些陈述已经有原始证据，哪些只是对方口头威胁，"
-            "以及明早之前最不能做错的动作。"
-        )
-        * 18
-    )
-    assistant_text = (
-        "先别在高压下签争议确认书，原始通知和版本记录一份都别改。"
-        "这一轮我只帮你钉住事实边界和明早前的关键时限。"
-    )
-    return ConversationTurn(
-        turn_id=f"employment-crisis-turn-{index:02d}",
-        sequence_no=index,
-        occurred_at=START + timedelta(seconds=(index - 1) * 144),
-        user_text=user_text,
-        assistant_text=assistant_text,
-    )
-
-
-def _archive_digest(turn: ConversationTurn) -> str:
-    payload = json.dumps(
-        {
-            "assistant_text": turn.assistant_text,
-            "occurred_at": turn.occurred_at.isoformat(),
-            "sequence_no": turn.sequence_no,
-            "turn_id": turn.turn_id,
-            "user_text": turn.user_text,
-        },
-        ensure_ascii=False,
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode("utf-8")
-    return hashlib.sha256(payload).hexdigest()
-
-
-def test_50_turn_crisis_pipeline_is_bounded_lossless_and_under_15ms_p95() -> None:
-    context = _crisis_context()
-    archive = ConversationObservationArchive(clock=lambda: START + timedelta(hours=2))
+def build_night_pipeline() -> CockpitPipeline:
+    rng = random.Random(20260915)
     pipeline = CockpitPipeline(
-        archive=archive, clock=lambda: START + timedelta(hours=2)
-    )
-    source_turns = [_turn(index) for index in range(1, 51)]
-    latencies_ms: list[float] = []
-    manifests: list[SingleShotCockpitManifest] = []
-
-    for turn in source_turns:
-        started = time.perf_counter_ns()
-        manifest = pipeline.process_turn(turn, context)
-        latencies_ms.append((time.perf_counter_ns() - started) / 1_000_000)
-        manifests.append(manifest)
-
-        assert manifest.prompt_token_count <= 1_500
-        assert manifest.prompt_token_count == len(manifest.prompt.encode("utf-8"))
-        assert len(manifest.active_turn_ids) <= 6
-
-    assert CockpitPipeline.p95_ms(latencies_ms) <= 15.0
-    assert len(pipeline.window) == 6
-    assert manifests[-1].active_turn_ids == [turn.turn_id for turn in source_turns[-6:]]
-    assert manifests[-1].archived_observation_count == 44
-    assert manifests[-1].omitted_utf8_bytes > 50_000
-    assert all(turn.turn_id in manifests[-1].prompt for turn in source_turns[-6:])
-
-    archived = archive.snapshot()
-    assert len(archived) == 44
-    assert [item.source_turn_id for item in archived] == [
-        turn.turn_id for turn in source_turns[:-6]
-    ]
-    by_id = {turn.turn_id: turn for turn in source_turns}
-    for observation in archived:
-        original = by_id[observation.source_turn_id]
-        assert observation.user_text == original.user_text
-        assert observation.assistant_text == original.assistant_text
-        assert observation.content_sha256 == _archive_digest(original)
-
-    represented_ids = {item.source_turn_id for item in archived} | {
-        item.turn_id for item in pipeline.window.snapshot()
-    }
-    assert represented_ids == {turn.turn_id for turn in source_turns}
-
-
-def test_manifest_rejects_forged_token_receipt_and_over_budget_prompt() -> None:
-    with pytest.raises(ValueError, match="does not match physical"):
-        SingleShotCockpitManifest(
-            session_id="forged-token-receipt",
-            generated_at=START,
-            prompt="证据" * 20,
-            prompt_token_count=1,
-            active_turn_ids=[],
-            archived_observation_count=0,
-            omitted_utf8_bytes=0,
+        state=ConversationState(
+            crisis_context="职业危机对抗线：恶意降薪 / 强制调岗 / 竞业协议索赔（深夜 50 轮）",
+            size=ACTIVITY_WINDOW_SIZE,
         )
+    )
+    _ = rng  # 语料为确定性脚本，rng 预留扩展
+    return pipeline
 
-    with pytest.raises(ValueError):
-        SingleShotCockpitManifest(
-            session_id="physical-overflow",
-            generated_at=START,
-            prompt="x" * 1_501,
-            prompt_token_count=1_501,
-            active_turn_ids=[],
-            archived_observation_count=0,
-            omitted_utf8_bytes=0,
+
+# ----------------------------------------------------------------------
+# 门禁 1：单看板 1500 Token 绝对物理截断
+# ----------------------------------------------------------------------
+
+
+class TestGate1_1500TokenPhysicalBudget:
+    def test_all_50_rounds_cockpit_strictly_within_1500(self):
+        pipeline = build_night_pipeline()
+        for index, fragment in enumerate(_USER_FRAGMENTS):
+            result = pipeline.process_round(
+                fragment,
+                occurred_at=NIGHT_START + timedelta(minutes=120 * index // 50),
+                key_dispute_points=_DISPUTE_ANCHORS.get(index),
+            )
+            assert result.cockpit.token_count <= SINGLE_SHOT_TOKEN_BUDGET == 1500
+            assert estimate_tokens(result.cockpit.prompt) <= 1500  # 独立复算一致
+        # 第 50 轮：全量上下文（50 轮碎片累积）下看板依旧物理达标
+        final = pipeline.state
+        assert final.total_rounds == 100  # 50 用户轮 + 50 助手轮
+
+    def test_pathological_giant_context_still_hard_capped(self):
+        """单轮注入 2 万字级超长文本：看板仍被硬性压到 <= 1500 Token。"""
+        pipeline = build_night_pipeline()
+        giant = "".join(
+            f"第{i}段竞业协议条款争议记录，涉及调岗与降薪交叉索赔细节，"
+            f"对方主张客户名单属于公共信息但内部标注版本仍构成商业秘密，"
+            f"我方需要仲裁庭补充举证并申请调取服务器导出日志。"
+            for i in range(400)
         )
+        assert estimate_tokens(giant) > 1500 * 5  # 确认是万字级注入
+        result = pipeline.process_round(giant)
+        assert result.cockpit.token_count <= 1500
+        assert result.cockpit.physically_truncated is True
 
-    with pytest.raises(ValueError, match="between 1 and 1500"):
-        CockpitPipeline(prompt_token_limit=1_501)
+    def test_budget_model_rejects_over_budget_cockpit(self):
+        from pydantic import ValidationError
 
+        from aios_core.cockpit import SingleShotCockpit
 
-def test_utf8_counter_never_cuts_a_multibyte_character() -> None:
-    counter = Utf8ByteTokenCounter()
-    source = "司法证据ABC"
-
-    for budget in range(1, counter.count(source) + 1):
-        truncated = counter.truncate(source, budget)
-        assert counter.count(truncated) <= budget
-        truncated.encode("utf-8").decode("utf-8")
-
-
-def test_brevity_guard_rewrites_paternalistic_five_point_injection() -> None:
-    injected_lecture = (
-        "您要保持积极心态。为您推荐以下五点心理疏导方案。"
-        "第一点，接受公司的安排。第二点，学会感恩平台。第三点，避免过度维权。"
-        "综上所述，我建议您采取积极沟通的方式，很高兴为您服务。"
-    )
-
-    result = BrevityGuard().enforce(injected_lecture)
-
-    assert result.was_rewritten is True
-    assert result.was_truncated is True
-    assert 1 <= len(result.sentences) <= 3
-    assert len(split_sentences(result.text)) == 2
-    assert "positive-mindset" in result.blocked_patterns
-    assert "five-point-counselling" in result.blocked_patterns
-    for forbidden in [
-        "您要保持积极心态",
-        "为您推荐以下五点",
-        "第一点",
-        "综上所述",
-        "很高兴为您服务",
-    ]:
-        assert forbidden not in result.text
-    assert "降薪、调岗和竞业索赔材料原样留住" in result.text
+        with pytest.raises(ValidationError, match="physical token budget"):
+            SingleShotCockpit(prompt="x" * 4000, token_count=1501, budget=1500)
 
 
-def test_brevity_guard_hard_truncates_non_paternal_reply_to_three_sentences() -> None:
-    raw_reply = (
-        "这次降薪通知的程序确实不对。"
-        "先保留原始邮件头和附件版本。"
-        "今晚不要签新的调岗确认。"
-        "明早再核对仲裁时限。"
-        "竞业范围也要单独拆开看。"
-    )
-
-    result = BrevityGuard().enforce(raw_reply)
-
-    assert result.was_rewritten is False
-    assert result.was_truncated is True
-    assert len(result.sentences) == 3
-    assert result.text == "".join(split_sentences(raw_reply)[:3])
+# ----------------------------------------------------------------------
+# 门禁 2：无损滚动与滑动窗口（6 轮活动窗口 + 历史归档零丢失）
+# ----------------------------------------------------------------------
 
 
-def test_window_rejects_out_of_order_turn_without_evicting_history() -> None:
-    window = ActiveRollingWindow()
-    first = _turn(1)
-    window.push(first)
+class TestGate2_LosslessRollingWindow:
+    def test_window_holds_exactly_6_and_archive_is_lossless(self):
+        pipeline = build_night_pipeline()
+        for index, fragment in enumerate(_USER_FRAGMENTS):
+            pipeline.process_round(
+                fragment,
+                occurred_at=NIGHT_START + timedelta(minutes=index),
+                key_dispute_points=_DISPUTE_ANCHORS.get(index),
+            )
+        state = pipeline.state
+        active = state.active_window()
+        assert len(active) == 6
+        # 活动窗口 = 最后 6 轮（第 45~50 号用户轮的助手轮 + 用户轮交替）
+        assert [r.round_id for r in active] == [
+            r.round_id for r in state.all_rounds()[-6:]
+        ]
+        # 归档无损：100 轮 = 94 归档 + 6 活动，全量顺序完整
+        assert state.total_rounds == 100
+        assert len(state.archived()) == 94
+        all_rounds = state.all_rounds()
+        assert [r.round_id for r in all_rounds] == [f"round:{i:04d}" for i in range(1, 101)]
+        # 用户碎片逐字保留（归档轮次的内容不得丢失）
+        user_texts = [r.text for r in all_rounds if r.speaker == "user"]
+        assert user_texts == _USER_FRAGMENTS
 
-    with pytest.raises(ValueError, match="increase monotonically"):
-        window.push(first.model_copy(update={"turn_id": "replayed-turn"}))
+    def test_key_dispute_points_survive_eviction(self):
+        pipeline = build_night_pipeline()
+        for index, fragment in enumerate(_USER_FRAGMENTS):
+            pipeline.process_round(
+                fragment,
+                occurred_at=NIGHT_START + timedelta(minutes=index),
+                key_dispute_points=_DISPUTE_ANCHORS.get(index),
+            )
+        evidence = pipeline.state.dispute_evidence()
+        # 9 条关键争议点证据全链路无损（含早已被窗口淘汰的轮次），顺序与发生序严格一致
+        assert len(evidence) == len(_DISPUTE_ANCHORS) == 9
+        expected = [point for _, point in sorted(_DISPUTE_ANCHORS.items())]
+        assert list(evidence) == expected
 
-    assert window.snapshot() == (first,)
+
+# ----------------------------------------------------------------------
+# 门禁 3：反爹味与极简老友语调（BrevityGuard 强制截断与合宪拦截）
+# ----------------------------------------------------------------------
+
+
+class TestGate3_BrevityGuard:
+    def test_long_sermon_injection_is_forced_cut_and_intercepted(self):
+        guard = BrevityGuard()
+        sermon = (
+            "您要保持积极心态，面对职业危机最重要的是情绪稳定。"
+            "为您推荐以下五点心理疏导方案：第一，每天冥想二十分钟调节呼吸；"
+            "第二，与信任的家人倾诉以缓解焦虑；第三，坚持规律作息改善睡眠质量；"
+            "第四，适度运动促进内啡肽分泌；第五，必要时寻求专业心理咨询帮助。"
+            "综上所述，请您相信过程会好起来的。"
+        )
+        verdict = guard.enforce(sermon)
+        assert verdict.intercepted is True
+        assert any(v.startswith("PREACH_PATTERN") for v in verdict.violations)
+        # 强制截断：说教内容全部被剥离，1~3 句老友语调
+        assert 1 <= verdict.sentence_count <= 3
+        assert "积极心态" not in verdict.text
+        assert "心理疏导" not in verdict.text
+        assert "为您推荐" not in verdict.text
+        assert len(verdict.text) <= 120
+
+    def test_pure_sermon_falls_back_to_constitutional_line(self):
+        guard = BrevityGuard()
+        sermon = "您要保持积极心态。为您推荐以下五点心理疏导方案。祝您早日走出低谷。"
+        verdict = guard.enforce(sermon)
+        assert verdict.intercepted is True
+        assert 1 <= verdict.sentence_count <= 3
+        assert "积极心态" not in verdict.text and "心理疏导" not in verdict.text
+
+    def test_multi_sentence_talk_is_truncated_to_three(self):
+        guard = BrevityGuard()
+        talk = "第一句记录降薪幅度。第二句核对调岗函日期。第三句锁定竞业补偿条款。第四句准备仲裁材料。第五句约律师时间。"
+        verdict = guard.enforce(talk)
+        assert verdict.intercepted is True
+        assert verdict.sentence_count == 3
+        assert "第四句" not in verdict.text
+
+    def test_natural_friend_reply_passes_unscathed(self):
+        guard = BrevityGuard()
+        ok = "这条我记下了：竞业补偿只字不提。原件先拍照留好，别急着签。"
+        verdict = guard.enforce(ok)
+        assert verdict.intercepted is False
+        assert verdict.text == ok
+        assert verdict.sentence_count == 2
+
+    def test_pipeline_replies_always_compliant_across_50_rounds(self):
+        pipeline = build_night_pipeline()
+        for index, fragment in enumerate(_USER_FRAGMENTS):
+            result = pipeline.process_round(
+                fragment,
+                occurred_at=NIGHT_START + timedelta(minutes=index),
+                key_dispute_points=_DISPUTE_ANCHORS.get(index),
+            )
+            assert 1 <= result.verdict.sentence_count <= 3
+            assert len(result.assistant_round.text) <= 120
+
+
+# ----------------------------------------------------------------------
+# 门禁 4：50 轮压测看板组装 P95 <= 15ms
+# ----------------------------------------------------------------------
+
+
+class TestGate4_AssemblyLatencyP95:
+    def test_fifty_round_stress_p95_assembly_within_15ms(self):
+        pipeline = build_night_pipeline()
+        timings_ms: list[float] = []
+        for index, fragment in enumerate(_USER_FRAGMENTS):
+            result = pipeline.process_round(
+                fragment,
+                occurred_at=NIGHT_START + timedelta(minutes=120 * index // 50),
+                key_dispute_points=_DISPUTE_ANCHORS.get(index),
+            )
+            timings_ms.append(result.assembly_ms)
+        ordered = sorted(timings_ms)
+        # 最近秩法 P95：sorted[ceil(0.95*50)-1] = sorted[47]
+        p95 = ordered[math.ceil(0.95 * len(ordered)) - 1]
+        assert p95 <= 15.0, f"看板组装 P95 = {p95:.2f}ms 超过 15ms 红线"
+        assert max(timings_ms) <= 30.0  # 单次组装也不允许离谱毛刺

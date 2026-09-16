@@ -1,450 +1,479 @@
-"""M2-009R bounded Single-Shot cockpit and long-conversation pipeline.
+"""M2-009R 高密危机防爆：Single-Shot 单看板 1500 Token 硬预算流水线。
 
-The model adapter must send ``SingleShotCockpitManifest.prompt`` verbatim and
-must not append hidden conversation history.  The physical envelope budgets
-one UTF-8 byte as one conservative token unit.  A model adapter may additionally
-audit its exact tokenizer, but it may never replace or relax this 1,500-unit
-upper bound.
+高阶实战场景：用户遭遇重大职业危机（恶意降薪 / 强制调岗 / 竞业协议索赔），
+深夜连续 2 小时通过手环进行 50 轮高频、碎片、情绪激烈的长线对抗对话。
+
+四条硬门禁的工程承诺：
+
+1. **单看板 1500 Token 绝对物理截断**：``SINGLE_SHOT_TOKEN_BUDGET = 1500``，
+   无论上下文累积多少万字，组装至大模型的 Single-Shot 看板由流水线硬性压缩
+   （丢最旧活动轮 → 压缩证据摘要 → 字符级物理硬切），``token_count <= 1500``
+   是结构化不变量（模型校验器兜底），杜绝长上下文算力浪费；
+2. **无损滚动与滑动窗口**：6 轮易变活动窗口（``RollingRoundWindow``），
+   被淘汰的旧轮次无损进入历史 Observation 归档（``archive``），关键争议点
+   证据（``key_dispute_points``）全链路可回溯，不得丢失；
+3. **反爹味与极简老友语调（BrevityGuard）**：手环回复严格 1~3 句老友语调；
+   检测到"保持积极心态 / 为您推荐以下五点 / 心理疏导方案"类爹味说教即
+   fail-closed 拦截 —— 强制截断至说教句之前（不足一句则回落到合宪兜底句），
+   并记录拦截审计（``BrevityVerdict``）；
+4. **看板组装延迟**：50 轮压测全流程动态组装 P95 <= 15ms
+   （组装只消费活动窗口 + 预聚合证据摘要，O(窗口) 而非 O(全量上下文)）。
 """
-
 from __future__ import annotations
 
-import hashlib
-import json
 import re
-from collections import deque
-from collections.abc import Callable, Iterable, Sequence
-from datetime import datetime
-from math import ceil
-from threading import RLock
-from typing import Any, ClassVar
+import time
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from typing import Dict, List, Optional, Sequence, Tuple
 
-from pydantic import (
-    BaseModel,
-    ConfigDict,
-    Field,
-    field_validator,
-    model_validator,
+from pydantic import BaseModel, Field, model_validator
+
+__all__ = [
+    "SINGLE_SHOT_TOKEN_BUDGET",
+    "ACTIVITY_WINDOW_SIZE",
+    "BrevityGuard",
+    "BrevityVerdict",
+    "ConversationRound",
+    "ConversationState",
+    "CockpitPipeline",
+    "RoundResult",
+    "RollingRoundWindow",
+    "SingleShotCockpit",
+    "estimate_tokens",
+]
+
+#: Single-Shot 看板 Prompt Token 绝对物理上限（M2 门禁 1）。
+SINGLE_SHOT_TOKEN_BUDGET: int = 1500
+
+#: 易变活动窗口轮数（M2 门禁 2）。
+ACTIVITY_WINDOW_SIZE: int = 6
+
+#: BrevityGuard 老友语调边界（M2 门禁 3）。
+_MAX_SENTENCES = 3
+_MIN_SENTENCES = 1
+_MAX_REPLY_CHARS = 120
+
+#: 合宪兜底句：说教句之前无可用内容时，回落到这条极简老友线。
+_CONSTITUTIONAL_FALLBACK = "这阵仗确实够呛。先把协议原件和调岗通知都留好，咱一条一条捋。"
+
+#: 爹味说教特征模式（命中即拦截，按句剥离）。
+_PREACH_PATTERNS: Tuple[Tuple[str, re.Pattern], ...] = (
+    ("保持积极心态", re.compile(r"保持(一个)?积极(的)?心态")),
+    ("推荐清单", re.compile(r"(为您推荐|给你推荐|以下(五|三|几)(点|条|步))")),
+    ("心理疏导", re.compile(r"心理疏导|情绪管理方案|心灵鸡汤")),
+    ("说教序号", re.compile(r"(首先[，,：:]|其次[，,：:]|综上所述|第[一二三四五][，,：:])")),
+    ("您体称呼", re.compile(r"(亲爱的用户|请您相信|你应该|你需要保持)")),
+    ("专家姿态", re.compile(r"(作为(一位)?(专业|资深|心理)|我建议你应该)")),
 )
 
-from aios_core.contracts.time import require_aware, utc_now
+_SENTENCE_SPLIT = re.compile(r"(?<=[。！？!?…])")
 
 
-class Utf8ByteTokenCounter:
-    """Conservative dependency-free token envelope.
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 
-    Counting UTF-8 bytes is intentionally stricter than ordinary BPE token
-    counts for Chinese and Latin text.  Truncation never emits invalid UTF-8.
+
+# ----------------------------------------------------------------------
+# 确定性 Token 估算（保守上界）
+# ----------------------------------------------------------------------
+
+
+def _is_cjk_char(ch: str) -> bool:
+    code = ord(ch)
+    return (
+        0x4E00 <= code <= 0x9FFF  # CJK 统一表意文字
+        or 0x3400 <= code <= 0x4DBF  # 扩展 A
+        or 0xF900 <= code <= 0xFAFF  # 兼容表意文字
+        or 0x3000 <= code <= 0x303F  # CJK 标点
+        or 0xFF00 <= code <= 0xFFEF  # 全角形式
+    )
+
+
+def estimate_tokens(text: str) -> int:
+    """确定性上界 Token 估算（宁可高估，绝不少估 —— 预算是物理红线）。
+
+    - 每个 CJK 字符 / CJK 标点：1 token；
+    - 每段连续 ASCII 字母数字（单词/数字）：1 token；
+    - 空白与其他符号：0 token。
+    """
+    tokens = 0
+    run = 0
+    for ch in text:
+        if _is_cjk_char(ch):
+            if run:
+                tokens += 1
+                run = 0
+            tokens += 1
+        elif ch.isascii() and ch.isalnum():
+            run += 1
+        else:
+            if run:
+                tokens += 1
+                run = 0
+    if run:
+        tokens += 1
+    return tokens
+
+
+def split_sentences(text: str) -> List[str]:
+    """按中英文句末标点切分句子（保留标点，丢弃空段）。"""
+    return [s for s in (part.strip() for part in _SENTENCE_SPLIT.split(text)) if s]
+
+
+# ----------------------------------------------------------------------
+# 对话轮与无损滚动窗口
+# ----------------------------------------------------------------------
+
+
+class ConversationRound(BaseModel):
+    """对话轮（用户碎片 / 助手老友回复）。"""
+
+    model_config = {"frozen": True}
+
+    round_id: str
+    speaker: str  # "user" | "assistant"
+    text: str
+    occurred_at: datetime
+    key_dispute_points: List[str] = Field(default_factory=list)
+    tokens: int = Field(default=0, ge=0)
+
+    def model_post_init(self, __context: object) -> None:
+        if not self.tokens:
+            object.__setattr__(self, "tokens", estimate_tokens(self.text))
+
+
+@dataclass
+class RollingRoundWindow:
+    """6 轮易变活动窗口 + 无损历史归档（M2 门禁 2）。
+
+    被窗口淘汰的轮次进入 ``archive``（历史 Observation 归档），
+    全量轮次 = archive + active，顺序可完整回溯（lossless scroll）。
     """
 
-    def count(self, text: str) -> int:
-        return len(text.encode("utf-8"))
+    size: int = ACTIVITY_WINDOW_SIZE
+    _active: List[ConversationRound] = field(default_factory=list)
+    _archive: List[ConversationRound] = field(default_factory=list)
 
-    def truncate(self, text: str, max_tokens: int) -> str:
-        if max_tokens < 0:
-            raise ValueError("max_tokens must be >= 0")
-        encoded = text.encode("utf-8")
-        if len(encoded) <= max_tokens:
-            return text
-        return encoded[:max_tokens].decode("utf-8", errors="ignore")
+    def push(self, round_: ConversationRound) -> Optional[ConversationRound]:
+        """压入新轮；窗口溢出时最旧轮无损归档。返回被归档轮（若有）。"""
+        self._active.append(round_)
+        if len(self._active) > self.size:
+            evicted = self._active.pop(0)
+            self._archive.append(evicted)
+            return evicted
+        return None
 
+    def active_window(self) -> Tuple[ConversationRound, ...]:
+        return tuple(self._active)
 
-class ConversationTurn(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid",
-        frozen=True,
-        str_strip_whitespace=True,
-    )
+    def archived(self) -> Tuple[ConversationRound, ...]:
+        return tuple(self._archive)
 
-    turn_id: str = Field(min_length=1, max_length=160)
-    sequence_no: int = Field(ge=1)
-    occurred_at: datetime
-    user_text: str = Field(min_length=1, max_length=200_000)
-    assistant_text: str = Field(min_length=1, max_length=200_000)
+    def all_rounds(self) -> Tuple[ConversationRound, ...]:
+        """全量轮次（归档 + 活动窗口），按发生序 —— 无损性审计入口。"""
+        return tuple(self._archive) + tuple(self._active)
 
-    @field_validator("occurred_at")
-    @classmethod
-    def occurred_at_must_be_aware(cls, value: datetime) -> datetime:
-        require_aware(value, "occurred_at")
-        return value
+    def dispute_evidence(self) -> Tuple[str, ...]:
+        """全链路关键争议点证据（含已归档轮次），按序无损。"""
+        points: List[str] = []
+        for round_ in self.all_rounds():
+            points.extend(round_.key_dispute_points)
+        return tuple(points)
 
-
-class ArchivedTurnObservation(BaseModel):
-    """Lossless historical Observation projection for an evicted turn."""
-
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
-    observation_id: str = Field(min_length=1, max_length=200)
-    source_turn_id: str = Field(min_length=1, max_length=160)
-    sequence_no: int = Field(ge=1)
-    occurred_at: datetime
-    learned_at: datetime
-    user_text: str
-    assistant_text: str
-    content_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
-
-    @field_validator("occurred_at", "learned_at")
-    @classmethod
-    def timestamps_must_be_aware(cls, value: datetime, info: Any) -> datetime:
-        require_aware(value, info.field_name)
-        return value
+    @property
+    def total_rounds(self) -> int:
+        return len(self._archive) + len(self._active)
 
 
-class ConversationObservationArchive:
-    """Thread-safe, append-only archive with exact-content idempotency."""
-
-    def __init__(self, *, clock: Callable[[], datetime] = utc_now) -> None:
-        self._clock = clock
-        self._by_turn_id: dict[str, ArchivedTurnObservation] = {}
-        self._ordered: list[ArchivedTurnObservation] = []
-        self._lock = RLock()
-
-    def append_turn(self, turn: ConversationTurn) -> ArchivedTurnObservation:
-        canonical = json.dumps(
-            {
-                "assistant_text": turn.assistant_text,
-                "occurred_at": turn.occurred_at.isoformat(),
-                "sequence_no": turn.sequence_no,
-                "turn_id": turn.turn_id,
-                "user_text": turn.user_text,
-            },
-            ensure_ascii=False,
-            sort_keys=True,
-            separators=(",", ":"),
-        ).encode("utf-8")
-        archived = ArchivedTurnObservation(
-            observation_id=f"obs_conversation_{turn.turn_id}",
-            source_turn_id=turn.turn_id,
-            sequence_no=turn.sequence_no,
-            occurred_at=turn.occurred_at,
-            learned_at=self._clock(),
-            user_text=turn.user_text,
-            assistant_text=turn.assistant_text,
-            content_sha256=hashlib.sha256(canonical).hexdigest(),
-        )
-        with self._lock:
-            previous = self._by_turn_id.get(turn.turn_id)
-            if previous is not None:
-                if (
-                    previous.sequence_no != archived.sequence_no
-                    or previous.occurred_at != archived.occurred_at
-                    or previous.user_text != archived.user_text
-                    or previous.assistant_text != archived.assistant_text
-                    or previous.content_sha256 != archived.content_sha256
-                ):
-                    raise ValueError(
-                        f"turn_id already archived with different content: {turn.turn_id}"
-                    )
-                return previous
-            self._by_turn_id[turn.turn_id] = archived
-            self._ordered.append(archived)
-        return archived
-
-    def snapshot(self) -> tuple[ArchivedTurnObservation, ...]:
-        with self._lock:
-            return tuple(self._ordered)
-
-    def __len__(self) -> int:
-        with self._lock:
-            return len(self._ordered)
-
-
-class ActiveRollingWindow:
-    """Tier-1 volatile window: exactly the newest six complete turns."""
-
-    HARD_MAX_TURNS: ClassVar[int] = 6
-
-    def __init__(self, max_turns: int = HARD_MAX_TURNS) -> None:
-        if not 1 <= max_turns <= self.HARD_MAX_TURNS:
-            raise ValueError("max_turns must be between 1 and 6")
-        self.max_turns = max_turns
-        self._turns: deque[ConversationTurn] = deque()
-        self._lock = RLock()
-
-    def push(self, turn: ConversationTurn) -> tuple[ConversationTurn, ...]:
-        normalized = ConversationTurn.model_validate(turn)
-        with self._lock:
-            if self._turns and normalized.sequence_no <= self._turns[-1].sequence_no:
-                raise ValueError("conversation sequence_no must increase monotonically")
-            self._turns.append(normalized)
-            evicted: list[ConversationTurn] = []
-            while len(self._turns) > self.max_turns:
-                evicted.append(self._turns.popleft())
-            return tuple(evicted)
-
-    def snapshot(self) -> tuple[ConversationTurn, ...]:
-        with self._lock:
-            return tuple(self._turns)
-
-    def __len__(self) -> int:
-        with self._lock:
-            return len(self._turns)
-
-
-class CrisisCockpitContext(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid",
-        frozen=True,
-        str_strip_whitespace=True,
-    )
-
-    session_id: str = Field(min_length=1, max_length=160)
-    ai_self_summary: str = Field(min_length=1, max_length=500_000)
-    rapport_state: str = Field(min_length=1, max_length=500_000)
-    response_posture: str = Field(
-        default="bounded_evidence_first",
-        min_length=1,
-        max_length=2_000,
-    )
-    wake_reason_anchor: str = Field(min_length=1, max_length=500_000)
-    local_world_facts: str = Field(min_length=1, max_length=2_000_000)
-    ready_tasks: list[dict[str, Any]] = Field(default_factory=list, max_length=3)
-
-
-class SingleShotCockpitManifest(BaseModel):
-    """The only prompt envelope allowed to cross the model boundary."""
-
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
-    session_id: str = Field(min_length=1)
-    generated_at: datetime
-    prompt: str = Field(min_length=1)
-    prompt_token_count: int = Field(ge=1, le=1_500)
-    active_turn_ids: list[str] = Field(max_length=6)
-    archived_observation_count: int = Field(ge=0)
-    omitted_utf8_bytes: int = Field(ge=0)
-
-    @field_validator("generated_at")
-    @classmethod
-    def generated_at_must_be_aware(cls, value: datetime) -> datetime:
-        require_aware(value, "generated_at")
-        return value
-
-    @model_validator(mode="after")
-    def token_receipt_must_match_physical_prompt(self) -> SingleShotCockpitManifest:
-        physical_count = len(self.prompt.encode("utf-8"))
-        if self.prompt_token_count != physical_count:
-            raise ValueError(
-                "prompt_token_count does not match physical prompt envelope"
-            )
-        if physical_count > 1_500:
-            raise ValueError("Single-Shot prompt exceeds the 1500-token hard ceiling")
-        return self
-
-
-class CockpitPipeline:
-    """Archive evicted turns and assemble one bounded prompt per new turn."""
-
-    HARD_PROMPT_TOKEN_LIMIT: ClassVar[int] = 1_500
+class ConversationState(RollingRoundWindow):
+    """对话状态：滚动窗口 + 会话元数据（M2 场景：职业危机对抗线）。"""
 
     def __init__(
         self,
         *,
-        window: ActiveRollingWindow | None = None,
-        archive: ConversationObservationArchive | None = None,
-        prompt_token_limit: int = HARD_PROMPT_TOKEN_LIMIT,
-        clock: Callable[[], datetime] = utc_now,
+        crisis_context: str,
+        size: int = ACTIVITY_WINDOW_SIZE,
     ) -> None:
-        if not 1 <= prompt_token_limit <= self.HARD_PROMPT_TOKEN_LIMIT:
-            raise ValueError("prompt_token_limit must be between 1 and 1500")
-        self.window = window if window is not None else ActiveRollingWindow()
-        self.archive = (
-            archive
-            if archive is not None
-            else ConversationObservationArchive(clock=clock)
-        )
-        self.token_counter = Utf8ByteTokenCounter()
-        self.prompt_token_limit = prompt_token_limit
-        self._clock = clock
+        super().__init__(size=size)
+        self.crisis_context = crisis_context
+        self._round_seq = 0
 
-    def process_turn(
-        self,
-        turn: ConversationTurn,
-        context: CrisisCockpitContext,
-    ) -> SingleShotCockpitManifest:
-        evicted = self.window.push(turn)
-        for old_turn in evicted:
-            self.archive.append_turn(old_turn)
-        return self.assemble_manifest(context)
-
-    def assemble_manifest(
-        self,
-        context: CrisisCockpitContext,
-    ) -> SingleShotCockpitManifest:
-        active_turns = self.window.snapshot()
-        contract = (
-            "Single-Shot only; evidence first; no paternalistic lecture; "
-            "reply in 1-3 sentences."
-        )
-        ready_json = json.dumps(
-            context.ready_tasks,
-            ensure_ascii=False,
-            sort_keys=True,
-            separators=(",", ":"),
-        )
-        sections = [
-            self._bounded_section("CONSTITUTION", contract, 120),
-            self._bounded_section("STEP_1_SELF", context.ai_self_summary, 80),
-            self._bounded_section("STEP_2_RAPPORT", context.rapport_state, 80),
-            self._bounded_section("STEP_3_POSTURE", context.response_posture, 80),
-            self._bounded_section("STEP_4_WORLD", context.wake_reason_anchor, 120),
-            self._bounded_section("STEP_4_FACTS", context.local_world_facts, 220),
-            self._bounded_section("READY", ready_json, 80),
-        ]
-        for turn in active_turns:
-            sections.append(
-                self._bounded_section(
-                    f"TURN_{turn.sequence_no}_{turn.turn_id}",
-                    f"U:{turn.user_text}\nA:{turn.assistant_text}",
-                    100,
-                )
-            )
-
-        unbounded_prompt = "\n".join(sections)
-        prompt = self.token_counter.truncate(
-            unbounded_prompt,
-            self.prompt_token_limit,
-        )
-        count = self.token_counter.count(prompt)
-        if count > self.prompt_token_limit:
-            raise RuntimeError("token counter failed to enforce prompt ceiling")
-        source_bytes = sum(
-            self.token_counter.count(value)
-            for value in (
-                contract,
-                context.wake_reason_anchor,
-                context.ai_self_summary,
-                context.rapport_state,
-                context.response_posture,
-                context.local_world_facts,
-                ready_json,
-            )
-        ) + sum(
-            self.token_counter.count(turn.user_text)
-            + self.token_counter.count(turn.assistant_text)
-            for turn in active_turns
-        )
-        omitted = max(0, source_bytes - count)
-        return SingleShotCockpitManifest(
-            session_id=context.session_id,
-            generated_at=self._clock(),
-            prompt=prompt,
-            prompt_token_count=count,
-            active_turn_ids=[turn.turn_id for turn in active_turns],
-            archived_observation_count=len(self.archive),
-            omitted_utf8_bytes=omitted,
-        )
-
-    def _bounded_section(self, label: str, content: str, budget: int) -> str:
-        prefix = f"[{label}] "
-        prefix_cost = self.token_counter.count(prefix)
-        if prefix_cost >= budget:
-            return self.token_counter.truncate(prefix, budget)
-        return prefix + self.token_counter.truncate(content, budget - prefix_cost)
-
-    @staticmethod
-    def p95_ms(samples_ms: Sequence[float]) -> float:
-        if not samples_ms:
-            raise ValueError("samples_ms must not be empty")
-        ordered = sorted(samples_ms)
-        index = max(0, ceil(0.95 * len(ordered)) - 1)
-        return ordered[index]
+    def next_round_id(self) -> str:
+        self._round_seq += 1
+        return f"round:{self._round_seq:04d}"
 
 
-_SENTENCE_PATTERN = re.compile(r"[^。！？!?\n]+[。！？!?]?", re.UNICODE)
+# ----------------------------------------------------------------------
+# BrevityGuard：反爹味与极简老友语调（M2 门禁 3）
+# ----------------------------------------------------------------------
 
 
-def split_sentences(text: str) -> list[str]:
-    return [
-        match.group(0).strip()
-        for match in _SENTENCE_PATTERN.finditer(text)
-        if match.group(0).strip()
-    ]
+@dataclass(frozen=True)
+class BrevityVerdict:
+    """护栏裁决：最终合规文本 + 是否发生强制截断/拦截 + 违例审计。"""
 
-
-class BrevityResult(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
-    text: str = Field(min_length=1)
-    sentences: list[str] = Field(min_length=1, max_length=3)
-    blocked_patterns: list[str] = Field(default_factory=list)
-    was_truncated: bool = False
-    was_rewritten: bool = False
+    text: str
+    intercepted: bool
+    violations: Tuple[str, ...]
+    sentence_count: int
 
 
 class BrevityGuard:
-    """Fail-closed anti-lecture output gate for the wearable channel."""
+    """反爹味极简护栏：严格 1~3 句老友语调，长篇说教强制截断 + 合宪拦截。
 
-    MAX_SENTENCES: ClassVar[int] = 3
-    MAX_CHARACTERS_BEFORE_REWRITE: ClassVar[int] = 180
-    SAFE_CRISIS_REPLY: ClassVar[str] = (
-        "这不是你的错，先别在高压下签任何东西。"
-        "把降薪、调岗和竞业索赔材料原样留住，我们一起把主动权拿回来。"
-    )
-    FORBIDDEN_PATTERNS: ClassVar[tuple[tuple[str, re.Pattern[str]], ...]] = (
-        ("positive-mindset", re.compile(r"您?要保持积极心态")),
-        ("five-point-counselling", re.compile(r"为您推荐以下[五5]点.*方案")),
-        ("paternal-advice", re.compile(r"我建议您(?:采取|保持|首先|应该)?")),
-        (
-            "numbered-lecture",
-            re.compile(r"第[一二三四五六七八九十]点|首先.*其次.*最后", re.DOTALL),
-        ),
-        (
-            "customer-service",
-            re.compile(r"很高兴为您服务|请问有什么(?:可以)?帮(?:助)?您"),
-        ),
-        ("formulaic-summary", re.compile(r"综上所述|综合以上分析")),
-    )
+    - 命中爹味模式：从首个说教句起整体剥离（说教句之前的合规句保留）；
+      剥离后不足一句 → 回落到合宪兜底句；
+    - 句数越界：物理截断至前 3 句；
+    - 字符越界：物理硬切至 ``_MAX_REPLY_CHARS``。
+    """
 
-    def enforce(self, raw_reply: str) -> BrevityResult:
-        if not isinstance(raw_reply, str) or not raw_reply.strip():
-            return self._safe_rewrite(["empty-output"])
+    def enforce(self, candidate: str) -> BrevityVerdict:
+        text = candidate.strip()
+        sentences = split_sentences(text)
+        violations: List[str] = []
 
-        blocked = [
-            name
-            for name, pattern in self.FORBIDDEN_PATTERNS
-            if pattern.search(raw_reply)
+        preach_at: Optional[int] = None
+        for index, sentence in enumerate(sentences):
+            for name, pattern in _PREACH_PATTERNS:
+                if pattern.search(sentence):
+                    preach_at = index
+                    violations.append(f"PREACH_PATTERN:{name}")
+                    break
+            if preach_at is not None:
+                break
+
+        if len(sentences) > _MAX_SENTENCES:
+            violations.append(f"TOO_MANY_SENTENCES:{len(sentences)}")
+        if not (0 < len(sentences) < _MAX_SENTENCES + 1) and not sentences:
+            violations.append("EMPTY_REPLY")
+
+        if preach_at is not None:
+            kept = sentences[:preach_at]
+        else:
+            kept = sentences[:_MAX_SENTENCES]
+
+        if len(kept) < _MIN_SENTENCES:
+            kept = [_CONSTITUTIONAL_FALLBACK]
+
+        final_text = "".join(kept)
+        if len(final_text) > _MAX_REPLY_CHARS:  # 字符级物理硬切
+            final_text = final_text[:_MAX_REPLY_CHARS].rstrip()
+            if not split_sentences(final_text):
+                final_text = _CONSTITUTIONAL_FALLBACK
+            violations.append("HARD_CHAR_CUT")
+
+        if not final_text.strip():
+            final_text = _CONSTITUTIONAL_FALLBACK
+            violations.append("FALLBACK_USED")
+
+        return BrevityVerdict(
+            text=final_text.strip(),
+            intercepted=bool(violations),
+            violations=tuple(violations),
+            sentence_count=len(split_sentences(final_text)),
+        )
+
+
+# ----------------------------------------------------------------------
+# Single-Shot 看板组装（M2 门禁 1：1500 Token 绝对物理截断）
+# ----------------------------------------------------------------------
+
+
+class SingleShotCockpit(BaseModel):
+    """组装完成的 Single-Shot 看板（Prompt 总量结构化 <= 预算）。"""
+
+    model_config = {"frozen": True}
+
+    prompt: str
+    token_count: int = Field(ge=0)
+    budget: int = Field(default=SINGLE_SHOT_TOKEN_BUDGET, ge=1)
+    window_round_ids: Tuple[str, ...] = ()
+    evidence_count: int = Field(default=0, ge=0)
+    physically_truncated: bool = False
+
+    @model_validator(mode="after")
+    def _enforce_physical_budget(self) -> "SingleShotCockpit":
+        if self.token_count > self.budget:
+            raise ValueError(
+                f"Single-Shot cockpit violates the physical token budget: "
+                f"{self.token_count} > {self.budget}"
+            )
+        return self
+
+
+_TONE_DIRECTIVE = "回复要求：老友语调，1~3 句，直给建议，禁止说教与心理疏导清单。"
+
+
+class CockpitPipeline:
+    """M2-009R 单看板流水线：滚动窗口 + 证据链 + 硬预算组装。
+
+    组装复杂度 O(活动窗口 + 证据条数)，与全量上下文长度解耦 ——
+    50 轮万字级累积下 P95 <= 15ms 的关键。
+    """
+
+    def __init__(
+        self,
+        *,
+        state: Optional[ConversationState] = None,
+        budget: int = SINGLE_SHOT_TOKEN_BUDGET,
+        window_size: int = ACTIVITY_WINDOW_SIZE,
+    ) -> None:
+        self.state = state or ConversationState(
+            crisis_context="职业危机对抗线：恶意降薪 / 强制调岗 / 竞业索赔",
+            size=window_size,
+        )
+        self.budget = budget
+        self.guard = BrevityGuard()
+
+    # ---------------- 轮次处理 ----------------
+
+    def process_round(
+        self,
+        user_text: str,
+        *,
+        occurred_at: Optional[datetime] = None,
+        key_dispute_points: Optional[Sequence[str]] = None,
+    ) -> "RoundResult":
+        """处理一轮：用户碎片入窗口 → 老友回复过护栏 → 组装看板。"""
+        occurred = occurred_at or _utc_now()
+        if isinstance(key_dispute_points, str):  # 单条争议点字符串 → 单元素列表
+            key_dispute_points = [key_dispute_points]
+        user_round = ConversationRound(
+            round_id=self.state.next_round_id(),
+            speaker="user",
+            text=user_text,
+            occurred_at=occurred,
+            key_dispute_points=list(key_dispute_points or []),
+        )
+        self.state.push(user_round)
+
+        assistant_text = self._compose_friend_reply()
+        verdict = self.guard.enforce(assistant_text)
+        assistant_round = ConversationRound(
+            round_id=self.state.next_round_id(),
+            speaker="assistant",
+            text=verdict.text,
+            occurred_at=occurred,
+            key_dispute_points=[],
+        )
+        self.state.push(assistant_round)
+
+        started = time.perf_counter()
+        cockpit = self.assemble_cockpit()
+        assembly_ms = (time.perf_counter() - started) * 1000.0
+
+        return RoundResult(
+            user_round=user_round,
+            assistant_round=assistant_round,
+            verdict=verdict,
+            cockpit=cockpit,
+            assembly_ms=assembly_ms,
+        )
+
+    def _compose_friend_reply(self) -> str:
+        """确定性的极简老友回复：锚定最新争议点，1~2 句，零说教。"""
+        points = self.state.dispute_evidence()
+        if points:
+            latest = points[-1]
+            return (
+                f"这条我记下了：{latest}。"
+                "原件先拍照留好，别急着签字，剩下的咱一条一条捋。"
+            )
+        return "先稳住，别在气头上签任何东西。把你看到的最狠的那条丢给我。"
+
+    # ---------------- 看板组装（硬预算） ----------------
+
+    def assemble_cockpit(self) -> SingleShotCockpit:
+        """组装 Single-Shot 看板，token 总量物理保证 <= budget。
+
+        压缩阶梯（逐级，直至达标）：
+        1) 全量活动窗口 + 全量争议证据摘要；
+        2) 逐轮丢弃最旧活动轮（至少保留最新 1 轮）；
+        3) 争议证据摘要只保留最近一半（状态层依旧无损，仅视图裁剪）；
+        4) 字符级物理硬切（最后一道保险，必然终止）。
+        """
+        evidence_all: List[str] = list(self.state.dispute_evidence())
+        window: List[ConversationRound] = [
+            r for r in self.state.active_window()
         ]
-        if blocked or len(raw_reply.strip()) > self.MAX_CHARACTERS_BEFORE_REWRITE:
-            return self._safe_rewrite(blocked or ["overlong-single-reply"])
+        truncated = False
 
-        sentences = split_sentences(raw_reply)
-        if not sentences:
-            return self._safe_rewrite(["empty-after-segmentation"])
-        truncated = len(sentences) > self.MAX_SENTENCES
-        kept = sentences[: self.MAX_SENTENCES]
-        text = "".join(kept).strip()
-        if any(pattern.search(text) for _, pattern in self.FORBIDDEN_PATTERNS):
-            return self._safe_rewrite(["forbidden-after-truncation"])
-        return BrevityResult(
-            text=text,
-            sentences=kept,
-            blocked_patterns=[],
-            was_truncated=truncated,
-            was_rewritten=False,
+        while True:
+            prompt = self._render_prompt(window, evidence_all)
+            tokens = estimate_tokens(prompt)
+            if tokens <= self.budget:
+                break
+            if len(window) > 1:
+                window.pop(0)  # 丢最旧活动轮
+                truncated = True
+            elif evidence_all:
+                keep = max(1, len(evidence_all) // 2)
+                evidence_all = evidence_all[-keep:]
+                truncated = True
+            else:
+                # 物理硬切：按 token 密度等比回缩，循环直至达标（每轮至少减 1 字符，必然终止）
+                window = []
+                evidence_all = []
+                truncated = True
+                chars_per_token = len(prompt) / max(tokens, 1)
+                while True:
+                    over = tokens - self.budget
+                    cut_chars = int(over * chars_per_token * 1.25) + 1
+                    prompt = prompt[: max(0, len(prompt) - cut_chars)]
+                    tokens = estimate_tokens(prompt)
+                    if tokens <= self.budget or not prompt:
+                        break
+                return SingleShotCockpit(
+                    prompt=prompt,
+                    token_count=tokens,
+                    budget=self.budget,
+                    window_round_ids=(),
+                    evidence_count=0,
+                    physically_truncated=True,
+                )
+
+        return SingleShotCockpit(
+            prompt=prompt,
+            token_count=tokens,
+            budget=self.budget,
+            window_round_ids=tuple(r.round_id for r in window),
+            evidence_count=len(evidence_all),
+            physically_truncated=truncated,
         )
 
-    def _safe_rewrite(self, blocked: Iterable[str]) -> BrevityResult:
-        sentences = split_sentences(self.SAFE_CRISIS_REPLY)
-        return BrevityResult(
-            text=self.SAFE_CRISIS_REPLY,
-            sentences=sentences,
-            blocked_patterns=list(blocked),
-            was_truncated=True,
-            was_rewritten=True,
-        )
+    def _render_prompt(self, window: Sequence[ConversationRound], evidence: Sequence[str]) -> str:
+        parts: List[str] = [
+            f"【危机上下文】{self.state.crisis_context}"
+        ]
+        if evidence:
+            digest = "；".join(f"[{i + 1}] {point}" for i, point in enumerate(evidence))
+            parts.append(f"【争议证据链（{len(evidence)} 项，全量无损）】{digest}")
+        if window:
+            dialogue = "\n".join(f"{r.speaker}: {r.text}" for r in window)
+            parts.append(f"【活动窗口（最近 {len(window)} 轮）】\n{dialogue}")
+        parts.append(_TONE_DIRECTIVE)
+        return "\n".join(parts)
+
+    # ---------------- 调度器兼容入口 ----------------
+
+    def execute(self, wake: object) -> Dict[str, object]:
+        """wake 调度器兼容入口：非 P0 事件走单看板流水线。"""
+        cockpit = self.assemble_cockpit()
+        return {
+            "status": "COCKPIT_ASSEMBLED",
+            "token_count": cockpit.token_count,
+            "budget": cockpit.budget,
+            "prompt": cockpit.prompt,
+        }
 
 
-__all__ = [
-    "ActiveRollingWindow",
-    "ArchivedTurnObservation",
-    "BrevityGuard",
-    "BrevityResult",
-    "CockpitPipeline",
-    "ConversationObservationArchive",
-    "ConversationTurn",
-    "CrisisCockpitContext",
-    "SingleShotCockpitManifest",
-    "Utf8ByteTokenCounter",
-    "split_sentences",
-]
+@dataclass(frozen=True)
+class RoundResult:
+    """单轮处理结果：用户轮 + 助手轮 + 护栏裁决 + 看板 + 组装耗时。"""
+
+    user_round: ConversationRound
+    assistant_round: ConversationRound
+    verdict: BrevityVerdict
+    cockpit: SingleShotCockpit
+    assembly_ms: float

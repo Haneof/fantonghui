@@ -1,39 +1,40 @@
-"""World-domain services layered over immutable AIOS facts."""
+"""World services - Entity/Claim/Event/Dimension/Goal 等写服务 + 复盘回溯层。
 
-from .fact_immutability_ledger import (
-    FactImmutabilityLedger,
-    FactIntegrityReport,
-    SealedFact,
-    canonical_fact_sha256,
-)
+M1-018 实现：``retrospective_annotation``（老王案：历史不可篡改铁律）。
+- ``ImmutableFactLedger``：追加式事实账本，SHA-256 物理哈希封存，无 UPDATE/DELETE API；
+- ``RetrospectiveAnnotation`` / ``AnnotationRegistry``：今天打标签的外挂解释图层；
+- ``BiTemporalEpistemicLens``：事件时间 × 知识时间双时间认知透镜；
+- ``SingleHopCascadeIsolator``：单跳级联隔离，杜绝 210 次大模型算力雪崩。
+"""
 from .retrospective_annotation import (
+    AnnotationBudgetExceededError,
     AnnotationConflictError,
-    AnnotationJournalCorruptionError,
+    AnnotationRegistry,
     BiTemporalEpistemicLens,
-    DependencyEdge,
-    EpistemicSlice,
-    EpistemicWorldLens,
+    CascadeIsolationError,
+    HistoricalFact,
+    HistoricalSliceView,
+    ImmutableFactLedger,
+    InvalidationReport,
+    LedgerConflictError,
     RetrospectiveAnnotation,
-    RetrospectiveAnnotationJournal,
     SingleHopCascadeIsolator,
-    SingleHopIsolationResult,
-    StaleNodeState,
 )
 
 __all__ = [
+    "AnnotationBudgetExceededError",
     "AnnotationConflictError",
-    "AnnotationJournalCorruptionError",
+    "AnnotationRegistry",
     "BiTemporalEpistemicLens",
-    "DependencyEdge",
-    "EpistemicSlice",
-    "EpistemicWorldLens",
-    "FactImmutabilityLedger",
-    "FactIntegrityReport",
+    "CascadeIsolationError",
+    "HistoricalFact",
+    "HistoricalSliceView",
+    "ImmutableFactLedger",
+    "InvalidationReport",
+    "LedgerConflictError",
     "RetrospectiveAnnotation",
-    "RetrospectiveAnnotationJournal",
-    "SealedFact",
     "SingleHopCascadeIsolator",
-    "SingleHopIsolationResult",
-    "StaleNodeState",
-    "canonical_fact_sha256",
 ]
+
+from .view_lens import view_at
+__all__.append('view_at')

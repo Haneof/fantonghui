@@ -1,356 +1,131 @@
-"""M5 golden retrieval experience acceptance and adversarial tests."""
+"""AI 操作经验蒸馏与极简看盘看板测试 (Operation Experience & Manifest Tests).
+
+贯彻最高宪法第二十章（§67~70）与第二十四章（§84~85）：
+1. 验证 OperationExperienceDistiller 从实测回执中自主蒸馏黄金检索路径并持久化；
+2. 验证 CockpitManifestOptimizer 严格执行心智启动四步序与 <= 500 Token 门禁。
+"""
 
 from __future__ import annotations
 
-import sqlite3
-from datetime import UTC, datetime, timedelta
-
+import os
+import tempfile
+from datetime import datetime, timezone
 import pytest
 
 from aios_core.cognition.operation_experience import (
-    NoGoldenPathwayError,
     OperationExperienceDistiller,
-    PathwayComparisonExecutor,
     PathwayType,
     QueryExecutionReceipt,
 )
-from aios_core.query.search import (
-    ConservativeTokenMeter,
-    MindDocument,
-    MindObjectType,
-    MindSearchQuery,
-    MultidimensionalSearchEngine,
-    SearchPathway,
-)
+from aios_core.storage.sqlite_store import SQLiteWorldStore
+from ai_worker.manifest_optimizer import CockpitManifestOptimizer
 
-NOW = datetime(2026, 9, 16, 12, 0, tzinfo=UTC)
-INTENT = "老王借款纠纷因果回溯"
+UTC = timezone.utc
 
 
-def _large_world() -> MultidimensionalSearchEngine:
-    documents: list[MindDocument] = []
-    # 150 unrelated records make a true full scan cost 15k--50k tokens.
-    for index in range(150):
-        documents.append(
-            MindDocument(
-                object_id=f"noise_{index:03d}",
-                object_type=MindObjectType.OBSERVATION,
-                dimension="dim_general",
-                entity_id=f"ent_noise_{index:03d}",
-                text=f"无关环境记录 {index} " + ("x" * 390),
-                occurred_at=NOW - timedelta(minutes=index),
-            )
-        )
-    # Keyword OR retrieves these plausible but wrong records.  Topological AND
-    # excludes them, which is the exactness difference between pathways B/C.
-    for index in range(15):
-        documents.append(
-            MindDocument(
-                object_id=f"wang_only_{index:02d}",
-                object_type=MindObjectType.OBSERVATION,
-                dimension="dim_finance",
-                entity_id="ent_wang",
-                text="老王 旧日普通往来 " + ("w" * 390),
-                occurred_at=NOW - timedelta(days=20 + index),
-            )
-        )
-        documents.append(
-            MindDocument(
-                object_id=f"loan_only_{index:02d}",
-                object_type=MindObjectType.OBSERVATION,
-                dimension="dim_finance",
-                entity_id=f"ent_other_{index:02d}",
-                text="借款 普通账单记录 " + ("l" * 390),
-                occurred_at=NOW - timedelta(days=40 + index),
-            )
-        )
-    for index in range(3):
-        documents.append(
-            MindDocument(
-                object_id=f"evidence_{index}",
-                object_type=(
-                    MindObjectType.ANNOTATION if index == 0 else MindObjectType.CLAIM
-                ),
-                dimension="dim_finance",
-                entity_id="ent_wang",
-                text=(
-                    f"老王 借款 证据锚点 {index}：合同、流水和法院结论相互印证。"
-                    + ("e" * 100)
-                ),
-                occurred_at=NOW + timedelta(seconds=index),
-            )
-        )
-    return MultidimensionalSearchEngine(documents=documents)
+@pytest.fixture
+def temp_store():
+    fd, path = tempfile.mkstemp(suffix=".db")
+    os.close(fd)
+    store = SQLiteWorldStore(path)
+    try:
+        yield store
+    finally:
+        if os.path.exists(path):
+            try:
+                os.remove(path)
+            except Exception:
+                pass
 
 
-def _query() -> MindSearchQuery:
-    return MindSearchQuery(
-        keywords=("老王", "借款"),
-        dimension="dim_finance",
-        entity_id="ent_wang",
-        limit=4,
-    )
+def test_experience_distiller_prior_and_learning(temp_store: SQLiteWorldStore):
+    distiller = OperationExperienceDistiller(temp_store)
 
+    # 1. 无历史实测回执时，提供宪法拓扑分级下钻先验策略
+    prior_strategy = distiller.distill_for_intent("老王诈骗案定罪回溯")
+    assert prior_strategy.preferred_pathway == PathwayType.HIERARCHICAL_TOPO
+    assert prior_strategy.expected_tokens <= 500
+    assert prior_strategy.sample_size == 1
 
-def test_three_measured_pathways_distill_and_persist_exact_golden_path(tmp_path):
-    engine = _large_world()
-    executor = PathwayComparisonExecutor(engine)
-    expected = {"evidence_0", "evidence_1", "evidence_2"}
-    comparisons = [
-        executor.compare(
-            query_intent=INTENT,
-            query=_query(),
-            expected_object_ids=expected,
-        )
-        for _ in range(3)
-    ]
-
-    first = {receipt.pathway_type: receipt for receipt in comparisons[0].receipts}
-    brute = first[PathwayType.BRUTE_FORCE_SCAN]
-    keyword = first[PathwayType.KEYWORD_SEARCH]
-    topo = first[PathwayType.HIERARCHICAL_TOPO]
-
-    assert 15_000 <= brute.token_cost <= 50_000
-    assert brute.exact_result_match is True
-    assert keyword.recall_accuracy == 1.0
-    assert keyword.exact_result_match is False  # 100% recall alone is insufficient.
-    assert topo.exact_result_match is True
-    assert set(topo.hit_object_ids) == expected
-    assert topo.token_cost <= 500
-    assert topo.token_cost * 30 < brute.token_cost
-    assert all(
-        hit.estimated_tokens <= 150 and ConservativeTokenMeter.count(hit.excerpt) <= 150
-        for hit in engine.execute_pathway(
-            SearchPathway.HIERARCHICAL_TOPO,
-            _query(),
-        ).page.hits
-    )
-
-    database = tmp_path / "experience.db"
-    distiller = OperationExperienceDistiller(database)
-    for comparison in comparisons:
-        distiller.record_comparison(comparison)
-    learned = distiller.distill_for_intent(INTENT)
-
-    assert learned.preferred_pathway is PathwayType.HIERARCHICAL_TOPO
-    assert learned.expected_accuracy == 1.0
-    assert learned.expected_tokens <= 500
-    assert learned.sample_size == 9
-    assert len(learned.pathway_steps) >= 4
-
-    reloaded = OperationExperienceDistiller(database).get_strategy(INTENT)
-    assert reloaded == learned
-
-
-def test_accuracy_is_a_hard_gate_not_a_weighted_preference(tmp_path):
-    distiller = OperationExperienceDistiller(tmp_path / "hard-gate.db")
-    samples = (
+    # 2. 模拟多次真实检索回执录入
+    # 路径 A: 暴力全扫 (昂贵且慢)
+    distiller.record_receipt(
         QueryExecutionReceipt(
-            query_intent="对抗查询",
+            query_intent="老王借款纠纷",
             pathway_type=PathwayType.BRUTE_FORCE_SCAN,
-            token_cost=15_000,
-            latency_ms=500,
-            recall_accuracy=1.0,
-            exact_result_match=True,
-            facts_retrieved_count=1,
-            hit_object_ids=("fact",),
-        ),
-        QueryExecutionReceipt(
-            query_intent="对抗查询",
-            pathway_type=PathwayType.KEYWORD_SEARCH,
-            token_cost=1,
-            latency_ms=0.01,
-            recall_accuracy=0.999,
-            exact_result_match=False,
-            facts_retrieved_count=1,
-            hit_object_ids=("wrong",),
-        ),
-        QueryExecutionReceipt(
-            query_intent="对抗查询",
-            pathway_type=PathwayType.HIERARCHICAL_TOPO,
-            token_cost=120,
-            latency_ms=1,
-            recall_accuracy=1.0,
-            exact_result_match=False,
-            facts_retrieved_count=2,
-            hit_object_ids=("fact", "false-positive"),
-        ),
-    )
-    for sample in samples:
-        distiller.record_receipt(sample)
-
-    with pytest.raises(NoGoldenPathwayError, match="100% exact recall"):
-        distiller.distill_for_intent("对抗查询")
-
-
-def test_unmeasured_claims_are_refused_and_old_table_is_forward_compatible(tmp_path):
-    database = tmp_path / "legacy.db"
-    with sqlite3.connect(database) as connection:
-        connection.execute(
-            """
-            CREATE TABLE operation_experiences (
-                intent_key TEXT PRIMARY KEY,
-                preferred_pathway TEXT NOT NULL,
-                expected_tokens INTEGER NOT NULL,
-                expected_latency_ms REAL NOT NULL,
-                expected_accuracy REAL NOT NULL,
-                pathway_steps_json TEXT NOT NULL,
-                sample_size INTEGER NOT NULL,
-                updated_at TEXT NOT NULL
-            )
-            """
+            token_cost=16500,
+            latency_ms=620.0,
+            recall_accuracy=0.92,
+            facts_retrieved_count=250,
         )
-
-    distiller = OperationExperienceDistiller(database)
-    with pytest.raises(NoGoldenPathwayError, match="no measured pathway receipts"):
-        distiller.distill_for_intent("从未执行的意图")
-    with sqlite3.connect(database) as connection:
-        fabricated_rows = connection.execute(
-            "SELECT COUNT(*) FROM operation_experiences "
-            "WHERE intent_key = '从未执行的意图'"
-        ).fetchone()[0]
-    assert fabricated_rows == 0
-
-    # The original public constructor did not expose exact IDs/output tokens.
-    legacy = QueryExecutionReceipt(
-        query_intent="兼容意图",
-        pathway_type=PathwayType.HIERARCHICAL_TOPO,
-        token_cost=360,
-        latency_ms=22.5,
-        recall_accuracy=1.0,
-        facts_retrieved_count=3,
     )
-    distiller.record_receipt(legacy)
-    learned = distiller.distill_for_intent("兼容意图")
+    # 路径 B: 关键词检索 (漏查隐性因果)
+    distiller.record_receipt(
+        QueryExecutionReceipt(
+            query_intent="老王借款纠纷",
+            pathway_type=PathwayType.KEYWORD_SEARCH,
+            token_cost=3200,
+            latency_ms=110.0,
+            recall_accuracy=0.68,
+            facts_retrieved_count=45,
+        )
+    )
+    # 路径 C: 拓扑分级下钻 (极快、极省、100% 命中)
+    distiller.record_receipt(
+        QueryExecutionReceipt(
+            query_intent="老王借款纠纷",
+            pathway_type=PathwayType.HIERARCHICAL_TOPO,
+            token_cost=360,
+            latency_ms=22.5,
+            recall_accuracy=1.0,
+            facts_retrieved_count=3,
+        )
+    )
+
+    # 3. 蒸馏黄金经验策略
+    learned = distiller.distill_for_intent("老王借款纠纷")
+    assert learned.preferred_pathway == PathwayType.HIERARCHICAL_TOPO
     assert learned.expected_tokens == 360
     assert learned.expected_accuracy == 1.0
+    assert learned.sample_size == 3
+    assert len(learned.pathway_steps) >= 4
+
+    # 4. 验证 SQLite 持久化与重新加载
+    new_distiller = OperationExperienceDistiller(temp_store)
+    persisted = new_distiller.get_strategy("老王借款纠纷")
+    assert persisted.preferred_pathway == PathwayType.HIERARCHICAL_TOPO
+    assert persisted.expected_tokens == 360
+    assert persisted.expected_accuracy == 1.0
 
 
-def test_durable_combined_index_and_backward_co_search_contract(tmp_path):
-    database = tmp_path / "world.db"
-    with sqlite3.connect(database) as connection:
-        connection.execute(
-            """
-            CREATE TABLE retrospective_annotations (
-                annotation_id TEXT PRIMARY KEY,
-                target_object_id TEXT NOT NULL,
-                target_object_type TEXT NOT NULL,
-                reinterpretation_claim TEXT NOT NULL,
-                is_invalidating INTEGER NOT NULL,
-                created_at TEXT NOT NULL,
-                created_by TEXT NOT NULL,
-                dimension TEXT NOT NULL
-            )
-            """
-        )
-        connection.execute(
-            "INSERT INTO retrospective_annotations VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (
-                "anno_fraud",
-                "obs_loan",
-                "observation",
-                "法院确认老王借款属于合同诈骗",
-                1,
-                NOW.isoformat(),
-                "judge",
-                "dim_finance",
-            ),
-        )
+def test_cockpit_manifest_four_steps_and_token_ceiling():
+    now = datetime(2026, 9, 16, 12, 0, tzinfo=UTC)
 
-    payloads = {
-        "dimension_definition": [
-            {
-                "object_id": "dim_finance",
-                "revision": 1,
-                "name": "dim_finance",
-                "description": "财务事实",
-                "learned_at": NOW.isoformat(),
-            }
+    manifest = CockpitManifestOptimizer.assemble_cockpit(
+        wake_reason="老王还款期限已至且银行流水异动",
+        user_name="老大",
+        rapport_tier="生死死党/损友僚机",
+        rapport_notes="深度信任，关键建议直言不讳",
+        self_identity="AIOS 3.0 端侧心智实体，坚守宪法底线",
+        posture_tone="严肃警惕、冷静果断",
+        active_focus_facts=[
+            {"fact_id": "obs_wang_loan", "type": "loan", "amount": 500000},
+            {"fact_id": "anno_wang_fraud", "type": "reinterpretation", "is_invalidating": True},
         ],
-        "claim": [
-            {
-                "object_id": "claim_loan",
-                "revision": 1,
-                "subject_id": "ent_wang",
-                "content": "老王承诺偿还借款",
-                "learned_at": NOW.isoformat(),
-                "dimension": "dim_finance",
-            }
+        ready_tasks=[
+            {"task_id": "task_monitor_restitution", "title": "监测老王退赔资金流"},
         ],
-        "entity": [
-            {
-                "object_id": "ent_wang",
-                "revision": 1,
-                "canonical_name": "老王",
-                "aliases": ["王建国"],
-                "learned_at": NOW.isoformat(),
-            }
-        ],
-        "observation": [
-            {
-                "object_id": "obs_loan",
-                "revision": 1,
-                "subject_id": "ent_wang",
-                "source_kind": "transaction",
-                "value": "老王借款五十万元银行流水",
-                "learned_at": NOW.isoformat(),
-            }
-        ],
-    }
-
-    class Store:
-        db_path = database
-
-        @staticmethod
-        def current_world_revision() -> int:
-            return 1
-
-        @staticmethod
-        def list_payloads(*, object_type):
-            key = object_type.value
-            return payloads.get(key, [])
-
-    engine = MultidimensionalSearchEngine(database, store=Store())
-    assert engine.rebuild() == 5  # four durable kinds plus one annotation
-
-    page = engine.search_mind(
-        ("王建国", "借款"),
-        dimension="dim_finance",
-        entity_id="ent_wang",
-        include_annotations=True,
+        now=now,
     )
-    assert {hit.object_id for hit in page.hits} >= {
-        "obs_loan",
-        "anno_fraud",
-    }
-    assert page.hits[0].is_annotation is True
-    assert page.total_estimated_tokens <= 500
 
-    legacy_page = engine.co_search(["王建国", "借款"])
-    assert legacy_page.status == "ok"
-    assert legacy_page.hits
-    assert legacy_page.total_estimated_tokens <= 500
+    # 1. 验证心智启动四步序不可颠倒与完整性
+    assert "【AI身份与底线】" in manifest.step1_self_mirror
+    assert "【与老大羁绊模型】" in manifest.step2_rapport_model
+    assert "【当前姿态与音调】" in manifest.step3_posture_and_tone
+    assert manifest.step4_world_inspection["wake_reason"] == "老王还款期限已至且银行流水异动"
+    assert len(manifest.step4_world_inspection["focused_fact_pointers"]) == 2
+    assert len(manifest.step4_world_inspection["condition_ready_tasks"]) == 1
 
-
-def test_utf8_physical_envelope_never_exceeds_single_or_page_budget():
-    engine = MultidimensionalSearchEngine(
-        documents=(
-            MindDocument(
-                object_id=f"cn_{index}",
-                object_type=MindObjectType.OBSERVATION,
-                dimension="dim_health",
-                text="早搏 " + ("非常长的中文观测" * 100),
-                occurred_at=NOW + timedelta(seconds=index),
-            )
-            for index in range(4)
-        )
-    )
-    page = engine.search_mind(
-        keywords=("早搏",),
-        dimension="dim_health",
-        limit=4,
-    )
-    assert len(page.hits) == 4
-    assert page.total_estimated_tokens <= 500
-    assert sum(hit.estimated_tokens for hit in page.hits) <= 500
-    assert all(hit.estimated_tokens <= 150 for hit in page.hits)
+    # 2. 验证宪法 Token 封套门禁 (<= 500 tokens)
+    assert manifest.manifest_token_count <= 500
+    assert manifest.manifest_token_count > 50  # 有实质内容

@@ -1,16 +1,17 @@
-"""AIOS 自研新工具/算子层。"""
+"""Registered AIOS tool proposals and executable pure-code mechanisms."""
 
-from aios_core.tools.adaptive_time_series_compressor import (
+from .adaptive_time_series_compressor import (
     AdaptiveTimeSeriesCompressor,
     CompressionReport,
     WaveformSample,
 )
-from aios_core.tools.dual_lens_virtual_index import (
+from .dual_lens_virtual_index import (
     AnnotationOverlay,
     AsKnownLens,
     DualLensVirtualIndexProjector,
     RegistryImmutableViolationError,
 )
+from .proposal_pipeline import ToolProposalPipeline
 
 __all__ = [
     "AdaptiveTimeSeriesCompressor",
@@ -19,5 +20,6 @@ __all__ = [
     "CompressionReport",
     "DualLensVirtualIndexProjector",
     "RegistryImmutableViolationError",
+    "ToolProposalPipeline",
     "WaveformSample",
 ]

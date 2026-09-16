@@ -22,7 +22,7 @@ from aios_core.query.epistemic_projection import (
     ProjectionOverlay,
     dual_lens_projection_tool_proposal,
 )
-from aios_core.summaries.pyramid_aggregator import LosslessTemporalPyramid
+from aios_core.summaries.lossless_temporal_pyramid import LosslessTemporalPyramid
 
 NOW = datetime(2026, 9, 16, 12, 0, tzinfo=UTC)
 NOW_NS = int(NOW.timestamp() * 1_000_000_000)

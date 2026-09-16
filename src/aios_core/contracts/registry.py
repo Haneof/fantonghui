@@ -7,7 +7,10 @@ from .base import WorldObject
 from .enums import ObjectType
 from .models import (
     Action,
+    AssemblyPolicy,
+    BudgetPolicy,
     Claim,
+    CommunicationExperience,
     Dependency,
     DimensionDefinition,
     DimensionDerivation,
@@ -16,15 +19,20 @@ from .models import (
     EventAnchor,
     EvidenceSet,
     Goal,
+    LifeChapter,
+    NarrativeSegment,
     Observation,
     OperationExperience,
     Outcome,
+    Prediction,
+    Reinterpretation,
     Relation,
     Session,
     Summary,
     Task,
     ToolProposal,
     Wake,
+    DimensionCurvePoint,
 )
 
 CANONICAL_WORLD_OBJECT_MODELS: Mapping[ObjectType, type[WorldObject]] = MappingProxyType({
@@ -47,6 +55,15 @@ CANONICAL_WORLD_OBJECT_MODELS: Mapping[ObjectType, type[WorldObject]] = MappingP
     ObjectType.OUTCOME: Outcome,
     ObjectType.OPERATION_EXPERIENCE: OperationExperience,
     ObjectType.TOOL_PROPOSAL: ToolProposal,
+    # --- R4 修改案（M0-023~028）候选契约 ---
+    ObjectType.PREDICTION: Prediction,
+    ObjectType.LIFE_CHAPTER: LifeChapter,
+    ObjectType.REINTERPRETATION: Reinterpretation,
+    ObjectType.COMMUNICATION_EXPERIENCE: CommunicationExperience,
+    ObjectType.BUDGET_POLICY: BudgetPolicy,
+    ObjectType.ASSEMBLY_POLICY: AssemblyPolicy,
+    ObjectType.NARRATIVE_SEGMENT: NarrativeSegment,
+    ObjectType.DIMENSION_CURVE_POINT: DimensionCurvePoint,
 })
 
 if set(CANONICAL_WORLD_OBJECT_MODELS) != set(ObjectType):
