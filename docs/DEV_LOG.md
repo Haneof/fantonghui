@@ -805,3 +805,29 @@ registry → **`0.3.3-PROPOSAL`**，新增审计发现号 `V3G-001 ~ V3G-008`（
   `conditional_engine.py`、`headless_life_driver.py`、`cooldown_queue.py`；`M1-018` 已有其号位自建的独立门禁复核测试，
   但仍缺架构侧 as-built 报告）；另有 **2 项交付物缺失**未变（`summaries/pyramid_aggregator.py`、
   `query/hyperlink_traverser.py` ⇒ `V3G-003`）。
+
+### 追记6（2026-09-16，推送后追补）：`V3G-012` —— 进程级单调高水位被当成模块预算门禁
+
+- **推送已成功**：`a04964e..3b64a2d`（本轮成果 + 上一轮因令牌过期未推成的第一批 as-built 审查一并入库），
+  零删除、零覆盖。推送期间远端两次前进（其他号位并行推送同一分支），处置为
+  `fetch → merge-base 判祖先 → name-status 三分类 → rebase --onto → 零删除校验 → 全量验证 → 推`，**全程未使用 `-f`**。
+  他们第二轮新增的是 9 个 `_independent` 后缀文件（同四张工单的另一份独立实现）+ `governance/runtime_policy.json`，
+  与本方提交**零文件重叠**。
+- **合并后全量套件出现 1 项失败**：`tests/simulation/test_30day_headless_life_simulation_independent.py::test_gate3_peak_rss_within_128mb`。
+  **因果判定实验（关键，40 秒给出结论）**：`git worktree add /tmp/basetree a04964e` 后在**不含本方任何提交**的父提交上
+  跑同样全量套件 ⇒ **同样失败**（1 failed, 778 passed）。故与本方改动无因果关系；本方提交树上该项亦曾
+  798 passed 全绿、单跑 1 passed（1.39 s）⇒ 失败本身**非确定性**。
+- **根因**：`headless_life_driver_independent.py:468/939/943` 用 `resource.getrusage(RUSAGE_SELF).ru_maxrss`
+  的**绝对值**作判据。`ru_maxrss` 是整个进程的**单调高水位**（只增不减），不减基线 ⇒ 数字不可归因到模块、
+  结论与执行顺序耦合 ⇒ 那道"≤128 MB / <64 MB"门禁实际裁定的是 **pytest 运行器进程**的总内存。
+- **正确范式在同一仓库内**：`headless_life_driver.py` 读 `/proc/self/statm` 的**时点** VmRSS，
+  且其测试除绝对上限外还断言 `final_rss − initial_rss ≤ 32 MB` 的**差值型泄漏判据**
+  （`tests/simulation/test_30day_headless_life_simulation.py:142`），单跑与全量均确定性通过。
+- **可泛化规则（设计书 §3.7.7 已立论）**：资源预算门禁的判据必须同时**可归因**且**顺序无关**；
+  凡用进程级单调量（`ru_maxrss`/`VmHWM`/累计计数器）充当模块级预算，必须**减基线**或**子进程隔离**；
+  **放宽阈值修不好它**——阈值从来不是问题所在。
+- **处置**：登记 **`V3G-012`**（`NUMCI`/`Gate0`/P2，`OPEN_NEEDS_FIX_BY_OWNER`），registry → **`0.3.5-PROPOSAL`**（110 项）。
+  缺陷在他人产品代码与其自建门禁测试内，**审查方不改他人代码**，只登记 + 给出可验收修法 + 明列三种伪修法为禁止项
+  （拿 `ru_maxrss` 绝对值当模块预算 / 以"单跑通过"当门禁成立证据 / 为让套件变绿而放宽阈值）。
+  checker 对新条目**未触发任何 A 类完整性问题**；`--refresh-manifest` 后六道门 **VERDICT = PASS**（41/41 哈希）。
+- **临时 worktree 已清理**（`git worktree remove /tmp/basetree`），仓库工作树保持干净。

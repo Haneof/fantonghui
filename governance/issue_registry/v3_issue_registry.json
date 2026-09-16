@@ -1,5 +1,5 @@
 {
-  "registry_version": "0.3.4-PROPOSAL",
+  "registry_version": "0.3.5-PROPOSAL",
   "status": "PROPOSAL — 待项目总工程师逐号裁决后升格为唯一真源；在此之前 CI 门保持红色",
   "generated_by": "reviews/architecture/AIOS_V3_UNIFIED_BACKLOG_AND_AS_BUILT_VERIFICATION_2026-09-16.md §9.2/§9.3 + reviews/architecture/AIOS_Core_重构设计书_独立首席架构师版_可执行验证_2026-09-16.md §3.3（RC-001~RC-041，41 条提案号）",
   "generated_at_commit": "00adf2b",
@@ -1951,6 +1951,38 @@
       ],
       "evidence": [
         "reviews/architecture/evidence/verify_landed_m1_001r_edge_result.json → e_voiceprint_lifecycle.boundary_180d_divergence"
+      ]
+    },
+    {
+      "id": "V3G-012",
+      "slug": "ru-maxrss-absolute-process-hwm-as-module-budget-gate",
+      "milestone": "NUMCI",
+      "gate": "Gate0",
+      "status": "OPEN",
+      "source_docs": [
+        "tests/simulation/test_30day_headless_life_simulation_independent.py L178-183（门禁3 RSS 断言）",
+        "src/aios_core/simulation/headless_life_driver_independent.py L468/L939/L943（RSS 采样与取值）",
+        "docs/DEV_LOG.md 追记6（对照实验：父提交复现 + 单跑通过 + 全量非确定性）"
+      ],
+      "semantics": "SIM-001『30天推演峰值 RSS ≤128MB（并留余量 <64MB）』门禁用 resource.getrusage(RUSAGE_SELF).ru_maxrss 的**绝对值**作判据。ru_maxrss 是**整个进程的单调高水位**（Linux 上单位 KB，只增不减），而该实现从不减去初始化基线（L468 取的基线只用于 max() 累积，L943 直接返回绝对值）⇒ 这道门禁实际裁定的是**测试运行器进程**的总内存，而不是被测模块的占用。",
+      "note": "后果是可复现性坍塌，且坍塌方式会误导审查者。实测三种情形结论不一致：① 单独跑该项 = 1 passed（1.39 s，进程小）；② 跑全量套件 = 1 failed（前面数百项测试已把进程高水位抬过阈值）；③ 本审查方提交后同一套件又曾 798 passed 全绿。**该失败与本审查方的改动无因果关系**：已在不包含本方任何提交的父提交 a04964e 上跑同样全量套件复现同一失败（1 failed, 778 passed）。根因不是阈值太紧，而是**量错了对象**——无基线差分 ⇒ 数字不可归因到模块；单调不回退 ⇒ 结论与测试执行顺序耦合 ⇒ 违反本仓库『引用数字前先核溯源、数字必须可复现』的取证规则。同一仓库内的另一份并行实现给出正确范式：headless_life_driver.py 用 /proc/self/statm 读**时点** VmRSS（非常驻高水位），除绝对上限外还断言 final_rss − initial_rss ≤ 32MB 的**差值型泄漏判据**，该份测试在单跑与全量两种顺序下均确定性通过。修法应取差值型判据或子进程隔离测量，而非放宽阈值。",
+      "traces_to": [
+        "NUMCI-001",
+        "V3G-006"
+      ],
+      "priority": "P2",
+      "resolution": "OPEN_NEEDS_FIX_BY_OWNER（判据缺陷在 SIM-001 交付方的产品代码与其自建门禁测试内，审查方不改他人代码，只登记与给出可验收修法）",
+      "acceptance": "① 判据改为差值型（peak − 初始化基线）或改用子进程隔离测量，使数字只归因于 30 天推演本身；② 该项测试在『单独跑』与『全量套件跑』两种顺序下结论一致，且连跑三次全量套件均绿；③ 若坚持保留绝对上限，必须在断言处写明它约束的是进程总量而非模块占用，并声明执行顺序前提；④ 复现证据（单跑/全量各一次的实际数字）写入工件并在 registry 本条 evidence 中引用。",
+      "forbidden": [
+        "把 ru_maxrss 的绝对值当作模块级内存预算判据",
+        "以『单独跑通过』作为该门禁成立的证据",
+        "为了让全量套件变绿而放宽 128MB/64MB 阈值（阈值不是问题所在，量错对象才是）",
+        "在门禁测试里读取进程级单调量却不减基线、不声明顺序耦合"
+      ],
+      "evidence": [
+        "docs/DEV_LOG.md 追记6：父提交 a04964e 全量套件 1 failed, 778 passed；本方提交树全量套件先后为 1 failed, 797 passed 与 798 passed；该项单跑 1 passed in 1.39 s",
+        "src/aios_core/simulation/headless_life_driver_independent.py:943 → return self._rss_peak_kb / 1024.0（无基线差分）",
+        "对照范式：src/aios_core/simulation/headless_life_driver.py 时点 VmRSS + tests/simulation/test_30day_headless_life_simulation.py:142 差值断言 ≤32MB"
       ]
     }
   ],
