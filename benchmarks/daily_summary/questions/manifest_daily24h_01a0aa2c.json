@@ -1,0 +1,72 @@
+{
+  "generator_agent": "01a0aa2c-fantonghui",
+  "generator_version": "24h-v1",
+  "seed": 2401,
+  "total_questions": 10000,
+  "file": "benchmarks/daily_summary/questions/questions_daily24h_01a0aa2c.jsonl",
+  "sha256": "9627c6abd49735b28ecf32d455df55dbcd2aa8cc45e157992b0f94e3553c45cd",
+  "size_mb": 56.28,
+  "protocol": "daily24h-compatible（同键名/同类型，弧码不透明，内容原创）",
+  "avg_events_per_day": 21.92,
+  "polarity_distribution": {
+    "[-1, -1]": 2485,
+    "[0, -1]": 874,
+    "[-1, 1]": 2446,
+    "[1, 1]": 1802,
+    "[1, -1]": 1675,
+    "[0, 1]": 718
+  },
+  "arc_distribution": {
+    "career": {
+      "C01": 879,
+      "C09": 1027,
+      "C11": 786,
+      "C05": 986,
+      "C06": 682,
+      "C08": 728,
+      "C07": 965,
+      "C12": 806,
+      "C02": 688,
+      "C04": 1074,
+      "C03": 690,
+      "C10": 689
+    },
+    "social": {
+      "S07": 998,
+      "S11": 1015,
+      "S02": 990,
+      "S12": 688,
+      "S05": 737,
+      "S03": 665,
+      "S01": 1058,
+      "S06": 726,
+      "S04": 716,
+      "S10": 712,
+      "S09": 722,
+      "S08": 973
+    },
+    "finance": {
+      "F06": 1219,
+      "F02": 1268,
+      "F07": 1199,
+      "F05": 1265,
+      "F01": 1224,
+      "F08": 1312,
+      "F04": 1259,
+      "F03": 1254
+    }
+  },
+  "narrow_trap_paper_rate": 0.5259,
+  "sensor_spike_rate": 0.44,
+  "trap_redline_paper_rate": 0.0147,
+  "distinct_event_texts": 109109,
+  "top_text_reuse": [
+    576,
+    533,
+    533,
+    532,
+    525
+  ],
+  "grading_rule": "方向60+锚点召回40；命中任一红线该维0分整卷FAIL；综合≥80 PASS。见 daily24h_matcher_01a0aa2c.py。",
+  "note": "盲做时剥离 directional_ground_truth；arc_tags 为不透明弧码（可聚类，不泄露方向）。"
+}
