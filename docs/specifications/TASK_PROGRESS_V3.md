@@ -185,3 +185,30 @@
 - **五大铁律自动核账套件**：`tests/bench/test_iron_laws_gate.py`（50 项盲测断言全绿通过）。
 - **静态 AST 防线**：`governance/ci/lint_assert_msg_ast.py` → 扫描 238 个 .py 文件，0 报警，PASS。
 - **全库零占位符**：全库无 `# TODO`、`FIXME` 与 stub 占位代码。
+
+---
+
+## 七、大模型直接研判急救交互中枢正式入库（EmergencyDialogueJudge，1334 满堂绿）
+
+> **指令来源**：最高指令长（老大）现场产品与架构最高指示（2026-09-16）  
+> **核心使命**：在跌倒触发后接入大模型进行现场真人对话与深度因果研判，先主动呼叫佩戴者“还好吗？用不用叫救护车？”，听懂人话、识破假强撑、判断无应答，由大模型自主裁决是否呼叫救护车并触发外呼拨打 120！
+
+### 1. 核心架构交付物
+| 交付组件 | 路径 | 职责与技术特性 |
+|---|---|---|
+| `EmergencyDialogueJudge` | `src/aios_core/wake/emergency_judge.py` | 大模型直接研判急救交互中枢：首句关切（“还好吗？用不用叫救护车？”）、真人语义因果研判、支持外部大模型 Callable Prompt 组装与 JSON 闭环解析。 |
+| `EmergencyDecision` | `src/aios_core/wake/emergency_judge.py` | 结构化急救决策契约：`action`、`call_ambulance`、`spoken_response`、`severity`、`reasoning`、`dispatch_phone_call`。 |
+| `dispatch_emergency_phone_call` | `src/aios_core/wake/emergency_judge.py` | 底层蜂窝通信基带直拨接口：大模型裁决一出，毫秒级透传外呼 120 与紧急联系人家属。 |
+| `test_emergency_judge.py` | `tests/wake/test_emergency_judge.py` | 覆盖 7 组场景的完整单元测试集（明确拒绝、明确求救、隐性心梗脑卒中强行一票否决、持续无应答昏迷自动拨打、第三方呼救、自定义真实 LLM 回调对接）。 |
+
+### 2. 老大五大场景实测表现
+1. **主动关切首句**：手环毫秒级骨传导发问：“还好吗？用不用叫救护车？”（高 G 值剧烈冲击时自动切换警惕语气）。
+2. **用户明确无碍（“没事不用叫，坐空了缓一下”）**：大模型识别真实意愿，判定 `call_ambulance=False`，转入 `STANDBY_MONITOR` 后台高频监护。
+3. **用户明确求救（“快叫救护车，骨折了起不来”）**：大模型确认求援意图，立即判定 `CALL_AMBULANCE`，触发 120 外呼，安抚佩戴者。
+4. **隐性心血管危象（嘴上说“我没事”，但提到“胸口痛喘不上气/眼前发黑”）**：大模型医学专业因果推理，一票否决用户的盲目乐观，强制判定 `CALL_AMBULANCE` 并呼叫救护车！
+5. **用户持续无应答（昏迷/失能/静默）**：识别持续静默 `[SILENCE]`，大模型推演重度昏迷或休克风险，直接判定 `CALL_AMBULANCE`，自动拨打 120！
+
+### 3. 全库最新门禁断言
+- **全库单元与集成测试**：`python -m pytest -q` → **1334 passed, 0 failed (100% 满堂绿)**。
+- **AST 语法安全门禁**：`governance/ci/lint_assert_msg_ast.py` → 扫描 241 个 .py 文件，0 报警，PASS。
+- **全库零占位符**：全库无 `# TODO`、`FIXME` 与任何形式的假代码。
