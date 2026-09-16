@@ -212,3 +212,25 @@
 - **全库单元与集成测试**：`python -m pytest -q` → **1334 passed, 0 failed (100% 满堂绿)**。
 - **AST 语法安全门禁**：`governance/ci/lint_assert_msg_ast.py` → 扫描 241 个 .py 文件，0 报警，PASS。
 - **全库零占位符**：全库无 `# TODO`、`FIXME` 与任何形式的假代码。
+
+---
+
+## 八、全维度多尺度时间总结引擎正式入库（UniversalTimePyramidEngine，1340 满堂绿）
+
+> **指令来源**：最高指令长（老大）现场核心指示（2026-09-16）  
+> **核心铁律**：“时间维度的总结是所有维度都要有的机制，不是单独某个维度的专属！多尺度穿透必须加入季度、半年、3年、5年！”
+
+### 1. 核心架构交付物
+| 交付组件 | 路径 | 职责与技术特性 |
+|---|---|---|
+| `UniversalTimePyramidEngine` | `src/aios_core/summaries/universal_time_summarizer.py` | 全维度通用多尺度时间金字塔引擎：支持任意已注册维度与全维度宏观共振综合，提供 9 档自然时间窗分桶、无损物化与逐级下钻。 |
+| `UniversalTimeScale` | `src/aios_core/summaries/universal_time_summarizer.py` | 九档全局统一时间跨度：`DAY`, `WEEK`, `MONTH`, `QUARTER`, `HALF_YEAR`, `YEAR`, `MULTI_YEAR_3Y`, `MULTI_YEAR_5Y`, `DECADE`。 |
+| `DimensionSummaryNode` | `src/aios_core/summaries/universal_time_summarizer.py` | 统一物化总结节点，原生导出至 `aios_core.contracts.models.Summary` 实体，可直接入库 SQLite 持久化。 |
+| `ScaleLevel` 升级 | `src/aios_core/operations/world_operator.py` | 补全 `1q`, `6m`, `3y`, `5y` 四大世界观察镜头，彻底消灭尺度夹缝。 |
+| `MultiScaleCrystalIndex` 升级 | `src/aios_core/tools/multiscale_crystal_index.py` | 扩展结晶阶梯至 `MULTI_YEAR_3Y`, `MULTI_YEAR_5Y`, `DECADE`。 |
+| `test_universal_time_summarizer.py` | `tests/unit/test_universal_time_summarizer.py` | 覆盖全维度遍历、季度/半年复盘、3年/5年/10年跨度、逐级下钻证据并集 100% 守恒的完整单测集。 |
+
+### 2. 全量最新门禁断言
+- **全库单元与集成测试**：`python -m pytest -q` → **1340 passed, 0 failed (100% 满堂绿)**。
+- **AST 语法安全门禁**：`governance/ci/lint_assert_msg_ast.py` → 扫描 243 个 .py 文件，0 报警，PASS。
+- **全库零占位符**：全库无 `# TODO`、`FIXME` 与任何形式的假代码。

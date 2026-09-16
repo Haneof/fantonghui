@@ -46,9 +46,12 @@ SCALE_LADDER: tuple[str, ...] = (
     "HALF_YEAR",
     "YEAR",
     "MULTI_YEAR",
+    "MULTI_YEAR_3Y",
+    "MULTI_YEAR_5Y",
+    "DECADE",
 )
 _RANK: Dict[str, int] = {scale: index for index, scale in enumerate(SCALE_LADDER)}
-#: 多年档的分桶宽度（3 年）。
+#: 多年档的分桶宽度（3 年与 5 年与 10 年）。
 MULTI_YEAR_SPAN = 3
 
 
@@ -93,6 +96,15 @@ def _window_key(moment: datetime, scale: str) -> str:
         return f"H{moment.year}-{1 if moment.month <= 6 else 2}"
     if scale == "YEAR":
         return f"Y{moment.year}"
+    if scale in ("MULTI_YEAR", "MULTI_YEAR_3Y"):
+        bucket = moment.year // 3
+        return f"MY3_{bucket * 3}-{bucket * 3 + 2}"
+    if scale == "MULTI_YEAR_5Y":
+        bucket = moment.year // 5
+        return f"MY5_{bucket * 5}-{bucket * 5 + 4}"
+    if scale == "DECADE":
+        bucket = moment.year // 10
+        return f"DEC_{bucket * 10}-{bucket * 10 + 9}"
     bucket = moment.year // MULTI_YEAR_SPAN
     return f"MY{bucket * MULTI_YEAR_SPAN}-{bucket * MULTI_YEAR_SPAN + MULTI_YEAR_SPAN - 1}"
 
@@ -113,6 +125,15 @@ def _window_start(moment: datetime, scale: str) -> datetime:
         return datetime(moment.year, month, 1, tzinfo=timezone.utc)
     if scale == "YEAR":
         return datetime(moment.year, 1, 1, tzinfo=timezone.utc)
+    if scale in ("MULTI_YEAR", "MULTI_YEAR_3Y"):
+        year = moment.year // 3 * 3
+        return datetime(year, 1, 1, tzinfo=timezone.utc)
+    if scale == "MULTI_YEAR_5Y":
+        year = moment.year // 5 * 5
+        return datetime(year, 1, 1, tzinfo=timezone.utc)
+    if scale == "DECADE":
+        year = moment.year // 10 * 10
+        return datetime(year, 1, 1, tzinfo=timezone.utc)
     year = moment.year // MULTI_YEAR_SPAN * MULTI_YEAR_SPAN
     return datetime(year, 1, 1, tzinfo=timezone.utc)
 
@@ -139,6 +160,12 @@ def _window_end(moment: datetime, scale: str) -> datetime:
         return datetime(year, month, 1, tzinfo=timezone.utc) - timedelta(microseconds=1)
     if scale == "YEAR":
         return datetime(start.year + 1, 1, 1, tzinfo=timezone.utc) - timedelta(microseconds=1)
+    if scale in ("MULTI_YEAR", "MULTI_YEAR_3Y"):
+        return datetime(start.year + 3, 1, 1, tzinfo=timezone.utc) - timedelta(microseconds=1)
+    if scale == "MULTI_YEAR_5Y":
+        return datetime(start.year + 5, 1, 1, tzinfo=timezone.utc) - timedelta(microseconds=1)
+    if scale == "DECADE":
+        return datetime(start.year + 10, 1, 1, tzinfo=timezone.utc) - timedelta(microseconds=1)
     return datetime(
         start.year + MULTI_YEAR_SPAN, 1, 1, tzinfo=timezone.utc
     ) - timedelta(microseconds=1)
