@@ -411,15 +411,24 @@ class WorldSearchIndex:
         lag: int, current: int, wm: int, ambiguous: dict[str, list[str]],
     ) -> SearchPage:
         pairs = sorted(candidates)
-        marks = ",".join("(?,?)" for _ in pairs)
-        params: list[Any] = [v for pair in pairs for v in pair]
-        sql = f"""
+        # 50 万修订下的物理计划纪律（G-M1P/T2-I 禁扫描）：候选对经临时表
+        # WITHOUT ROWID 主键 join，杜绝行值 IN 退化为 SCAN search_occurred。
+        conn.execute(
+            "CREATE TEMP TABLE IF NOT EXISTS search_candidates("
+            "object_id TEXT NOT NULL, revision INTEGER NOT NULL,"
+            "PRIMARY KEY(object_id, revision)) WITHOUT ROWID"
+        )
+        conn.execute("DELETE FROM search_candidates")
+        conn.executemany("INSERT INTO search_candidates VALUES (?,?)", pairs)
+        params: list[Any] = []
+        sql = """
             SELECT o.object_id, o.revision, o.object_type, o.subject_id,
                    o.occurred_start_us, o.occurred_end_us,
                    d.haystack, d.excerpt
-            FROM search_occurred o
+            FROM search_candidates c
+            JOIN search_occurred o ON o.object_id = c.object_id AND o.revision = c.revision
             JOIN search_doc d ON d.object_id = o.object_id AND d.revision = o.revision
-            WHERE (o.object_id, o.revision) IN ({marks})
+            WHERE 1=1
         """
         if subject is not None:
             sql += " AND o.subject_id = ?"

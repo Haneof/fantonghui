@@ -485,3 +485,42 @@ M1 Gate 未开，本批**零代码**：两份文档 + 签核包补件。HotCard 
 ### 已知限制
 - R4-01a/b 与 T2-G⑤ 的 CAM 追加按图在 Gate 后入账，本批不入（防未批先占）；
 - 020c 的 C13 grant 联调需 M2-018 就位，已在切分表标注跨里程碑接缝。
+
+## 2026-09-16 G-M1P 正式压测套件落地（`aios_core.bench.g_m1p`）+ 内核物理计划整改
+
+### 背景与治理边界
+兑现 M1-020 批的收尾承诺：把"50 万修订生成器 + 检索/下钻/重建/追赶四点位
+harness"做成 **Gate 后一键可跑、Gate 前 CI 降规模常热** 的压测件。基准代码只读
+消费 store/index 公开面，不改运行语义；正式点位仍需 Gate 后在目标硬件执行。
+
+### 执行步骤
+1. 新包 `src/aios_core/bench/`（`g_m1p.py`，CLI：`python -m aios_core.bench.g_m1p`）：
+   - 确定性合成世界：核心词高权重 + 尾部噪音词表（全词等权会测出假绿）；
+     35% claim 命中"妈妈×生日×礼物"锚点密度；事件带 participant_refs；
+     实体播种 ≤1/8 修订且仅空库执行（注入轮走 object_revisions 复用编号，
+     不重放幂等键）。
+   - 点位：search p95 / drill（pinned get_payload + ≤8 ref 展开）/ 全量 rebuild
+     计时 / 迟到数据双态——strict 必须 <预算 返回 stale_index，adaptive 追赶
+     按**每修订毫秒**设预算（50 万规模外推用，比总量阈值稳健）。
+   - 计划三重锁（T2-I 机械执法）：内核源码 `EXPLAIN` 双查询（postings 用索引、
+     finalize 走 PK join）+ 静态扫描（无 SQL LIKE、无 FROM/JOIN 真相表）+
+     **finalize SQL 形态与内核源码逐字对锁**——防"基准测的是另一条查询"。
+   - `consistency_ok()`：R4-02 三点位 ±20% 极差比，None 槽位=pending 不放行，
+     零基线判 drift；报告含 env（python/sqlite/cpu）保证跨机可比。
+2. 内核整改（压测件逼出的真发现，Gate 前修掉）：`_finalize` 原行值
+   `IN (?,?)×N` 在 50 万行上有退化为 `SCAN search_occurred` 的现实风险，
+   改为 TEMP TABLE（WITHOUT ROWID PK）join——计划断言当场锁定新形态。
+3. CI 冒烟 `tests/integration/test_g_m1p_smoke.py`（3 用例）：1200 修订库 +
+   300 迟到修订全点位绿；形态对锁用例专门防基准-内核漂移。
+
+### 测试
+- 新 3 用例绿；检索/迁移 8 用例在 finalize 改写后复跑全绿；
+  全量 `599 passed / 1 failed`（唯一失败仍为既知环境项 b8）。
+- 冒烟实测信号：search p95 3.6ms、追赶 0.081ms/修订（50 万外推 ≈41s，
+  在同步追赶 ≤2000 修订的策略预算内）、strict 回绝 0.46ms。
+
+### 已知限制
+- hot_cards 点位当前显式 `not_implemented`（M1-020 施工图 §8 落地后，
+  `run_bench` 的 importlib 探针自动升级为计时点，报告格式不变）；
+- `plan_checks` 读 `aios_core.query.search.__file__` 源码对锁——打包安装
+  （wheel 无 .py 源码）时该断言需改为对编译产物旁置文本；私有构建不受影响。
