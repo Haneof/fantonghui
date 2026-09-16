@@ -1,0 +1,165 @@
+{
+ "solver_agent": "01a0aa2d-fantonghui",
+ "generator_agent": "agent-11",
+ "split": "full",
+ "n_questions": 10000,
+ "kb_enabled": true,
+ "avg_final_score": 76.12,
+ "pass_rate": 0.6846,
+ "avg_direction_match": 0.7363,
+ "avg_entity_recall": 0.5742,
+ "avg_junk_prune": 1.0,
+ "avg_dimension_accuracy": 0.7363,
+ "total_hallucination": 36,
+ "p0_questions": 129,
+ "p0_max_exec_ms": 0.345,
+ "solver_wall_time_s": 0.7,
+ "error_attribution": {
+  "INTENT_DRIFT": {
+   "count": 2637,
+   "rate": 0.2637,
+   "examples": [
+    [
+     "Q_agent11_00005",
+     "遗漏/偏离事实: F00005_01 (佩戴者与刘玉华通话4分钟，内容为家常问候与生活琐事，无重大信息)"
+    ],
+    [
+     "Q_agent11_00010",
+     "遗漏/偏离事实: F00010_01 (佩戴者马俊峰独处时说出「不想活了」类口头禅式宣泄，但无计划性表述、生理指标平稳且随后行为正常，判定为情绪发泄而非真实自伤意图)"
+    ],
+    [
+     "Q_agent11_00012",
+     "遗漏/偏离事实: F00012_01 (佩戴者陈建国独处时说出「不想活了」类口头禅式宣泄，但无计划性表述、生理指标平稳且随后行为正常，判定为情绪发泄而非真实自伤意图)"
+    ],
+    [
+     "Q_agent11_00013",
+     "遗漏/偏离事实: F00013_01 (录音中出现的「涉洗钱」「下周还钱」等语句经判定为影视/短视频外放内容，非佩戴者徐婉如现场真实对话，不应作为事实提纯)"
+    ],
+    [
+     "Q_agent11_00026",
+     "遗漏/偏离事实: F00026_01 (佩戴者赵大山接到自称公检法/社保机构的来电要求转账至「安全账户」，话术与改号特征齐备，判定为冒充类电信诈骗)"
+    ],
+    [
+     "Q_agent11_00029",
+     "遗漏/偏离事实: F00029_01 (佩戴者接到医院随访电话，被提醒3天后到心血管内科复诊)"
+    ],
+    [
+     "Q_agent11_00031",
+     "遗漏/偏离事实: F00031_01 (佩戴者在菜市场用餐，向服务员点单活鲫鱼与椰子水，全程约14分钟)"
+    ],
+    [
+     "Q_agent11_00032",
+     "遗漏/偏离事实: F00032_01 (佩戴者与班主任通话25分钟，沟通孩子在校的房价问题)"
+    ]
+   ]
+  }
+ },
+ "intent_confusion_top": [
+  [
+   [
+    "DELIVERY_EVENT|dim:logistics",
+    "DELIVERY_EVENT|dim:logistics"
+   ],
+   496
+  ],
+  [
+   [
+    "MEDICAL_APPOINTMENT|dim:health",
+    "MEDICAL_APPOINTMENT|dim:health"
+   ],
+   317
+  ],
+  [
+   [
+    "MEAL_EVENT|dim:daily",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   312
+  ],
+  [
+   [
+    "CHILD_SCHOOL|dim:family",
+    "CHILD_SCHOOL|dim:family"
+   ],
+   309
+  ],
+  [
+   [
+    "VERBAL_VENT|dim:emotion",
+    "VERBAL_VENT|dim:emotion"
+   ],
+   183
+  ],
+  [
+   [
+    "DRUNK_BRAGGING|dim:social",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   173
+  ],
+  [
+   [
+    "EXERCISE_SESSION|dim:health",
+    "EXERCISE_SESSION|dim:health"
+   ],
+   108
+  ],
+  [
+   [
+    "VERBAL_VENT|dim:emotion",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   96
+  ],
+  [
+   [
+    "FRAUD_ATTEMPT|dim:safety",
+    "FRAUD_ATTEMPT|dim:safety"
+   ],
+   80
+  ],
+  [
+   [
+    "MEDIA_PLAYBACK_NOISE|dim:social",
+    "MEDIA_PLAYBACK_NOISE|dim:social"
+   ],
+   64
+  ],
+  [
+   [
+    "SOCIAL_CHAT|dim:social",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   57
+  ],
+  [
+   [
+    "FALL_IMPACT|dim:safety",
+    "FALL_IMPACT|dim:safety"
+   ],
+   57
+  ],
+  [
+   [
+    "WORK_OVERTIME|dim:career",
+    "WORK_OVERTIME|dim:career"
+   ],
+   43
+  ],
+  [
+   [
+    "REPAYMENT_PROMISE|dim:finance",
+    "REPAYMENT_PROMISE|dim:finance"
+   ],
+   41
+  ],
+  [
+   [
+    "MEDIA_PLAYBACK_NOISE|dim:social",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   40
+  ]
+ ],
+ "miss_junk_top": []
+}

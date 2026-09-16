@@ -1,0 +1,165 @@
+{
+ "solver_agent": "01a0aa2d-fantonghui",
+ "generator_agent": "fantonghui",
+ "split": "full",
+ "n_questions": 10000,
+ "kb_enabled": true,
+ "avg_final_score": 78.67,
+ "pass_rate": 0.47,
+ "avg_direction_match": 0.7411,
+ "avg_entity_recall": 0.7008,
+ "avg_junk_prune": 1.0,
+ "avg_dimension_accuracy": 0.7411,
+ "total_hallucination": 603,
+ "p0_questions": 7738,
+ "p0_max_exec_ms": 2.063,
+ "solver_wall_time_s": 9.3,
+ "error_attribution": {
+  "INTENT_DRIFT": {
+   "count": 5581,
+   "rate": 0.5581,
+   "examples": [
+    [
+     "Q_fantonghui_00006",
+     "遗漏/偏离事实: fact_01 (银行催收18万元所谓夫妻共同债务，佩戴者坚称签名系伪造并已报警要求鉴定)"
+    ],
+    [
+     "Q_fantonghui_00008",
+     "遗漏/偏离事实: fact_01 (遗嘱公证现场林奕辰与郑屿森为遗产份额争执不下，佩戴者要求公开遗嘱并依法析产)"
+    ],
+    [
+     "Q_fantonghui_00010",
+     "遗漏/偏离事实: fact_02 (曾曜威发送6.8万元转账截图但银行提示对方账户异常转账失败，截图系伪造或无效)"
+    ],
+    [
+     "Q_fantonghui_00014",
+     "遗漏/偏离事实: fact_01 (佩戴者投入50万元的虚拟币理财盘崩盘跑路提现失败，决定联合难友报警并向贺欣怡追偿拉人头责任)"
+    ],
+    [
+     "Q_fantonghui_00015",
+     "遗漏/偏离事实: fact_02 (郭彦博先在电话中答应中秋节前协议离婚，两小时后短信反悔拒绝并威胁纠缠)"
+    ],
+    [
+     "Q_fantonghui_00016",
+     "遗漏/偏离事实: fact_02 (刘怡君发送15万元转账截图但银行提示对方账户异常转账失败，截图系伪造或无效)"
+    ],
+    [
+     "Q_fantonghui_00016",
+     "遗漏/偏离事实: fact_03 (佩戴者以隐语安排事项交接，强调保密并切断电话联系)"
+    ],
+    [
+     "Q_fantonghui_00018",
+     "遗漏/偏离事实: fact_03 (佩戴者心率骤降伴失衡下沉，疑似窦性停搏晕厥前兆须立即平卧呼救)"
+    ]
+   ]
+  }
+ },
+ "intent_confusion_top": [
+  [
+   [
+    "BIPOLAR_CRISIS|dim:health",
+    "SUICIDE_IDEATION_CRITICAL|dim:health"
+   ],
+   75
+  ],
+  [
+   [
+    "FAKE_TRANSFER_COUNTER|dim:finance",
+    "FAKE_TRANSFER_COUNTER|dim:finance"
+   ],
+   62
+  ],
+  [
+   [
+    "WORKPLACE_HARASSMENT|dim:social",
+    "CONCEALED_CANCER|dim:social"
+   ],
+   55
+  ],
+  [
+   [
+    "NEIGHBOR_LEAK_DISPUTE|dim:social",
+    "LABOR_ARBITRATION|dim:career"
+   ],
+   41
+  ],
+  [
+   [
+    "PROMISE_RETRACT_REVERSAL|dim:social",
+    "GOUT_TOPHUS_RUPTURE|dim:health"
+   ],
+   39
+  ],
+  [
+   [
+    "PROMISE_RETRACT_REVERSAL|dim:social",
+    "FALL_INJURY_ALERT|dim:health"
+   ],
+   33
+  ],
+  [
+   [
+    "PROMISE_RETRACT_REVERSAL|dim:social",
+    "CARDIAC_BURST|dim:health"
+   ],
+   33
+  ],
+  [
+   [
+    "CHAIN_PROPERTY_BREACH|dim:finance",
+    "RENOVATION_RUNAWAY|dim:finance"
+   ],
+   33
+  ],
+  [
+   [
+    "PROMISE_RETRACT_REVERSAL|dim:social",
+    "DIABETIC_KETOACIDOSIS|dim:health"
+   ],
+   31
+  ],
+  [
+   [
+    "PATERNITY_SHOCK|dim:social",
+    "LABOR_ARBITRATION|dim:career"
+   ],
+   30
+  ],
+  [
+   [
+    "FOOD_SAFETY_INSPECTION|dim:life",
+    "GOUT_TOPHUS_RUPTURE|dim:health"
+   ],
+   28
+  ],
+  [
+   [
+    "PROMISE_RETRACT_REVERSAL|dim:social",
+    "SEWAGE_BACKFLOW|dim:life"
+   ],
+   27
+  ],
+  [
+   [
+    "PROMISE_RETRACT_REVERSAL|dim:social",
+    "CONCEALED_CANCER|dim:social"
+   ],
+   26
+  ],
+  [
+   [
+    "PROMISE_RETRACT_REVERSAL|dim:social",
+    "BRADYCARDIA_SYNCOPE|dim:health"
+   ],
+   25
+  ],
+  [
+   [
+    "KITCHEN_STRIKE|dim:life",
+    "SUICIDE_IDEATION_CRITICAL|dim:health"
+   ],
+   24
+  ]
+ ],
+ "miss_junk_top": []
+}

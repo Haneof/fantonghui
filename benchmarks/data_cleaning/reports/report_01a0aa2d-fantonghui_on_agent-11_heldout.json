@@ -1,0 +1,165 @@
+{
+ "solver_agent": "01a0aa2d-fantonghui",
+ "generator_agent": "agent-11",
+ "split": "heldout",
+ "n_questions": 4000,
+ "kb_enabled": true,
+ "avg_final_score": 75.63,
+ "pass_rate": 0.6747,
+ "avg_direction_match": 0.7302,
+ "avg_entity_recall": 0.5665,
+ "avg_junk_prune": 1.0,
+ "avg_dimension_accuracy": 0.7302,
+ "total_hallucination": 11,
+ "p0_questions": 51,
+ "p0_max_exec_ms": 0.188,
+ "solver_wall_time_s": 0.3,
+ "error_attribution": {
+  "INTENT_DRIFT": {
+   "count": 1079,
+   "rate": 0.2697,
+   "examples": [
+    [
+     "Q_agent11_06001",
+     "遗漏/偏离事实: F06001_01 (佩戴者在小区楼下用餐，向服务员点单童装与凉茶，全程约20分钟)"
+    ],
+    [
+     "Q_agent11_06002",
+     "遗漏/偏离事实: F06002_01 (佩戴者在京港澳高速货运线用餐，向服务员点单本地小白菜与椰子水，全程约14分钟)"
+    ],
+    [
+     "Q_agent11_06006",
+     "遗漏/偏离事实: F06006_01 (录音中出现的「涉洗钱」「下周还钱」等语句经判定为影视/短视频外放内容，非佩戴者何国强现场真实对话，不应作为事实提纯)"
+    ],
+    [
+     "Q_agent11_06016",
+     "遗漏/偏离事实: F06016_01 (佩戴者在小区驿站凭取件码领取41件快递，全程约14分钟)"
+    ],
+    [
+     "Q_agent11_06018",
+     "遗漏/偏离事实: F06018_01 (佩戴者与班主任通话21分钟，沟通孩子在校的电动车新规问题)"
+    ],
+    [
+     "Q_agent11_06019",
+     "遗漏/偏离事实: F06019_01 (佩戴者林晓薇接到自称公检法/社保机构的来电要求转账至「安全账户」，话术与改号特征齐备，判定为冒充类电信诈骗)"
+    ],
+    [
+     "Q_agent11_06020",
+     "遗漏/偏离事实: F06020_01 (佩戴者黄小军于2026-06-01T20:39:42Z在卫生间瓷砖地面发生真实跌倒，冲击峰值5.01g、跌倒后持续静止196秒未能自主起身)"
+    ],
+    [
+     "Q_agent11_06022",
+     "遗漏/偏离事实: F06022_01 (佩戴者在小区驿站凭取件码领取3件快递，全程约6分钟)"
+    ]
+   ]
+  }
+ },
+ "intent_confusion_top": [
+  [
+   [
+    "DELIVERY_EVENT|dim:logistics",
+    "DELIVERY_EVENT|dim:logistics"
+   ],
+   219
+  ],
+  [
+   [
+    "MEDICAL_APPOINTMENT|dim:health",
+    "MEDICAL_APPOINTMENT|dim:health"
+   ],
+   127
+  ],
+  [
+   [
+    "CHILD_SCHOOL|dim:family",
+    "CHILD_SCHOOL|dim:family"
+   ],
+   125
+  ],
+  [
+   [
+    "MEAL_EVENT|dim:daily",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   114
+  ],
+  [
+   [
+    "DRUNK_BRAGGING|dim:social",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   75
+  ],
+  [
+   [
+    "VERBAL_VENT|dim:emotion",
+    "VERBAL_VENT|dim:emotion"
+   ],
+   71
+  ],
+  [
+   [
+    "VERBAL_VENT|dim:emotion",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   45
+  ],
+  [
+   [
+    "EXERCISE_SESSION|dim:health",
+    "EXERCISE_SESSION|dim:health"
+   ],
+   40
+  ],
+  [
+   [
+    "MEDIA_PLAYBACK_NOISE|dim:social",
+    "MEDIA_PLAYBACK_NOISE|dim:social"
+   ],
+   32
+  ],
+  [
+   [
+    "FRAUD_ATTEMPT|dim:safety",
+    "FRAUD_ATTEMPT|dim:safety"
+   ],
+   30
+  ],
+  [
+   [
+    "SOCIAL_CHAT|dim:social",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   24
+  ],
+  [
+   [
+    "FALL_IMPACT|dim:safety",
+    "FALL_IMPACT|dim:safety"
+   ],
+   22
+  ],
+  [
+   [
+    "WORK_OVERTIME|dim:career",
+    "WORK_OVERTIME|dim:career"
+   ],
+   19
+  ],
+  [
+   [
+    "FRAUD_ATTEMPT|dim:safety",
+    "SOCIAL_CHAT|dim:social"
+   ],
+   17
+  ],
+  [
+   [
+    "REPAYMENT_PROMISE|dim:finance",
+    "REPAYMENT_PROMISE|dim:finance"
+   ],
+   17
+  ]
+ ],
+ "miss_junk_top": []
+}
