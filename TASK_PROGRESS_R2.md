@@ -70,4 +70,4 @@
 
 M0 不得在 `architect-01` 对 `9c080f6...` 最新候选独立复审给出可接受 verdict 且 `chief-01` 最终签 Gate 前恢复为 22/22 FINAL PASS。M1 与并行核心开发继续暂停。
 
-**M0′ 说明（2026-09-16）**：R4 修改案批准前，M0-023~028 以候选契约形态进入 registry/snapshot（`gate_version=M0-R2+R4-delta-candidate`），全量套件 586 passed / 1 环境性失败（b8 跨进程重放在沙箱 py3.11，CI 3.12.14 全绿）。批准动作 = 仅改 gate_version 字符串；驳回动作 = revert 契约 delta 并再生成快照。M1 开工 Gate 改为 **M0-022R**（v2.0 集 + R4 delta + CAM 55/55 映射 合并复审）。 **签核材料已打包**（`governance/M0-022R_ratification_package.md`，含五项风险摊开与批准/驳回单步动作）；M1-019 施工图与 R4-07a 静态守卫以 Gate 前文档/守卫形态先行就位（`governance/issues/M1-019_blueprint.md`）。
+**M0′ 说明（2026-09-16）**：R4 修改案批准前，M0-023~028 以候选契约形态进入 registry/snapshot（`gate_version=M0-R2+R4-delta-candidate`），全量套件 586 passed / 1 环境性失败（b8 跨进程重放在沙箱 py3.11，CI 3.12.14 全绿）。批准动作 = 仅改 gate_version 字符串；驳回动作 = revert 契约 delta 并再生成快照。M1 开工 Gate 改为 **M0-022R**（v2.0 集 + R4 delta + CAM 55/55 映射 合并复审）。 **签核材料已打包**（`governance/M0-022R_ratification_package.md`，含五项风险摊开与批准/驳回单步动作）；M1-019 施工图与 R4-07a 静态守卫以 Gate 前文档/守卫形态先行就位（`governance/issues/M1-019_blueprint.md`）。 M1-020 HotCard 施工图同批就位（`governance/issues/M1-020_blueprint.md`，含摘要不回写教义与四槽位契约字段映射）；R2 改订草案已附于签核包 §7。
