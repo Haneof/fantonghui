@@ -1,0 +1,1478 @@
+{
+ "library_version": "1.0",
+ "solver_agent": "01a0aa2c-fantonghui",
+ "fitted_from": {
+  "branch": "arena/01a0aa30-fantonghui",
+  "path": "benchmarks/daily_summary_cross/agent_01a0aa30_on_aa2d/questions.blind.jsonl.xz",
+  "sha256": "966c97cbdebc19b19219471aa40205a418b644dad73a59bade064c3d06d8b5ef",
+  "discipline": "只由**盲卷输入流**归纳（92 个模板 + 事件措辞），未接触任何标答字段；模板签名来自切片原文，方向词是本队对模板语义的自然语言概括",
+  "templates_total": 92,
+  "templates_after_digit_normalisation": 92,
+  "slices_total": 133085,
+  "coverage_note": "92 个模板覆盖全部 10,000 题的全部切片（digit 归一后无新模板）"
+ },
+ "templates": [
+  {
+   "sig": "晨起静息心率",
+   "dim": "dim:health",
+   "kind": "baseline",
+   "phrases": [
+    "静息心率",
+    "睡眠时长",
+    "深睡占比"
+   ],
+   "dim2": "dim:health",
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "入睡准备：今日步数",
+   "dim": "dim:health",
+   "kind": "baseline",
+   "phrases": [
+    "全天活动量",
+    "久坐时长",
+    "全天最高心率"
+   ],
+   "dim2": "dim:health",
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "判定情绪性心动过速",
+   "dim": "dim:health",
+   "kind": "event",
+   "phrases": [
+    "心率骤升",
+    "情绪性心动过速",
+    "心率飙升"
+   ],
+   "dim2": "dim:health",
+   "polarity": "neg",
+   "global_family": [
+    "健康波动"
+   ]
+  },
+  {
+   "sig": "连续静坐",
+   "dim": "dim:health",
+   "kind": "event",
+   "phrases": [
+    "久坐提醒",
+    "活动不足"
+   ],
+   "dim2": "dim:health",
+   "polarity": "neg",
+   "global_family": []
+  },
+  {
+   "sig": "步数已达",
+   "dim": "dim:health",
+   "kind": "event",
+   "phrases": [
+    "久坐提醒",
+    "步数记录"
+   ],
+   "dim2": "dim:health",
+   "polarity": "neg",
+   "global_family": []
+  },
+  {
+   "sig": "步数突破",
+   "dim": "dim:health",
+   "kind": "event",
+   "phrases": [
+    "活动量达标",
+    "运动达标"
+   ],
+   "dim2": "dim:health",
+   "polarity": "pos",
+   "global_family": []
+  },
+  {
+   "sig": "慢跑",
+   "dim": "dim:health",
+   "kind": "event",
+   "phrases": [
+    "有氧运动",
+    "运动记录"
+   ],
+   "dim2": "dim:health",
+   "polarity": "pos",
+   "global_family": []
+  },
+  {
+   "sig": "陪家人看病垫付检查费",
+   "dim": "finance",
+   "kind": "event",
+   "phrases": [
+    "医疗支出",
+    "垫付检查费"
+   ],
+   "dim2": "finance",
+   "polarity": "neg",
+   "global_family": [
+    "财务压力"
+   ]
+  },
+  {
+   "sig": "股票账户今日浮亏",
+   "dim": "finance",
+   "kind": "event",
+   "phrases": [
+    "投资亏损",
+    "股票浮亏",
+    "账户缩水"
+   ],
+   "dim2": "finance",
+   "polarity": "neg",
+   "global_family": [
+    "财务压力"
+   ]
+  },
+  {
+   "sig": "房贷月供",
+   "dim": "finance",
+   "kind": "event",
+   "phrases": [
+    "房贷扣款",
+    "刚性支出",
+    "月供"
+   ],
+   "dim2": "finance",
+   "polarity": "neg",
+   "global_family": [
+    "财务压力"
+   ]
+  },
+  {
+   "sig": "信用卡自动还款",
+   "dim": "finance",
+   "kind": "event",
+   "phrases": [
+    "信用卡还款",
+    "现金流偏紧"
+   ],
+   "dim2": "finance",
+   "polarity": "neg",
+   "global_family": [
+    "财务压力"
+   ]
+  },
+  {
+   "sig": "年终奖",
+   "dim": "finance",
+   "kind": "event",
+   "phrases": [
+    "年终奖到账",
+    "收入增加",
+    "财务改善"
+   ],
+   "dim2": "finance",
+   "polarity": "pos",
+   "global_family": [
+    "财务改善"
+   ]
+  },
+  {
+   "sig": "奖金随下月工资发放",
+   "dim": "finance",
+   "kind": "event",
+   "phrases": [
+    "创新奖",
+    "奖金待发"
+   ],
+   "dim2": "finance",
+   "polarity": "pos",
+   "global_family": [
+    "财务改善"
+   ]
+  },
+  {
+   "sig": "转账借给好友",
+   "dim": "finance",
+   "kind": "event",
+   "phrases": [
+    "借出款项",
+    "人情借款"
+   ],
+   "dim2": "finance",
+   "polarity": "neutral",
+   "global_family": [
+    "财务压力"
+   ]
+  },
+  {
+   "sig": "违章罚款加保险续费",
+   "dim": "finance",
+   "kind": "event",
+   "phrases": [
+    "计划外支出",
+    "罚款支出"
+   ],
+   "dim2": "finance",
+   "polarity": "neg",
+   "global_family": [
+    "财务压力"
+   ]
+  },
+  {
+   "sig": "汽车保养加油",
+   "dim": "finance",
+   "kind": "event",
+   "phrases": [
+    "养车支出",
+    "日常开销",
+    "计划外支出"
+   ],
+   "dim2": "finance",
+   "polarity": "neg",
+   "global_family": [
+    "财务压力"
+   ]
+  },
+  {
+   "sig": "网购退货退款",
+   "dim": "finance",
+   "kind": "event",
+   "phrases": [
+    "退款到账",
+    "退货"
+   ],
+   "dim2": "finance",
+   "polarity": "neutral",
+   "global_family": [
+    "财务改善"
+   ]
+  },
+  {
+   "sig": "兼职稿费",
+   "dim": "finance",
+   "kind": "event",
+   "phrases": [
+    "副业收入",
+    "稿费到账"
+   ],
+   "dim2": "finance",
+   "polarity": "pos",
+   "global_family": [
+    "财务改善"
+   ]
+  },
+  {
+   "sig": "乘车扣款",
+   "dim": "finance",
+   "kind": "baseline",
+   "phrases": [
+    "小额交通支出"
+   ],
+   "dim2": "finance",
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "晚餐订单已送达",
+   "dim": "finance",
+   "kind": "baseline",
+   "phrases": [
+    "日常餐饮支出"
+   ],
+   "dim2": "finance",
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "骑手已取餐",
+   "dim": "finance",
+   "kind": "baseline",
+   "phrases": [
+    "日常餐饮支出"
+   ],
+   "dim2": "finance",
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "限时免息分期",
+   "dim": "finance",
+   "kind": "trap",
+   "phrases": [
+    "分期广告（非本人消费）"
+   ],
+   "dim2": "finance",
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "这个模块你来牵头",
+   "dim": "dim:career",
+   "kind": "event",
+   "phrases": [
+    "新职责",
+    "被委以重任",
+    "牵头项目",
+    "立项",
+    "核心模块负责人",
+    "新项目立项",
+    "白天立项"
+   ],
+   "dim2": "career",
+   "polarity": "pos",
+   "global_family": [
+    "事业突破"
+   ]
+  },
+  {
+   "sig": "团队以后一块扛",
+   "dim": "dim:career",
+   "kind": "event",
+   "phrases": [
+    "新职责",
+    "团队协作",
+    "任命"
+   ],
+   "dim2": "career",
+   "polarity": "pos",
+   "global_family": [
+    "事业突破"
+   ]
+  },
+  {
+   "sig": "组织调整通知",
+   "dim": "dim:career",
+   "kind": "event",
+   "phrases": [
+    "组织调整",
+    "转岗",
+    "岗位变动",
+    "方向待定",
+    "岗位调整",
+    "调岗"
+   ],
+   "dim2": "career",
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "口头offer确认",
+   "dim": "dim:career",
+   "kind": "event",
+   "phrases": [
+    "拿到offer",
+    "薪资上浮",
+    "跳槽意向",
+    "新offer",
+    "涨薪35%"
+   ],
+   "dim2": "career",
+   "polarity": "pos",
+   "global_family": [
+    "事业突破"
+   ]
+  },
+  {
+   "sig": "走廊上憋不住笑",
+   "dim": "dim:career",
+   "kind": "event",
+   "phrases": [
+    "offer好消息",
+    "隐瞒的喜悦",
+    "暗自高兴"
+   ],
+   "dim2": "career",
+   "polarity": "pos",
+   "global_family": [
+    "事业突破"
+   ]
+  },
+  {
+   "sig": "签约喜报",
+   "dim": "dim:career",
+   "kind": "event",
+   "phrases": [
+    "签约成功",
+    "大单成交",
+    "业绩突破"
+   ],
+   "dim2": "career",
+   "polarity": "pos",
+   "global_family": [
+    "事业突破"
+   ]
+  },
+  {
+   "sig": "这一单漂亮",
+   "dim": "dim:career",
+   "kind": "event",
+   "phrases": [
+    "大单成交",
+    "业绩认可"
+   ],
+   "dim2": "career",
+   "polarity": "pos",
+   "global_family": [
+    "事业突破"
+   ]
+  },
+  {
+   "sig": "晋升评审通过",
+   "dim": "dim:career",
+   "kind": "event",
+   "phrases": [
+    "晋升通过",
+    "升职",
+    "事业突破"
+   ],
+   "dim2": "career",
+   "polarity": "pos",
+   "global_family": [
+    "事业突破"
+   ]
+  },
+  {
+   "sig": "项目按期上线",
+   "dim": "dim:career",
+   "kind": "event",
+   "phrases": [
+    "项目上线",
+    "特别表扬",
+    "上线零故障",
+    "老板表扬"
+   ],
+   "dim2": "career",
+   "polarity": "pos",
+   "global_family": [
+    "事业突破"
+   ]
+  },
+  {
+   "sig": "全组跟你沾光",
+   "dim": "dim:career",
+   "kind": "event",
+   "phrases": [
+    "团队认可",
+    "老板表扬"
+   ],
+   "dim2": "career",
+   "polarity": "pos",
+   "global_family": [
+    "事业突破"
+   ]
+  },
+  {
+   "sig": "方案完全没抓到重点",
+   "dim": "dim:career",
+   "kind": "event",
+   "phrases": [
+    "方案返工",
+    "被批评",
+    "汇报被否",
+    "限期重做"
+   ],
+   "dim2": "career",
+   "polarity": "neg",
+   "global_family": [
+    "工作受挫"
+   ]
+  },
+  {
+   "sig": "别往心里去",
+   "dim": "dim:career",
+   "kind": "event",
+   "phrases": [
+    "被批评",
+    "同事安慰",
+    "当众批评"
+   ],
+   "dim2": "career",
+   "polarity": "neg",
+   "global_family": [
+    "工作受挫"
+   ]
+  },
+  {
+   "sig": "数据管理一塌糊涂",
+   "dim": "dim:career",
+   "kind": "event",
+   "phrases": [
+    "大会点名",
+    "当众批评",
+    "公开批评"
+   ],
+   "dim2": "career",
+   "polarity": "neg",
+   "global_family": [
+    "工作受挫"
+   ]
+  },
+  {
+   "sig": "这明明是流程的锅",
+   "dim": "dim:career",
+   "kind": "event",
+   "phrases": [
+    "流程问题",
+    "替流程背锅",
+    "委屈"
+   ],
+   "dim2": "career",
+   "polarity": "neg",
+   "global_family": [
+    "工作受挫"
+   ]
+  },
+  {
+   "sig": "本月目标缺口",
+   "dim": "dim:career",
+   "kind": "event",
+   "phrases": [
+    "业绩压力",
+    "目标缺口"
+   ],
+   "dim2": "career",
+   "polarity": "neg",
+   "global_family": [
+    "工作受挫"
+   ]
+  },
+  {
+   "sig": "P2事故定责",
+   "dim": "dim:career",
+   "kind": "event",
+   "phrases": [
+    "事故定责",
+    "问责"
+   ],
+   "dim2": "career",
+   "polarity": "neg",
+   "global_family": [
+    "工作受挫"
+   ]
+  },
+  {
+   "sig": "检讨明天给我",
+   "dim": "dim:career",
+   "kind": "event",
+   "phrases": [
+    "被要求写检讨",
+    "批评",
+    "限期重做"
+   ],
+   "dim2": "career",
+   "polarity": "neg",
+   "global_family": [
+    "工作受挫"
+   ]
+  },
+  {
+   "sig": "本次投标未中",
+   "dim": "dim:career",
+   "kind": "event",
+   "phrases": [
+    "投标失利",
+    "丢标"
+   ],
+   "dim2": "career",
+   "polarity": "neg",
+   "global_family": [
+    "工作受挫"
+   ]
+  },
+  {
+   "sig": "标丢了",
+   "dim": "dim:career",
+   "kind": "event",
+   "phrases": [
+    "丢标",
+    "竞标失败"
+   ],
+   "dim2": "career",
+   "polarity": "neg",
+   "global_family": [
+    "工作受挫"
+   ]
+  },
+  {
+   "sig": "岗位调整通知",
+   "dim": "dim:career",
+   "kind": "event",
+   "phrases": [
+    "岗位调整",
+    "转入维护组",
+    "岗位调整通知",
+    "方向待定",
+    "调岗",
+    "边缘业务"
+   ],
+   "dim2": "career",
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "那摊子活……你多保重",
+   "dim": "dim:career",
+   "kind": "event",
+   "phrases": [
+    "岗位调整",
+    "边缘化担忧"
+   ],
+   "dim2": "career",
+   "polarity": "neg",
+   "global_family": [
+    "工作受挫"
+   ]
+  },
+  {
+   "sig": "半年度绩效结果",
+   "dim": "dim:career",
+   "kind": "event",
+   "phrases": [
+    "绩效C",
+    "考核垫底",
+    "改进计划",
+    "观察名单"
+   ],
+   "dim2": "career",
+   "polarity": "neg",
+   "global_family": [
+    "工作受挫"
+   ]
+  },
+  {
+   "sig": "下个周期盯紧点",
+   "dim": "dim:career",
+   "kind": "event",
+   "phrases": [
+    "绩效改进要求"
+   ],
+   "dim2": "career",
+   "polarity": "neg",
+   "global_family": []
+  },
+  {
+   "sig": "本轮晋升评审结果：未通过",
+   "dim": "dim:career",
+   "kind": "event",
+   "phrases": [
+    "晋升未通过",
+    "评审落选",
+    "晋升驳回",
+    "答辩未过"
+   ],
+   "dim2": "career",
+   "polarity": "neg",
+   "global_family": [
+    "工作受挫"
+   ]
+  },
+  {
+   "sig": "差距主要在项目影响力",
+   "dim": "dim:career",
+   "kind": "event",
+   "phrases": [
+    "晋升未通过",
+    "来年再战",
+    "晋升驳回",
+    "答辩未过"
+   ],
+   "dim2": "career",
+   "polarity": "neg",
+   "global_family": [
+    "工作受挫"
+   ]
+  },
+  {
+   "sig": "明天就辞职去大理躺平",
+   "dim": "dim:career",
+   "kind": "event",
+   "phrases": [
+    "加班抱怨",
+    "辞职念头"
+   ],
+   "dim2": "career",
+   "polarity": "neg",
+   "global_family": [
+    "工作受挫"
+   ]
+  },
+  {
+   "sig": "换了供应商",
+   "dim": "dim:career",
+   "kind": "event",
+   "phrases": [
+    "合作取消",
+    "项目变动",
+    "客户毁约",
+    "订单归零"
+   ],
+   "dim2": "career",
+   "polarity": "neg",
+   "global_family": [
+    "工作受挫"
+   ]
+  },
+  {
+   "sig": "周报今晚八点前提交",
+   "dim": "dim:career",
+   "kind": "baseline",
+   "phrases": [
+    "日常工作要求"
+   ],
+   "dim2": "career",
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "今日站会改到",
+   "dim": "dim:career",
+   "kind": "baseline",
+   "phrases": [
+    "日常会议"
+   ],
+   "dim2": "career",
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "文档V",
+   "dim": "dim:career",
+   "kind": "baseline",
+   "phrases": [
+    "文档更新"
+   ],
+   "dim2": "career",
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "会议室投影又坏了",
+   "dim": "dim:career",
+   "kind": "smalltalk",
+   "phrases": [],
+   "dim2": "career",
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "还记得咱高中天台吗",
+   "dim": "dim:social",
+   "kind": "event",
+   "phrases": [
+    "老同学",
+    "同学聚会",
+    "叙旧",
+    "重逢"
+   ],
+   "dim2": "social",
+   "polarity": "pos",
+   "global_family": []
+  },
+  {
+   "sig": "隔壁小张孩子都上幼儿园了",
+   "dim": "dim:social",
+   "kind": "event",
+   "phrases": [
+    "催婚",
+    "催生",
+    "父母施压"
+   ],
+   "dim2": "social",
+   "polarity": "neg",
+   "global_family": [
+    "人际冲突"
+   ]
+  },
+  {
+   "sig": "我们还不是为你好",
+   "dim": "dim:social",
+   "kind": "event",
+   "phrases": [
+    "与父母争执",
+    "不欢而挂",
+    "激烈争吵",
+    "取消来访",
+    "家乡话题"
+   ],
+   "dim2": "social",
+   "polarity": "neg",
+   "global_family": [
+    "人际冲突"
+   ]
+  },
+  {
+   "sig": "洗碗池的碗你堆三天了",
+   "dim": "dim:social",
+   "kind": "event",
+   "phrases": [
+    "伴侣争吵",
+    "家务矛盾",
+    "家务争吵",
+    "室友争执",
+    "激烈争吵"
+   ],
+   "dim2": "social",
+   "polarity": "neg",
+   "global_family": [
+    "人际冲突"
+   ]
+  },
+  {
+   "sig": "外卖盒堆到发臭",
+   "dim": "dim:social",
+   "kind": "event",
+   "phrases": [
+    "伴侣争吵",
+    "互相指责",
+    "激烈争吵"
+   ],
+   "dim2": "social",
+   "polarity": "neg",
+   "global_family": [
+    "人际冲突"
+   ]
+  },
+  {
+   "sig": "快趁热吃",
+   "dim": "dim:social",
+   "kind": "event",
+   "phrases": [
+    "家人关怀",
+    "被照顾",
+    "父母来访",
+    "家乡菜",
+    "家人团聚",
+    "温情",
+    "取消来访"
+   ],
+   "dim2": "social",
+   "polarity": "pos",
+   "global_family": [
+    "感情升温"
+   ]
+  },
+  {
+   "sig": "就周转两个月",
+   "dim": "dim:social",
+   "kind": "event",
+   "phrases": [
+    "朋友借钱",
+    "人情压力",
+    "借钱5万",
+    "借钱请求",
+    "友谊裂痕"
+   ],
+   "dim2": "social",
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "行，我知道了，先这样吧",
+   "dim": "dim:social",
+   "kind": "event",
+   "phrases": [
+    "未明确答应",
+    "沉默回应",
+    "拒绝借款",
+    "未答应",
+    "友谊裂痕"
+   ],
+   "dim2": "social",
+   "polarity": "neg",
+   "global_family": []
+  },
+  {
+   "sig": "嫁给我好吗",
+   "dim": "dim:social",
+   "kind": "event",
+   "phrases": [
+    "求婚成功",
+    "订婚",
+    "庆祝"
+   ],
+   "dim2": "social",
+   "polarity": "pos",
+   "global_family": [
+    "感情升温"
+   ]
+  },
+  {
+   "sig": "我愿意",
+   "dim": "dim:social",
+   "kind": "event",
+   "phrases": [
+    "求婚成功",
+    "幸福",
+    "庆祝"
+   ],
+   "dim2": "social",
+   "polarity": "pos",
+   "global_family": [
+    "感情升温"
+   ]
+  },
+  {
+   "sig": "这几天是我不对",
+   "dim": "dim:social",
+   "kind": "event",
+   "phrases": [
+    "主动道歉",
+    "关系修复",
+    "道歉和好"
+   ],
+   "dim2": "social",
+   "polarity": "pos",
+   "global_family": [
+    "感情升温"
+   ]
+  },
+  {
+   "sig": "这次听我的，去海边",
+   "dim": "dim:social",
+   "kind": "event",
+   "phrases": [
+    "和好",
+    "关系修复",
+    "道歉和好",
+    "感情升温"
+   ],
+   "dim2": "social",
+   "polarity": "pos",
+   "global_family": [
+    "感情升温"
+   ]
+  },
+  {
+   "sig": "我们分手吧",
+   "dim": "dim:social",
+   "kind": "event",
+   "phrases": [
+    "分手",
+    "关系破裂",
+    "失联"
+   ],
+   "dim2": "social",
+   "polarity": "neg",
+   "global_family": [
+    "人际冲突"
+   ]
+  },
+  {
+   "sig": "消息发出去就再没回复",
+   "dim": "dim:social",
+   "kind": "event",
+   "phrases": [
+    "分手后失联",
+    "关系破裂"
+   ],
+   "dim2": "social",
+   "polarity": "neg",
+   "global_family": [
+    "人际冲突"
+   ]
+  },
+  {
+   "sig": "我升主管了",
+   "dim": "dim:social",
+   "kind": "event",
+   "phrases": [
+    "伴侣升职（非本人）",
+    "感情升温"
+   ],
+   "dim2": "social",
+   "polarity": "pos",
+   "global_family": [
+    "感情升温"
+   ]
+  },
+  {
+   "sig": "今天几号你自己看",
+   "dim": "dim:social",
+   "kind": "event",
+   "phrases": [
+    "配偶冷战",
+    "纪念日被忘",
+    "纪念日忘了",
+    "冷战"
+   ],
+   "dim2": "social",
+   "polarity": "neg",
+   "global_family": [
+    "人际冲突"
+   ]
+  },
+  {
+   "sig": "进门换鞋",
+   "dim": "dim:social",
+   "kind": "event",
+   "phrases": [
+    "纪念日惊喜",
+    "结婚纪念",
+    "庆祝"
+   ],
+   "dim2": "social",
+   "polarity": "pos",
+   "global_family": [
+    "感情升温"
+   ]
+  },
+  {
+   "sig": "周末不去了。累了。",
+   "dim": "dim:social",
+   "kind": "event",
+   "phrases": [
+    "情绪低落",
+    "回避社交"
+   ],
+   "dim2": "social",
+   "polarity": "neg",
+   "global_family": []
+  },
+  {
+   "sig": "知名男星官宣分手",
+   "dim": "dim:social",
+   "kind": "trap",
+   "phrases": [
+    "娱乐新闻（非本人关系）"
+   ],
+   "dim2": "social",
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "今天风大，多穿点",
+   "dim": "dim:social",
+   "kind": "smalltalk",
+   "phrases": [],
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "明天早饭想吃啥",
+   "dim": "dim:social",
+   "kind": "smalltalk",
+   "phrases": [],
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "热水器我修好了",
+   "dim": "dim:social",
+   "kind": "smalltalk",
+   "phrases": [],
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "下午帮你带杯奶茶",
+   "dim": "dim:social",
+   "kind": "smalltalk",
+   "phrases": [],
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "帮我带瓶酱油",
+   "dim": "dim:social",
+   "kind": "smalltalk",
+   "phrases": [],
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "您有个快递放岗亭",
+   "dim": "dim:social",
+   "kind": "smalltalk",
+   "phrases": [],
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "有您一个挂号信",
+   "dim": "dim:social",
+   "kind": "smalltalk",
+   "phrases": [],
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "中杯美式少冰",
+   "dim": "dim:social",
+   "kind": "smalltalk",
+   "phrases": [],
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "关东煮刚加汤",
+   "dim": "dim:social",
+   "kind": "smalltalk",
+   "phrases": [],
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "中午拼单不",
+   "dim": "dim:social",
+   "kind": "smalltalk",
+   "phrases": [],
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "昨晚看球了吗",
+   "dim": "dim:social",
+   "kind": "smalltalk",
+   "phrases": [],
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "周末爬山去不去",
+   "dim": "dim:social",
+   "kind": "smalltalk",
+   "phrases": [],
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "江边约跑",
+   "dim": "dim:social",
+   "kind": "smalltalk",
+   "phrases": [],
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "晚安，周末见",
+   "dim": "dim:social",
+   "kind": "smalltalk",
+   "phrases": [],
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "您的包裹已到驿站",
+   "dim": "dim:social",
+   "kind": "smalltalk",
+   "phrases": [],
+   "polarity": "neutral",
+   "global_family": []
+  },
+  {
+   "sig": "通勤充电站",
+   "dim": "dim:social",
+   "kind": "smalltalk",
+   "phrases": [],
+   "polarity": "neutral",
+   "global_family": []
+  }
+ ],
+ "emotion_rules": [
+  {
+   "when_any": [
+    "分手",
+    "关系破裂",
+    "失联"
+   ],
+   "phrases": [
+    "崩溃",
+    "绝望",
+    "痛苦",
+    "难过",
+    "心碎",
+    "失落",
+    "低落"
+   ]
+  },
+  {
+   "when_any": [
+    "催婚",
+    "与父母争执",
+    "不欢而挂",
+    "激烈争吵",
+    "取消来访"
+   ],
+   "phrases": [
+    "焦虑",
+    "委屈",
+    "烦躁",
+    "难过",
+    "无奈",
+    "生气",
+    "烦闷"
+   ]
+  },
+  {
+   "when_any": [
+    "伴侣争吵",
+    "家务矛盾",
+    "室友争执",
+    "互相指责",
+    "家务争吵"
+   ],
+   "phrases": [
+    "烦躁",
+    "委屈",
+    "生气",
+    "郁闷",
+    "难过"
+   ]
+  },
+  {
+   "when_any": [
+    "配偶冷战",
+    "纪念日忘了",
+    "冷战"
+   ],
+   "phrases": [
+    "失落",
+    "委屈",
+    "心凉",
+    "难过",
+    "郁闷"
+   ]
+  },
+  {
+   "when_any": [
+    "汇报被否",
+    "方案返工",
+    "被批评",
+    "大会点名",
+    "当众批评",
+    "公开批评",
+    "事故定责",
+    "被要求写检讨",
+    "限期重做",
+    "边缘化担忧"
+   ],
+   "phrases": [
+    "委屈",
+    "焦虑",
+    "压力大",
+    "失落",
+    "难过",
+    "无奈",
+    "挫败感",
+    "郁闷"
+   ]
+  },
+  {
+   "when_any": [
+    "丢标",
+    "投标失利",
+    "晋升未通过",
+    "晋升驳回",
+    "答辩未过",
+    "绩效C",
+    "考核垫底",
+    "目标缺口",
+    "业绩压力",
+    "观察名单"
+   ],
+   "phrases": [
+    "失落",
+    "压力大",
+    "沮丧",
+    "难过",
+    "焦虑",
+    "挫败感"
+   ]
+  },
+  {
+   "when_any": [
+    "加班抱怨",
+    "辞职念头",
+    "岗位调整",
+    "合作取消",
+    "流程问题",
+    "客户毁约",
+    "订单归零"
+   ],
+   "phrases": [
+    "疲惫",
+    "焦虑",
+    "无奈",
+    "压力大"
+   ]
+  },
+  {
+   "when_any": [
+    "求婚成功",
+    "订婚",
+    "和好",
+    "关系修复",
+    "道歉和好",
+    "纪念日惊喜",
+    "感情升温",
+    "庆祝"
+   ],
+   "phrases": [
+    "幸福",
+    "甜蜜",
+    "感动",
+    "愉快",
+    "开心",
+    "振奋"
+   ]
+  },
+  {
+   "when_any": [
+    "家人关怀",
+    "父母来访",
+    "家乡菜",
+    "家人团聚",
+    "同学聚会",
+    "叙旧",
+    "重逢"
+   ],
+   "phrases": [
+    "温暖",
+    "感动",
+    "愉快",
+    "开心",
+    "满足",
+    "被治愈"
+   ]
+  },
+  {
+   "when_any": [
+    "拿到offer",
+    "签约成功",
+    "晋升通过",
+    "大单成交",
+    "项目上线",
+    "上线零故障",
+    "年终奖到账",
+    "新职责",
+    "老板表扬",
+    "业绩突破",
+    "事业突破",
+    "创新奖",
+    "新项目立项"
+   ],
+   "phrases": [
+    "振奋",
+    "开心",
+    "有成就感",
+    "愉快",
+    "幸福",
+    "欣喜",
+    "满足"
+   ]
+  },
+  {
+   "when_any": [
+    "投资亏损",
+    "计划外支出",
+    "医疗支出",
+    "现金流偏紧",
+    "养车支出",
+    "逾期支出",
+    "财务压力"
+   ],
+   "phrases": [
+    "压力",
+    "心疼钱",
+    "焦虑",
+    "无奈"
+   ]
+  },
+  {
+   "when_any": [
+    "拒绝借款",
+    "借钱请求",
+    "沉默回应",
+    "友谊裂痕"
+   ],
+   "phrases": [
+    "为难",
+    "尴尬",
+    "压力",
+    "失落"
+   ]
+  },
+  {
+   "when_any": [
+    "体征平稳"
+   ],
+   "phrases": [
+    "平稳",
+    "踏实",
+    "放松",
+    "愉快"
+   ]
+  },
+  {
+   "when_any": [
+    "睡眠不足",
+    "倦怠"
+   ],
+   "phrases": [
+    "疲惫",
+    "倦怠",
+    "低落",
+    "烦躁"
+   ]
+  }
+ ],
+ "global_rules": {
+  "mixed": [
+   "转折",
+   "有起有伏",
+   "情绪起伏",
+   "喜忧参半"
+  ],
+  "two_negative": [
+   "双重受挫",
+   "高压危机"
+  ],
+  "negative": [
+   "压力较大"
+  ],
+  "positive": [
+   "较为顺利"
+  ],
+  "neutral": [
+   "平稳度过"
+  ],
+  "career_negative": [
+   "工作受挫"
+  ],
+  "career_positive": [
+   "事业突破"
+  ],
+  "social_negative": [
+   "人际冲突"
+  ],
+  "social_positive": [
+   "感情升温"
+  ],
+  "finance_negative": [
+   "财务压力"
+  ],
+  "finance_positive": [
+   "财务改善"
+  ],
+  "health_negative": [
+   "健康波动"
+  ],
+  "health_positive": [
+   "身体状态良好"
+  ],
+  "two_positive": [
+   "双喜临门"
+  ],
+  "double_frustration": [
+   "双重受挫",
+   "高压危机"
+  ],
+  "pressure": [
+   "压力较大"
+  ],
+  "change": [
+   "转折",
+   "有起有伏",
+   "情绪起伏",
+   "喜忧参半"
+  ]
+ }
+}
