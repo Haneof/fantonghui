@@ -19,10 +19,11 @@ from .models import (
     EventAnchor,
     EvidenceSet,
     Goal,
+    LifeChapter,
+    NarrativeSegment,
     Observation,
     OperationExperience,
     Outcome,
-    LifeChapter,
     Prediction,
     Reinterpretation,
     Relation,
@@ -31,6 +32,7 @@ from .models import (
     Task,
     ToolProposal,
     Wake,
+    DimensionCurvePoint,
 )
 
 CANONICAL_WORLD_OBJECT_MODELS: Mapping[ObjectType, type[WorldObject]] = MappingProxyType({
@@ -60,6 +62,8 @@ CANONICAL_WORLD_OBJECT_MODELS: Mapping[ObjectType, type[WorldObject]] = MappingP
     ObjectType.COMMUNICATION_EXPERIENCE: CommunicationExperience,
     ObjectType.BUDGET_POLICY: BudgetPolicy,
     ObjectType.ASSEMBLY_POLICY: AssemblyPolicy,
+    ObjectType.NARRATIVE_SEGMENT: NarrativeSegment,
+    ObjectType.DIMENSION_CURVE_POINT: DimensionCurvePoint,
 })
 
 if set(CANONICAL_WORLD_OBJECT_MODELS) != set(ObjectType):

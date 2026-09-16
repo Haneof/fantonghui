@@ -30,6 +30,8 @@ class ObjectType(StrEnum):
     COMMUNICATION_EXPERIENCE = "communication_experience"
     BUDGET_POLICY = "budget_policy"
     ASSEMBLY_POLICY = "assembly_policy"
+    NARRATIVE_SEGMENT = "narrative_segment"
+    DIMENSION_CURVE_POINT = "dimension_curve_point"
 
 
 class SourceClass(StrEnum):
@@ -259,3 +261,22 @@ class ErrorCode(StrEnum):
     OUTCOME_UNKNOWN = "OUTCOME_UNKNOWN"
     IDEMPOTENCY_CONFLICT = "IDEMPOTENCY_CONFLICT"
     STORAGE_FAILURE = "STORAGE_FAILURE"
+
+
+class ProposalStatus(StrEnum):
+    DRAFT = "draft"
+    SUBMITTED = "submitted"
+    UNDER_REVIEW = "under_review"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    NEEDS_CHANGES = "needs_changes"
+    EXECUTED = "executed"
+    RETIRED = "retired"
+
+
+class NarrativeSegmentStatus(StrEnum):
+    """叙事分段状态。"""
+    OPEN = "open"          # 当前章节，仍在积累
+    SEALED = "sealed"       # 已封存归档
+    REVISED = "revised"     # 被修正（新段替代）
+    MERGED = "merged"       # 被合并到另一个段
