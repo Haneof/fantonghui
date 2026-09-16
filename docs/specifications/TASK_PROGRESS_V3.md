@@ -260,3 +260,61 @@
 - **全库单元与集成测试**：`python -m pytest -q` → **1343 passed, 0 failed (100% 满堂绿)**。
 - **AST 语法安全门禁**：`governance/ci/lint_assert_msg_ast.py` → 扫描 244 个 .py 文件，0 报警，PASS。
 - **全库零占位符**：全库无 `# TODO`、`FIXME` 与任何形式的假代码。
+
+---
+
+## 十、数据清洗竞技场·工序一（出卷官）：1 万个人的一天高熵题库交付（战队 01a0aa2d-fantonghui）
+
+> 法定身份切换：本战队由「做题大模型」扩编为「问询出卷官 + 做题大模型」双岗。  
+> 出卷官使命（老大原话）：**必须出 1 万个人的一天**；标答必须是**方向性语义标答**，严禁死板字句匹配。
+
+### 1. 交付物（全部落在调度书规定路径）
+| 交付组件 | 路径 | 规模 / 特性 |
+|---|---|---|
+| 出卷器（确定性发生器） | `src/aios_core/simulation/question_generator_01a0aa2d.py` | 57 条核心事实信号目录 + 46 类垃圾噪声族 + 30 条跨维度人生剧本骨架；`random.Random(seed*1_000_003+index)` 逐题摘取，重跑逐字节一致 |
+| 题库 | `benchmarks/data_cleaning/questions/questions_01a0aa2d-fantonghui.jsonl` | **10,000 题**，1.0 万个人的一天（07:00~23:30），71.5 MB |
+| 标答 | `benchmarks/data_cleaning/ground_truth/gt_01a0aa2d-fantonghui.jsonl` | 10,000 条记录 / **13,500 条方向性事实** / **266,391 个垃圾碎片 ID**，10.4 MB |
+| 清单 | `benchmarks/data_cleaning/questions/manifest_01a0aa2d-fantonghui.json` | 种子、配额、sha256、自检计数（重跑校验用） |
+| 出卷报告 | `benchmarks/data_cleaning/reports/generation_report_01a0aa2d-fantonghui.md` | 配额达成、公平性不变量、标杆样例、出题官自述 |
+| 验收单测 | `tests/unit/test_cleaning_arena_question_generator_01a0aa2d.py` | 6 项硬门禁：目录自检 / 公平性不变量 / 确定性 / 配额 / 禁止自出自做 / 反向篡改必须报错 |
+
+### 2. 配额与结构（严格对齐调度书第二阶段）
+- **数据流配额**：传感器 3,000 / MIC 3,000 / 声纹 2,000 / APP 1,500 / 用户原话 500（主事实流精确铺满 10,000 题，且与剩余 4 路证据共存）。
+- **难度配额**：EASY 1,500 / MEDIUM 3,500 / HARD 3,500 / ADVERSARIAL 1,500。
+- **事实条数**：1 条 7,000 题 / 2 条 2,500 题 / 3 条 500 题（跨模态跨维度冲突）。
+- **碎片总量**：MIC 48,548 / APP 53,861 / 原话 22,332 / 声纹 80,100 / 传感器包 10,000。
+- **垃圾占比**：单题垃圾碎片 / (垃圾 + 标答事实) 最小值 **0.950**，红线 ≥ 0.95 全题达标。
+
+### 3. 标的公平性不变量（发生器自检 + 独立复校，问题数 0）
+1. **可溯源**：13,500 / 13,500 条事实的 `source_ref_id` 均真实存在于五路证据流；
+2. **实体落地**：13,500 / 13,500 条事实的 `anchor_entities` 全部能在其载体证据文本中逐字命中（杜绝“不可溯源的锚点”）；
+3. **方向可判**：13,500 / 13,500 条事实的 `directional_keywords` 至少 1 词命中证据文本（保证同义簇判分有据可依）；
+4. **契约兼容**：10,000 / 10,000 题可通过主干 `CleaningQuestion` 契约校验（`extra=ignore`，可与各战队字段并存）；
+5. **声明不改判**：标答载体一律 `is_junk=false`；垃圾碎片中仅 55%~75% 携带 `is_junk=true` 声明，其余必须靠内容词表 / 信噪比 / 背景人声标记 / 声纹余弦判定，**防止退化为纯声明剪枝**。
+
+### 4. 出卷内容设计（真实人生 24 小时）
+- **人设**：10,000 名佩戴者互不重名（100 姓 × 100 名笛卡尔铺满），年龄 19~65、40 类职业、10 种家庭结构、10 类基础病，并强制年龄—家庭结构—职业一致性（如 ≤22 岁不会出现“退休独居/已婚有娃”、>32 岁不再“在读研究生”）。
+- **主线**：30 条跨维度冲突骨架（职场受挫×亲密关系、债务违约×朋友翻脸、父母重病隐瞒×异乡赶回、过劳×身体报警、身份被冒充×资金风险……），当日主线标签由**实际标答事实的维度组合**生成，避免题面与事实错位。
+- **方向性标答（老大法定 6 段式）**：`global_summary` 全局日总结 + `dim:health` / `dim:social` / `dim:emotion` / `dim:finance` / `dim:career` 五维锚点，每段含 `core`（方向核心）、`acceptable_synonyms`（可接受的方向同义词簇）、`red_lines`（绝对偏离红线）；另有 `other_dimensions` 收纳 `dim:life` 等非五维事实。
+- **对抗陷阱**：醉酒吹牛（“下月收购那家公司”）、口头禅宣泄（“再加班我就不活了”）、玩笑借钱（“借我一百万呗”）、反讽吐槽（“感谢领导画的大饼”）、钓鱼短信、假摔碰瓷（IMU 峰值仅 1.0~1.35g 却呼痛索赔）、假转账截图、脱腕误报、夜间早搏阵发、隐匿心梗（“胃有点不舒服”）、真跌倒冲击（IMU 峰值 9.2~12.8g + 冲击后静止 120~300s）。
+- **物理自洽**：传感器题的波形峰值与文案数值强一致（`g_series_peak` 联动），P0 场景自带 `raw_imu_g_force / stillness_seconds / pvc_burst_count / baro_hpa` 物理判据字段，端侧可 ≤50ms 硬旁路。
+
+### 5. 交叉做题（工序二，本战队作为做题方）结果留痕
+| 对手题库 | 题量 | 平均分 | 方向吻合 | 实体召回 | 垃圾剪枝 | 幻觉 |
+|---|---|---|---|---|---|---|
+| `agent-11` | 10,000 | 50.02 | 0.392 | 0.237 | 0.980 | 0 |
+| `fantonghui` | 10,000 | 58.37 | 0.639 | 0.496 | 1.000 | 7,341 |
+| `01a0a9ff-fantonghui` | 10,000 | 54.57 | 0.432 | 0.344 | 1.000 | 409 |
+| `agent-a9f6` | 10,000 | 84.86 | 0.833 | 0.729 | 1.000 | 0 |
+
+答卷与阅卷报告分别落 `benchmarks/data_cleaning/answers/ans_01a0aa2d-fantonghui_on_<gen>.jsonl` 与 `benchmarks/data_cleaning/reports/report_01a0aa2d-fantonghui_on_<gen>.json`。
+
+### 6. 复现命令
+```bash
+PYTHONPATH=src python -m aios_core.simulation.question_generator_01a0aa2d --selftest
+PYTHONPATH=src python -m aios_core.simulation.question_generator_01a0aa2d --count 10000 --seed 20260916
+PYTHONPATH=src python -m aios_core.simulation.question_generator_01a0aa2d \
+  --verify-only benchmarks/data_cleaning/questions/questions_01a0aa2d-fantonghui.jsonl \
+  --verify-gt benchmarks/data_cleaning/ground_truth/gt_01a0aa2d-fantonghui.jsonl
+PYTHONPATH=src python -m pytest tests/unit/test_cleaning_arena_question_generator_01a0aa2d.py -q
+```
