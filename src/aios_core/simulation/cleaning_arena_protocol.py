@@ -49,6 +49,12 @@ class CleaningQuestion(BaseModel):
     timestamp_utc: str = Field(..., description="虚拟事件发生时间 ISO 8601")
     difficulty: DifficultyLevel = Field(default=DifficultyLevel.MEDIUM)
 
+    # 0. 佩戴者身份与人生阶段标签
+    persona_tag: Optional[str] = Field(
+        default=None,
+        description="佩戴者身份与人生阶段标签（如 D07_钢筋班包工头_48岁_痛风并发讨薪）"
+    )
+
     # 1. 外部传感器流（50Hz IMU / PPG / GPS / 气压计）
     sensor_stream: Dict[str, Any] = Field(
         default_factory=dict,
