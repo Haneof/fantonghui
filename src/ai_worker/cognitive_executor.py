@@ -9,7 +9,7 @@ how to recall, compare, respond, stay silent, or write back learned state.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Mapping
+from typing import Any, Mapping, Protocol
 
 from aios_core.runtime import (
     AISelfMemoryKind,
@@ -26,7 +26,18 @@ from aios_core.runtime import (
 )
 from aios_core.runtime.cognitive_runtime import ModelHandler
 from aios_core.runtime.state_capabilities import RuntimeStateCapabilityBus
-from aios_core.storage.sqlite_store import SQLiteWorldStore
+
+
+class WorldStorePort(Protocol):
+    """Public Core surface required by the Worker.
+
+    The Worker deliberately depends on behavior instead of importing the storage
+    implementation. Concrete store ownership remains inside Core.
+    """
+
+    db_path: str
+
+    def current_world_revision(self) -> int: ...
 
 
 @dataclass(frozen=True)
@@ -56,7 +67,7 @@ class CognitiveExecutor:
     def __init__(
         self,
         *,
-        world_store: SQLiteWorldStore,
+        world_store: WorldStorePort,
         model_handler: ModelHandler,
         session_id: str,
         max_tool_rounds: int = 4,
@@ -72,7 +83,7 @@ class CognitiveExecutor:
         self.policies = CognitivePolicyRegistry(world_store.db_path)
 
         self.registry = CapabilityRegistry()
-        self.world_capabilities = WorldCapabilityBus(world_store)
+        self.world_capabilities = WorldCapabilityBus(world_store)  # structural Core port
         self.world_capabilities.register_read_capabilities(self.registry)
         self.state_capabilities = RuntimeStateCapabilityBus(
             conversation_states=self.conversation_states,
@@ -149,4 +160,4 @@ class CognitiveExecutor:
         )
 
 
-__all__ = ["CognitiveExecutionResult", "CognitiveExecutor", "ModelDirective"]
+__all__ = ["CognitiveExecutionResult", "CognitiveExecutor", "ModelDirective", "WorldStorePort"]
