@@ -1,27 +1,24 @@
-"""Cockpit Executor (C10 / M2-012R / ADJ-001 / ADJ-007).
+"""Cockpit Executor (C10 / M2-012R / ADJ-001 / R6).
 
-负责前台交互会话的完整端到端执行流：
-1. 组装 Cockpit Manifest 四步序看板；
-2. 执行跨周期超链接联想回捞；
-3. 装配多层上下文；
-4. 调度大模型或确定性测试推理后端；
-5. 执行 1~3 句反说教老友语调护栏（含 ADJ-007 四大立宪豁免判定）；
-6. 压入前台滑动窗口并将迁出轮次送入后台萃取流水线。
+Foreground conversation execution flow:
+1. retrieve candidate historical context;
+2. assemble the Cockpit Manifest as an information dashboard;
+3. assemble layered context;
+4. invoke the model or deterministic test backend;
+5. preserve the model's semantic reply exactly (brevity is a soft style policy);
+6. advance the rolling window and background extraction pipeline.
 """
 
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from dataclasses import dataclass
+from typing import Any, Callable, Dict, List, Optional
 
 from .brevity_guard import enforce_dialogue_brevity_guard
 from .context_pipeline import AssembledContext, ContextAssemblyPipeline
-from .manifest_optimizer import CockpitManifest, CockpitManifestOptimizer
+from .manifest_optimizer import CockpitManifestOptimizer
 from .stream_pipeline import ThreeStageStreamPipeline
-
-UTC = timezone.utc
 
 
 @dataclass
@@ -57,20 +54,26 @@ class CockpitExecutor:
         user_msg: str,
         *,
         wake_reason: str = "用户主动发起日常交互",
-        user_name: str = "老大",
-        rapport_tier: str = "生死死党/损友僚机",
-        posture_tone: str = "自然真诚、敏锐关切、关键节点直言不讳",
+        user_name: str = "用户",
+        rapport_tier: str = "待当前证据校准",
+        posture_tone: str = "自然、口语化；简单事项简短回答，需要解释时充分展开；根据当前语境自主决定语气与详略",
         ready_tasks: Optional[List[Dict[str, Any]]] = None,
         budget_tier: str = "ROUTINE",
         allow_expansion: bool = False,
     ) -> TurnExecutionResult:
-        """执行单轮端到端会话。"""
-        t0 = time.perf_counter()
+        """执行单轮端到端会话。
 
-        # 1. 联想回捞 (Stage 3)
+        ``allow_expansion`` is retained for API compatibility. Expansion no
+        longer needs an exception flag because there is no destructive length
+        cap: the AI itself decides how much explanation the situation needs.
+        """
+        t0 = time.perf_counter()
+        _ = allow_expansion
+
+        # 1. 联想回捞：结果是候选记忆，不是最终认知结论。
         recalled_cues = self.pipeline.recall.recall_for_turn(user_msg)
 
-        # 2. 组装 Cockpit Manifest
+        # 2. 组装驾驶舱信息面板。布局顺序不等于思维顺序。
         manifest = CockpitManifestOptimizer.assemble_cockpit(
             wake_reason=wake_reason,
             user_name=user_name,
@@ -79,7 +82,7 @@ class CockpitExecutor:
             ready_tasks=ready_tasks,
         )
 
-        # 3. 组装上下文
+        # 3. 组装上下文。
         rolling_msgs = self.pipeline.window.get_prompt_messages()
         assembled_ctx = ContextAssemblyPipeline.assemble(
             manifest=manifest,
@@ -88,27 +91,23 @@ class CockpitExecutor:
             budget_tier=budget_tier,
         )
 
-        # 4. 执行模型推理
+        # 4. 由 AI 进行实际认知与表达。
         raw_reply = self.model_handler(assembled_ctx)
 
-        # 5. 校验 ADJ-007 豁免条件：用户明确要求展开或生命安全等
-        is_expansion_requested = allow_expansion or any(
-            kw in user_msg for kw in ("展开", "详细说说", "为什么", "具体讲讲", "到底怎么想的")
-        )
+        # 5. 兼容旧调用契约，但不得再按句数/字数/正则改写 AI 语义。
+        final_reply, was_truncated = enforce_dialogue_brevity_guard(raw_reply)
 
-        # 6. 执行 1~3 句反说教护栏
-        if is_expansion_requested:
-            final_reply = raw_reply
-            was_truncated = False
-        else:
-            final_reply, was_truncated = enforce_dialogue_brevity_guard(raw_reply)
-
-        # 7. 压入前台滑窗与后台萃取 (Stage 1 & 2)
+        # 6. 压入前台滑窗与后台萃取。
         turn_no = self.pipeline._turn_counter + 1
         self.pipeline._turn_counter = turn_no
         evicted = self.pipeline.window.push_turn(user_msg, final_reply)
         if evicted:
-            offset = max(0, turn_no - len(self.pipeline.window.get_prompt_messages()) // 2 - len(evicted))
+            offset = max(
+                0,
+                turn_no
+                - len(self.pipeline.window.get_prompt_messages()) // 2
+                - len(evicted),
+            )
             self.pipeline.extractor.enqueue_evicted_turns(evicted, offset)
             self.pipeline.extractor.extract_sync(evicted, offset)
 
@@ -131,13 +130,12 @@ class CockpitExecutor:
 
     def _default_mock_model_handler(self, ctx: AssembledContext) -> str:
         """默认测试模型回显器。"""
-        # 从最后一条 user 消息返回老友风格简答
         last_user = ""
         for m in reversed(ctx.prompt_messages):
             if m.get("role") == "user":
                 last_user = m.get("content", "")
                 break
-        return f"听到了。关于'{last_user[:10]}'，咱们按原计划办就行。"
+        return f"听到了。关于'{last_user[:10]}'，咱们按当前情况看就行。"
 
 
 __all__ = [

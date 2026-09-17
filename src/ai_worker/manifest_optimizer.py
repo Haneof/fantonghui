@@ -1,15 +1,13 @@
-"""AIOS 3.0 极简单次看盘聚合看板装配器 (Cockpit Manifest Optimizer).
+"""AIOS 3.0 single-shot Cockpit Manifest assembler.
 
-贯彻最高宪法第二十四章第八十四条：
-1. 单次看盘聚合原则（Single-Shot Cockpit Manifest）：
-   - 严禁通过多轮低效对话唤醒 AI；
-   - 系统如同飞行员进入驾驶舱看仪表盘，以极简、结构化的统一看板一次性交付给大模型；
-2. AI 心智启动四步序（顺序绝不可颠倒！）：
-   - 第一步：照镜子（AI 自省记忆与底线原则）
-   - 第二步：校准羁绊（与用户的动态关系模型 DIM_AI_RAPPORT）
-   - 第三步：确立姿态（情绪色调与态度：严肃/调侃/关切）
-   - 第四步：审视用户世界与触发源（带着滤镜查看精准切片与条件就绪任务）
-3. 严格控制 Token 封套：看板控制在 300~500 tokens，首字响应极速无卡顿。
+The cockpit is an information dashboard, not a scripted chain of thought.
+ADJ-001 keeps the historical step1~step4 field order as a stable layout and
+serialization contract; it does not require the AI to inspect or reason through
+those panels in that order. The AI may start from any panel, skip a panel, or
+request more world context whenever the task requires it.
+
+Token targets are engineering latency budgets, not cognitive truth boundaries.
+They may guide assembly and observability, but must not force semantic deletion.
 """
 
 from __future__ import annotations
@@ -26,52 +24,69 @@ UTC = timezone.utc
 
 
 class CockpitManifest(BaseModel):
-    """单次看盘聚合看板数据结构。"""
+    """Single-shot cockpit dashboard.
+
+    The ``step1`` ... ``step4`` names are retained for wire compatibility with
+    the v3.0.1 manifest layout. They are layout positions only, not a mandatory
+    cognitive execution order.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
-    # 心智启动四步序结构
-    step1_self_mirror: str = Field(min_length=1, description="第一步：照镜子（先看自己记忆与原则底线）")
-    step2_rapport_model: str = Field(min_length=1, description="第二步：校准羁绊（看用户关系深度模型）")
-    step3_posture_and_tone: str = Field(min_length=1, description="第三步：确立姿态与视角（定态度与语调）")
-    step4_world_inspection: Dict[str, Any] = Field(description="第四步：审视用户世界（精准指针切片与任务）")
+    step1_self_mirror: str = Field(
+        min_length=1,
+        description="兼容布局段 1：AI 自身世界与原则；不规定必须首先思考",
+    )
+    step2_rapport_model: str = Field(
+        min_length=1,
+        description="兼容布局段 2：关系模型候选；不得预设关系亲密度",
+    )
+    step3_posture_and_tone: str = Field(
+        min_length=1,
+        description="兼容布局段 3：沟通策略提示；AI 可依当前语境自主修正",
+    )
+    step4_world_inspection: Dict[str, Any] = Field(
+        description="兼容布局段 4：当前世界、触发源与就绪任务；可随时查看或下钻"
+    )
 
-    # 看板元指标
     wake_reason: str = Field(min_length=1)
     timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
     manifest_token_count: int = Field(ge=0)
 
 
 class CockpitManifestOptimizer:
-    """看板极简组装器。"""
+    """Assemble a compact cockpit without prescribing how the AI must think."""
 
     @classmethod
     def assemble_cockpit(
         cls,
         *,
         wake_reason: str,
-        user_name: str = "老大",
-        rapport_tier: str = "生死死党/损友僚机",
-        rapport_notes: str = "深度默契，彼此信任，说话可直接幽默，有底线不谄媚",
-        self_identity: str = "AIOS 3.0 端侧共生心智实体，独立平等，不迎合不虚伪，严守底线",
-        posture_tone: str = "自然真诚、敏锐关切、关键节点直言不讳",
+        user_name: str = "用户",
+        rapport_tier: str = "待当前证据校准",
+        rapport_notes: str = "不预设关系亲密度；由历史交互、用户明确表达和当前证据动态判断",
+        self_identity: str = "AIOS 3.0 的 AI 驾驶员；依据证据理解世界，自主使用系统能力并遵守安全与权限边界",
+        posture_tone: str = "自然、口语化；简单事项简短回答，需要解释时充分展开；根据当前语境自主决定语气与详略",
         active_focus_facts: Optional[List[Dict[str, Any]]] = None,
         ready_tasks: Optional[List[Dict[str, Any]]] = None,
         now: Optional[datetime] = None,
     ) -> CockpitManifest:
-        """组装符合心智四步序的极简看板。"""
+        """Assemble four compatible layout panels with no mandatory thought order."""
         t_now = now or datetime.now(UTC)
 
-        # 1. 照镜子
-        s1 = f"【AI身份与底线】: {self_identity}"
+        # Compatibility layout panel: AI self-world.
+        s1 = f"【AI自身世界与原则】: {self_identity}"
 
-        # 2. 校准羁绊
-        s2 = f"【与{user_name}羁绊模型】: 等级={rapport_tier}; 特征={rapport_notes}"
+        # Compatibility layout panel: relationship model. No intimacy is assumed.
+        s2 = (
+            f"【关系模型候选】: 用户={user_name}; 当前状态={rapport_tier}; "
+            f"证据/说明={rapport_notes}"
+        )
 
-        # 3. 确立姿态
-        s3 = f"【当前姿态与音调】: {posture_tone}"
+        # Compatibility layout panel: a soft communication-policy hint.
+        s3 = f"【沟通策略提示】: {posture_tone}"
 
-        # 4. 审视世界
+        # Compatibility layout panel: current world and actionable pointers.
         s4: Dict[str, Any] = {
             "wake_reason": wake_reason,
             "current_time": t_now.isoformat(),

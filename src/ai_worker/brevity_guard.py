@@ -1,46 +1,31 @@
-"""Anti-lecturing Brevity Guard (C10 / M2-012R / V30).
+"""Dialogue style compatibility guard for AIOS 3.0.
 
-Enforces 1~3 sentences, <= 60 characters, and removes preachy advice and customer-service platitudes.
+Historical versions hard-truncated replies to 1~3 sentences / 60 characters and
+rewrote content with regular expressions. That behavior confused a conversational
+style preference with a semantic hard boundary and could overwrite the AI's own
+judgment.
+
+Brevity is now a soft preference: simple things should usually be said simply;
+when the situation needs explanation, the AI may expand freely. The legacy
+function signature is retained for compatibility, but this module never deletes,
+truncates, or substitutes semantic content.
 """
 
 from __future__ import annotations
 
-import re
 from typing import Tuple
 
-_PREACHY_PATTERNS = [
-    r"我非常理解您[^。！]*[。！]",
-    r"综合来看[^。！，]*[。！，]",
-    r"我建议您采取以下[^。！：]*[。！：]",
-    r"建议您采取以下[^。！：]*[。！：]",
-    r"第一[^。！；]*[。！；]",
-    r"第二[^。！；]*[。！；]",
-    r"第三[^。！；]*[。！；]",
-    r"一定要坚持下去[^。！]*[。！]",
-]
+
+DEFAULT_DIALOGUE_STYLE_HINT = (
+    "自然、口语化；简单事情尽量简短直接，需要解释时充分展开。"
+    "不要为了满足固定句数或字数而删除、截断或替换语义。"
+)
 
 
 def enforce_dialogue_brevity_guard(raw_reply: str) -> Tuple[str, bool]:
-    """Purge preachy lecturing and enforce old-friend brevity."""
-    cleaned = raw_reply
-    for pat in _PREACHY_PATTERNS:
-        cleaned = re.sub(pat, "", cleaned)
+    """Compatibility shim that preserves the AI reply exactly as generated.
 
-    cleaned = cleaned.strip()
-    # If heavily purged, replace with authentic old-friend response
-    if not cleaned or len(cleaned) < 5 or "我建议您" in raw_reply:
-        cleaned = "听着挺窝火的，今晚先别想了，去跑两圈？"
-        return cleaned, True
-
-    # Split into sentences
-    sentences = [s.strip() for s in re.split(r"[。！？]", cleaned) if s.strip()]
-    was_truncated = len(sentences) > 3 or len(raw_reply) > 60
-
-    if len(sentences) > 3:
-        sentences = sentences[:3]
-    result = "。".join(sentences) + "。"
-    if len(result) > 60:
-        result = result[:58] + "。"
-        was_truncated = True
-
-    return result, was_truncated
+    The returned boolean preserves the historical call contract and is always
+    ``False`` because destructive truncation/rewrite is no longer permitted.
+    """
+    return raw_reply, False
