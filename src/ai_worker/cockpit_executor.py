@@ -1,12 +1,8 @@
-"""Cockpit Executor (C10 / M2-012R / ADJ-001 / R6).
+"""Legacy one-shot Cockpit Executor (C10 / M2-012R / ADJ-001 / R6).
 
-Foreground conversation execution flow:
-1. retrieve candidate historical context;
-2. assemble the Cockpit Manifest as an information dashboard;
-3. assemble layered context;
-4. invoke the model or deterministic test backend;
-5. preserve the model's semantic reply exactly (brevity is a soft style policy);
-6. advance the rolling window and background extraction pipeline.
+This remains a compatibility executor, not the full R5 CognitiveRuntime. It preserves
+model semantics, records raw turns when a durable timeline is configured, and hands
+evicted turns to exactly one extraction path (background *or* synchronous).
 """
 
 from __future__ import annotations
@@ -23,8 +19,6 @@ from .stream_pipeline import ThreeStageStreamPipeline
 
 @dataclass
 class TurnExecutionResult:
-    """单轮会话执行结果。"""
-
     reply: str
     raw_reply: str
     turn_index: int
@@ -35,10 +29,11 @@ class TurnExecutionResult:
     execution_time_ms: float
     budget_tier: str
     is_within_budget: bool
+    raw_turn_ref: str | None = None
 
 
 class CockpitExecutor:
-    """驾驶舱会话总执行器。"""
+    """Compatibility foreground executor; new autonomous tool loops live in R5 runtime."""
 
     def __init__(
         self,
@@ -61,19 +56,16 @@ class CockpitExecutor:
         budget_tier: str = "ROUTINE",
         allow_expansion: bool = False,
     ) -> TurnExecutionResult:
-        """执行单轮端到端会话。
+        """Execute one compatibility conversation turn.
 
-        ``allow_expansion`` is retained for API compatibility. Expansion no
-        longer needs an exception flag because there is no destructive length
-        cap: the AI itself decides how much explanation the situation needs.
+        ``allow_expansion`` remains only for caller compatibility. R6 removed the
+        destructive length cap, so the flag no longer grants a semantic exception.
         """
+
         t0 = time.perf_counter()
         _ = allow_expansion
 
-        # 1. 联想回捞：结果是候选记忆，不是最终认知结论。
         recalled_cues = self.pipeline.recall.recall_for_turn(user_msg)
-
-        # 2. 组装驾驶舱信息面板。布局顺序不等于思维顺序。
         manifest = CockpitManifestOptimizer.assemble_cockpit(
             wake_reason=wake_reason,
             user_name=user_name,
@@ -81,8 +73,6 @@ class CockpitExecutor:
             posture_tone=posture_tone,
             ready_tasks=ready_tasks,
         )
-
-        # 3. 组装上下文。
         rolling_msgs = self.pipeline.window.get_prompt_messages()
         assembled_ctx = ContextAssemblyPipeline.assemble(
             manifest=manifest,
@@ -91,15 +81,12 @@ class CockpitExecutor:
             budget_tier=budget_tier,
         )
 
-        # 4. 由 AI 进行实际认知与表达。
         raw_reply = self.model_handler(assembled_ctx)
-
-        # 5. 兼容旧调用契约，但不得再按句数/字数/正则改写 AI 语义。
         final_reply, was_truncated = enforce_dialogue_brevity_guard(raw_reply)
 
-        # 6. 压入前台滑窗与后台萃取。
         turn_no = self.pipeline._turn_counter + 1
         self.pipeline._turn_counter = turn_no
+        raw_turn_ref = self.pipeline.record_raw_turn(turn_no, user_msg, final_reply)
         evicted = self.pipeline.window.push_turn(user_msg, final_reply)
         if evicted:
             offset = max(
@@ -108,11 +95,9 @@ class CockpitExecutor:
                 - len(self.pipeline.window.get_prompt_messages()) // 2
                 - len(evicted),
             )
-            self.pipeline.extractor.enqueue_evicted_turns(evicted, offset)
-            self.pipeline.extractor.extract_sync(evicted, offset)
+            self.pipeline.process_evicted(evicted, offset)
 
         execution_time_ms = (time.perf_counter() - t0) * 1000.0
-
         res = TurnExecutionResult(
             reply=final_reply,
             raw_reply=raw_reply,
@@ -124,16 +109,16 @@ class CockpitExecutor:
             execution_time_ms=execution_time_ms,
             budget_tier=budget_tier,
             is_within_budget=assembled_ctx.is_within_budget,
+            raw_turn_ref=raw_turn_ref,
         )
         self._turn_history_results.append(res)
         return res
 
     def _default_mock_model_handler(self, ctx: AssembledContext) -> str:
-        """默认测试模型回显器。"""
         last_user = ""
-        for m in reversed(ctx.prompt_messages):
-            if m.get("role") == "user":
-                last_user = m.get("content", "")
+        for message in reversed(ctx.prompt_messages):
+            if message.get("role") == "user":
+                last_user = message.get("content", "")
                 break
         return f"听到了。关于'{last_user[:10]}'，咱们按当前情况看就行。"
 
