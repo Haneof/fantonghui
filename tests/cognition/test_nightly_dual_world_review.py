@@ -1,31 +1,26 @@
-"""Tests for Nightly Review Runner & Dual World Daily Reflection (Sprint 2 / §30~32 / §33之一/之二)."""
+"""Nightly dual-world review regression under R5/R6."""
 
 from __future__ import annotations
 
 from datetime import datetime, timezone
-import pytest
 
 from aios_core.cognition.nightly_review_runner import (
+    AISelfReflectionPayload,
     DualWorldReviewResult,
     NightlyReviewRunner,
     UserDailySummaryPayload,
-    AISelfReflectionPayload,
 )
 from aios_core.contracts.models import Observation
 from aios_core.contracts.time import TemporalExtent
-from aios_core.storage.ai_self_store import (
-    AI_SELF_SUBJECT_ID,
-    AISelfWorldStore,
-)
+from aios_core.runtime.ai_self_world import AISelfMemoryKind, AISelfWorldStoreV2
 
 UTC = timezone.utc
 
 
-def test_nightly_review_dual_world_execution():
-    store = AISelfWorldStore()
+def test_nightly_review_is_evidence_linked_and_cleanup_is_only_a_proposal(tmp_path):
+    store = AISelfWorldStoreV2(tmp_path / "world.db")
     runner = NightlyReviewRunner(ai_self_store=store)
 
-    # 构造全天多模态 Observation
     now = datetime.now(UTC)
     observations = [
         Observation(
@@ -70,34 +65,57 @@ def test_nightly_review_dual_world_execution():
         ),
     ]
 
-    # 执行夜间复盘
     result = runner.execute_nightly_review(
         review_date="2026-09-17",
         observations=observations,
     )
 
-    # 1. 断言双世界输出结构完整
-    assert result.review_date == "2026-09-17"
+    assert isinstance(result, DualWorldReviewResult)
     assert isinstance(result.user_summary, UserDailySummaryPayload)
     assert isinstance(result.ai_self_reflection, AISelfReflectionPayload)
-
-    # 2. 断言用户世界包含穿透性因果
-    assert len(result.user_summary.root_cause_insights) >= 1
-    assert "对赌协议" in result.user_summary.root_cause_insights[0] or "焦虑" in result.user_summary.root_cause_insights[0]
     assert len(result.user_summary.source_observation_ids) == 4
-
-    # 3. 断言彻底解除 1500 Token 限制，全景因果输入顺畅
+    assert len(result.user_summary.root_cause_insights) >= 1
     assert result.total_context_tokens > 0
 
-    # 4. 断言 AI 自身世界照镜子自省成功触发并更新评分
-    snaps = store.get_all_dimension_snapshots()
-    assert snaps["dim:ai_restraint"].current_score > 85.0  # +2.0
-    assert snaps["dim:ai_keenness"].current_score > 75.0    # +3.0
+    # AI-self reflection is a durable, evidence-linked forward record; no score delta.
+    reflection = store.latest("reflection:nightly:2026-09-17")
+    assert reflection is not None
+    assert reflection.kind is AISelfMemoryKind.REFLECTION
+    assert reflection.record_id == result.ai_self_record_id
+    assert set(reflection.evidence_refs) == {"obs_01", "obs_02", "obs_03", "obs_noise_001"}
+    assert "dimension_score_adjustments" not in reflection.structured_data
+    assert "crystallized_insights" in reflection.structured_data
 
-    # 5. 断言经验规则被沉淀
-    rules = store.get_crystallized_rules()
-    assert len(rules) >= 1
-    assert any("职场阻击" in r for r in rules)
+    # Model can nominate low-value records, but this runner does not tombstone/delete.
+    assert "obs_noise_001" in result.cleanup_candidate_ids
+    assert store.latest("reflection:nightly:2026-09-17") == reflection
 
-    # 6. 断言铁律四落地：大模型自主标识出噪音粉碎目标
-    assert "obs_noise_001" in result.garbage_to_prune_ids or len(result.garbage_to_prune_ids) >= 1
+
+def test_prompt_assembly_does_not_keyword_bucket_world_facts(tmp_path):
+    store = AISelfWorldStoreV2(tmp_path / "world.db")
+    runner = NightlyReviewRunner(ai_self_store=store)
+    now = datetime.now(UTC)
+    observations = [
+        Observation(
+            object_id="obs_ambiguous",
+            subject_id="user_1",
+            source_kind="dialogue",
+            modality="text",
+            value="妈妈说项目的钱先别转，我有点烦。",
+            occurred=TemporalExtent.point(now),
+            learned_at=now,
+            created_by="test",
+        )
+    ]
+
+    prompt, _, refs = runner._assemble_adaptive_review_prompt(
+        "2026-09-17",
+        observations,
+    )
+    assert refs == ["obs_ambiguous"]
+    assert "[chronological evidence]" in prompt
+    assert "ref=obs_ambiguous" in prompt
+    # Runtime supplies evidence; it does not decide one fixed cognitive dimension.
+    assert "[健康生理流]" not in prompt
+    assert "[人际社交流]" not in prompt
+    assert "[财务与契约流]" not in prompt
