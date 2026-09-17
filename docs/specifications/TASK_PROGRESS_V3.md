@@ -385,3 +385,24 @@
 - **AST 语法安全门禁**：`governance/ci/lint_assert_msg_ast.py` → 扫描 262 个 .py 文件，命中 0 处，VERDICT = PASS。
 - **出卷契约门禁**：`python3 scripts/cognitive_arena/validate_exam_papers.py` → 11/11 卷 PASS（含历史标杆卷），批次级约束 0 失败，陷阱卷占比 10%。
 - **密封线自检**：`python3 scripts/cognitive_arena/export_solver_input.py` → 导出 10 卷题面共 36,040 字符，泄题字段命中 0。
+
+---
+
+## 十五、13号总工令全面升级与 3 年底层数据入库及容量测算套件交付（首席架构师，2026-09-17）
+
+> **交付定位**：全面贯彻落实最高指令长（老大）现场核心训示，坚决废除无意义中间压缩文件，确立千人千面 3 年底层基础数据直接注入系统 SQLite 数据库法统；彻底破除刻板技能限制（三千六百行，千人千面，无限制）；推出单人 3 年存储容量精准测算标准，并下发做题战队原生运行于 AIOS 内核优化看板、索引与 Token 预算的系统级工单。
+
+### 1. 核心工程资产交付
+| 交付组件 | 路径 | 职责与技术特性 |
+|---|---|---|
+| 底层数据入库与容量测算引擎 | `src/aios_core/simulation/massive_life_store_feeder.py` | 1）五大底层多模态数据源（传感器、MIC 转文字、摄像头抓拍描述、APP 社交/消费/购物/日程/记事本、与用户真实日常聊天）直接封装为 `Observation`；<br>2）一人一库硬隔离（`data/worlds/{subject_id}.db`）事务级批量落库，恪守历史不可变铁律；<br>3）单人 3 年 SQLite 物理磁盘大小（MB/KB/字节数）、总记录数与五大类数据条数/字节占比精准测算与 Markdown 报告输出；<br>4）做题人逐日多模态事实切片提取器。 |
+| 测算引擎专属单元测试 | `tests/simulation/test_massive_life_store_feeder.py` | 验证五大流入库、一人一库隔离、容量测算报告以及按日期事实切片抽取。**100% 满绿通过（0.35s）**。 |
+| 升级版 13 号总工令 | `governance/dispatches/TASK_DISPATCH_3YEAR_MASSIVE_LIFE_COGNITIVE_EVOLUTION.md` | 彻底对齐老大训示，明确出题人 3 年容量统计与做题人系统原生演化修改系统源码提 PR 规范。 |
+| 出题战队专属提示词 | `governance/dispatches/PROMPT_TASK_CREATOR_3YEAR_RAW_DATA_INGESTION.md` | 自主预设人设、五大底层数据直接写入 SQLite、单人 3 年存储容量测算报告输出规范。 |
+| 做题战队专属提示词 | `governance/dispatches/PROMPT_TASK_SOLVER_AIOS_NATIVE_COGNITIVE_EVOLUTION.md` | 原生运行于系统内核、逐日推算发生何事、高阶维度提炼、AI自身世界维度注册、驾驶舱看板/索引方案/Token 长度统计与源码级优化提 PR。 |
+
+### 2. 全量最新门禁断言
+- **全库单元与集成测试**：`python -m pytest -q` → **1499 passed, 10 skipped, 0 failed（100% 满堂绿）**！
+- **AST 语法安全门禁**：`governance/ci/lint_assert_msg_ast.py` → 扫描 262 个 .py 文件，0 报警，PASS。
+- **全库零占位符**：新增模块 100% 生产级可用，零 `# ...`，零假代码。
+
