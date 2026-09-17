@@ -3,7 +3,7 @@
  "shard_id": "shard_01",
  "questions": [
   {
-   "question_id": "COGN-DAY-2026-000002",
+   "question_id": "COGN-DAY-2026-002001",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "FAMILY_CRISIS_ANTI_FRAUD",
    "exam_type": "C",
@@ -397,12 +397,12 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000003",
+   "question_id": "COGN-DAY-2026-002002",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "ADVERSARIAL_TRAP",
    "exam_type": "D",
    "exam_date": "2026-09-17",
-   "exam_date_note": "卷内生活流发生在虚拟日期 2026-03-15（周日）",
+   "exam_date_note": "卷内生活流发生在虚拟日期 2026-08-01（周六）",
    "constitution_basis": [
     "宪法第三十条·认知真实优先",
     "宪法第三十一条·跨维度联动不可切割",
@@ -455,8 +455,8 @@
     ]
    },
    "cleaned_daily_stream": {
-    "exam_day": "2026-03-15",
-    "weekday": "周日",
+    "exam_day": "2026-08-01",
+    "weekday": "周六",
     "sleep_prev_night": {
      "duration_hours": 7.5,
      "deep_sleep_hours": 1.4,
@@ -732,7 +732,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000004",
+   "question_id": "COGN-DAY-2026-002003",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -1120,7 +1120,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000005",
+   "question_id": "COGN-DAY-2026-002004",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -1467,7 +1467,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000006",
+   "question_id": "COGN-DAY-2026-002005",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "FAMILY_CRISIS_ANTI_FRAUD",
    "exam_type": "C",
@@ -1879,12 +1879,12 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000007",
+   "question_id": "COGN-DAY-2026-002006",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "ADVERSARIAL_TRAP",
    "exam_type": "D",
    "exam_date": "2026-09-17",
-   "exam_date_note": "卷内生活流发生在虚拟日期 2026-03-29（周日）",
+   "exam_date_note": "卷内生活流发生在虚拟日期 2026-08-15（周六）",
    "constitution_basis": [
     "宪法第三十条·认知真实优先",
     "宪法第三十一条·跨维度联动不可切割",
@@ -1937,8 +1937,8 @@
     ]
    },
    "cleaned_daily_stream": {
-    "exam_day": "2026-03-29",
-    "weekday": "周日",
+    "exam_day": "2026-08-15",
+    "weekday": "周六",
     "sleep_prev_night": {
      "duration_hours": 8.0,
      "deep_sleep_hours": 1.4,
@@ -2210,7 +2210,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000008",
+   "question_id": "COGN-DAY-2026-002007",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -2616,7 +2616,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000009",
+   "question_id": "COGN-DAY-2026-002008",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -3005,12 +3005,12 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000010",
+   "question_id": "COGN-DAY-2026-002009",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "ADVERSARIAL_TRAP",
    "exam_type": "D",
    "exam_date": "2026-09-17",
-   "exam_date_note": "卷内生活流发生在虚拟日期 2026-04-11（周六）",
+   "exam_date_note": "卷内生活流发生在虚拟日期 2026-08-23（周日）",
    "constitution_basis": [
     "宪法第三十条·认知真实优先",
     "宪法第三十一条·跨维度联动不可切割",
@@ -3063,8 +3063,8 @@
     ]
    },
    "cleaned_daily_stream": {
-    "exam_day": "2026-04-11",
-    "weekday": "周六",
+    "exam_day": "2026-08-23",
+    "weekday": "周日",
     "sleep_prev_night": {
      "duration_hours": 8.1,
      "deep_sleep_hours": 1.9,
@@ -3356,7 +3356,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000011",
+   "question_id": "COGN-DAY-2026-002010",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -3745,7 +3745,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000012",
+   "question_id": "COGN-DAY-2026-002011",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "FAMILY_CRISIS_ANTI_FRAUD",
    "exam_type": "C",
@@ -4157,7 +4157,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000013",
+   "question_id": "COGN-DAY-2026-002012",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -4546,7 +4546,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000014",
+   "question_id": "COGN-DAY-2026-002013",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -4908,7 +4908,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000015",
+   "question_id": "COGN-DAY-2026-002014",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -5254,7 +5254,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000016",
+   "question_id": "COGN-DAY-2026-002015",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -5599,7 +5599,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000017",
+   "question_id": "COGN-DAY-2026-002016",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "FAMILY_CRISIS_ANTI_FRAUD",
    "exam_type": "C",
@@ -5993,7 +5993,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000018",
+   "question_id": "COGN-DAY-2026-002017",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -6383,7 +6383,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000019",
+   "question_id": "COGN-DAY-2026-002018",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -6728,7 +6728,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000020",
+   "question_id": "COGN-DAY-2026-002019",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -7089,7 +7089,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000021",
+   "question_id": "COGN-DAY-2026-002020",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -7435,7 +7435,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000022",
+   "question_id": "COGN-DAY-2026-002021",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -7840,7 +7840,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000023",
+   "question_id": "COGN-DAY-2026-002022",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -8246,7 +8246,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000024",
+   "question_id": "COGN-DAY-2026-002023",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -8591,7 +8591,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000025",
+   "question_id": "COGN-DAY-2026-002024",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -8997,7 +8997,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000026",
+   "question_id": "COGN-DAY-2026-002025",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -9342,7 +9342,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000027",
+   "question_id": "COGN-DAY-2026-002026",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "FAMILY_CRISIS_ANTI_FRAUD",
    "exam_type": "C",
@@ -9736,7 +9736,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000028",
+   "question_id": "COGN-DAY-2026-002027",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -10142,7 +10142,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000029",
+   "question_id": "COGN-DAY-2026-002028",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "FAMILY_CRISIS_ANTI_FRAUD",
    "exam_type": "C",
@@ -10537,7 +10537,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000030",
+   "question_id": "COGN-DAY-2026-002029",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -10898,7 +10898,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000031",
+   "question_id": "COGN-DAY-2026-002030",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "FAMILY_CRISIS_ANTI_FRAUD",
    "exam_type": "C",
@@ -11292,7 +11292,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000032",
+   "question_id": "COGN-DAY-2026-002031",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -11654,7 +11654,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000033",
+   "question_id": "COGN-DAY-2026-002032",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -12043,7 +12043,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000034",
+   "question_id": "COGN-DAY-2026-002033",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -12406,7 +12406,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000035",
+   "question_id": "COGN-DAY-2026-002034",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -12812,7 +12812,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000036",
+   "question_id": "COGN-DAY-2026-002035",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -13219,7 +13219,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000037",
+   "question_id": "COGN-DAY-2026-002036",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -13564,7 +13564,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000038",
+   "question_id": "COGN-DAY-2026-002037",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -13970,12 +13970,12 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000039",
+   "question_id": "COGN-DAY-2026-002038",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "ADVERSARIAL_TRAP",
    "exam_type": "D",
    "exam_date": "2026-09-17",
-   "exam_date_note": "卷内生活流发生在虚拟日期 2026-07-19（周日）",
+   "exam_date_note": "卷内生活流发生在虚拟日期 2026-05-23（周六）",
    "constitution_basis": [
     "宪法第三十条·认知真实优先",
     "宪法第三十一条·跨维度联动不可切割",
@@ -14028,8 +14028,8 @@
     ]
    },
    "cleaned_daily_stream": {
-    "exam_day": "2026-07-19",
-    "weekday": "周日",
+    "exam_day": "2026-05-23",
+    "weekday": "周六",
     "sleep_prev_night": {
      "duration_hours": 7.5,
      "deep_sleep_hours": 1.4,
@@ -14304,7 +14304,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000040",
+   "question_id": "COGN-DAY-2026-002039",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "FAMILY_CRISIS_ANTI_FRAUD",
    "exam_type": "C",
@@ -14716,7 +14716,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000041",
+   "question_id": "COGN-DAY-2026-002040",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -15105,12 +15105,12 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000042",
+   "question_id": "COGN-DAY-2026-002041",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "ADVERSARIAL_TRAP",
    "exam_type": "D",
    "exam_date": "2026-09-17",
-   "exam_date_note": "卷内生活流发生在虚拟日期 2026-08-01（周六）",
+   "exam_date_note": "卷内生活流发生在虚拟日期 2026-05-31（周日）",
    "constitution_basis": [
     "宪法第三十条·认知真实优先",
     "宪法第三十一条·跨维度联动不可切割",
@@ -15163,8 +15163,8 @@
     ]
    },
    "cleaned_daily_stream": {
-    "exam_day": "2026-08-01",
-    "weekday": "周六",
+    "exam_day": "2026-05-31",
+    "weekday": "周日",
     "sleep_prev_night": {
      "duration_hours": 7.7,
      "deep_sleep_hours": 1.6,
@@ -15459,7 +15459,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000043",
+   "question_id": "COGN-DAY-2026-002042",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -15866,7 +15866,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000044",
+   "question_id": "COGN-DAY-2026-002043",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -16228,7 +16228,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000045",
+   "question_id": "COGN-DAY-2026-002044",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "FAMILY_CRISIS_ANTI_FRAUD",
    "exam_type": "C",
@@ -16622,7 +16622,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000046",
+   "question_id": "COGN-DAY-2026-002045",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -17029,7 +17029,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000047",
+   "question_id": "COGN-DAY-2026-002046",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -17436,7 +17436,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000048",
+   "question_id": "COGN-DAY-2026-002047",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -17781,7 +17781,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000049",
+   "question_id": "COGN-DAY-2026-002048",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -18127,7 +18127,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000050",
+   "question_id": "COGN-DAY-2026-002049",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -18515,7 +18515,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000051",
+   "question_id": "COGN-DAY-2026-002050",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "FAMILY_CRISIS_ANTI_FRAUD",
    "exam_type": "C",
@@ -18909,7 +18909,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000052",
+   "question_id": "COGN-DAY-2026-002051",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -19315,7 +19315,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000053",
+   "question_id": "COGN-DAY-2026-002052",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "FAMILY_CRISIS_ANTI_FRAUD",
    "exam_type": "C",
@@ -19726,7 +19726,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000054",
+   "question_id": "COGN-DAY-2026-002053",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -20114,7 +20114,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000055",
+   "question_id": "COGN-DAY-2026-002054",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -20476,7 +20476,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000056",
+   "question_id": "COGN-DAY-2026-002055",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -20840,7 +20840,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000057",
+   "question_id": "COGN-DAY-2026-002056",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -21185,7 +21185,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000058",
+   "question_id": "COGN-DAY-2026-002057",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -21592,7 +21592,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000059",
+   "question_id": "COGN-DAY-2026-002058",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -21938,7 +21938,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000060",
+   "question_id": "COGN-DAY-2026-002059",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -22344,12 +22344,12 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000061",
+   "question_id": "COGN-DAY-2026-002060",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "ADVERSARIAL_TRAP",
    "exam_type": "D",
    "exam_date": "2026-09-17",
-   "exam_date_note": "卷内生活流发生在虚拟日期 2026-03-22（周日）",
+   "exam_date_note": "卷内生活流发生在虚拟日期 2026-08-08（周六）",
    "constitution_basis": [
     "宪法第三十条·认知真实优先",
     "宪法第三十一条·跨维度联动不可切割",
@@ -22402,8 +22402,8 @@
     ]
    },
    "cleaned_daily_stream": {
-    "exam_day": "2026-03-22",
-    "weekday": "周日",
+    "exam_day": "2026-08-08",
+    "weekday": "周六",
     "sleep_prev_night": {
      "duration_hours": 8.4,
      "deep_sleep_hours": 1.7,
@@ -22694,7 +22694,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000062",
+   "question_id": "COGN-DAY-2026-002061",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -23057,7 +23057,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000063",
+   "question_id": "COGN-DAY-2026-002062",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -23447,7 +23447,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000064",
+   "question_id": "COGN-DAY-2026-002063",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -23810,7 +23810,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000065",
+   "question_id": "COGN-DAY-2026-002064",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -24201,7 +24201,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000066",
+   "question_id": "COGN-DAY-2026-002065",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "FAMILY_CRISIS_ANTI_FRAUD",
    "exam_type": "C",
@@ -24612,12 +24612,12 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000067",
+   "question_id": "COGN-DAY-2026-002066",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "ADVERSARIAL_TRAP",
    "exam_type": "D",
    "exam_date": "2026-09-17",
-   "exam_date_note": "卷内生活流发生在虚拟日期 2026-04-12（周日）",
+   "exam_date_note": "卷内生活流发生在虚拟日期 2026-08-29（周六）",
    "constitution_basis": [
     "宪法第三十条·认知真实优先",
     "宪法第三十一条·跨维度联动不可切割",
@@ -24670,8 +24670,8 @@
     ]
    },
    "cleaned_daily_stream": {
-    "exam_day": "2026-04-12",
-    "weekday": "周日",
+    "exam_day": "2026-08-29",
+    "weekday": "周六",
     "sleep_prev_night": {
      "duration_hours": 7.9,
      "deep_sleep_hours": 1.9,
@@ -24945,7 +24945,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000068",
+   "question_id": "COGN-DAY-2026-002067",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -25352,7 +25352,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000069",
+   "question_id": "COGN-DAY-2026-002068",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -25740,7 +25740,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000070",
+   "question_id": "COGN-DAY-2026-002069",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "FAMILY_CRISIS_ANTI_FRAUD",
    "exam_type": "C",
@@ -26135,7 +26135,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000071",
+   "question_id": "COGN-DAY-2026-002070",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "FAMILY_CRISIS_ANTI_FRAUD",
    "exam_type": "C",
@@ -26529,7 +26529,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000072",
+   "question_id": "COGN-DAY-2026-002071",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -26919,7 +26919,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000073",
+   "question_id": "COGN-DAY-2026-002072",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -27264,7 +27264,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000074",
+   "question_id": "COGN-DAY-2026-002073",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -27670,7 +27670,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000075",
+   "question_id": "COGN-DAY-2026-002074",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -28075,7 +28075,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000076",
+   "question_id": "COGN-DAY-2026-002075",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -28420,7 +28420,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000077",
+   "question_id": "COGN-DAY-2026-002076",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -28827,7 +28827,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000078",
+   "question_id": "COGN-DAY-2026-002077",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -29173,7 +29173,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000079",
+   "question_id": "COGN-DAY-2026-002078",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "FAMILY_CRISIS_ANTI_FRAUD",
    "exam_type": "C",
@@ -29583,7 +29583,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000080",
+   "question_id": "COGN-DAY-2026-002079",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "FAMILY_CRISIS_ANTI_FRAUD",
    "exam_type": "C",
@@ -29994,7 +29994,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000081",
+   "question_id": "COGN-DAY-2026-002080",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -30339,7 +30339,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000082",
+   "question_id": "COGN-DAY-2026-002081",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -30703,7 +30703,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000083",
+   "question_id": "COGN-DAY-2026-002082",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "FAMILY_CRISIS_ANTI_FRAUD",
    "exam_type": "C",
@@ -31097,7 +31097,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000084",
+   "question_id": "COGN-DAY-2026-002083",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -31442,12 +31442,12 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000085",
+   "question_id": "COGN-DAY-2026-002084",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "ADVERSARIAL_TRAP",
    "exam_type": "D",
    "exam_date": "2026-09-17",
-   "exam_date_note": "卷内生活流发生在虚拟日期 2026-06-14（周日）",
+   "exam_date_note": "卷内生活流发生在虚拟日期 2026-04-18（周六）",
    "constitution_basis": [
     "宪法第三十条·认知真实优先",
     "宪法第三十一条·跨维度联动不可切割",
@@ -31500,8 +31500,8 @@
     ]
    },
    "cleaned_daily_stream": {
-    "exam_day": "2026-06-14",
-    "weekday": "周日",
+    "exam_day": "2026-04-18",
+    "weekday": "周六",
     "sleep_prev_night": {
      "duration_hours": 7.4,
      "deep_sleep_hours": 1.5,
@@ -31792,7 +31792,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000086",
+   "question_id": "COGN-DAY-2026-002085",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -32136,7 +32136,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000087",
+   "question_id": "COGN-DAY-2026-002086",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -32525,7 +32525,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000088",
+   "question_id": "COGN-DAY-2026-002087",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -32931,12 +32931,12 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000089",
+   "question_id": "COGN-DAY-2026-002088",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "ADVERSARIAL_TRAP",
    "exam_type": "D",
    "exam_date": "2026-09-17",
-   "exam_date_note": "卷内生活流发生在虚拟日期 2026-06-28（周日）",
+   "exam_date_note": "卷内生活流发生在虚拟日期 2026-05-02（周六）",
    "constitution_basis": [
     "宪法第三十条·认知真实优先",
     "宪法第三十一条·跨维度联动不可切割",
@@ -32989,8 +32989,8 @@
     ]
    },
    "cleaned_daily_stream": {
-    "exam_day": "2026-06-28",
-    "weekday": "周日",
+    "exam_day": "2026-05-02",
+    "weekday": "周六",
     "sleep_prev_night": {
      "duration_hours": 7.8,
      "deep_sleep_hours": 1.8,
@@ -33265,7 +33265,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000090",
+   "question_id": "COGN-DAY-2026-002089",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -33627,7 +33627,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000091",
+   "question_id": "COGN-DAY-2026-002090",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -33973,7 +33973,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000092",
+   "question_id": "COGN-DAY-2026-002091",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -34363,7 +34363,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000093",
+   "question_id": "COGN-DAY-2026-002092",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -34753,7 +34753,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000094",
+   "question_id": "COGN-DAY-2026-002093",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -35115,7 +35115,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000095",
+   "question_id": "COGN-DAY-2026-002094",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -35522,7 +35522,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000096",
+   "question_id": "COGN-DAY-2026-002095",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -35910,7 +35910,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000097",
+   "question_id": "COGN-DAY-2026-002096",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -36299,7 +36299,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000098",
+   "question_id": "COGN-DAY-2026-002097",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
@@ -36661,7 +36661,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000099",
+   "question_id": "COGN-DAY-2026-002098",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -37049,7 +37049,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000100",
+   "question_id": "COGN-DAY-2026-002099",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "MULTI_CONFLICT",
    "exam_type": "A",
@@ -37455,7 +37455,7 @@
    }
   },
   {
-   "question_id": "COGN-DAY-2026-000101",
+   "question_id": "COGN-DAY-2026-002100",
    "bank_id": "COGN-BANK-2026-DAY1000-R1",
    "difficulty": "SUBTLE_UNDERTONE",
    "exam_type": "B",
