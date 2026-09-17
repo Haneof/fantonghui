@@ -63,6 +63,18 @@ class CognitivePolicyVersion(BaseModel):
             raise ValueError("hard boundaries cannot be mutable_by_ai")
         if self.mutable_by_ai and self.policy_class is not PolicyClass.COGNITIVE_POLICY:
             raise ValueError("only cognitive_policy entries may be mutable_by_ai")
+
+        allowed = self.allowed_range_or_choices
+        if isinstance(allowed, dict) and ("min" in allowed or "max" in allowed):
+            if not isinstance(self.current_value, (int, float)) or isinstance(self.current_value, bool):
+                raise ValueError("numeric allowed range requires a numeric current_value")
+            if "min" in allowed and self.current_value < allowed["min"]:
+                raise ValueError("current_value is below allowed policy range")
+            if "max" in allowed and self.current_value > allowed["max"]:
+                raise ValueError("current_value is above allowed policy range")
+        elif isinstance(allowed, (list, tuple, set)) and allowed:
+            if self.current_value not in allowed:
+                raise ValueError("current_value is not one of allowed policy choices")
         return self
 
 
@@ -119,10 +131,7 @@ class CognitivePolicyRegistry:
     def latest(self, policy_id: str) -> CognitivePolicyVersion | None:
         with self._connect() as conn:
             row = conn.execute(
-                """
-                SELECT payload_json FROM runtime_policy_versions
-                WHERE policy_id=? ORDER BY version DESC LIMIT 1
-                """,
+                "SELECT payload_json FROM runtime_policy_versions WHERE policy_id=? ORDER BY version DESC LIMIT 1",
                 (policy_id,),
             ).fetchone()
         return None if row is None else self._decode(str(row["payload_json"]))
@@ -138,10 +147,7 @@ class CognitivePolicyRegistry:
     def history(self, policy_id: str) -> list[CognitivePolicyVersion]:
         with self._connect() as conn:
             rows = conn.execute(
-                """
-                SELECT payload_json FROM runtime_policy_versions
-                WHERE policy_id=? ORDER BY version ASC
-                """,
+                "SELECT payload_json FROM runtime_policy_versions WHERE policy_id=? ORDER BY version ASC",
                 (policy_id,),
             ).fetchall()
         return [self._decode(str(row["payload_json"])) for row in rows]
@@ -157,13 +163,9 @@ class CognitivePolicyRegistry:
 
         if actor_is_ai:
             if current is None:
-                # AI may not silently invent its own mutation authority. Initial
-                # registration is a governance/system act.
                 raise PolicyAuthorizationError("AI cannot create a new policy registration")
             if current.policy_class is not PolicyClass.COGNITIVE_POLICY or not current.mutable_by_ai:
-                raise PolicyAuthorizationError(
-                    f"policy {policy.policy_id!r} is not mutable by AI"
-                )
+                raise PolicyAuthorizationError(f"policy {policy.policy_id!r} is not mutable by AI")
             if not policy.evidence_refs:
                 raise PolicyAuthorizationError("AI policy changes require evidence_refs")
 
@@ -175,17 +177,19 @@ class CognitivePolicyRegistry:
                 raise PolicyConflict(
                     f"policy {policy.policy_id!r} must append version {current.version + 1}, got {policy.version}"
                 )
-            # Identity/governance class cannot be redefined by a normal version bump.
-            for attr in ("scope", "policy_class", "mutable_by_ai", "default_value"):
+            for attr in (
+                "scope",
+                "policy_class",
+                "mutable_by_ai",
+                "default_value",
+                "allowed_range_or_choices",
+            ):
                 if getattr(policy, attr) != getattr(current, attr):
-                    raise PolicyConflict(
-                        f"{attr} cannot change through an ordinary policy value update"
-                    )
+                    raise PolicyConflict(f"{attr} cannot change through an ordinary policy value update")
 
         payload = canonical_json_dumps(policy.model_dump(mode="python"))
         with self._connect() as conn:
             conn.execute("BEGIN IMMEDIATE")
-            # Re-check latest under write lock to prevent concurrent version forks.
             row = conn.execute(
                 "SELECT MAX(version) AS version FROM runtime_policy_versions WHERE policy_id=?",
                 (policy.policy_id,),
