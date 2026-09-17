@@ -1,52 +1,47 @@
-"""长会话三级流式流水线 (Three-Stage Streaming Pipeline, C10 / M2-016 / V25).
+"""Long-conversation streaming support for AIOS R5/R6.
 
-贯彻最高宪法第八十四条、第八十五条及 v3.0.1 裁决集 ADJ-001/007：
-1. 第一级：前台极简活跃滑窗 (ActiveRollingWindow)
-   - 保持 5~8 轮（默认 6 轮）活跃对话，单轮输出受 1~3 句老友语调严格护栏约束；
-   - 确保前台对话 Token 严格受控，杜绝 50 轮碎片对话 Token 线性爆炸。
-2. 第二级：后台异步增量事实萃取 (StreamingExtractWorker)
-   - 滑出前台窗口的对话，平滑进入后台异步工作队列；
-   - 静默萃取结构化事实（Claim）与事件锚点（EventAnchor），打上 extraction_watermark 与幂等键；
-   - 对话进行中实时沉淀世界记忆，无需等到夜间复盘。
-3. 第三级：跨周期超链接主动联想回捞 (ProactiveAssociativeRecall)
-   - 侦测用户原话中的人名、实体与历史事件关键词；
-   - 毫秒级从历史萃取库或核心世界中按需捞出历史锚点与事实切片；
-   - 保证在第 50 轮提到第 2 轮的人名或承诺时，原话记忆瞬间就绪。
+This module now has three strictly separated jobs:
+1. keep a bounded active window for prompt assembly;
+2. move evicted turns to an optional *model-backed* extraction worker;
+3. provide cheap lexical prefetch hints from already-derived candidates.
+
+It deliberately does **not** contain a default regex/keyword cognitive extractor. When
+no cognitive extractor is configured, raw turns remain the source of truth and the
+worker advances its watermark without inventing Claims, sentiment, relationship
+meaning or importance. AI Cognitive Runtime owns deeper recall and interpretation.
 """
 
 from __future__ import annotations
 
-import hashlib
-import json
 import queue
-import re
 import threading
 from collections import deque
 from datetime import datetime, timezone
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from pydantic import BaseModel, ConfigDict, Field
+
+from aios_core.runtime.conversation_timeline import (
+    ConversationTimelineStore,
+    ConversationTurn,
+)
 
 UTC = timezone.utc
 
 
-# ============================================================================
-# 第一级：前台活跃滑窗
-# ============================================================================
 class ActiveRollingWindow:
-    """前台活跃滑动窗口。
-    
-    维持活跃轮数 <= max_turns，保证内存与 Token 处于恒定安全水位。
-    超出的旧对话平滑迁出，返回给调用方投递至后台萃取流水线。
-    """
+    """Bounded foreground dialogue window; this is a cache, not durable memory."""
 
     def __init__(self, max_turns: int = 6, max_tokens: int = 1500) -> None:
+        if max_turns < 1:
+            raise ValueError("max_turns must be >= 1")
+        if max_tokens < 1:
+            raise ValueError("max_tokens must be >= 1")
         self.max_turns = max_turns
         self.max_tokens = max_tokens
         self._turns: deque[Tuple[str, str]] = deque()
 
     def push_turn(self, user_msg: str, ai_msg: str) -> List[Tuple[str, str]]:
-        """压入一轮对话，并平滑迁出超额的历史轮次。"""
         self._turns.append((user_msg, ai_msg))
         evicted: List[Tuple[str, str]] = []
         while len(self._turns) > self.max_turns:
@@ -54,7 +49,6 @@ class ActiveRollingWindow:
         return evicted
 
     def get_prompt_messages(self) -> List[Dict[str, str]]:
-        """输出适合直接注入大模型的消息列表。"""
         messages: List[Dict[str, str]] = []
         for user_msg, ai_msg in self._turns:
             messages.append({"role": "user", "content": user_msg})
@@ -66,7 +60,7 @@ class ActiveRollingWindow:
         return len(self._turns)
 
     def estimate_tokens(self) -> int:
-        """估算当前窗口内所有文本的 Token 消耗（按中文 1.5 字符/Token，英文 4 字符/Token 近似）。"""
+        # Engineering estimate only; it is not a semantic truncation rule.
         total_chars = sum(len(u) + len(a) for u, a in self._turns)
         return int(total_chars * 0.7) + 1
 
@@ -74,11 +68,8 @@ class ActiveRollingWindow:
         self._turns.clear()
 
 
-# ============================================================================
-# 第二级：后台异步增量事实萃取
-# ============================================================================
 class ExtractedClaimCandidate(BaseModel):
-    """后台萃取的结构化事实候选。"""
+    """Candidate emitted by an explicitly configured cognitive extractor."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -87,162 +78,109 @@ class ExtractedClaimCandidate(BaseModel):
     predicate: str = Field(min_length=1)
     object_val: str = Field(min_length=1)
     context_topic: str = Field(default="日常对话")
-    sentiment: str = Field(default="中性")
+    sentiment: str = Field(default="未知")
     raw_quote: str = Field(min_length=1)
     turn_index: int = Field(ge=0)
     extracted_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     idempotency_key: str = Field(min_length=1)
 
 
+Extractor = Callable[[List[Tuple[str, str]], int], List[ExtractedClaimCandidate]]
+
+
 class StreamingExtractWorker:
-    """后台异步增量事实萃取器。
-    
-    采用无锁队列与线程池/同步双模，既能在多线程中作为 Daemon Worker 运行，
-    也能在单元测试中进行同步即时萃取。
+    """Async/sync transport for a configured cognitive extractor.
+
+    No extractor -> no synthetic cognition. The worker still advances its processing
+    watermark so orchestration can know that the raw batch was seen.
     """
 
-    def __init__(
-        self,
-        custom_extractor: Optional[Callable[[List[Tuple[str, str]], int], List[ExtractedClaimCandidate]]] = None,
-    ) -> None:
+    def __init__(self, custom_extractor: Optional[Extractor] = None) -> None:
         self._queue: queue.Queue[Optional[Tuple[List[Tuple[str, str]], int]]] = queue.Queue()
         self._extracted_claims: List[ExtractedClaimCandidate] = []
+        self._seen_idempotency_keys: set[str] = set()
         self._custom_extractor = custom_extractor
         self._watermark: int = 0
         self._lock = threading.Lock()
         self._worker_thread: Optional[threading.Thread] = None
 
+    @property
+    def extraction_configured(self) -> bool:
+        return self._custom_extractor is not None
+
+    @property
+    def background_running(self) -> bool:
+        return self._worker_thread is not None and self._worker_thread.is_alive()
+
     def start_background_thread(self) -> None:
-        """启动后台常驻工作线程。"""
-        if self._worker_thread is None or not self._worker_thread.is_alive():
+        if not self.background_running:
             self._worker_thread = threading.Thread(target=self._run_loop, daemon=True)
             self._worker_thread.start()
 
     def stop_background_thread(self) -> None:
-        """安全停止后台工作线程。"""
-        self._queue.put(None)
-        if self._worker_thread and self._worker_thread.is_alive():
-            self._worker_thread.join(timeout=2.0)
+        if not self.background_running:
             self._worker_thread = None
+            return
+        self._queue.put(None)
+        assert self._worker_thread is not None
+        self._worker_thread.join(timeout=2.0)
+        self._worker_thread = None
 
     def _run_loop(self) -> None:
         while True:
             item = self._queue.get()
-            if item is None:
-                self._queue.task_done()
-                break
-            batch, turn_offset = item
             try:
+                if item is None:
+                    return
+                batch, turn_offset = item
                 self.extract_sync(batch, turn_offset)
             finally:
                 self._queue.task_done()
 
     def enqueue_evicted_turns(self, batch: List[Tuple[str, str]], turn_offset: int) -> None:
-        """将前台滑出的对话批量压入后台队列。"""
-        if not batch:
-            return
-        self._queue.put((batch, turn_offset))
+        if batch:
+            self._queue.put((list(batch), int(turn_offset)))
 
     def extract_sync(
-        self, batch: List[Tuple[str, str]], turn_offset: int
+        self,
+        batch: List[Tuple[str, str]],
+        turn_offset: int,
     ) -> List[ExtractedClaimCandidate]:
-        """同步执行事实萃取（内置确定性规则引擎 + 可选自定义大模型萃取器）。"""
-        if self._custom_extractor is not None:
-            results = self._custom_extractor(batch, turn_offset)
-        else:
-            results = self._default_heuristic_extract(batch, turn_offset)
-
+        results = (
+            self._custom_extractor(batch, turn_offset)
+            if self._custom_extractor is not None
+            else []
+        )
+        validated = [ExtractedClaimCandidate.model_validate(item) for item in results]
+        accepted: list[ExtractedClaimCandidate] = []
         with self._lock:
-            for c in results:
-                self._extracted_claims.append(c)
+            for candidate in validated:
+                if candidate.idempotency_key in self._seen_idempotency_keys:
+                    continue
+                self._seen_idempotency_keys.add(candidate.idempotency_key)
+                self._extracted_claims.append(candidate)
+                accepted.append(candidate)
             self._watermark = max(self._watermark, turn_offset + len(batch))
-
-        return results
-
-    def _default_heuristic_extract(
-        self, batch: List[Tuple[str, str]], turn_offset: int
-    ) -> List[ExtractedClaimCandidate]:
-        """确定性规则萃取器：从对话中提取人名实体、承诺意图、事实陈述。"""
-        extracted: List[ExtractedClaimCandidate] = []
-        
-        # 常见人名与关系词模式
-        person_patterns = [
-            r"([老小][张王李赵钱孙周吴郑陈林沈刘马杨黄])",
-            r"(妈妈|爸爸|父亲|母亲|女友|老婆|媳妇|兄弟|闺蜜|张总|李总|王总|刘总)",
-            r"([A-Z][a-z]+)",
-        ]
-        # 承诺与事实动作
-        fact_patterns = [
-            (r"借[给走了去出了]([^，。！？]+)", "借贷关系"),
-            (r"买[了个了支顶双台部包份本双个]([^，。！？]+)", "消费事实"),
-            (r"答应[了要]([^，。！？]+)", "承诺待办"),
-            (r"准备[要去]([^，。！？]+)", "意向目标"),
-            (r"(合伙|合作|商量|开会|讨论)([^，。！？]+)", "合作事项"),
-            (r"(生病|住院|发烧|头疼|早搏|失眠)", "生理状态"),
-            (r"(分手|和好|吵架|冷战)", "人际关系波动"),
-        ]
-
-        for idx, (user_msg, ai_msg) in enumerate(batch):
-            turn_no = turn_offset + idx + 1
-            combined = f"{user_msg} {ai_msg}"
-
-            # 提取人名
-            found_persons = []
-            for pat in person_patterns:
-                for match in re.finditer(pat, user_msg):
-                    found_persons.append(match.group(1))
-
-            matched_any_fact = False
-            # 提取关键动词/事实
-            for f_pat, f_topic in fact_patterns:
-                m = re.search(f_pat, user_msg)
-                if m:
-                    target_val = m.group(1) if m.groups() else m.group(0)
-                    subject = found_persons[0] if found_persons else "用户"
-                    
-                    idempotency_str = f"{turn_no}:{subject}:{f_topic}:{target_val}"
-                    h = hashlib.md5(idempotency_str.encode("utf-8")).hexdigest()[:12]
-                    
-                    claim = ExtractedClaimCandidate(
-                        claim_id=f"clm_{h}",
-                        subject=subject,
-                        predicate=f_topic,
-                        object_val=target_val.strip(),
-                        context_topic=f_topic,
-                        sentiment="负向" if "吵架" in user_msg or "生病" in user_msg else "正向" if "买" in user_msg else "中性",
-                        raw_quote=user_msg.strip(),
-                        turn_index=turn_no,
-                        idempotency_key=f"idem_{h}",
-                    )
-                    extracted.append(claim)
-                    matched_any_fact = True
-
-            # 若有人物实体提及，但未触发特定动作，依然记录为实体人际交往切片
-            if not matched_any_fact and found_persons:
-                for p in set(found_persons):
-                    idempotency_str = f"{turn_no}:{p}:人际交往:{user_msg[:20]}"
-                    h = hashlib.md5(idempotency_str.encode("utf-8")).hexdigest()[:12]
-                    claim = ExtractedClaimCandidate(
-                        claim_id=f"clm_{h}",
-                        subject=p,
-                        predicate="人际交往",
-                        object_val=user_msg.strip(),
-                        context_topic="人际交往",
-                        sentiment="中性",
-                        raw_quote=user_msg.strip(),
-                        turn_index=turn_no,
-                        idempotency_key=f"idem_{h}",
-                    )
-                    extracted.append(claim)
-
-        return extracted
+        return accepted
 
     def drain(self, timeout: float = 2.0) -> List[ExtractedClaimCandidate]:
-        """等待队列全部处理完毕并返回所有已提取事实。"""
-        try:
+        del timeout  # kept for API compatibility
+        if self.background_running:
             self._queue.join()
-        except Exception:
-            pass
+        else:
+            # Public callers may enqueue without starting the worker. Process such
+            # items synchronously instead of blocking forever on queue.join().
+            while True:
+                try:
+                    item = self._queue.get_nowait()
+                except queue.Empty:
+                    break
+                try:
+                    if item is not None:
+                        batch, turn_offset = item
+                        self.extract_sync(batch, turn_offset)
+                finally:
+                    self._queue.task_done()
         with self._lock:
             return list(self._extracted_claims)
 
@@ -256,14 +194,11 @@ class StreamingExtractWorker:
             return self._watermark
 
 
-# ============================================================================
-# 第三级：跨周期超链接主动联想回捞
-# ============================================================================
 class ProactiveAssociativeRecall:
-    """跨周期超链接主动联想回捞器。
-    
-    当用户即时输入提及历史人物、特定承诺或敏感事件时，
-    毫秒级从第二级萃取库及外部世界存储中回捞最相关的 1~3 条核心原话切片。
+    """Cheap prefetch hints from already-derived candidates.
+
+    Exact lexical overlap is only a retrieval signal. This class no longer fabricates
+    an authoritative `relevance_score=0.95`; final relevance belongs to the model.
     """
 
     def __init__(self, extract_worker: StreamingExtractWorker, world_store: Any = None) -> None:
@@ -271,98 +206,123 @@ class ProactiveAssociativeRecall:
         self.world_store = world_store
 
     def recall_for_turn(self, user_msg: str, top_k: int = 3) -> List[Dict[str, Any]]:
-        """根据用户当前消息进行主动联想回捞。"""
-        if not user_msg:
+        if not user_msg or top_k <= 0:
             return []
 
-        claims = self.extract_worker.get_all_extracted()
         recalled: List[Dict[str, Any]] = []
-
-        for c in reversed(claims):
-            # 命中了主体人名或宾语核心词
-            if (c.subject != "用户" and c.subject in user_msg) or (c.object_val in user_msg and len(c.object_val) >= 2):
-                recalled.append({
-                    "anchor_id": c.claim_id,
-                    "subject": c.subject,
-                    "predicate": c.predicate,
-                    "object_val": c.object_val,
-                    "raw_quote": c.raw_quote,
-                    "turn_index": c.turn_index,
-                    "relevance_score": 0.95,
-                    "why_recalled": f"当前提及关键词与第 {c.turn_index} 轮事实精确命中",
-                })
+        for candidate in reversed(self.extract_worker.get_all_extracted()):
+            subject_hit = candidate.subject != "用户" and candidate.subject in user_msg
+            object_hit = len(candidate.object_val) >= 2 and candidate.object_val in user_msg
+            if not (subject_hit or object_hit):
+                continue
+            signal = (
+                "exact_subject_and_object"
+                if subject_hit and object_hit
+                else "exact_subject"
+                if subject_hit
+                else "exact_object"
+            )
+            recalled.append(
+                {
+                    "anchor_id": candidate.claim_id,
+                    "subject": candidate.subject,
+                    "predicate": candidate.predicate,
+                    "object_val": candidate.object_val,
+                    "raw_quote": candidate.raw_quote,
+                    "turn_index": candidate.turn_index,
+                    "retrieval_signal": signal,
+                    "why_recalled": (
+                        f"prefetch lexical signal matched candidate from turn {candidate.turn_index}; "
+                        "AI must decide actual relevance"
+                    ),
+                }
+            )
             if len(recalled) >= top_k:
                 break
-
         return recalled
 
 
-# ============================================================================
-# 三级流式流水线统一入口
-# ============================================================================
 class ThreeStageStreamPipeline:
-    """统合三级流式心智流水线的完整控制器。"""
+    """Foreground cache + optional cognitive extraction + prefetch accelerator."""
 
     def __init__(
         self,
         max_active_turns: int = 6,
         max_active_tokens: int = 1500,
-        custom_extractor: Optional[Callable[[List[Tuple[str, str]], int], List[ExtractedClaimCandidate]]] = None,
+        custom_extractor: Optional[Extractor] = None,
         world_store: Any = None,
+        *,
+        session_id: str = "default",
+        timeline_store: ConversationTimelineStore | None = None,
     ) -> None:
         self.window = ActiveRollingWindow(max_turns=max_active_turns, max_tokens=max_active_tokens)
         self.extractor = StreamingExtractWorker(custom_extractor=custom_extractor)
         self.recall = ProactiveAssociativeRecall(self.extractor, world_store=world_store)
+        self.session_id = session_id
+        if timeline_store is None and world_store is not None and hasattr(world_store, "db_path"):
+            timeline_store = ConversationTimelineStore(world_store.db_path)
+        self.timeline_store = timeline_store
         self._turn_counter: int = 0
+
+    def record_raw_turn(self, turn_no: int, user_msg: str, ai_msg: str) -> str | None:
+        if self.timeline_store is None:
+            return None
+        turn = ConversationTurn.create(
+            session_id=self.session_id,
+            turn_index=turn_no,
+            user_text=user_msg,
+            assistant_text=ai_msg,
+        )
+        return self.timeline_store.append(turn).turn_id
+
+    def process_evicted(self, evicted: List[Tuple[str, str]], turn_offset: int) -> None:
+        if not evicted:
+            return
+        if self.extractor.background_running:
+            self.extractor.enqueue_evicted_turns(evicted, turn_offset)
+        else:
+            self.extractor.extract_sync(evicted, turn_offset)
 
     def process_turn(
         self,
         user_msg: str,
         reply_generator: Callable[[List[Dict[str, str]], List[Dict[str, Any]]], str],
     ) -> Dict[str, Any]:
-        """执行完整一轮会话处理。
-        
-        1. 联想回捞 (Stage 3)
-        2. 装配活跃会话与提示词 (Stage 1)
-        3. 调用大模型/回复生成器
-        4. 前台滚动滑窗压入并迁出旧轮次
-        5. 迁出内容异步推入事实萃取队列 (Stage 2)
-        """
         self._turn_counter += 1
         turn_no = self._turn_counter
 
-        # 1. 联想回捞
         recalled_cues = self.recall.recall_for_turn(user_msg)
-
-        # 2. 获取前台活跃上下文
         prompt_messages = self.window.get_prompt_messages()
-
-        # 3. 生成回复
         raw_reply = reply_generator(prompt_messages, recalled_cues)
 
-        # 4. 压入前台滑动窗口并获取迁出的历史轮次
+        raw_turn_ref = self.record_raw_turn(turn_no, user_msg, raw_reply)
         evicted = self.window.push_turn(user_msg, raw_reply)
-
-        # 5. 将迁出轮次推入后台萃取队列
         if evicted:
-            evicted_offset = turn_no - len(self.window.get_prompt_messages()) // 2 - len(evicted)
-            self.extractor.enqueue_evicted_turns(evicted, max(0, evicted_offset))
-            # 同步即时萃取以保障弱线程环境下的确定性
-            self.extractor.extract_sync(evicted, max(0, evicted_offset))
+            evicted_offset = max(
+                0,
+                turn_no - len(self.window.get_prompt_messages()) // 2 - len(evicted),
+            )
+            self.process_evicted(evicted, evicted_offset)
 
         return {
             "reply": raw_reply,
             "turn_index": turn_no,
+            "raw_turn_ref": raw_turn_ref,
             "recalled_cues": recalled_cues,
             "active_turns": self.window.total_turns,
             "estimated_tokens": self.window.estimate_tokens(),
             "evicted_count": len(evicted),
+            "extraction_mode": (
+                "cognitive_extractor" if self.extractor.extraction_configured else "raw_only"
+            ),
             "total_extracted_claims": len(self.extractor.get_all_extracted()),
         }
 
     def flush_and_extract_all(self) -> List[ExtractedClaimCandidate]:
-        """强制将前台当前剩余对话全部送入萃取器并排空。"""
         remaining = list(self.window._turns)
         if remaining:
-            self.extractor.extract_sync(remaining, self._turn_counter - len(remaining))
+            self.extractor.extract_sync(
+                remaining,
+                max(0, self._turn_counter - len(remaining)),
+            )
         return self.extractor.drain()
