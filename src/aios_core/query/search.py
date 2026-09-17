@@ -547,29 +547,39 @@ class WorldSearchIndex:
                 candidates = {c for c in candidates if c[0] not in tombstones}
 
         if view == "AS_KNOWN" and as_of is not None:
-            as_of_us = int(as_utc(as_of, "as_of").timestamp() * 1_000_000)
-            valid_candidates = set()
+            # 双时态铁律：AS_KNOWN 回答“当时系统已经知道什么”，因此知识可见性
+            # 必须由 learned_at 截止。occurred_at 只描述世界何时发生，不能证明
+            # AIOS 当时已经知道该事件。缺失/损坏 learned_at 时 fail closed，避免
+            # 把后来获知的过去事件泄漏进历史视图。
+            cutoff = as_utc(as_of, "as_of")
+            valid_candidates: set[tuple[str, int]] = set()
             for oid, rev in candidates:
-                row = conn.execute(
-                    "SELECT occurred_start_us FROM search_occurred WHERE object_id=? AND revision=?",
-                    (oid, rev),
-                ).fetchone()
-                if row and row["occurred_start_us"] is not None:
-                    if row["occurred_start_us"] <= as_of_us:
-                        valid_candidates.add((oid, rev))
-                else:
-                    try:
-                        p = self._store.get_payload(oid, revision=rev)
-                        lat = p.get("learned_at")
-                        if lat:
-                            l_us = int(as_utc(datetime.fromisoformat(lat), "lat").timestamp() * 1_000_000)
-                            if l_us <= as_of_us:
-                                valid_candidates.add((oid, rev))
-                        else:
-                            valid_candidates.add((oid, rev))
-                    except Exception:
-                        valid_candidates.add((oid, rev))
+                learned_at: datetime | None = None
+                try:
+                    payload = self._store.get_payload(oid, revision=rev)
+                    raw_learned = payload.get("learned_at")
+                    if isinstance(raw_learned, str):
+                        learned_at = as_utc(datetime.fromisoformat(raw_learned), "learned_at")
+                except Exception:
+                    # Retrospective annotations live in the projection-side annotation
+                    # registry rather than object_revisions. Their created_at is the
+                    # knowledge time of the overlay and is therefore the legal cutoff.
+                    annotation = conn.execute(
+                        "SELECT created_at FROM search_annotations WHERE annotation_id=?",
+                        (oid,),
+                    ).fetchone()
+                    if annotation is not None:
+                        try:
+                            learned_at = as_utc(
+                                datetime.fromisoformat(str(annotation["created_at"])),
+                                "annotation_created_at",
+                            )
+                        except (TypeError, ValueError):
+                            learned_at = None
+                if learned_at is not None and learned_at <= cutoff:
+                    valid_candidates.add((oid, rev))
             candidates = valid_candidates
+
         pairs = sorted(candidates)
         # 50 万修订下的物理计划纪律（G-M1P/T2-I 禁扫描）：候选对经临时表
         # WITHOUT ROWID 主键 join，杜绝行值 IN 退化为 SCAN search_occurred。
