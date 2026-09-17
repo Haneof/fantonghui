@@ -23,9 +23,10 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class CognitiveExamDifficulty(StrEnum):
     STANDARD = "STANDARD"            # 常规单线生活流（单一主要矛盾）
-    MULTI_CONFLICT = "MULTI_CONFLICT"  # 跨多维度重大交织冲突（职场被批 + 亲密破裂 + 心率骤升）
-    SUBTLE_UNDERTONE = "SUBTLE_UNDERTONE"  # 隐性潜台词与深层心理内耗（表面平静、内心崩溃）
-    ADVERSARIAL_TRAP = "ADVERSARIAL_TRAP"  # 防过度诊断与抗幻觉陷阱卷（生理偶发杂音或纯平静日）
+    MULTI_CONFLICT = "MULTI_CONFLICT"  # 类型A：跨多维度重大交织冲突（职场被批 + 亲密破裂 + 心率骤升）
+    SUBTLE_UNDERTONE = "SUBTLE_UNDERTONE"  # 类型B：隐性潜台词与深层心理内耗（表面平静、内心崩溃）
+    FAMILY_CRISIS_ANTI_FRAUD = "FAMILY_CRISIS_ANTI_FRAUD"  # 类型C：长辈突发危机 + 借贷压力 + 反诈把关
+    ADVERSARIAL_TRAP = "ADVERSARIAL_TRAP"  # 类型D：防过度诊断与抗幻觉陷阱卷（生理偶发杂音或纯平静日）
 
 
 class ExperienceType(StrEnum):
