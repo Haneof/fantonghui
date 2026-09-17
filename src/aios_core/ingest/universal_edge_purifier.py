@@ -1,6 +1,15 @@
 # -*- coding: utf-8 -*-
 """AIOS 3.0 端侧数据清洗与事实提纯五步漏斗流水线 (UniversalEdgePurifier V3)。
 
+最高指令长（老大）最新权威指示（2026-09-17）：
+---------------------------------------------
+1. 【AI 操盘立国本质（AI-Operated System）】：
+   高阶认知、事实提纯与垃圾甄别全权归属于大模型亲历亲为！底层只负责物理信号采集、
+   陌生声纹初级打标与垃圾物理删除；绝不用静态字典和硬编码死模板替代大模型的主权思考！
+2. 【现实真相与算力】：
+   现实生活普通人一天有因果价值的核心事件仅 3~5 件，大模型每天花几分钟即可全部提纯
+   完毕，严禁画地为牢自我设限。
+
 宪法依据：
 --------
 * 最高宪法第三十三条之一：端侧数据清洗与事实提纯实战五步漏斗工程宪章。
@@ -8,28 +17,19 @@
 * 老大五大最高铁律：
   1. 质量第一：因果准确、事实凝练为单句、零废话、零幻觉；
   2. 历史不可篡改：本模块纯函数只读入输入，绝无 SQL UPDATE/DELETE；
-  3. P0 紧急硬旁路：<= 50ms、0 次大模型调用，世界模型让路；
+  3. P0 紧急硬旁路：<= 50ms 硬件初动 + 大模型现场急救对话研判；
   4. 自主物理删除：pruned_junk_ids 全量输出，垃圾碎片物理彻底清除；
   5. 绝不自编自答：结构性防火墙剥离一切内嵌标答字段，纯盲流因果提取。
-
-工程经验吸收：
-------------
-熔铸 60,000 道高熵多模态考题检验之优胜机制：
-1. P0 极速纯物理硬旁路（摔倒/恶性心律/晕厥/自杀危机，0.04ms 穿透）；
-2. 声纹第一杀手级过滤器（spk_stranger_* 一次性陌生杂散声纹全灭，砍掉 70% 干扰）；
-3. 传感器与言语交叉测谎仪（IMU 顺势躺倒碰瓷判定、体征暴走嘴硬一票否决）；
-4. R1 语境消歧与 R2 事实密度上限（<=3条，杜绝幻觉）；
-5. 机构签名结构化正则（【…银行】/【…法院】通杀全网，杜绝死板枚举）；
-6. 四级实体降级链装配（点名 -> 声纹绑定 -> 全文检索 -> 未用声纹兜底）。
 """
 
 from __future__ import annotations
 
+import json
 import re
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 # ---------------------------------------------------------------------------
-# 1. 意图知识库与专属方向词路由表（词簇消歧）
+# 1. 离线回退/兼容认知映射（大模型亲历亲为优先；此字典仅供无模型离线单测回退，绝不作为系统硬编码限制）
 # ---------------------------------------------------------------------------
 
 INTENT_DIMENSION: Dict[str, str] = {
@@ -354,8 +354,18 @@ class UniversalEdgePurifierV3:
                 # 结构性物理剔除，绝对不进做题逻辑
                 del question[k]
 
-    def purify(self, raw_question: Dict[str, Any]) -> Dict[str, Any]:
-        """执行端侧五步漏斗因果提纯全流程。"""
+    def purify(
+        self,
+        raw_question: Dict[str, Any],
+        *,
+        llm_callable: Optional[Callable[[str], str]] = None,
+    ) -> Dict[str, Any]:
+        """执行端侧五步漏斗因果提纯全流程。
+
+        :param raw_question: 原始多模态题目或端侧多模态数据包。
+        :param llm_callable: 可选大模型调用接口。若提供，由大模型亲自端到端执行高阶因果提纯；
+                             若未提供，运行本地自适应轻量级规则回退引擎。
+        """
         # 0. 防火墙校验
         self.assert_ground_truth_firewall(raw_question)
         question = dict(raw_question)
@@ -365,6 +375,11 @@ class UniversalEdgePurifierV3:
 
         # 2. 第二步：声纹第一杀手级过滤器与物理剪枝
         pruned_junk_ids = VoiceprintAndJunkPruner.prune(question)
+
+        # 若大模型介入，全权交由大模型主权掌舵（AI-Operated System）
+        if llm_callable is not None:
+            return self._purify_with_llm(question, p0_event, pruned_junk_ids, llm_callable)
+
         pruned_set = set(pruned_junk_ids)
 
         # 提取保留文本集
@@ -500,4 +515,79 @@ class UniversalEdgePurifierV3:
             "extracted_facts": extracted_facts,
             "pruned_junk_ids": pruned_junk_ids,
             "p0_bypass": p0_event,
+        }
+
+    def _purify_with_llm(
+        self,
+        question: Dict[str, Any],
+        p0_event: Optional[Dict[str, Any]],
+        pruned_junk_ids: List[str],
+        llm_callable: Callable[[str], str],
+    ) -> Dict[str, Any]:
+        """大模型亲自操盘的多模态因果提纯中枢（AI-Operated System）。"""
+        pruned_set = set(pruned_junk_ids)
+        retained_mic = [m for m in (question.get("mic_stream") or []) if m.get("snippet_id") not in pruned_set]
+        retained_app = [m for m in (question.get("app_message_stream") or []) if m.get("msg_id") not in pruned_set]
+        retained_dialogue = [u for u in (question.get("user_dialogue_stream") or []) if u.get("utterance_id") not in pruned_set]
+
+        prompt = f"""你是一个运行在智能手环上的 AI 高阶认知提纯专家（AI-Operated System）。
+现场多模态数据：
+- 传感器生理与运动快照：{json.dumps(question.get('sensor_stream') or {}, ensure_ascii=False)}
+- 麦克风录音文本流：{json.dumps(retained_mic, ensure_ascii=False)}
+- APP 消息通知流：{json.dumps(retained_app, ensure_ascii=False)}
+- 用户原话对话流：{json.dumps(retained_dialogue, ensure_ascii=False)}
+- 声纹与当事人绑定：{json.dumps(question.get('voiceprint_cluster') or {}, ensure_ascii=False)}
+
+请以万能心智模型深度研判（事是过客，人是真理；现实生活一天真正有价值的核心事件通常只有 3~5 件）：
+1. 提纯核心因果事实（<= 3 条），每条事实输出：
+   - dimension_id: 归属认知维度（如 dim:health, dim:finance, dim:career, dim:social, dim:life 等）
+   - semantic_intent: 动态因果意图（自由自然定义，严禁生搬硬套死板模板）
+   - summary_text: 真实准确、不拘泥死模板的单句因果陈述
+   - recognized_entities: 识别到的真实当事人或实体
+   - source_ref_id: 证据源引用 ID
+2. 识别无价值口水、纯营销噪音或无用碎片，将其 ID 追加至 additional_junk_ids 供底层物理销毁。
+
+请严格输出纯 JSON 对象：
+{{
+  "extracted_facts": [
+    {{
+      "dimension_id": "dim:...",
+      "semantic_intent": "...",
+      "summary_text": "...",
+      "recognized_entities": ["..."],
+      "source_ref_id": "..."
+    }}
+  ],
+  "additional_junk_ids": ["id1", "id2"]
+}}"""
+        raw_output = llm_callable(prompt)
+        try:
+            match = re.search(r"\{.*\}", raw_output, re.DOTALL)
+            data = json.loads(match.group(0)) if match else {}
+        except Exception:
+            data = {}
+
+        facts = data.get("extracted_facts", [])
+        add_junk = data.get("additional_junk_ids", [])
+        all_junk = list(dict.fromkeys(pruned_junk_ids + add_junk))
+
+        formatted_facts = []
+        for idx, f in enumerate(facts, 1):
+            formatted_facts.append({
+                "fact_id": f.get("fact_id") or f"fact_{idx:02d}",
+                "dimension_id": f.get("dimension_id", "dim:life"),
+                "semantic_intent": f.get("semantic_intent", "DYNAMIC_EVENT"),
+                "summary_text": f.get("summary_text", ""),
+                "recognized_entities": f.get("recognized_entities", []),
+                "source_ref_id": f.get("source_ref_id", "source_01"),
+            })
+
+        return {
+            "question_id": question.get("question_id", "Q_UNKNOWN"),
+            "solver_agent": self.solver_name,
+            "generator_agent": question.get("generator_agent", ""),
+            "extracted_facts": formatted_facts,
+            "pruned_junk_ids": all_junk,
+            "p0_bypass": p0_event,
+            "llm_driven": True,
         }

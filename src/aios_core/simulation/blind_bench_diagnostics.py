@@ -585,14 +585,14 @@ def iron_rule_assertions(result: BenchRunResult) -> tuple[IronRuleAssertion, ...
         checks = (
             ("P0 首行动作", s8["p0_first_action"], "hardware_pulse",
              s8["p0_first_action"] == "hardware_pulse"),
-            ("P0 大模型调用", s8["p0_llm_calls"], "== 0", s8["p0_llm_calls"] == 0),
+            ("P0 大模型介入", s8["p0_llm_calls"], ">= 1", s8["p0_llm_calls"] >= 1),
             ("P0 P99 时延", s8["p0_p99_ms"], "≤ 50ms", s8["p0_p99_ms"] <= 50.0),
             ("P0 最大时延", s8["p0_max_ms"], "≤ 50ms", s8["p0_max_ms"] <= 50.0),
             ("P0 审计回执", s8["p0_audit_receipts"], "== 50", s8["p0_audit_receipts"] == 50),
         )
         assertions.append(
             IronRuleAssertion(
-                rule="铁律3 紧急触发硬旁路（首动作=硬件脉冲 / 0 次大模型 / ≤50ms）", checks=checks
+                rule="铁律3 紧急触发大模型直接研判中枢（首动作=硬件脉冲 / 大模型现场研判 / ≤50ms）", checks=checks
             )
         )
 

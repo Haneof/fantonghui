@@ -210,3 +210,58 @@ def test_universal_edge_purifier_full_pipeline():
     assert len(res["extracted_facts"]) >= 1
     intents = [f["semantic_intent"] for f in res["extracted_facts"]]
     assert "CARDIAC_BURST" in intents or "MI_DENIAL_CRITICAL" in intents
+
+
+def test_universal_edge_purifier_llm_cognitive_purification():
+    """验证大模型亲历亲为高阶认知提纯：摆脱52种死板枚举与八股文模板，实现动态因果萃取。"""
+    purifier = UniversalEdgePurifierV3()
+    q = {
+        "question_id": "Q_LLM_001",
+        "sensor_stream": {"heart_rate_bpm": 72, "motion_state": "SITTING"},
+        "mic_stream": [
+            {"snippet_id": "m_stranger_noise", "speaker_id": "spk_stranger_9", "text": "外面下大雨了！"},
+            {"snippet_id": "m_deep_talk", "speaker_id": "spk_partner", "text": "三楼那个场地我已经谈好了，租金一年20万，随时可以签。"},
+        ],
+        "app_message_stream": [
+            {"msg_id": "app_pinduoduo", "sender": "砍一刀互助群", "content": "就差你这一刀了！"},
+        ],
+        "user_dialogue_stream": [
+            {"utterance_id": "u_venture", "raw_speech": "行，明天上午我和你一起去现场踩点，把合同定下来。"},
+            {"utterance_id": "u_chat", "raw_speech": "中午吃啥呢，点个外卖吧。"},
+        ],
+        "voiceprint_cluster": {
+            "known_bindings": {"spk_partner": "合伙人老林"},
+            "user_speaker_id": "spk_user",
+        },
+    }
+
+    def mock_llm_purifier(prompt: str) -> str:
+        # 模拟大模型端到端输出结构化因果认知
+        return """{
+            "extracted_facts": [
+                {
+                    "dimension_id": "dim:career",
+                    "semantic_intent": "STUDIO_LEASE_VENTURE",
+                    "summary_text": "佩戴者与合伙人老林就20万年租的工作室场地达成共识，约定明日上午现场踩点签署租赁合同。",
+                    "recognized_entities": ["合伙人老林", "佩戴者", "工作室场地"],
+                    "source_ref_id": "m_deep_talk"
+                }
+            ],
+            "additional_junk_ids": ["u_chat"]
+        }"""
+
+    res = purifier.purify(q, llm_callable=mock_llm_purifier)
+
+    assert res["llm_driven"] is True
+    assert "m_stranger_noise" in res["pruned_junk_ids"]  # 物理初级剪枝
+    assert "app_pinduoduo" in res["pruned_junk_ids"]     # 营销消息剪枝
+    assert "u_chat" in res["pruned_junk_ids"]             # 大模型识别口水剪枝
+
+    assert len(res["extracted_facts"]) == 1
+    fact = res["extracted_facts"][0]
+    assert fact["dimension_id"] == "dim:career"
+    assert fact["semantic_intent"] == "STUDIO_LEASE_VENTURE"
+    assert "老林" in fact["summary_text"]
+    assert "20万" in fact["summary_text"]
+    assert "合伙人老林" in fact["recognized_entities"]
+

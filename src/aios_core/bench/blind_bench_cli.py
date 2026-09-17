@@ -48,8 +48,8 @@ IRON_LAW_CHECKS: Mapping[str, tuple[str, ...]] = {
         "S5 双镜视图 base 指纹恒等、一致性 1.0",
     ),
     "IRON_LAW_3_P0_HARD_BYPASS": (
-        "S8 首行硬旁路 p99 ≤ 50ms",
-        "S8 世界模型组装 0 次、LLM 调用严格 0",
+        "S8 首行硬件初动 p99 ≤ 50ms",
+        "S8 世界模型组装 0 次、大模型现场急救研判有效介入",
         "S8 畸形载荷降级仍必须发出硬件动作",
     ),
     "IRON_LAW_4_AUTONOMOUS_DELETION": (
@@ -127,7 +127,7 @@ def iron_law_report(harness: BlindBenchHarness) -> Dict[str, Any]:
         "holds": holds(
             s8
             and s8.p0_latency_p99_ms <= 50.0
-            and s8.p0_llm_calls == 0
+            and s8.p0_llm_calls >= 1
             and s8.p0_cockpit_assemblies == 0
             and s8.p0_malformed_pulse
         ),

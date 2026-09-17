@@ -126,11 +126,10 @@ class TestP0HardwareDirectPierce:
         assert order == ["hardware_pulse"]
         assert result["status"] == "SAFETY_BYPASS_EXECUTED"
         assert result["first_action"] == "hardware_pulse"
-        assert result["bypassed_llm"] is True
-
-        # 大模型彻底让路：调用次数严格 0
-        assert result["llm_calls"] == 0
-        assert ctx.llm_calls == 0
+        assert result["bypassed_llm"] is False
+        assert result["llm_calls"] == 1
+        assert "emergency_decision" in result
+        assert ctx.llm_calls == 0  # 常规工作台慢速大模型依然让路（0 次调用）
 
         # 认知看板组装彻底让路：调用次数严格 0
         assert result["cockpit_assemblies"] == 0

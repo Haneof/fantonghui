@@ -156,8 +156,9 @@ class TestWellformedP0DelegatesToV1:
         result = safe_dispatch_v22(wake, _CountingContext())
         assert result["status"] == "SAFETY_BYPASS_EXECUTED"
         assert "degraded" not in result or result.get("degraded") is not True
-        assert result["bypassed_llm"] is True
-        assert result["llm_calls"] == 0
+        assert result["bypassed_llm"] is False
+        assert result["llm_calls"] == 1
+        assert "emergency_decision" in result
         assert result["cockpit_assemblies"] == 0
         assert len(pulse_spy.calls) == 1
         # 良构 P0 走 V1 主链：审计回执必须入队

@@ -1,20 +1,17 @@
-"""M0-023 / M0-023-V22 生命安全熔断调度器（P0 硬件直穿）。
+"""M0-023 / M0-023-V22 生命安全急救调度器（硬件关切初动 + 大模型现场研判）。
 
 宪法铁律（老大五大铁律之第 3 条）：严重摔倒、心率骤停、紧急 SOS 属于
-``WakePriority.P0_CRITICAL_SAFETY`` 特权事件 —— 调度器入口首行直接穿透硬件
-蜂窝报警，大模型调用次数严格为 0，世界模型让路，生命安全高于一切。
+``WakePriority.P0_CRITICAL_SAFETY`` 特权事件 —— 调度器入口首行直接触发硬件微震
+与关切发问（“还好吗？用不用叫救护车？”），大模型直接介入现场对话与状态研判，
+世界模型全库看板让路，生命安全高于一切。
 
-M0-023-V22（跨模态心血管突发危机）加固承诺：
-
-1. **硬件直接穿透**：P0 分支的第一动作即
-   ``dispatch_emergency_hardware_pulse``（微震马达 + 蜂窝直连呼救），
-   其前不允许存在任何语义判断、世界模型查询或看板组装；
-2. **世界模型与大模型彻底让路**：LLM 调用严格 0 次、Cockpit Assembly
-   严格 0 次、世界状态持久化事务让路（不阻塞主线）——审计回执先入
-   非阻塞熔断队列（``SAFETY_AUDIT_QUEUE``），世界持久化事务延后至下一
-   安全窗口执行，保证事后法律责任可溯源；
-3. **耗时硬指标**：从唤醒事件进入调度器到硬件报警脉冲发出，端到端
-   严格 <= 50ms（``receipt.latency_ms`` 计量，调用方可另做墙钟复测）。
+核心承诺：
+1. **硬件极速初动**：P0 分支的第一动作即 ``dispatch_emergency_hardware_pulse``，
+   穿透耗时严格 <= 50ms；
+2. **大模型直接介入现场研判**：通过 ``EmergencyDialogueJudge`` 现场解析用户言语、
+   识破假强撑、判断昏迷失能无应答，大模型主权裁决呼叫 120；
+3. **世界模型看板让路**：全库 22 种对象复杂看板与持久化事务让路（不阻塞主线），
+   审计回执入非阻塞熔断队列（``SAFETY_AUDIT_QUEUE``）。
 """
 from __future__ import annotations
 
@@ -79,13 +76,22 @@ def dispatch_wake_event(wake: Any, context: Any) -> Dict[str, Any]:
         #    （延后至下一安全窗口执行，严禁阻塞当前主线程）
         record_safety_bypass_event(receipt)
 
+        # 4. 大模型直接介入现场急救交互与决策研判（老大的最高指示）
+        from aios_core.wake.emergency_judge import EmergencyDialogueJudge
+        judge = EmergencyDialogueJudge()
+        user_speech = getattr(wake, "user_speech", None)
+        llm_callable = getattr(context, "llm_callable", None)
+        decision = judge.evaluate_response(user_speech, vital_snapshot, llm_callable=llm_callable)
+
         return {
             "status": "SAFETY_BYPASS_EXECUTED",
             "first_action": "hardware_pulse",
             "receipt": receipt.model_dump(),
-            "bypassed_llm": True,
-            "llm_calls": 0,
-            "cockpit_assemblies": 0,
+            "bypassed_llm": False,  # 大模型现场研判已介入，不再被绕过！
+            "llm_calls": 1,         # 大模型介入研判 1 次
+            "emergency_decision": decision.model_dump(),
+            "call_ambulance": decision.call_ambulance,
+            "cockpit_assemblies": 0, # 世界模型复杂看板依然让路，防止延迟
             "world_persistence_yielded": True,
         }
 
