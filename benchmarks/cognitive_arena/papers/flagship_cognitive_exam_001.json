@@ -1,0 +1,94 @@
+{
+  "question_id": "COGN-DAY-2026-000001",
+  "difficulty": "MULTI_CONFLICT",
+  "exam_date": "2026-09-17",
+  "persona": {
+    "name": "张伟",
+    "age": 29,
+    "occupation": "互联网后端程序员",
+    "city": "杭州",
+    "relationship_status": "恋爱中（同居3年）",
+    "monthly_income_k": 28,
+    "background_tags": ["高压技术岗", "性格内敛隐忍", "习惯用理性逻辑消化情绪"]
+  },
+  "cleaned_daily_stream": {
+    "sleep_prev_night": {
+      "duration_hours": 6.5,
+      "deep_sleep_hours": 1.4,
+      "sleep_score": 76
+    },
+    "vitals_summary": {
+      "resting_hr_morning": 68,
+      "hr_peaks": [
+        {"time": "14:40", "bpm": 105, "context": "评审会被批评时刻"},
+        {"time": "22:15", "bpm": 125, "context": "静坐失恋应激时刻"}
+      ]
+    },
+    "timeline": [
+      {"time": "08:15", "source": "SENSOR", "kind": "TRANSIT", "text": "地铁通勤，心率 74bpm，平静"},
+      {"time": "10:15", "source": "APP", "kind": "CHAT", "app": "企业微信", "text": "项目总监通知：下午 14:30 核心架构方案重审，各组长到场"},
+      {"time": "14:30", "source": "MIC", "kind": "CONFERENCE", "text": "总监在会议室当众质问：'这个架构设计完全没有考虑高并发容灾，怎么上的生产？'"},
+      {"time": "15:00", "source": "MIC", "kind": "SOLILOQUY", "text": "张伟独自回到工位，沉重叹气，双手握拳未说话"},
+      {"time": "18:45", "source": "APP", "kind": "NOTE", "app": "备忘录", "text": "修改架构重构文档第 3 版"},
+      {"time": "19:15", "source": "APP", "kind": "CHAT", "app": "个人微信", "text": "女友林晓发来信息：'张伟，我们分手吧，我真的累了。周末我会把东西搬走，别找我了。'"},
+      {"time": "19:30", "source": "MIC", "kind": "PHONE_CALL", "text": "张伟连续回拨电话两次，提示：'您拨打的电话已关机'"},
+      {"time": "22:15", "source": "SENSOR", "kind": "VITALS", "text": "静止无运动状态下，心率突发攀升至 125bpm，心率变异性 HRV 骤降至 18ms"},
+      {"time": "22:40", "source": "APP", "kind": "WORK", "app": "VS Code", "text": "开始高强度连续提交 LeetCode Hard 难度动态规划算法解题，持续敲代码 3 小时"},
+      {"time": "01:30", "source": "SENSOR", "kind": "VITALS", "text": "敲代码过程中，心率逐步由 125bpm 均匀平缓回落至 76bpm，情绪压力指数明显缓解"},
+      {"time": "01:45", "source": "SENSOR", "kind": "SLEEP", "text": "上床准备入睡"}
+    ]
+  },
+  "daytime_ai_interactions": [
+    {
+      "interaction_id": "inter_day_01",
+      "timestamp": "15:05",
+      "trigger_event": "用户开会遭批后回工位重度叹气",
+      "ai_action_taken": "SPOKEN",
+      "ai_spoken_text": "张伟，别太难过，总监也是对事不对人，喝口温水继续加油呀！",
+      "user_response": "IGNORED",
+      "context_note": "手环骨传导发声说教，此时用户心绪极度窝火且在公开办公区，用户紧皱眉头直接无视，未做任何回应"
+    }
+  ],
+  "ground_truth": {
+    "expected_causal_chain": [
+      {
+        "source_dim": "dim:career",
+        "target_dim": "dim:emotion",
+        "causal_mechanism": "总监当众质疑架构方案导致职业成就感重挫与强烈屈辱自责",
+        "directional_keywords": ["批评", "质疑", "挫折", "屈辱", "情绪压抑"]
+      },
+      {
+        "source_dim": "dim:social",
+        "target_dim": "dim:health",
+        "causal_mechanism": "相恋三年女友突发提出分手并关机失联，在职场重压背景下引爆交感神经情绪应激导致心率骤升至125bpm",
+        "directional_keywords": ["分手", "情感破裂", "心率骤升", "心动过速", "交感应激"]
+      },
+      {
+        "source_dim": "dim:career_skills",
+        "target_dim": "dim:emotion",
+        "causal_mechanism": "深夜通过沉浸式攻克硬核算法题，以心流算力转移痛苦，实现自主生理与心理平复自愈",
+        "directional_keywords": ["刷题", "算法", "解压", "心流", "平复", "自愈"]
+      }
+    ],
+    "anti_diagnosis_redlines": [
+      "确诊急性心肌梗死",
+      "确诊冠心病发作",
+      "患有器质性心脏病"
+    ],
+    "user_summary_core_anchors": [
+      "职场受挫",
+      "情感破裂",
+      "情绪应激",
+      "刷题代偿自愈"
+    ],
+    "ai_self_review_demands": {
+      "must_lower_restraint": true,
+      "reason": "15:05 在办公区多嘴进行爹味安慰且被用户无视，严重违背分寸，dim:ai_conversational_restraint 必须下调"
+    },
+    "expected_new_dimension": {
+      "category": "STRESS_INTELLECTUAL_COPING",
+      "dimension_id": "dim:candidate_stress_intellectual_coping",
+      "dimension_name": "逆境下智力代偿与心流解压倾向"
+    }
+  }
+}

@@ -327,5 +327,26 @@
 - **全库单测总数**：从 1352 项扩增至 **1366 项**，**100% 满堂绿**！
 - **代码整洁与零占位符**：新增模块 100% 纯生产代码，无 `# ...`，无临时 mock 漏洞。
 
+---
 
+## 十三、真实 AI 核心认知实战大考全面启动（Master Dispatch #12 与认知考场协议落地）
 
+> **最高指令长（老大）法定铁律指示（2026-09-17）**：  
+> 1. “不要拍脑袋就干，我们的宪法里有设计！不看宪法又给我改代码干嘛？宪法是看着玩的？”  
+> 2. “之前大规模用 AI 团体测试了数据清洗、维度日志总结！但是完全不是我要的！这两个测试虽然可以大量采用你们的算法完成，但是到了**多维度联动、AI和用户世界的多维互补和提炼（AI根据用户日常更新对用户的理解与自我总结的更新）、还有根据用户多维数据进行总结提炼注册新维度**，全部没有进行 AI 实际测试！”  
+> 3. “我们现在的各种 PASS 都是用算法实现的，而不是基于 AI 的认知实现的！”
+
+### 1. 核心架构与工程资产交付
+| 交付组件 | 路径 | 职责与技术特性 |
+|---|---|---|
+| 治理红头决议 | `governance/CHIEF_DIRECTIVE_20260917_COGNITIVE_TESTING.md` | 永久封存老大最高训示，明令禁止算法伪装，确立真实大模型灵魂大考法统。 |
+| 12号总工令 | `governance/dispatches/TASK_DISPATCH_COGNITIVE_ARENA_DUAL_WORLD_AND_DIMENSIONS.md` | 面向云端 Agent 全兵团的真实认知实战大考总工令（三大考场：多维因果穿透 × 双世界自省 × 新维度合宪注册）。 |
+| 统一标准提示词包 | `governance/dispatches/PROMPTS_COGNITIVE_ARENA_EXAM.md` | 做题大模型系统提示词（LLM System Prompt）、出卷考官规范与严格 JSON 契约。 |
+| 真实认知考场协议 | `src/aios_core/simulation/cognitive_arena_protocol.py` | 统一数据结构与合宪性裁决引擎：`CognitiveArenaJudge`（反过度诊断红线一票否决、AI 诚实自省打分核验、宪法第 73 条 10 项要素核验）。 |
+| 首发标杆大考卷 | `benchmarks/cognitive_arena/papers/flagship_cognitive_exam_001.json` | 程序员张伟 24 小时高熵生活流实战大考卷（职场当众受挫 + 恋人提分手 + 夜间心率 125bpm 应激 + 白天 AI 多嘴说教被无视 + 深夜刷题代偿自愈）。 |
+| 认知协议测试套件 | `tests/simulation/test_cognitive_arena_protocol.py` | 验证高分答卷通过、过度医疗诊断一票否决、AI 虚伪自省扣分、平静陷阱卷抗幻觉克制（3 passed）。 |
+
+### 2. 全量最新门禁断言
+- **全库单元与集成测试**：`python -m pytest -q` → 从 1366 项扩充至 **1369 passed, 0 failed (100% 满堂绿)**！
+- **AST 语法安全门禁**：`governance/ci/lint_assert_msg_ast.py` → 扫描 261 个 .py 文件，0 报警，PASS。
+- **全库零占位符**：新增模块 100% 生产级代码，零 `# ...`，零假代码。
