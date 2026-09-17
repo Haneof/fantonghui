@@ -19,7 +19,7 @@
     "cities_covered": ["深圳", "成都", "北京", "广州", "杭州", "南京", "武汉", "西安", "长沙", "苏州"],
     "age_range": [25, 46],
     "gender_mix": "男 5 / 女 5",
-    "timeline_slices_total": 140,
+    "timeline_slices_total": 141,
     "daytime_interactions_total": 21
   },
   "sealed_line_policy": {
