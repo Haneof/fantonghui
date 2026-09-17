@@ -16,6 +16,7 @@ from .cognitive_runtime import (
     RuntimeSnapshot,
     RuntimeTurnResult,
 )
+from .world_capabilities import WorldCapabilityBus
 
 __all__ = [
     "CapabilityCall",
@@ -26,4 +27,5 @@ __all__ = [
     "ModelDirective",
     "RuntimeSnapshot",
     "RuntimeTurnResult",
+    "WorldCapabilityBus",
 ]
