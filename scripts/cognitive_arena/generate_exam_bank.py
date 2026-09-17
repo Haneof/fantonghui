@@ -412,13 +412,30 @@ def persona_ctx(persona: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+def living_tag(persona: Dict[str, Any], rng: random.Random) -> str:
+    """居住/家庭阶段标签必须与人设自洽，避免“已婚+双亲同住”被打上“独居”。"""
+    flags = persona["relationship_flags"]
+    rel = persona["relationship_status"]
+    if flags["single"] and flags["has_child"]:
+        return pick(rng, ["独自带孩子", "单亲双城生活"])
+    if flags["single"]:
+        return pick(rng, ["独居", "一个人租房住"])
+    if "异地" in rel:
+        return pick(rng, ["异地工作", "双城生活"])
+    if flags["married"] and flags["has_child"]:
+        return pick(rng, ["上有老下有小", "与家人同住"])
+    if flags["married"] or flags["partner"]:
+        return pick(rng, ["与家人同住", "共同还贷"])
+    return pick(rng, ["独居", "与家人同住"])
+
+
 def finalize_persona(persona: Dict[str, Any], pressure: str, family: str, defense: str,
                      rng: random.Random) -> Dict[str, Any]:
     persona["background_tags"] = [
         pressure.split("，")[0],
         family.split("，")[0],
         defense.split("，")[0],
-        pick(rng, ["上有老下有小", "独居", "与家人同住", "异地工作", "刚换工作", "常年倒班"]),
+        living_tag(persona, rng),
     ]
     return persona
 
@@ -1588,7 +1605,8 @@ def main() -> int:
                         default=str(REPO_ROOT / "benchmarks/cognitive_arena/papers/exam_bank_1000"),
                         help="输出目录")
     parser.add_argument("--shard-size", type=int, default=100, help="每个分片的题量")
-    parser.add_argument("--start-index", type=int, default=2, help="起始卷号（000001 已用于旗舰卷）")
+    parser.add_argument("--start-index", type=int, default=2001,
+                        help="起始卷号（000001 旗舰卷；001001~002000 为第一季卷宗，本库从 002001 起）")
     args = parser.parse_args()
 
     out_dir = Path(args.out)

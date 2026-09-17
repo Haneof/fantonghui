@@ -188,6 +188,9 @@ def audit_question(question: Dict[str, Any]) -> List[str]:
             if word in blob_all and "单身" not in blob_all.split(word)[0][-20:]:
                 issues.append(f"{qid}: 单身人设出现 {word}")
                 break
+    tags = persona.get("background_tags", [])
+    if "独居" in tags and (flags.get("married") or flags.get("has_child")):
+        issues.append(f"{qid}: 背景标签“独居”与已婚/有子女冲突")
     if question.get("exam_type") != "C" and any(k in blob_all for k in ("住院", "护工", "陪护椅")):
         issues.append(f"{qid}: 非 C 卷出现长辈住院/陪护场景")
 
