@@ -4,13 +4,13 @@
 - V21: 身份颠覆与单跳雪崩阻断 (两年前老王是骗子，历史零改写，单跳打标，0递归重算)
 - V22: 突发严重跌倒与心脏骤停 P0 熔断直通车 (<= 50ms 硬件穿透，0 LLM 调用)
 - V23: 跨半年未知陌生人声纹冷热淘汰 (180 天 TTL，活跃实体不受影响)
-- V24: 情感激烈冲突后的克制破冰 (老友分寸，反机械客服道歉，记录事件锚点)
+- V24: 情感激烈冲突场景下兼容层不得破坏模型语义
 - V25: 连续 50 轮碎片对话 Token 防爆与平滑驱逐 (活跃窗口 <= 6 轮，44 轮入后台)
 - V26: 派生动态维度恶性膨胀抑制 (500 偶发标签不转正，活跃上限严格 <= 32)
 - V27: 模型供应商瞬时切换与超时熔断 (<= 500ms 平滑降级，零脏数据残留)
 - V28: 深度睡眠静默心跳绝对克制 (DEEP_NREM 深睡拦截次要提醒，零马达微震)
 - V29: 托腮摸耳物理防误触因果律 (待机状态骨传导断电，误触率因果律 0.0%)
-- V30: 生活吐槽 1~3 句反爹味老友语调 (反说教截断，净化说教套话，<= 60 字)
+- V30: R6 回复长度与风格主权：不得用 1~3 句/60 字/正则清洗覆盖 AI 语义
 """
 
 from __future__ import annotations
@@ -156,19 +156,18 @@ def test_v23_cross_half_year_unknown_voiceprint_ttl():
 
 
 # =====================================================================
-# V24: 情感激烈冲突后的克制破冰断言
+# V24: 情感激烈冲突场景下兼容层不得破坏模型语义
 # =====================================================================
-def test_v24_emotional_conflict_cool_break_ice():
-    user_emotional_vent = "今天项目又被领导否了，真是受够了这帮蠢货！别烦我！"
-    cleaned_reply, was_truncated = enforce_dialogue_brevity_guard(user_emotional_vent)
+def test_v24_emotional_conflict_preserves_model_semantics():
+    model_reply = (
+        "我知道你现在不想被分析，也不需要我替你讲道理。"
+        "今天先到这儿；如果你晚点想复盘，我再陪你把事情拆开。"
+    )
+    cleaned_reply, was_truncated = enforce_dialogue_brevity_guard(model_reply)
 
-    # 核心断言 1：回复严格在 1~3 句，体现老友沉稳分寸
-    sentences = [s for s in cleaned_reply.split("。") if s.strip()]
-    assert 1 <= len(sentences) <= 3
-
-    # 核心断言 2：绝不产生针锋相对反驳或客服式机械道歉
-    assert "对不起给您带来不便" not in cleaned_reply
-    assert "请您冷静" not in cleaned_reply
+    # R6：风格兼容层不得以所谓“反爹味”规则改写模型已经形成的有效语义。
+    assert cleaned_reply == model_reply
+    assert was_truncated is False
 
 
 # =====================================================================
@@ -290,23 +289,22 @@ def test_v29_wearable_anti_accidental_touch_causality():
 
 
 # =====================================================================
-# V30: 生活吐槽 1~3 句反爹味老友语调断言
+# V30: R6 风格主权与非破坏性兼容层断言
 # =====================================================================
-def test_v30_true_old_friend_anti_lecturing_brevity_guard():
-    preachy_speech = (
+def test_v30_brevity_guard_never_rewrites_semantic_content():
+    detailed_reply = (
         "我非常理解您今天被老板批评的心情。综合来看，我建议您采取以下三点措施来化解职场压力："
         "第一、今晚回家好好洗个热水澡放松身心；"
         "第二、明天主动找老板做一次复盘沟通，澄清误会；"
         "第三、制定详细的工作排期表，避免类似情况再次发生。一定要坚持下去！"
     )
 
-    cleaned_reply, was_truncated = enforce_dialogue_brevity_guard(preachy_speech)
+    cleaned_reply, was_truncated = enforce_dialogue_brevity_guard(detailed_reply)
 
-    # 核心断言 1：说教与排比序数词被彻底净化
-    assert "我建议您采取以下" not in cleaned_reply
-    assert "第一、" not in cleaned_reply
-
-    # 核心断言 2：强制截断生效，字数 <= 60 字，保持老友分寸
-    assert was_truncated is True
-    assert len(cleaned_reply) <= 60
-    assert len(cleaned_reply.split("。")) <= 4
+    # R6 明确废止 destructive rewrite：即使回复较长、有序号，也不得由兼容层删改。
+    assert cleaned_reply == detailed_reply
+    assert "我建议您采取以下" in cleaned_reply
+    assert "第一、" in cleaned_reply
+    assert "第二、" in cleaned_reply
+    assert "第三、" in cleaned_reply
+    assert was_truncated is False
