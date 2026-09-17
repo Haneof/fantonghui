@@ -1,50 +1,48 @@
 """SIM-FEEDER-001 海量虚拟人生底层数据直写入库与容量测算引擎.
 
-依据最高指令长（老大）核心训示：
-1. 坚决废除无意义中间压缩文件，千人千面 3 年底层基础数据直接注入 SQLiteWorldStore；
-2. 五大底层基础数据源：
-   - 传感器（SENSOR）：心率、步数、睡眠、体温等；
-   - MIC 录音转文字（MIC_TRANSCRIPTION）：环境声音、对话切片转文字；
-   - 环境照片转文本描述（CAMERA_CAPTION）：摄像头抓拍画面文字语义描述；
-   - APP 真实数据（APP_DATA）：社交、消费、购物、日程、日历、记事本等；
-   - 与用户的真实日常聊天（USER_CHAT）：日常吐槽、咨询、倾诉与互动；
-3. 出题人核心度量：精确统计单人 3 年全量基础数据在 SQLite 数据库中的物理存储容量（MB/KB）与各类型占比；
-4. 做题人接口：提供按日期切片与流式重放，供 AIOS 原生大脑逐日总结、高阶认知提炼与系统看板/Token 优化。
+该 feeder 只负责把底层原始生活流可靠写入 World/Data Plane；它不承担高阶认知。
+关键纪律：
+1. occurred_at（发生）/ learned_at（获知）/ recorded_at（写入）严格分离；
+2. 原始 MIC/CAMERA/APP/SENSOR 流不得在缺省情况下冒充 AI_COGNITION；
+3. 同一原始输入 replay 必须命中稳定 observation identity，而不是重复制造对象；
+4. “某日生活流”按 occurred time 查询，不按 learned time 偷换时间语义。
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
-import os
-import uuid
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Iterable, Sequence
+from typing import Any, Sequence
 
-from aios_core.contracts.enums import ObjectType, SourceClass
-from aios_core.contracts.ids import new_object_id, new_operation_id
+from aios_core.contracts.enums import SourceClass
+from aios_core.contracts.ids import new_operation_id
 from aios_core.contracts.models import Observation
 from aios_core.contracts.operations import OperationRequest
 from aios_core.contracts.time import TemporalExtent, as_utc, utc_now
+from aios_core.storage.idempotency import canonical_json_dumps
 from aios_core.storage.sqlite_store import SQLiteWorldStore
 
 UTC = timezone.utc
 
 
 class RawStreamKind(str, Enum):
-    """五大底层基础数据流类型（老大钦定）."""
-    SENSOR = "sensor"                      # 物理传感器（心率、步数、睡眠、体温等）
-    MIC_TRANSCRIPTION = "mic_transcription" # MIC 录音与环境对话转文字
-    CAMERA_CAPTION = "camera_caption"       # 环境照片抓拍画面转文字语义描述
-    APP_DATA = "app_data"                   # 社交、消费账单、购物、日程、日历、记事本等
-    USER_CHAT = "user_chat"                 # 与用户的真实日常双向聊天流
+    """五大底层基础数据流类型。"""
+
+    SENSOR = "sensor"
+    MIC_TRANSCRIPTION = "mic_transcription"
+    CAMERA_CAPTION = "camera_caption"
+    APP_DATA = "app_data"
+    USER_CHAT = "user_chat"
 
 
 @dataclass
 class StorageCapacityReport:
-    """单人基础数据落库存储容量测算报告."""
+    """单人基础数据落库存储容量测算报告。"""
+
     subject_id: str
     db_path: str
     total_file_bytes: int
@@ -59,7 +57,6 @@ class StorageCapacityReport:
     daily_avg_observations: float
 
     def summary_markdown(self) -> str:
-        """生成 Markdown 格式的存储容量测算报告."""
         md = [
             f"# 虚拟人 [{self.subject_id}] 3年存储容量测算报告",
             f"- **SQLite 数据库文件路径**: `{self.db_path}`",
@@ -79,13 +76,15 @@ class StorageCapacityReport:
             p_bytes = self.category_payload_bytes.get(cat.value, 0)
             cnt_pct = (cnt / total_cnt) * 100
             byte_pct = (p_bytes / total_payload) * 100
-            md.append(f"| `{cat.value}` | {cnt:,} | {p_bytes:,} B ({p_bytes/1024:.1f} KB) | {cnt_pct:.1f}% | {byte_pct:.1f}% |")
-        
+            md.append(
+                f"| `{cat.value}` | {cnt:,} | {p_bytes:,} B ({p_bytes/1024:.1f} KB) | "
+                f"{cnt_pct:.1f}% | {byte_pct:.1f}% |"
+            )
         return "\n".join(md)
 
 
 class MassiveLifeStoreFeeder:
-    """海量人生底层基础数据直写器与容量测算器."""
+    """海量人生底层基础数据直写器与容量测算器。"""
 
     def __init__(self, db_path: str | Path):
         self.db_path = Path(db_path)
@@ -94,8 +93,37 @@ class MassiveLifeStoreFeeder:
 
     @staticmethod
     def resolve_subject_store_path(base_dir: str | Path, subject_id: str) -> Path:
-        """根据 subject_id 映射独立的 SQLite 数据库路径 (一人一库硬隔离)."""
         return Path(base_dir) / "worlds" / f"{subject_id}.db"
+
+    @staticmethod
+    def _stable_observation_identity(
+        *,
+        subject_id: str,
+        stream_kind: str,
+        content: Any,
+        occurred_at: datetime,
+        modality: str,
+        unit: str | None,
+        raw_metadata: dict[str, Any],
+    ) -> tuple[str, str]:
+        """Return deterministic object id + full digest for one raw fact.
+
+        learned_at / recorded_at are deliberately excluded: replaying the same external
+        fact tomorrow must still address the same raw observation rather than creating a
+        second fact merely because ingestion happened at a different wall-clock time.
+        """
+
+        identity = {
+            "subject_id": subject_id,
+            "stream_kind": stream_kind,
+            "content": content,
+            "occurred_at": as_utc(occurred_at, "occurred_at"),
+            "modality": modality,
+            "unit": unit,
+            "raw_metadata": raw_metadata,
+        }
+        digest = hashlib.sha256(canonical_json_dumps(identity).encode("utf-8")).hexdigest()
+        return f"obs_{digest[:32]}", digest
 
     def record_raw_observation(
         self,
@@ -104,17 +132,26 @@ class MassiveLifeStoreFeeder:
         stream_kind: RawStreamKind | str,
         content: Any,
         occurred_at: datetime,
+        learned_at: datetime | None = None,
+        recorded_at: datetime | None = None,
         modality: str = "text",
         unit: str | None = None,
         raw_metadata: dict[str, Any] | None = None,
         source_class: SourceClass | None = None,
     ) -> Observation:
-        """记录单条原始基础观测并立即写入数据库."""
+        """记录单条原始基础观测并立即写入数据库。
+
+        `occurred_at` 表示世界何时发生；若调用方没有显式提供知识/写入时间，
+        feeder 以当前 ingest 时刻作为 learned_at/recorded_at，而不是倒填为历史发生时刻。
+        """
+
         obs = self._build_observation(
             subject_id=subject_id,
             stream_kind=stream_kind,
             content=content,
             occurred_at=occurred_at,
+            learned_at=learned_at,
+            recorded_at=recorded_at,
             modality=modality,
             unit=unit,
             raw_metadata=raw_metadata,
@@ -129,22 +166,38 @@ class MassiveLifeStoreFeeder:
         stream_kind: RawStreamKind | str,
         content: Any,
         occurred_at: datetime,
+        learned_at: datetime | None,
+        recorded_at: datetime | None,
         modality: str,
         unit: str | None = None,
         raw_metadata: dict[str, Any] | None = None,
     ) -> Observation:
         kind_str = stream_kind.value if isinstance(stream_kind, RawStreamKind) else str(stream_kind)
-        t_aware = as_utc(occurred_at, "occurred_at")
+        occurred_utc = as_utc(occurred_at, "occurred_at")
+        recorded_utc = as_utc(recorded_at or utc_now(), "recorded_at")
+        learned_utc = as_utc(learned_at or recorded_utc, "learned_at")
+
         meta = raw_metadata.copy() if raw_metadata else {}
         meta["raw_stream_kind"] = kind_str
 
+        object_id, digest = self._stable_observation_identity(
+            subject_id=subject_id,
+            stream_kind=kind_str,
+            content=content,
+            occurred_at=occurred_utc,
+            modality=modality,
+            unit=unit,
+            raw_metadata=meta,
+        )
+        meta["ingest_identity_sha256"] = digest
+
         return Observation(
-            object_id=new_object_id(ObjectType.OBSERVATION),
+            object_id=object_id,
             subject_id=subject_id,
             revision=1,
-            occurred=TemporalExtent.point(t_aware),
-            learned_at=t_aware,
-            recorded_at=t_aware,
+            occurred=TemporalExtent.point(occurred_utc),
+            learned_at=learned_utc,
+            recorded_at=recorded_utc,
             source_kind=kind_str,
             modality=modality,
             value=content,
@@ -152,6 +205,42 @@ class MassiveLifeStoreFeeder:
             metadata=meta,
             created_by="life_stream_feeder",
         )
+
+    def _existing_observation_ids(self, observations: Sequence[Observation]) -> set[str]:
+        ids = [obs.object_id for obs in observations]
+        if not ids:
+            return set()
+        found: set[str] = set()
+        # Stay comfortably below SQLite host-parameter limits.
+        with self.store._connection() as conn:
+            for offset in range(0, len(ids), 400):
+                part = ids[offset : offset + 400]
+                placeholders = ",".join("?" for _ in part)
+                rows = conn.execute(
+                    f"SELECT DISTINCT object_id FROM object_revisions WHERE object_id IN ({placeholders})",
+                    part,
+                ).fetchall()
+                found.update(str(row["object_id"]) for row in rows)
+        return found
+
+    @staticmethod
+    def _infer_raw_source_class(observations: Sequence[Observation]) -> SourceClass:
+        kinds = {obs.source_kind for obs in observations}
+        if kinds == {RawStreamKind.USER_CHAT.value}:
+            return SourceClass.USER
+        raw_external = {
+            RawStreamKind.SENSOR.value,
+            RawStreamKind.MIC_TRANSCRIPTION.value,
+            RawStreamKind.CAMERA_CAPTION.value,
+            RawStreamKind.APP_DATA.value,
+        }
+        if kinds and kinds.issubset(raw_external):
+            # SourceClass.SENSOR is the existing deterministic non-AI raw-ingest class.
+            # `source_kind` preserves the exact sensor/mic/camera/app provenance.
+            return SourceClass.SENSOR
+        # Unknown/custom streams must be explicitly classified by callers if they are
+        # not AI-derived. Keep the compatibility fallback only for such custom paths.
+        return SourceClass.AI_COGNITION
 
     def commit_observations(
         self,
@@ -161,36 +250,50 @@ class MassiveLifeStoreFeeder:
         reason: str = "Ingest raw multi-modal life stream",
         source_class: SourceClass | None = None,
     ) -> None:
-        """批量提交观测对象到当前独立数据库 (事务级追加，绝不覆盖历史)."""
+        """批量提交原始观测；同一 deterministic raw identity 的 replay 是 no-op。"""
+
         if not observations:
             return
 
-        inferred_source = source_class
-        if inferred_source is None:
-            kind = observations[0].source_kind
-            if kind == RawStreamKind.SENSOR.value:
-                inferred_source = SourceClass.SENSOR
-            elif kind == RawStreamKind.USER_CHAT.value:
-                inferred_source = SourceClass.USER
-            else:
-                inferred_source = SourceClass.AI_COGNITION
+        existing = self._existing_observation_ids(observations)
+        pending = [obs for obs in observations if obs.object_id not in existing]
+        if not pending:
+            return
 
-        # 分批 commit，避免单次事务过大 (每批最多 500 条)
+        inferred_source = source_class or self._infer_raw_source_class(pending)
+
         chunk_size = 500
-        for i in range(0, len(observations), chunk_size):
-            chunk = observations[i : i + chunk_size]
+        for i in range(0, len(pending), chunk_size):
+            chunk = pending[i : i + chunk_size]
+            chunk_identity = hashlib.sha256(
+                "|".join(sorted(obs.object_id for obs in chunk)).encode("utf-8")
+            ).hexdigest()[:24]
             op = OperationRequest(
                 operation_id=new_operation_id(),
                 operation_name="observation.bulk_ingest",
                 expected_world_revision=self.store.current_world_revision(),
                 reason=reason,
-                idempotency_key=f"ingest_{subject_id}_{uuid.uuid4().hex[:12]}_{i}",
+                idempotency_key=f"ingest_{subject_id}_{chunk_identity}",
                 source_class=inferred_source,
             )
             self.store.commit(chunk, op)
 
+    @staticmethod
+    def _occurred_start(payload: dict[str, Any]) -> datetime | None:
+        occurred = payload.get("occurred")
+        if not isinstance(occurred, dict) or occurred.get("unknown"):
+            return None
+        start = occurred.get("start")
+        if not isinstance(start, str):
+            return None
+        try:
+            return datetime.fromisoformat(start)
+        except (TypeError, ValueError):
+            return None
+
     def measure_storage_capacity(self, subject_id: str) -> StorageCapacityReport:
-        """精准统计该虚拟人专属 SQLite 数据库的磁盘占用与容量指标 (老大切实关注项)."""
+        """统计数据库占用与按现实发生时间计算的人生覆盖跨度。"""
+
         if not self.db_path.exists():
             return StorageCapacityReport(
                 subject_id=subject_id,
@@ -208,7 +311,6 @@ class MassiveLifeStoreFeeder:
             )
 
         file_bytes = self.db_path.stat().st_size
-        # 兼容 WAL 模式下的 wal 与 shm 临时文件尺寸
         wal_path = self.db_path.with_suffix(".db-wal")
         shm_path = self.db_path.with_suffix(".db-shm")
         if wal_path.exists():
@@ -222,13 +324,9 @@ class MassiveLifeStoreFeeder:
         max_date: datetime | None = None
         total_obs = 0
 
-        # 从 SQLite 底层提取真实统计
         with self.store._connection() as conn:
-            # 统计总 commits
             commits_row = conn.execute("SELECT COUNT(*) AS cnt FROM world_commits").fetchone()
             total_commits = commits_row["cnt"] if commits_row else 0
-
-            # 统计 object_revisions 中各 raw_stream_kind 的分布
             rows = conn.execute(
                 """
                 SELECT payload_json, learned_at
@@ -242,22 +340,24 @@ class MassiveLifeStoreFeeder:
                 total_obs += 1
                 payload_str = row["payload_json"]
                 p_len = len(payload_str.encode("utf-8"))
-                dt_str = row["learned_at"]
                 try:
-                    dt = datetime.fromisoformat(dt_str)
+                    payload = json.loads(payload_str)
+                except Exception:
+                    payload = {}
+
+                dt = self._occurred_start(payload)
+                if dt is None:
+                    try:
+                        dt = datetime.fromisoformat(row["learned_at"])
+                    except Exception:
+                        dt = None
+                if dt is not None:
                     if min_date is None or dt < min_date:
                         min_date = dt
                     if max_date is None or dt > max_date:
                         max_date = dt
-                except Exception:
-                    pass
 
-                try:
-                    p = json.loads(payload_str)
-                    sk = p.get("source_kind", "unknown")
-                except Exception:
-                    sk = "unknown"
-
+                sk = payload.get("source_kind", "unknown") if isinstance(payload, dict) else "unknown"
                 cat_counts[sk] = cat_counts.get(sk, 0) + 1
                 cat_payload_bytes[sk] = cat_payload_bytes.get(sk, 0) + p_len
 
@@ -285,24 +385,28 @@ class MassiveLifeStoreFeeder:
         subject_id: str,
         target_date_iso: str,
     ) -> list[dict[str, Any]]:
-        """为做题人 AIOS 大脑提供：查询指定日期（YYYY-MM-DD）的全量基础多模态事实流."""
+        """按现实发生日期查询生活流，而不是按系统获知日期查询。"""
+
         prefix = target_date_iso[:10]
-        results = []
+        matched: list[tuple[datetime, dict[str, Any]]] = []
         with self.store._connection() as conn:
             rows = conn.execute(
                 """
                 SELECT payload_json
                 FROM object_revisions
-                WHERE object_type = 'observation' 
-                  AND subject_id = ?
-                  AND learned_at LIKE ?
-                ORDER BY learned_at ASC
+                WHERE object_type = 'observation' AND subject_id = ?
                 """,
-                (subject_id, f"{prefix}%"),
+                (subject_id,),
             ).fetchall()
-            for r in rows:
+            for row in rows:
                 try:
-                    results.append(json.loads(r["payload_json"]))
+                    payload = json.loads(row["payload_json"])
                 except Exception:
                     continue
-        return results
+                occurred = self._occurred_start(payload)
+                if occurred is None or occurred.date().isoformat() != prefix:
+                    continue
+                matched.append((occurred, payload))
+
+        matched.sort(key=lambda item: item[0])
+        return [payload for _, payload in matched]
