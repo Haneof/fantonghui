@@ -1,4 +1,18 @@
-"""Console - 开发者调试控制台。
+"""AIOS 3.0 Console & Wearable Presentation Package."""
 
-只能通过 aios_core 公共查询接口读取世界，禁止独立 SQL 计算另一套认知。
-"""
+from .app_manifest import AppManifest, AppManifestRegistry
+from .wearable_ui import (
+    CurvedCanvasLayoutSimulator,
+    RenderedCardView,
+    ThreeTierUIManager,
+    ViewportCardType,
+)
+
+__all__ = [
+    "AppManifest",
+    "AppManifestRegistry",
+    "CurvedCanvasLayoutSimulator",
+    "RenderedCardView",
+    "ThreeTierUIManager",
+    "ViewportCardType",
+]

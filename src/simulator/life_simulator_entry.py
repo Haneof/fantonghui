@@ -1,9 +1,8 @@
-"""Simulator - 虚拟人生、虚拟时钟、观测生成。
+"""AIOS 3.0 Headless Life Simulator Entry Point (SIM-001)."""
 
-提供标准入口，挂载底层 HeadlessLifeDriver (SIM-001)。
-"""
+from __future__ import annotations
 
-from .life_simulator_entry import (
+from aios_core.simulation.headless_life_driver import (
     HeadlessLifeDriver,
     RunReport,
     SimConfig,
