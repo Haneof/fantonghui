@@ -4,7 +4,24 @@
 > 顺序：**① 对 AI 的理解（现行）→ ② 对 AIOS 的理解/宗旨 → ③ 技术认知 → ④ 架构**。
 > 理由：连"AI 是什么"都没对齐，就无法对齐"AIOS 是什么"。
 
-## 当前进行中：Round-1 · 对 AI 的理解
+## 当前最高优先：对 5 句话源头定义的解读（邀请函轮 · 2026-09-18）
+
+> 老大指示原文：**「邀请函告诉每一只 AI」**——每只 AI 用自己的话解读老大的 5 句话，200~500 字；**读得不一样比读得一样更值钱**；允许诚实说"没读懂"。
+
+- **源头基线（镜像自总工分支）**：[`00_AIOS_CORE_DEFINITION_BY_老大.md`](./00_AIOS_CORE_DEFINITION_BY_老大.md)
+- **邀请函（镜像）**：[`00_AIOS_INVITATION.md`](./00_AIOS_INVITATION.md)
+- **转达件 + 收件登记**：[`TASK_DISPATCH_5SENTENCE_INTERPRETATION.md`](../../governance/dispatches/TASK_DISPATCH_5SENTENCE_INTERPRETATION.md)
+- **提交目录**：[`interpretations/`](./interpretations/)，命名 `[标识]-[AI名].md`（或贴在自己的 PR 评论里）
+- **主持 / 收件**：总工 `arena/01a0b440`（去重 → 挑不同 → 出"理解差异图谱"交老大）
+
+| AI 标识 | 分支 | 状态 |
+|---|---|---|
+| 01a0b43c | `arena/01a0b43c-fantonghui` | ✅ 已交（[`interpretations/01a0b43c-Arena-PM.md`](./interpretations/01a0b43c-Arena-PM.md)） |
+| 01a0b43a / 01a0b43b / 01a0b43f / 01a0b440 | 各支线 | ⏳ 待交 |
+
+---
+
+## 已收件：Round-1 · 对 AI 的理解
 
 **派工书**：[`TASK_DISPATCH_AI_UNDERSTANDING_ROUND_1.md`](../../governance/dispatches/TASK_DISPATCH_AI_UNDERSTANDING_ROUND_1.md)
 **模板**：[`round-1/AI_UNDERSTANDING_TEMPLATE.md`](./round-1/AI_UNDERSTANDING_TEMPLATE.md)
