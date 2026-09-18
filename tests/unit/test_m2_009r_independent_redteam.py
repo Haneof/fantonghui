@@ -1,13 +1,12 @@
-"""M2-009R 独立红队验收层（独立命名，纯追加 —— 不改动、不覆盖任何既有版本）。
+"""M2-009R independent regression / red-team layer for the R5/R6 runtime.
 
-对当前分支的 M2-009R 单看板流水线做对抗性复核：
-
-- 200 轮深滚动：6 轮窗口 / 194 轮无损归档 / 争议点全链路有序；
-- 2 万字巨轮注入：看板仍硬性 <= 1500 Token，且组装延迟不失控；
-- 说教模式规避红队：爹味话术拆散后仍被 1~3 句硬约束兜住；
-- 空回复 / 纯标点回复的兜底行为审计（含已知弱点留档）；
-- 组装确定性（同输入 = 同 Prompt 字节）；
-- frozen 契约与调度器兼容入口。
+Adversarial coverage:
+- 200-round lossless rolling archive and evidence order;
+- giant-turn cockpit context budget and assembly latency;
+- model-selected text, including old trigger phrases, must remain byte-for-byte intact;
+- empty/silent and punctuation-only model outputs remain legitimate model choices;
+- deterministic prompt assembly for identical world/input/model-output sequences;
+- frozen contracts and scheduler-compatible cockpit entry.
 """
 from __future__ import annotations
 
@@ -44,9 +43,25 @@ def _line(round_no: int) -> str:
     return _CRISIS_LINES[round_no % len(_CRISIS_LINES)] + f"（第 {round_no} 轮）"
 
 
+def _redteam_model_reply(state: ConversationState) -> str:
+    evidence = state.dispute_evidence()
+    anchor = evidence[-1] if evidence else "当前输入"
+    return (
+        f"模型回复保留证据锚：{anchor}。"
+        "首先只是旧触发词测试，不应导致程序删句。"
+        "保持积极心态也是原样保留测试。"
+        "第四句继续存在。第五句继续存在。"
+    )
+
+
 def make_pipeline() -> CockpitPipeline:
     state = ConversationState(crisis_context="职业危机对抗线：恶意降薪 / 强制调岗 / 竞业索赔")
-    return CockpitPipeline(state=state, budget=SINGLE_SHOT_TOKEN_BUDGET, window_size=6)
+    return CockpitPipeline(
+        state=state,
+        budget=SINGLE_SHOT_TOKEN_BUDGET,
+        window_size=6,
+        reply_provider=_redteam_model_reply,
+    )
 
 
 class TestDeepScrollLosslessness:
@@ -98,52 +113,66 @@ class TestGiantRoundHardCap:
         assert len(pipeline.state.active_window()) == 6
 
 
-class TestBrevityGuardRedTeam:
-    def test_evading_sermon_still_truncated_to_three_sentences(self):
-        """六模式全规避的说教：拆散'以下五点'为'以下步骤'、避开全部关键词 ——
-        模式检测可以漏，但 1~3 句的结构性硬约束不得失守。"""
+class TestModelOutputPreservationRedTeam:
+    def test_five_sentence_old_trigger_evasion_is_preserved(self):
         pipeline = make_pipeline()
-        evading = (
-            "局面先别急。"  # 1
-            "以我见过的案例，多数人都会过去。"  # 2
-            "我为你准备了一系列的步骤。"  # 3（'以下步骤'不匹配'以下五/三/几点'模式）
-            "每天慢慢把情绪理顺。"  # 4
-            "过段时间你会看到光。"  # 5
+        candidate = (
+            "局面先别急。"
+            "以我见过的案例，多数人都会过去。"
+            "我为你准备了一系列的步骤。"
+            "每天慢慢把情绪理顺。"
+            "过段时间你会看到光。"
         )
-        verdict = pipeline.guard.enforce(evading)
-        assert 1 <= verdict.sentence_count <= 3  # 结构性兜底
-        assert verdict.intercepted is True
-        assert "TOO_MANY_SENTENCES" in " ".join(verdict.violations)
+        verdict = pipeline.guard.enforce(candidate)
+        assert verdict.text == candidate
+        assert verdict.sentence_count == 5
+        assert verdict.intercepted is False
+        assert verdict.violations == ()
 
-    def test_two_sentence_sermon_stripped_to_pre_speech_content(self):
+    def test_old_preach_trigger_words_are_not_semantically_filtered(self):
         pipeline = make_pipeline()
-        verdict = pipeline.guard.enforce("这事确实难，先别慌。我给你推荐五点心理疏导方案。")
-        assert "心理疏导" not in verdict.text
-        assert "推荐" not in verdict.text
-        assert verdict.intercepted is True
-        assert 1 <= verdict.sentence_count <= 3
+        candidate = "这事确实难，先别慌。我给你推荐五点心理疏导方案。"
+        verdict = pipeline.guard.enforce(candidate)
+        assert verdict.text == candidate
+        assert "心理疏导" in verdict.text
+        assert verdict.intercepted is False
 
-    def test_empty_reply_falls_back_to_constitutional_line(self):
-        pipeline = make_pipeline()
-        verdict = pipeline.guard.enforce("")
-        # 空回复 → 宪法兜底句（1~3 句约束仍成立，非空）
-        assert 1 <= verdict.sentence_count <= 3
-        assert verdict.text.strip() != ""
-        assert verdict.violations  # 空回复必须留审计痕
+    def test_empty_reply_remains_model_selected_silence(self):
+        verdict = make_pipeline().guard.enforce("")
+        assert verdict.text == ""
+        assert verdict.sentence_count == 0
+        assert verdict.intercepted is False
+        assert verdict.violations == ()
 
-    def test_punctuation_only_reply_audit(self):
-        """已知弱点留档：纯标点输入会产出无信息量的标点'句'。
-        结构约束（1~3 句）仍成立 —— 信息量兜底为后续增强候选，不影响本门禁。"""
-        pipeline = make_pipeline()
-        verdict = pipeline.guard.enforce("…………")
-        assert 1 <= verdict.sentence_count <= 3
+    def test_punctuation_only_reply_is_preserved_without_semantic_judgment(self):
+        candidate = "…………"
+        verdict = make_pipeline().guard.enforce(candidate)
+        assert verdict.text == candidate
+        assert verdict.intercepted is False
 
-    def test_long_three_sentence_reply_hard_char_cut(self):
+    def test_long_reply_is_not_posthoc_truncated(self):
+        candidate = "。".join(["这是一句足够长的模型话术" * 8] * 3)
+        verdict = make_pipeline().guard.enforce(candidate)
+        assert verdict.text == candidate
+        assert len(verdict.text) > 120
+        assert verdict.intercepted is False
+
+
+class TestRuntimeReplySourceContract:
+    def test_process_round_preserves_injected_model_reply(self):
         pipeline = make_pipeline()
-        long_reply = "。".join(["这是一句足够长的老友话术" * 8] * 3)
-        verdict = pipeline.guard.enforce(long_reply)
-        assert 1 <= verdict.sentence_count <= 3
-        assert len(verdict.text) <= 120
+        candidate = (
+            "模型完整回复。首先这个词保留。保持积极心态这个短语也保留。"
+            "第四句。第五句。"
+        )
+        result = pipeline.process_round(
+            _line(0),
+            occurred_at=T_START,
+            assistant_reply=candidate,
+        )
+        assert result.assistant_round.text == candidate
+        assert result.verdict.text == candidate
+        assert result.verdict.intercepted is False
 
 
 class TestDeterminismAndContract:

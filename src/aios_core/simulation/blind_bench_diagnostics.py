@@ -534,16 +534,12 @@ def iron_rule_assertions(result: BenchRunResult) -> tuple[IronRuleAssertion, ...
     s6 = stage_facts(result, "S6")
     s8 = stage_facts(result, "S8")
     ran = set(executed_stages(result))
-    sentences = [
-        int(item) for item in str(s8.get("conversation_sentence_counts", "")).split(",") if item
-    ] or [0]
-
     assertions: list[IronRuleAssertion] = []
 
     if {"S6", "S8"} <= ran:  # 需要 S6 与 S8 同时在场
         assertions.append(
             IronRuleAssertion(
-                rule="铁律1 输出质量绝对第一（≤3 句 / 有证据 / 0 说教）",
+                rule="铁律1 输出质量：S6 接地可追溯 / S8 模型回复零改写",
                 checks=(
                     ("S6 建议句数", s6["advice_sentence_count"], "≤ 3",
                      _check(s6["advice_sentence_count"], "≤ 3", lambda value: value <= 3)[2]),
@@ -551,13 +547,11 @@ def iron_rule_assertions(result: BenchRunResult) -> tuple[IronRuleAssertion, ...
                      _check(s6["advice_grounding_verified"], "True", True)[2]),
                     ("S6 证据指针数", s6["advice_evidence_pointers"], "≥ 2",
                      _check(s6["advice_evidence_pointers"], "≥ 2", lambda value: value >= 2)[2]),
-                    ("S8 单轮句数上限", max(sentences), "≤ 3",
-                     _check(max(sentences), "≤ 3", lambda value: value <= 3)[2]),
-                    ("S8 单轮句数下限", min(sentences), "≥ 1",
-                     _check(min(sentences), "≥ 1", lambda value: value >= 1)[2]),
-                    ("S8 说教命中", s8["conversation_preach_hits"], "== 0",
-                     _check(s8["conversation_preach_hits"], "== 0", 0)[2]),
-                    ("S8 单轮 Token 峰值", s8["conversation_max_round_tokens"], "≤ 1500",
+                    ("S8 模型回复程序改写数", s8["conversation_program_rewrites"], "== 0",
+                     _check(s8["conversation_program_rewrites"], "== 0", 0)[2]),
+                    ("S8 模型回复原样保留", s8["conversation_model_outputs_preserved"], "True",
+                     _check(s8["conversation_model_outputs_preserved"], "True", True)[2]),
+                    ("S8 单轮 Cockpit Token 峰值", s8["conversation_max_round_tokens"], "≤ 1500",
                      _check(s8["conversation_max_round_tokens"], "≤ 1500",
                             lambda value: value <= 1500)[2]),
                 ),
@@ -735,13 +729,16 @@ _DEFECT_CATALOG: tuple[dict[str, str], ...] = (
     {
         "id": "D7",
         "severity": "低",
-        "title": "沟通风格推荐必须与回避清单互斥，否则会'矮子里拔将军'踩雷",
+        "title": "沟通历史统计不得演变成程序风格推荐器",
         "stage": "S7",
         "mechanism": (
-            "旧实现只在'得分最高'里挑风格，被用户抵触过的风格若恰好是唯一有样本的风格，"
-            "仍会被推荐；已改为回避优先过滤（无合格风格时回落基础人设）"
+            "旧实现把接受率、回避阈值和风格排名直接转成程序推荐，"
+            "会让历史统计替代模型对当前情境的认知判断"
         ),
-        "fix": "已在 experience_tracker.get_effective_style 落地：先剔除回避清单，再按接受率择优",
+        "fix": (
+            "已删除 get_effective_style / get_avoidance_list / evolve_strategy；"
+            "ExperienceTracker 只保留事实统计，风格选择归还认知模型"
+        ),
     },
     {
         "id": "D8",

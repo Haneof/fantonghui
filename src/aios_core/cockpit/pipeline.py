@@ -40,24 +40,6 @@ SINGLE_SHOT_TOKEN_BUDGET: int = 1500
 #: 易变活动窗口轮数（M2 门禁 2）。
 ACTIVITY_WINDOW_SIZE: int = 6
 
-#: BrevityGuard 老友语调边界（M2 门禁 3）。
-_MAX_SENTENCES = 3
-_MIN_SENTENCES = 1
-_MAX_REPLY_CHARS = 120
-
-#: 合宪兜底句：说教句之前无可用内容时，回落到这条极简老友线。
-_CONSTITUTIONAL_FALLBACK = "这阵仗确实够呛。先把协议原件和调岗通知都留好，咱一条一条捋。"
-
-#: 爹味说教特征模式（命中即拦截，按句剥离）。
-_PREACH_PATTERNS: Tuple[Tuple[str, re.Pattern], ...] = (
-    ("保持积极心态", re.compile(r"保持(一个)?积极(的)?心态")),
-    ("推荐清单", re.compile(r"(为您推荐|给你推荐|以下(五|三|几)(点|条|步))")),
-    ("心理疏导", re.compile(r"心理疏导|情绪管理方案|心灵鸡汤")),
-    ("说教序号", re.compile(r"(首先[，,：:]|其次[，,：:]|综上所述|第[一二三四五][，,：:])")),
-    ("您体称呼", re.compile(r"(亲爱的用户|请您相信|你应该|你需要保持)")),
-    ("专家姿态", re.compile(r"(作为(一位)?(专业|资深|心理)|我建议你应该)")),
-)
-
 _SENTENCE_SPLIT = re.compile(r"(?<=[。！？!?…])")
 
 
