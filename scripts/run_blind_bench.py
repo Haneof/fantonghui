@@ -200,8 +200,8 @@ def render_summary(payload: Mapping[str, Any]) -> str:
             f"（朴素级联需 {f['naive_cascade_recompute_calls']} 次），多跳零触碰 {f['multi_hop_untouched']}"
         ),
         "S6": lambda f: (
-            f"建议 {f['advice_sentence_count']} 句 / {f['advice_chars']} 字 / {f['advice_evidence_pointers']} 条证据指针；"
-            f"证据不足时返回 {f['withheld_kind']}"
+            f"证据包 {f['evidence_packet_hits']} 条候选 / 模型选用 {f['advice_evidence_pointers']} 条；"
+            f"模型输出原样保留 {f['model_output_preserved']}，空检索命中 {f['empty_packet_hits']}"
         ),
         "S7": lambda f: (
             f"三类行动留痕 {f['actions_logged']} 条（介入 {f['interventions']} / 沉默 {f['silences']} / 建议 {f['advices']}），"

@@ -1,44 +1,44 @@
-"""阶段六盲测：共生决策推演与主动帮助（证据接地 + 目标撤销）。"""
+"""S6 blind bench: evidence infrastructure with model-owned advice."""
 
 from __future__ import annotations
 
 from aios_core.simulation.blind_bench_harness import BenchRunResult
 
 
-def test_advice_is_grounded_in_pinned_evidence(bench_run: BenchRunResult) -> None:
+def test_retrieval_returns_pinned_evidence_without_deciding_response(
+    bench_run: BenchRunResult,
+) -> None:
     stage = bench_run.stage("S6")
-    assert stage.fact("advice_kind") == "GroundedAdvice"
-    assert stage.fact("advice_evidence_pointers") >= 2
+    assert stage.fact("evidence_packet_kind") == "EvidencePacket"
+    assert stage.fact("evidence_packet_hits") >= 1
+    assert stage.fact("advice_evidence_pointers") >= 1
     assert stage.fact("advice_grounding_verified") is True
     assert "observation" in stage.fact("advice_evidence_types")
 
 
-def test_advice_respects_brevity_and_quality_gate(bench_run: BenchRunResult) -> None:
+def test_model_owned_advice_is_preserved_without_semantic_gate(
+    bench_run: BenchRunResult,
+) -> None:
     stage = bench_run.stage("S6")
-    assert stage.fact("advice_sentence_count") <= 3
-    assert stage.fact("advice_chars") <= 120
+    assert stage.fact("advice_kind") == "ModelAdviceDecision"
+    assert stage.fact("advice_decision") == "respond"
+    assert stage.fact("model_output_preserved") is True
+    assert stage.fact("program_semantic_gate_applied") is False
+    assert stage.fact("advice_sentence_count") >= 4
     conclusion = stage.fact("advice_conclusion")
-    for banned in ("保持积极心态", "亲爱的用户", "综上所述", "第一，", "心理疏导"):
-        assert banned not in conclusion
+    assert "亲爱的用户" in conclusion
+    assert "首先" in conclusion
+    assert "保持积极心态" in conclusion
+    assert "第五句" in conclusion
 
 
-def test_advice_text_passes_punctuation_hygiene(bench_run: BenchRunResult) -> None:
-    """铁律 1 的可读性硬线：拼接出来的句子必须是干净的人话。"""
-
-    conclusion = bench_run.stage("S6").fact("advice_conclusion")
-    assert conclusion
-    assert not conclusion.startswith(("；", ";", "，", ",", "。", "！", "？"))
-    for smell in ("。。", "！！", "？？", "；；", "，，", "，。", "。，", "；。", "。；"):
-        assert smell not in conclusion
-    assert conclusion.rstrip() == conclusion
-    assert conclusion.endswith(("。", "！", "？"))
-
-
-def test_engine_withholds_when_evidence_is_absent(bench_run: BenchRunResult) -> None:
+def test_empty_retrieval_is_data_not_program_forced_silence(
+    bench_run: BenchRunResult,
+) -> None:
     stage = bench_run.stage("S6")
-    assert stage.fact("withheld_kind") == "AdviceWithheld"
-    assert stage.fact("withheld_evidence_found") == 0
-    assert "证据不足" in stage.fact("withheld_reason")
+    assert stage.fact("empty_packet_kind") == "EvidencePacket"
+    assert stage.fact("empty_packet_hits") == 0
+    assert stage.fact("empty_packet_is_data_not_decision") is True
 
 
 def test_denied_inferred_goal_is_silently_revoked(bench_run: BenchRunResult) -> None:

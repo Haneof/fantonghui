@@ -241,19 +241,18 @@ def test_stage5_dual_lens_keeps_history_intact(gate_harness: BlindBenchHarness) 
 # ----------------------------------------------------------------------
 
 
-def test_stage6_advice_is_hardcore_and_evidence_backed(
+def test_stage6_model_advice_is_evidence_backed_and_unrewritten(
     gate_harness: BlindBenchHarness,
 ) -> None:
     stage6 = gate_harness.stage6
     assert stage6 is not None, "S6 必须已运行"
-    assert stage6.advice_count >= 2, "合伙纠纷与通宵早搏两条线都必须给出硬核建议"
-    assert stage6.evidence_pointers_total >= 4, "建议必须挂历史事实因果指针"
-    assert stage6.evidence_pointers_resolved == stage6.evidence_pointers_total, (
-        "全部证据指针必须能在库里解析到真实对象"
-    )
-    assert stage6.boilerplate_hits == (), f"不得出现客服八股：{stage6.boilerplate_hits}"
-    assert all(1 <= count <= 3 for count in stage6.sentence_counts), (
-        f"结论必须是 1~3 句可直接读的硬话，实际 {stage6.sentence_counts}"
+    assert stage6.advice_count >= 2
+    assert stage6.evidence_pointers_total >= 4
+    assert stage6.evidence_pointers_resolved == stage6.evidence_pointers_total
+    assert stage6.advice_program_rewrites == 0
+    assert stage6.model_outputs_preserved is True
+    assert max(stage6.sentence_counts) >= 4, (
+        "盲测必须包含超过 3 句的模型建议，以证明程序不再做句数截断"
     )
 
 

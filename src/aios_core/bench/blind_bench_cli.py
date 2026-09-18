@@ -38,7 +38,7 @@ STAGES: Mapping[str, str] = {
 #: 铁律核账：每条铁律在盲测中的可核对断言（阶段 → 断言说明）。
 IRON_LAW_CHECKS: Mapping[str, tuple[str, ...]] = {
     "IRON_LAW_1_OUTPUT_QUALITY": (
-        "S6 建议带证据指针且零客服八股",
+        "S6 模型建议引用可解且程序零改写",
         "S7 模型沟通决策原样保留、反馈事实可追溯、协议畸形可拒绝",
         "S8 模型回复零改写且 Cockpit 上下文 1500 Token 内",
     ),
@@ -86,8 +86,8 @@ def iron_law_report(harness: BlindBenchHarness) -> Dict[str, Any]:
         "holds": holds(
             s6
             and s6.evidence_pointers_resolved == s6.evidence_pointers_total
-            and not s6.boilerplate_hits
-            and all(count <= 3 for count in s6.sentence_counts)
+            and s6.advice_program_rewrites == 0
+            and s6.model_outputs_preserved
             and s7
             and s7.feedback_coverage == 1.0
             and s7.model_content_preserved
@@ -100,7 +100,8 @@ def iron_law_report(harness: BlindBenchHarness) -> Dict[str, Any]:
         ),
         "evidence": {
             "S6_pointers": f"{s6.evidence_pointers_resolved}/{s6.evidence_pointers_total}" if s6 else None,
-            "S6_boilerplate_hits": list(s6.boilerplate_hits) if s6 else None,
+            "S6_advice_program_rewrites": s6.advice_program_rewrites if s6 else None,
+            "S6_model_outputs_preserved": s6.model_outputs_preserved if s6 else None,
             "S7_feedback_coverage": s7.feedback_coverage if s7 else None,
             "S7_protocol_rejected": (
                 f"{s7.protocol_rejected}/{s7.protocol_samples}" if s7 else None

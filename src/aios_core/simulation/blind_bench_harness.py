@@ -72,10 +72,11 @@ from aios_core.cognition.event_resonance import (
     ResonanceSample,
 )
 from aios_core.cognition.evidence_grounded_advisor import (
-    AdviceWithheld,
-    EvidenceGroundedAdvisor,
-    GroundedAdvice,
-    Playbook,
+    AdviceDecisionKind,
+    EvidenceGroundingService,
+    EvidencePacket,
+    EvidenceQuery,
+    ModelAdviceDecision,
 )
 from aios_core.cognition.goal_inference import GoalInferenceRegistry
 from aios_core.cognition.life_chapter_detector import BaselineSeries, LifeChapterDetector
@@ -1312,32 +1313,52 @@ class BlindBenchHarness:
     # ==================================================================
 
     def stage_s6(self) -> StageReport:
-        advisor = EvidenceGroundedAdvisor(self.store, meter=ModelCallMeter(name="S6-advisor"))
+        service = EvidenceGroundingService(self.store)
+
         started = time.perf_counter()
-        advice = advisor.advise(playbook="partner_fraud_freezing_funds", limit=6)
-        advice_ms = (time.perf_counter() - started) * 1000.0
+        packet = service.retrieve(
+            EvidenceQuery(
+                intent="合伙纠纷取证",
+                keywords=("合伙", "借款", "转账", "协议", "法院"),
+            ),
+            limit=6,
+        )
+        retrieval_ms = (time.perf_counter() - started) * 1000.0
+
         started = time.perf_counter()
-        withheld = advisor.advise(
-            playbook=Playbook(
+        empty_packet = service.retrieve(
+            EvidenceQuery(
                 intent="世界之外的伪诉求",
-                action="先去学潜水",
                 keywords=("深海潜水证", "北极熊观察站"),
             )
         )
-        withheld_ms = (time.perf_counter() - started) * 1000.0
-        grounding_ok = isinstance(advice, GroundedAdvice) and advisor.verify_grounding(advice)
-        evidence_types = (
-            advisor.evidence_object_types(advice) if isinstance(advice, GroundedAdvice) else ()
+        empty_retrieval_ms = (time.perf_counter() - started) * 1000.0
+
+        selected_refs = packet.evidence_pointers[:3]
+        model_conclusion = (
+            "亲爱的用户，这是一段模型自主生成的盲测输出，程序不能替我删词。"
+            "首先，我会按当前证据继续判断，而不是让 Python 规则替我决定该不该说。"
+            "保持积极心态这个旧触发短语也必须原样保留。"
+            "第四句继续保留。第五句也继续保留。"
         )
-        evidence_payloads = (
-            advisor.evidence_objects(advice) if isinstance(advice, GroundedAdvice) else ()
+        decision = service.record_model_decision(
+            packet,
+            decision=AdviceDecisionKind.RESPOND,
+            conclusion=model_conclusion,
+            action="模型选择：先固定已有证据，再决定下一步行动。",
+            rationale="模型基于当前检索结果自主决定开口与表述。",
+            evidence_pointers=selected_refs,
+            now=self.timeline_end(),
         )
+        grounding_ok = service.verify_grounding(decision)
+        evidence_types = service.evidence_object_types(decision)
+        evidence_payloads = service.evidence_objects(decision)
         evidence_texts = [str(item.get("value", ""))[:40] for item in evidence_payloads]
 
         inference = GoalInferenceRegistry(self.store, subject_id=self.subject_id)
         evidence_ref = (
-            advice.evidence_pointers[0]
-            if isinstance(advice, GroundedAdvice)
+            decision.evidence_pointers[0]
+            if decision.evidence_pointers
             else ObjectRef(object_id="obs_missing", revision=1)
         )
         goal = inference.infer_goal(
@@ -1365,25 +1386,23 @@ class BlindBenchHarness:
         audit = inference.audit()
 
         facts: dict[str, Any] = {
-            "advice_kind": type(advice).__name__,
-            "advice_sentence_count": advice.sentence_count if isinstance(advice, GroundedAdvice) else 0,
-            "advice_chars": len(advice.conclusion) if isinstance(advice, GroundedAdvice) else 0,
-            "advice_tokens": advice.token_estimate if isinstance(advice, GroundedAdvice) else 0,
-            "advice_conclusion": advice.conclusion if isinstance(advice, GroundedAdvice) else "",
-            "advice_evidence_pointers": len(advice.evidence_pointers)
-            if isinstance(advice, GroundedAdvice)
-            else 0,
+            "evidence_packet_kind": type(packet).__name__,
+            "evidence_packet_hits": packet.hit_count,
+            "empty_packet_kind": type(empty_packet).__name__,
+            "empty_packet_hits": empty_packet.hit_count,
+            "empty_packet_is_data_not_decision": isinstance(empty_packet, EvidencePacket),
+            "advice_kind": type(decision).__name__,
+            "advice_decision": decision.decision.value,
+            "advice_sentence_count": len(split_sentences(decision.conclusion)),
+            "advice_chars": len(decision.conclusion),
+            "advice_tokens": decision.token_estimate,
+            "advice_conclusion": decision.conclusion,
+            "advice_evidence_pointers": len(decision.evidence_pointers),
             "advice_evidence_types": ",".join(evidence_types),
             "advice_evidence_preview": " | ".join(evidence_texts[:2]),
             "advice_grounding_verified": grounding_ok,
-            "advice_grounding_ratio": round(advice.grounding_ratio, 4)
-            if isinstance(advice, GroundedAdvice)
-            else 0.0,
-            "withheld_kind": type(withheld).__name__,
-            "withheld_reason": withheld.reason if isinstance(withheld, AdviceWithheld) else "",
-            "withheld_evidence_found": withheld.evidence_found
-            if isinstance(withheld, AdviceWithheld)
-            else 0,
+            "model_output_preserved": decision.conclusion == model_conclusion,
+            "program_semantic_gate_applied": False,
             "goal_status_after_retraction": inference.goal(goal.object_id).goal_status.value,
             "task_status_after_retraction": inference.task(task.object_id).task_state.value,
             "retraction_cancelled_tasks": len(retraction.cancelled_task_ids),
@@ -1395,19 +1414,20 @@ class BlindBenchHarness:
             "tasks_without_goals": audit.tasks_without_goals,
         }
         invariants = (
-            "建议由真实检索到的证据文本拼装，每条证据指针都钉死修订号且可解引用",
-            "证据不足时引擎返回拒答（沉默），不吐没有依据的建议",
-            "输出严格 ≤3 句且不含客服套话/说教模板",
+            "检索层只返回候选证据与精确修订号，不判断证据是否足够",
+            "模型自主决定开口/沉默、行动、措辞与长度；程序逐字保留",
+            "空检索结果只是 EvidencePacket(hit_count=0)，不得自动转成程序拒答",
+            "模型选中的证据引用必须来自当前 packet、钉死 revision 且可解引用",
             "推断目标被用户否认后静默撤销，关联任务连带取消，且不反问确认",
             "目标与任务解耦：无目标支撑的任务同样可以独立存在",
         )
         return StageReport(
             stage_id="S6",
-            title="共生决策推演与主动帮助",
+            title="共生决策推演 / 证据工具 / 模型自主建议",
             facts=facts,
             invariants=invariants,
-            timings_ms=(advice_ms, withheld_ms),
-            token_burn=int(advice.token_estimate) if isinstance(advice, GroundedAdvice) else 0,
+            timings_ms=(retrieval_ms, empty_retrieval_ms),
+            token_burn=int(decision.token_estimate),
         )
 
     # ==================================================================

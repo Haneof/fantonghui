@@ -183,8 +183,9 @@ class StageSixResult:
     evidence_pointer_counts: tuple[int, ...]
     evidence_pointers_resolved: int
     evidence_pointers_total: int
-    boilerplate_hits: tuple[str, ...]
     sentence_counts: tuple[int, ...]
+    advice_program_rewrites: int
+    model_outputs_preserved: bool
     task_id: str
     task_llm_calls_while_dormant: int
     task_tokens_while_dormant: int

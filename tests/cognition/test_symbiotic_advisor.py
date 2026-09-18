@@ -1,60 +1,59 @@
-import pytest
-from aios_core.cognition.symbiotic_advisor import (
-    ActionableAdvice,
-    MomBirthdayGiftAdvisor,
-    FraudPreventionAdvisor,
-    HealthFatigueBreakerAdvisor
+from datetime import datetime, timezone
+
+import aios_core.cognition.symbiotic_advisor as legacy
+from aios_core.cognition.evidence_grounded_advisor import (
+    AdviceDecisionKind,
+    ModelAdviceDecision,
 )
 from aios_core.contracts.refs import ObjectRef
 
-def test_mom_birthday_gift_advisor():
-    advisor = MomBirthdayGiftAdvisor()
-    advice = advisor.advise()
-    
-    assert isinstance(advice, ActionableAdvice)
-    
-    # Assert causality facts (ObjectRef) are included
-    assert len(advice.evidence_pointers) > 0
-    assert all(isinstance(ptr, ObjectRef) for ptr in advice.evidence_pointers)
-    
-    evidence_ids = [ptr.object_id for ptr in advice.evidence_pointers]
-    assert "obs_2023_scarf_idle" in evidence_ids
-    assert "obs_2024_footbath_backache" in evidence_ids
-    assert "obs_2025_massage_chair_good" in evidence_ids
-    assert "obs_2026_knee_cold" in evidence_ids
-    
-    # Assert gift decision rules
-    assert "足浴盆" in advice.conclusion
-    assert "膝盖" in advice.conclusion
-    assert "理疗" in advice.conclusion
-    assert "饰品" in advice.conclusion
+UTC = timezone.utc
 
-def test_fraud_prevention_advisor():
-    advisor = FraudPreventionAdvisor()
-    advice = advisor.advise()
-    
-    assert isinstance(advice, ActionableAdvice)
-    assert len(advice.evidence_pointers) > 0
-    assert all(isinstance(ptr, ObjectRef) for ptr in advice.evidence_pointers)
-    
-    evidence_ids = [ptr.object_id for ptr in advice.evidence_pointers]
-    assert "court_ruling_chaoyang_fraud" in evidence_ids
-    assert "obs_2_years_ago_wechat_delay" in evidence_ids
-    
-    assert "追偿" in advice.conclusion
-    assert "阻击" in advice.conclusion
 
-def test_health_fatigue_breaker_advisor():
-    advisor = HealthFatigueBreakerAdvisor()
-    advice = advisor.advise()
-    
-    assert isinstance(advice, ActionableAdvice)
-    assert len(advice.evidence_pointers) > 0
-    assert all(isinstance(ptr, ObjectRef) for ptr in advice.evidence_pointers)
-    
-    evidence_ids = [ptr.object_id for ptr in advice.evidence_pointers]
-    assert "obs_thursday_overnight_work" in evidence_ids
-    assert "obs_pvc_arrhythmia" in evidence_ids
-    
-    assert "熔断" in advice.conclusion
-    assert "心电图" in advice.conclusion
+def test_hardcoded_advisor_classes_are_removed() -> None:
+    for name in (
+        "MomBirthdayGiftAdvisor",
+        "FraudPreventionAdvisor",
+        "HealthFatigueBreakerAdvisor",
+    ):
+        assert not hasattr(legacy, name)
+
+
+def test_legacy_actionable_advice_is_only_a_model_decision_contract() -> None:
+    text = (
+        "亲爱的用户，这只是模型自主输出。"
+        "首先这个旧触发词必须原样保留。"
+        "保持积极心态也不能被 Python 正则删掉。"
+        "第四句保留。第五句继续保留。"
+    )
+    decision = legacy.ActionableAdvice(
+        decision=AdviceDecisionKind.RESPOND,
+        intent="test",
+        conclusion=text,
+        action="model-selected action",
+        rationale="model-selected rationale",
+        evidence_pointers=(ObjectRef(object_id="obs_1", revision=1),),
+        produced_at=datetime(2026, 9, 18, tzinfo=UTC),
+        token_estimate=123,
+    )
+    assert isinstance(decision, ModelAdviceDecision)
+    assert decision.conclusion == text
+    assert decision.action == "model-selected action"
+
+
+def test_model_decision_contract_requires_pinned_evidence() -> None:
+    try:
+        legacy.ActionableAdvice(
+            decision=AdviceDecisionKind.RESPOND,
+            intent="test",
+            conclusion="reply",
+            action=None,
+            rationale="why",
+            evidence_pointers=(ObjectRef(object_id="obs_1", revision=None),),
+            produced_at=datetime(2026, 9, 18, tzinfo=UTC),
+            token_estimate=1,
+        )
+    except ValueError as exc:
+        assert "pin an exact revision" in str(exc)
+    else:
+        raise AssertionError("unpinned evidence must be rejected structurally")

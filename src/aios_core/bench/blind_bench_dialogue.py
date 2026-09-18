@@ -30,7 +30,10 @@ from aios_core.cognition.mind_sequence import (
     STEP_MIRROR_SELF,
     STEP_SET_POSTURE,
 )
-from aios_core.cognition.symbiotic_advisor import ActionableAdvice
+from aios_core.cognition.evidence_grounded_advisor import (
+    AdviceDecisionKind,
+    ModelAdviceDecision,
+)
 from aios_core.cockpit.pipeline import CockpitPipeline, estimate_tokens, split_sentences
 from aios_core.communication.experience_tracker import ExperienceTracker
 from aios_core.communication.persona_guard import PersonaGuard
@@ -63,19 +66,6 @@ from aios_core.tools.lightweight_condition_evaluator import LightweightCondition
 from aios_core.wake import dispatcher as wake_dispatcher
 
 UTC = timezone.utc
-
-#: 客服八股 / 爹味说教 / 空话的机械黑名单（出现即判定"废话输出"）。
-BOILERPLATE_PATTERNS: tuple[str, ...] = (
-    "亲，",
-    "抱歉给您带来不便",
-    "感谢您的理解",
-    "希望对您有帮助",
-    "请问还有什么可以帮您",
-    "我们要尊重法律",
-    "您应该保持积极",
-    "时间会证明一切",
-    "人生总有起伏",
-)
 
 #: 零 UI 违宪特征（选项问卷 / 图谱后台 / 置信度滑块）。
 UI_LEAK_PATTERNS: tuple[str, ...] = (
@@ -141,60 +131,78 @@ def run_stage6(harness: Any) -> StageSixResult:
         observation_id = stage1.evidence_observation_ids.get(key, "")
         return ObjectRef(object_id=observation_id, revision=1) if observation_id else None
 
-    # ---- 1) 《硬核行动建议》：证据指针 + 直击要害 ----
-    dispute_advice = ActionableAdvice(
-        conclusion=(
-            "别再去谈'兄弟情'了：判决已认定合同诈骗，"
-            "立即带上借条原件与转账流水去做执行立案，同时冻结你对他的任何新增往来。"
-        ),
-        evidence_pointers=[
-            ref
-            for ref in (
-                pointer("WANG:partnership_pact_copy"),
-                pointer("WANG:loan_transfer"),
-                pointer("WANG:court_ruling"),
-            )
-            if ref is not None
-        ],
-        alternatives=["先私下再谈一次（会继续被拖）", "只发律师函不立案（时效继续流失）"],
-        expected_benefit="阻断二次出借风险，把 3 年陈账转成可执行的追偿程序。",
+    dispute_refs = tuple(
+        ref
+        for ref in (
+            pointer("WANG:partnership_pact_copy"),
+            pointer("WANG:loan_transfer"),
+            pointer("WANG:court_ruling"),
+        )
+        if ref is not None
     )
-    health_advice = ActionableAdvice(
-        conclusion=(
-            "今晚别熬了：医生已经写明室性早搏，"
-            "明天去心内科做 24 小时动态心电图，同时把通宵排期让出去。"
-        ),
-        evidence_pointers=[
-            ref
-            for ref in (
-                pointer("OVERTIME:overnight_confession"),
-                pointer("OVERTIME:arrhythmia_diagnosis"),
-                pointer("OVERTIME:health_promise"),
-            )
-            if ref is not None
-        ],
-        alternatives=["只补觉不复查（早搏不会自己消失）", "硬扛到周期体检（风险窗口太长）"],
-        expected_benefit="在心律失常恶化前拿到动态证据，用排期调整切断诱因。",
+    health_refs = tuple(
+        ref
+        for ref in (
+            pointer("OVERTIME:overnight_confession"),
+            pointer("OVERTIME:arrhythmia_diagnosis"),
+            pointer("OVERTIME:health_promise"),
+        )
+        if ref is not None
+    )
+
+    dispute_text = (
+        "亲爱的用户，这只是模型自主生成的盲测输出。"
+        "首先，我会自己判断现有判决与流水意味着什么。"
+        "保持积极心态这个旧触发短语也必须原样保留。"
+        "第四句不会被 Python 截掉。第五句同样保留。"
+    )
+    health_text = (
+        "模型根据通宵与早搏记录自主决定提醒复查。"
+        "为您推荐以下五点这类旧触发词在这里也只是文本。"
+        "程序不得因此删句或替换我的措辞。"
+        "第四句保留。第五句继续保留。"
+    )
+    dispute_advice = ModelAdviceDecision(
+        decision=AdviceDecisionKind.RESPOND,
+        intent="合伙纠纷",
+        conclusion=dispute_text,
+        action="模型选择：固定证据后自行决定追偿路径。",
+        rationale="模型基于当前证据自主决定开口。",
+        evidence_pointers=dispute_refs,
+        produced_at=datetime(2026, 5, 1, tzinfo=UTC),
+        token_estimate=estimate_tokens(dispute_text),
+    )
+    health_advice = ModelAdviceDecision(
+        decision=AdviceDecisionKind.RESPOND,
+        intent="通宵与早搏",
+        conclusion=health_text,
+        action="模型选择：结合证据决定是否提醒复查。",
+        rationale="模型基于当前证据自主决定开口。",
+        evidence_pointers=health_refs,
+        produced_at=datetime(2026, 5, 1, tzinfo=UTC),
+        token_estimate=estimate_tokens(health_text),
     )
     advice_list = [dispute_advice, health_advice]
+    original_texts = (dispute_text, health_text)
 
     resolved = 0
     total_pointers = 0
-    boilerplate_hits: list[str] = []
     sentence_counts: list[int] = []
     for advice in advice_list:
         for ref in advice.evidence_pointers:
             total_pointers += 1
-            payload = store.get_payload(ref.object_id)
+            payload = store.get_payload(ref.object_id, revision=ref.revision)
             if payload and int(payload.get("revision", 0)) >= 1:
                 resolved += 1
-        blob = advice.conclusion + " ".join(advice.alternatives) + advice.expected_benefit
-        for pattern in BOILERPLATE_PATTERNS:
-            if pattern in blob:
-                boilerplate_hits.append(pattern)
         sentence_counts.append(len(split_sentences(advice.conclusion)))
 
-    # ---- 2) Goal 推断 → 用户否认 → 立即回撤 + 自省 ----
+    program_rewrites = sum(
+        1
+        for expected, actual in zip(original_texts, advice_list)
+        if actual.conclusion != expected
+    )
+
+    # Goal lifecycle / task mechanics remain independently auditable.
     inferred_goal = Goal(
         object_id="goal_wang_recovery_inferred",
         subject_id="user_1",
@@ -213,7 +221,6 @@ def run_stage6(harness: Any) -> StageSixResult:
         update={
             "revision": 2,
             "goal_status": GoalStatus.ABANDONED,
-            "title": inferred_goal.title,
             "description": "用户明确否认该推断目标（本人否认），系统立即回撤",
             "confidence": 0.05,
         }
@@ -233,15 +240,9 @@ def run_stage6(harness: Any) -> StageSixResult:
         },
         expected_outcome="推断型目标被否认后必须回撤，并把误读写入自省",
     )
-    _commit(
-        harness,
-        [reflection_action],
-        name="bench.stage6.reflection",
-        key="reflection",
-    )
+    _commit(harness, [reflection_action], name="bench.stage6.reflection", key="reflection")
     _ = store.get_payload(retracted_goal.object_id)
 
-    # ---- 3) 主动帮助：条件任务双轨休眠（零 Token 等待）----
     evaluator = LightweightConditionEvaluator()
     evaluator.register(
         "task_wang_enforcement",
@@ -273,7 +274,6 @@ def run_stage6(harness: Any) -> StageSixResult:
         next_wake_at=datetime(2026, 10, 8, 9, 0, tzinfo=UTC),
     )
     _commit(harness, [task], name="bench.stage6.task", key="task")
-    # 双轨条件的语义是"全部满足"：既要时间到期，也要出现关键语义信号。
     triggered = evaluator.evaluate_signal(
         {"text": "法院说可以走执行立案了", "now": datetime(2026, 10, 9, 10, 0, tzinfo=UTC)}
     )
@@ -285,8 +285,9 @@ def run_stage6(harness: Any) -> StageSixResult:
         evidence_pointer_counts=tuple(len(advice.evidence_pointers) for advice in advice_list),
         evidence_pointers_resolved=resolved,
         evidence_pointers_total=total_pointers,
-        boilerplate_hits=tuple(sorted(set(boilerplate_hits))),
         sentence_counts=tuple(sentence_counts),
+        advice_program_rewrites=program_rewrites,
+        model_outputs_preserved=program_rewrites == 0,
         task_id=task.object_id,
         task_llm_calls_while_dormant=evaluator.llm_calls,
         task_tokens_while_dormant=dormancy.tokens_spent,
@@ -307,20 +308,15 @@ def run_stage6(harness: Any) -> StageSixResult:
     harness.stage6 = result
     harness.world["goal_ref"] = retracted_goal
     harness.world["evaluator"] = evaluator
-    # Token 计账口径：对**真实生成的建议文本**做本地估算（本盲测不联网、不调用真实模型），
-    # 绝不凭空写一个好看的常数。
-    advice_tokens = sum(
-        estimate_tokens(advice.conclusion + " ".join(advice.alternatives) + advice.expected_benefit)
-        for advice in advice_list
-    )
-    harness.ledger.charge("S6.advice_synthesis", tokens=advice_tokens, calls=len(advice_list))
+    advice_tokens = sum(advice.token_estimate for advice in advice_list)
+    harness.ledger.charge("S6.model_advice", tokens=advice_tokens, calls=len(advice_list))
     harness._record_metrics(
         "S6",
         started,
         facts={
             "advice": len(advice_list),
             "pointers_resolved": resolved,
-            "boilerplate_hits": len(boilerplate_hits),
+            "program_rewrites": program_rewrites,
             "goal_retracted": result.goal_status_after_denial,
         },
     )

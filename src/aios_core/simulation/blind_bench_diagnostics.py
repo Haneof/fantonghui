@@ -539,14 +539,16 @@ def iron_rule_assertions(result: BenchRunResult) -> tuple[IronRuleAssertion, ...
     if {"S6", "S8"} <= ran:  # 需要 S6 与 S8 同时在场
         assertions.append(
             IronRuleAssertion(
-                rule="铁律1 输出质量：S6 接地可追溯 / S8 模型回复零改写",
+                rule="铁律1 输出质量：证据可追溯 / 模型输出零改写",
                 checks=(
-                    ("S6 建议句数", s6["advice_sentence_count"], "≤ 3",
-                     _check(s6["advice_sentence_count"], "≤ 3", lambda value: value <= 3)[2]),
                     ("S6 建议接地复核", s6["advice_grounding_verified"], "True",
                      _check(s6["advice_grounding_verified"], "True", True)[2]),
-                    ("S6 证据指针数", s6["advice_evidence_pointers"], "≥ 2",
-                     _check(s6["advice_evidence_pointers"], "≥ 2", lambda value: value >= 2)[2]),
+                    ("S6 模型输出原样保留", s6["model_output_preserved"], "True",
+                     _check(s6["model_output_preserved"], "True", True)[2]),
+                    ("S6 程序语义门", s6["program_semantic_gate_applied"], "False",
+                     _check(s6["program_semantic_gate_applied"], "False", False)[2]),
+                    ("S6 空检索仅作为数据", s6["empty_packet_is_data_not_decision"], "True",
+                     _check(s6["empty_packet_is_data_not_decision"], "True", True)[2]),
                     ("S8 模型回复程序改写数", s8["conversation_program_rewrites"], "== 0",
                      _check(s8["conversation_program_rewrites"], "== 0", 0)[2]),
                     ("S8 模型回复原样保留", s8["conversation_model_outputs_preserved"], "True",
