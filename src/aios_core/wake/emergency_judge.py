@@ -91,7 +91,7 @@ class EmergencyDialogueJudge:
         :param user_speech: 用户现场语音转写文本；如果为 None、空字符串或静默占位，则代表无回应。
         :param vital_snapshot: 现场传感器快照（G 值、心率、早搏、定位等）。
         :param llm_callable: 可选的大模型完成接口。若提供，系统将组装专业 Prompt 交给模型直接推理；
-                             若未提供，系统使用内置大模型同源语义因果推演器。
+                             若未提供，系统使用保守的确定性安全 fallback；该 fallback 不是大模型认知，只用于模型不可用时的 fail-safe。
         """
         vitals = vital_snapshot or {}
         cleaned_speech = (user_speech or "").strip()
@@ -146,7 +146,7 @@ class EmergencyDialogueJudge:
                 return decision
 
         # ---------------------------------------------------------------
-        # 3. 内置大模型语义推演（覆盖否定、转折、隐性心梗与第三人称）
+        # 3. 确定性安全 fallback（模型不可用时；不得冒充大模型语义认知）
         # ---------------------------------------------------------------
         return self._semantic_reasoning(cleaned_speech, vitals)
 
@@ -207,7 +207,7 @@ class EmergencyDialogueJudge:
         if has_cardiac_stroke:
             reason = (
                 f"佩戴者在跌倒后自述包含严重心血管/脑卒中先兆特征（检测到匹配词汇）。"
-                f"尽管用户可能未主动求救，但医学常识判定属于极高危急性发作，大模型推翻常规等待，强制呼叫救护车！"
+                f"尽管用户可能未主动求救，但医学常识判定属于极高危急性发作，确定性安全 fallback 触发保守升级，强制呼叫救护车！"
             )
             payload = {"reason": reason, "vital_snapshot": vitals, "trigger_phrase": text}
             dispatched = dispatch_emergency_phone_call(self.default_ambulance_number, payload)
@@ -232,7 +232,7 @@ class EmergencyDialogueJudge:
         explicit_negation = any(neg in lower for neg in ["不要叫", "别叫", "不用叫", "别打", "不用打", "不要打"])
         
         if wants_help and not explicit_negation:
-            reason = "佩戴者或在场人员明确呼救并要求派遣急救力量，大模型确认真实求救意图，立即触发拨号。"
+            reason = "佩戴者或在场人员明确呼救并要求派遣急救力量，确定性安全 fallback 命中明确求救信号，立即触发拨号。"
             payload = {"reason": reason, "vital_snapshot": vitals, "user_speech": text}
             dispatched = dispatch_emergency_phone_call(self.default_ambulance_number, payload)
             return EmergencyDecision(

@@ -2,7 +2,8 @@
 
 > 状态：ACTIVE  
 > 最后更新：2026-09-18  
-> 施工基线：`c0f2bc26528cf35c65994d9223b3b424be526e68`
+> 施工起始基线：`c0f2bc26528cf35c65994d9223b3b424be526e68`  
+> 2026-09-18 Runtime Realignment 代码 Gate：`90b13abf93bb82e100e5580621349f0deca307d6` / Actions `35302643287` SUCCESS
 
 本文件是 AIOS 运行时、测试、Agent 派工和审计解释“当前到底以哪套规范为准”的唯一注册入口。它不替代正文，只登记生效状态、解释优先级与冲突裁决规则。
 
@@ -68,3 +69,16 @@ Recall 阈值、排序偏好、关系/沟通策略、主动介入策略、摘要
 2. `governance/runtime_policy.json` 的 `constitution_baseline` 必须与本 registry 对齐。
 3. 所有新 Gate 测试应引用具体法统语义，不得用历史产品偏好冒充宪法硬边界。
 4. 任何 Agent 开工前，若发现本文与正文状态不一致，必须先停止新增功能并修复法统注册漂移。
+
+
+## 6. 2026-09-18 Runtime Realignment 裁决
+
+本轮正式裁决如下：
+
+1. `CognitiveRuntime` / `CognitiveExecutor` 为新认知执行主路径；Legacy `CockpitExecutor` 不再是 `ai_worker` 顶层默认入口。
+2. Search / Recall 只提供候选、结构导航与检索证据；不得用关键词、对象类型固定 boost、注记固定最高权重等机制冒充最终认知相关性。
+3. “1~3 句 / 60 字”只允许作为普通口语软偏好；任何 production post-processor 不得据此截断、删除、替换模型语义。
+4. deep lane 可由 AI 因证据不足或任务复杂度主动进入；用户显式请求不是唯一入口。
+5. P0 硬约束解释为：**首个硬件安全动作前**不得调用 LLM / World；首动作完成后可进入受控 EmergencyDialogueJudge 认知研判。
+6. Legacy DimensionEvolution 的 2域/3天/30天/70% 等语义阈值当前仅属 offline experimental defaults；迁入 R6 Cognitive Policy 前不得重新接入正式 Runtime。
+7. 任何后续测试若重新把固定 thought order、自然语言 blacklist、硬句数/字数、内置世界同义词、固定 cognitive threshold 提升为不可变真理，应判为 regression，而不是“恢复旧功能”。

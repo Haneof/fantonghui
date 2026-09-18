@@ -1,22 +1,16 @@
-"""M3-001R 动态维度衍生三重硬门限状态机（坚决捍卫铁律 5）。
+"""LEGACY/OFFLINE EXPERIMENTAL — dynamic-dimension evolution guard.
 
-工单：``arena/agent-cognition-m3-001r`` -> ``src/aios_core/dimensions/evolution_guard.py``
+This module preserves the historical M3-001R experiment and its regression tests.
+It is NOT imported by the R5 CognitiveRuntime / AI Worker production path.
 
-宪法铁律 5
---------------------------------------------------------------------------
-**严禁 AI 无休止地自言自语、虚假自省导致系统维度爆炸。**
-端侧算力有限，认知维度必须极度克制——所以"衍生一个新维度"不是灵感，而是**审批**：
+The historical 2-domain / 3-day / 30-day / 70% / daily-quota values below are
+legacy experiment defaults, not immutable cognitive truth. Under R6 they must be
+represented as versioned Cognitive Policy (evidence-backed, scoped, mutable and
+rollbackable) before any future production Runtime integration.
 
-* 门限一（物理跨域持续异常）：必须跨越 **≥2 个物理域**，且持续 **≥3 天**，才允许提交候选；
-* 门限二（30 天试用期 + 预测检验）：候选必须在 **30 天**内给出连续的认知解释力与
-  **预测准确率 ≥ 70%**，否则自动 **EXPIRED**；
-* 门限三（每日反思配额）：每日新维度自省评估配额严格为 **1 次**，超额抛
-  :class:`QuotaExceededBlockError`。
-
-外加两条硬纪律：
-
-* **活跃维度全局容量扩展至 512+**：解除早期 32 维度狭隘硬编码限制，释放认知容量支持真实人生多维无界生长，满员时按"活跃度 x 贡献度"自适应淘汰末位；
-* **自问自答死循环熔断**：恶意 Prompt 诱导反思套娃时，在**第 2 层递归直接物理切断**。
+The deterministic recursion/resource fuse and capacity protections remain useful
+engineering/safety mechanisms. Do not reconnect the semantic promotion thresholds
+to the production Executive Plane merely because this module still exists.
 """
 
 from __future__ import annotations
@@ -62,7 +56,7 @@ __all__ = [
     "ReviewOutcome",
 ]
 
-# ---- 三重门限参数（工单口径，全部可审计）----
+# ---- Legacy experiment defaults. R6 semantic thresholds require Policy Registry before production use. ----
 GATE1_MIN_DOMAINS: Final[int] = 2
 GATE1_MIN_DAYS: Final[int] = 3
 DIMENSION_TRIAL_DAYS: Final[int] = 30

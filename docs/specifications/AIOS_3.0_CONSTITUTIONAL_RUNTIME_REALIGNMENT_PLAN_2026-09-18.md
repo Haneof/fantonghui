@@ -224,3 +224,31 @@ G0 法统唯一化
 ```
 
 **G4 完成前禁止继续堆叠新的“聪明模块”。**
+
+## 12. 2026-09-18 执行结果
+
+本计划已完成一次完整 Runtime Realignment 施工与 code Gate。  
+代码候选 `90b13abf93bb82e100e5580621349f0deca307d6` 的 GitHub Actions run `35302643287`：
+
+- 主测试：1537 passed / 10 skipped / 0 failed
+- reference contract suite：15 passed / 0 failed
+- workflow conclusion：SUCCESS
+
+### 已达到
+- G0 法统 registry 与 R5/R6 解释统一
+- G1 废法测试清理并恢复 CI
+- G2 双时间/来源/replay identity 纠偏
+- G3 production rule-brain 主路径清理
+- G4 R5 CognitiveRuntime + CapabilityRegistry + CognitiveExecutor 主路径建立
+- G5 Raw Turn + ConversationWorkingState 持久闭环建立
+- G6 AI Self World versioned/evidence-backed foundation 建立
+- G7 R6 CognitivePolicyRegistry 与 runtime mutation capability 建立
+- G9 destructive brevity shim 等废路径清理、Worker 默认入口切换、全量回归通过
+
+### 仍属下一阶段
+- G4 全量 capability catalog 尚未补齐
+- G6 AI Self World 的完整高阶对象/评估仍需扩展
+- G7 legacy cognitive thresholds 尚未全部迁移
+- G8 Cognitive Arena 2.0 仍为 PARTIAL，不得写成 CLOSED
+
+因此本轮结论是：**Runtime Realignment MERGE PASS；不是“AIOS 3.0 全部开发完成”。**
