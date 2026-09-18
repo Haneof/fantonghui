@@ -317,12 +317,13 @@ def test_v30_brevity_guard_never_rewrites_semantic_content():
         "第三、制定详细的工作排期表，避免类似情况再次发生。一定要坚持下去！"
     )
 
-    cleaned_reply, was_truncated = enforce_dialogue_brevity_guard(detailed_reply)
+    verdict = BrevityGuard().enforce(detailed_reply)
 
     # R6 明确废止 destructive rewrite：即使回复较长、有序号，也不得由兼容层删改。
-    assert cleaned_reply == detailed_reply
-    assert "我建议您采取以下" in cleaned_reply
-    assert "第一、" in cleaned_reply
-    assert "第二、" in cleaned_reply
-    assert "第三、" in cleaned_reply
-    assert was_truncated is False
+    assert verdict.text == detailed_reply
+    assert "我建议您采取以下" in verdict.text
+    assert "第一、" in verdict.text
+    assert "第二、" in verdict.text
+    assert "第三、" in verdict.text
+    assert verdict.intercepted is False
+    assert verdict.violations == ()
