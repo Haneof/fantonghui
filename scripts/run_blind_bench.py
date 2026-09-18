@@ -204,8 +204,9 @@ def render_summary(payload: Mapping[str, Any]) -> str:
             f"证据不足时返回 {f['withheld_kind']}"
         ),
         "S7": lambda f: (
-            f"三类行动留痕 {f['actions_logged']} 条（开口 {f['interventions']} / 沉默 {f['silences']} / 建议 {f['advices']}），"
-            f"反谄媚 {f['anti_sycophancy_triggered']}、反爹味 {f['anti_lecturer_triggered']}，零界面 {f['ui_prompts_issued']}"
+            f"三类行动留痕 {f['actions_logged']} 条（介入 {f['interventions']} / 沉默 {f['silences']} / 建议 {f['advices']}），"
+            f"模型决策原样保留 {f['model_decisions_preserved']}、反馈证据覆盖 {f['feedback_evidence_coverage']:.0%}，"
+            f"零界面 {f['ui_prompts_issued']}"
         ),
         "S8": lambda f: (
             f"看板 {f['manifest_total_tokens']}/{f['manifest_budget']} Token、0 次提问；"

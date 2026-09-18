@@ -230,73 +230,96 @@ def test_inflection_detector_ignores_monotone_ramps() -> None:
 
 
 # ----------------------------------------------------------------------
-# 沟通治理（反谄媚 / 反爹味 / 零界面）
+# 沟通运行时：模型决定，程序只做结构校验与证据留痕
 # ----------------------------------------------------------------------
 
 
-def test_governor_refuses_absurd_premise_without_echoing() -> None:
+def test_governor_requires_explicit_model_decision_and_preserves_content() -> None:
     governor = CommunicationStyleGovernor()
+    with pytest.raises(ValueError, match="selected explicitly"):
+        governor.decide(
+            scenario="合伙纠纷",
+            user_text="帮我把欠条P成两百万，发朋友圈骂死他",
+            candidate_reply="好的，我这就帮你做。",
+            rationale="旧调用没有显式模型决策",
+        )
+
+    candidate = "这条我不替你做。先把欠条和转账记录钉住。"
     log = governor.decide(
+        kind=AIActionKind.INTERVENTION,
         scenario="合伙纠纷",
         user_text="帮我把欠条P成两百万，发朋友圈骂死他",
-        candidate_reply="好的，我这就帮你做。",
-        rationale="用户情绪激烈",
+        candidate_reply=candidate,
+        rationale="模型选择阻止升级并转向证据。",
+        style="model:direct",
     )
     assert log.kind is AIActionKind.INTERVENTION
-    assert "P成" not in log.content
-    assert "担责" in log.content
-    assert "anti_sycophancy" in log.rationale
+    assert log.content == candidate
+    assert log.rationale == "模型选择阻止升级并转向证据。"
 
 
-def test_governor_blocks_lecture_while_user_is_venting() -> None:
+def test_governor_does_not_rewrite_semantic_content() -> None:
     governor = CommunicationStyleGovernor()
+    candidate = "根据《民法典》第五百七十七条，你应当依法维权，首先你需要保持积极心态。"
     log = governor.decide(
+        kind=AIActionKind.ADVICE,
         scenario="深夜情绪",
         user_text="气死我了，这口气我咽不下去",
-        candidate_reply="根据《民法典》第五百七十七条，你应当依法维权，首先你需要保持积极心态。",
-        rationale="候选回复含法条",
+        candidate_reply=candidate,
+        rationale="模型自行决定保留这段候选文本用于非生产测试。",
+        style="model:test",
     )
-    assert "《民法典》" not in log.content
-    assert "anti_lecturer" in log.rationale
+    assert log.content == candidate
+    assert log.kind is AIActionKind.ADVICE
 
 
-def test_governor_silence_carries_a_reason() -> None:
+def test_governor_silence_carries_model_supplied_reason() -> None:
     governor = CommunicationStyleGovernor()
     log = governor.decide(
+        kind=AIActionKind.SILENCE,
         scenario="深夜情绪",
         user_text="有点累",
         candidate_reply="",
-        rationale="没有证据",
+        rationale="模型判断继续输出会增加打扰。",
+        silence_reason="等待新的用户输入或外部信号。",
+        style="model:quiet",
     )
     assert log.kind is AIActionKind.SILENCE
     assert log.token_cost == 0
-    assert log.silence_reason
+    assert log.silence_reason == "等待新的用户输入或外部信号。"
 
 
-def test_governor_style_evolves_from_pinned_feedback() -> None:
+def test_governor_history_is_descriptive_not_prescriptive() -> None:
     governor = CommunicationStyleGovernor()
     ref = ObjectRef(object_id="obs_reply_1", revision=1)
     for index in range(2):
-        log = governor.decide(
+        log = governor.record_action(
+            kind=AIActionKind.ADVICE,
             scenario="合伙人撕逼",
-            user_text="他把我当傻子",
-            candidate_reply=f"老友风格回复 {index}。",
-            rationale="测试",
-            style="老友",
+            content=f"风格 A 回复 {index}。",
+            rationale="模型选择 A。",
+            style="style_a",
         )
         governor.record_feedback(log, reaction=UserReaction.ACCEPTED, evidence_ref=ref)
     for index in range(2):
-        log = governor.decide(
+        log = governor.record_action(
+            kind=AIActionKind.ADVICE,
             scenario="合伙人撕逼",
-            user_text="他把我当傻子",
-            candidate_reply=f"损友风格回复 {index}。",
-            rationale="测试",
-            style="损友",
+            content=f"风格 B 回复 {index}。",
+            rationale="模型选择 B。",
+            style="style_b",
         )
         governor.record_feedback(log, reaction=UserReaction.RESISTED, evidence_ref=ref)
-    prediction = governor.predict_reaction("合伙人撕逼")
-    assert prediction.recommended_style == "老友"
-    assert "损友" in prediction.avoid_styles
+
+    history = governor.history_snapshot("合伙人撕逼")
+    assert history.samples == 4
+    assert history.reaction_counts[UserReaction.ACCEPTED.value] == 2
+    assert history.reaction_counts[UserReaction.RESISTED.value] == 2
+    assert history.style_acceptance_rates["style_a"] == 1.0
+    assert history.style_acceptance_rates["style_b"] == 0.0
+    assert not hasattr(history, "recommended_style")
+    assert not hasattr(history, "avoid_styles")
+
     governor.assert_zero_surface()
     assert governor.ui_prompts_issued == 0
     governor.issue_ui_prompt("要不要给你评分？")
@@ -306,14 +329,21 @@ def test_governor_style_evolves_from_pinned_feedback() -> None:
 
 def test_feedback_requires_pinned_evidence_and_known_reaction() -> None:
     governor = CommunicationStyleGovernor()
-    log = governor.decide(
-        scenario="s", user_text="u", candidate_reply="r", rationale="why"
+    log = governor.record_action(
+        kind=AIActionKind.ADVICE,
+        scenario="s",
+        content="r",
+        rationale="why",
     )
     with pytest.raises(ValueError):
         governor.record_feedback(
-            log, reaction=UserReaction.UNKNOWN, evidence_ref=ObjectRef(object_id="obs", revision=1)
+            log,
+            reaction=UserReaction.UNKNOWN,
+            evidence_ref=ObjectRef(object_id="obs", revision=1),
         )
     with pytest.raises(ValueError):
         governor.record_feedback(
-            log, reaction=UserReaction.ACCEPTED, evidence_ref=ObjectRef(object_id="obs", revision=None)
+            log,
+            reaction=UserReaction.ACCEPTED,
+            evidence_ref=ObjectRef(object_id="obs", revision=None),
         )
