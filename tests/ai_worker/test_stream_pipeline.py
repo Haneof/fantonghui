@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 
-from ai_worker.brevity_guard import enforce_dialogue_brevity_guard
 from ai_worker.cockpit_executor import CockpitExecutor
 from ai_worker.context_pipeline import ContextAssemblyPipeline
 from ai_worker.manifest_optimizer import CockpitManifestOptimizer
@@ -217,10 +216,6 @@ def test_cockpit_executor_preserves_ai_semantics_without_length_cap():
     assert res_routine.reply == routine_reply
     assert res_routine.raw_reply == routine_reply
     assert res_routine.was_brevity_truncated is False
-
-    preserved, changed = enforce_dialogue_brevity_guard(routine_reply)
-    assert preserved == routine_reply
-    assert changed is False
 
     detailed_reply = (
         "既然你想展开听，我给你盘盘这三个维度的具体因果：首先是体征连续3天心率偏高，"
