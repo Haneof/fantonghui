@@ -1,27 +1,12 @@
-"""驾驶舱全景调度：单次加载的 CockpitManifest 与不可变四步心法顺序（阶段八核心算子）。
+"""Single-load cockpit manifest with stable layout and model-owned navigation.
 
-宪法依据
---------
-* 第 30 章 / 第八十六条：驾驶舱是**单次加载**的最小看板 —— 一次读世界，绝不
-  来回问用户"你最近怎么样 / 你想聊什么"；
-* 心法四步（不可换序、不可跳过）：
-  ① 照镜子看自己 → ② 校准羁绊看关系 → ③ 确立姿态定语调 → ④ 审视现场看世界；
-  顺序本身就是防雪崩与防跑偏的结构：先自省、再关系、再姿态、最后才看外部现场；
-* 第六条：零界面（black-box）—— 看板不向用户弹出任何问题、问卷或滑杆。
+The manifest keeps a deterministic four-lens serialization layout for cache
+stability, rendering, and token accounting. The layout is not a prescribed
+reasoning sequence. The cognitive runtime may inspect, revisit, and update any
+lens in any order.
 
-为什么既有实现不够
-------------------
-``CockpitPipeline`` 解决的是"对话中看板 Prompt 的 Token 预算"，但**世界全景的
-一次装载**是另一件事：没有清单（Manifest），每个环节都要各自再去翻世界，既
-浪费 I/O，也无法保证"四步心法"的顺序不被调用方随手打乱。
-
-本模块给出：
-
-1. :class:`MindOrderManifestLoader` —— **恰好一次**世界读取（``list_payloads``
-   单次装载），把全部对象按四个透镜分桶，产出有硬 Token 上限的
-   :class:`CockpitManifest`；
-2. :class:`MindOrderSession` —— 心法四步的强制顺序执行器：跳步、回退、乱序
-   一律 ``MindOrderViolation``，并统计"向用户提问次数"（必须恒为 0）。
+MindOrderManifestLoader performs one world read and builds the bounded manifest.
+MindOrderSession records runtime lens access without replacing model cognition.
 """
 
 from __future__ import annotations
@@ -72,7 +57,7 @@ _HIGHLIGHT_CHARS = 48
 
 
 class MindLens(StrEnum):
-    """心法四步对应的四个透镜（顺序即宪法顺序）。"""
+    """Four cockpit information lenses; enum order is only layout metadata."""
 
     SELF = "self"
     BOND = "bond"
@@ -80,7 +65,7 @@ class MindLens(StrEnum):
     SCENE = "scene"
 
 
-#: 不可变心法顺序 —— 任何重排都是违宪。
+#: Stable manifest serialization layout. This is not a cognitive execution order.
 MIND_ORDER: tuple[MindLens, ...] = (
     MindLens.SELF,
     MindLens.BOND,
@@ -126,7 +111,7 @@ _SELF_DIMENSIONS = ("dim_health", "dim_work")
 
 
 class MindOrderViolation(ValueError):
-    """心法顺序违宪（跳步、乱序、回退）。"""
+    """Structural cockpit manifest/session violation."""
 
 
 class ManifestHighlight(BaseModel):
@@ -171,7 +156,7 @@ class ManifestSection(BaseModel):
         if self.order_index != expected:
             raise MindOrderViolation(
                 f"section {self.lens.value} claims order_index {self.order_index}, "
-                f"the immutable mind order fixes it at {expected}"
+                f"the stable manifest layout places it at {expected}"
             )
         if self.title != MIND_ORDER_TITLES[self.lens.value]:
             raise MindOrderViolation("section title must be the constitutional step title")
@@ -202,7 +187,7 @@ class CockpitManifest(BaseModel):
         order = tuple(section.lens for section in self.sections)
         if order != MIND_ORDER:
             raise MindOrderViolation(
-                f"manifest sections must follow the immutable mind order {[m.value for m in MIND_ORDER]}"
+                f"manifest sections must follow the stable layout {[m.value for m in MIND_ORDER]}"
             )
         for index, section in enumerate(self.sections):
             if section.order_index != index:
@@ -227,7 +212,7 @@ class CockpitManifest(BaseModel):
         )
 
     def render(self) -> str:
-        """渲染为极简文本（四步顺序固定，供大模型单次读取）。"""
+        """Render the bounded manifest in stable display layout."""
 
         lines: list[str] = []
         for section in self.sections:
@@ -424,19 +409,18 @@ class MindOrderManifestLoader:
 
 
 class MindOrderSession:
-    """心法四步的强制顺序执行器（乱序/跳步/回退一律拦截）。"""
+    """Record model/runtime lens access while keeping layout deterministic."""
 
     def __init__(self, *, subject_id: str = "user_1") -> None:
         self.subject_id = subject_id
-        self._cursor = 0
         self._visited: list[MindLens] = []
         self._questions = 0
         self._steps: dict[str, Any] = {}
 
-    # ------------------------------------------------------------------
-
     @property
     def visited(self) -> tuple[MindLens, ...]:
+        """Actual runtime call history; it is audit evidence, not a legal order."""
+
         return tuple(self._visited)
 
     @property
@@ -445,46 +429,45 @@ class MindOrderSession:
 
     @property
     def next_step(self) -> MindLens | None:
-        return MIND_ORDER[self._cursor] if self._cursor < len(MIND_ORDER) else None
+        """Convenience hint: first missing layout slot, never an execution mandate."""
+
+        for lens in MIND_ORDER:
+            if lens.value not in self._steps:
+                return lens
+        return None
 
     def run_step(self, lens: MindLens, producer: Callable[[MindLens], Any]) -> Any:
-        """执行心法第 N 步；顺序不符立即 ``MindOrderViolation``。"""
+        """Populate or revise any known lens in the model-selected order."""
 
-        expected = self.next_step
-        if expected is None:
-            raise MindOrderViolation("all four mind steps are already sealed for this session")
-        if lens is not expected:
-            raise MindOrderViolation(
-                f"mind order is immutable: expected {expected.value}, got {lens.value}"
-            )
+        if lens not in MIND_ORDER:
+            raise MindOrderViolation(f"unknown cockpit lens {lens!r}")
         result = producer(lens)
         self._visited.append(lens)
         self._steps[lens.value] = result
-        self._cursor += 1
         return result
 
     def step_result(self, lens: MindLens) -> Any:
         if lens.value not in self._steps:
-            raise MindOrderViolation(f"step {lens.value} has not been executed yet")
+            raise MindOrderViolation(f"lens {lens.value} has not been populated")
         return self._steps[lens.value]
 
     def ask_user(self) -> None:
-        """零界面纪律：会话不得向用户提问（问卷/滑杆/往返确认都被视为提问）。"""
+        """Track surface questions; product policy may separately require zero UI."""
 
         self._questions += 1
 
     def seal(self) -> tuple[MindLens, ...]:
-        """封印：四步全走完才算一次完整心法。"""
+        """Seal only when every required manifest slot is present."""
 
-        if self._cursor != len(MIND_ORDER):
-            missing = [lens.value for lens in MIND_ORDER[self._cursor :]]
-            raise MindOrderViolation(f"mind session is incomplete; missing steps: {missing}")
-        return self.visited
-
-    # ------------------------------------------------------------------
+        missing = [lens.value for lens in MIND_ORDER if lens.value not in self._steps]
+        if missing:
+            raise MindOrderViolation(f"mind session is incomplete; missing lenses: {missing}")
+        return MIND_ORDER
 
     @staticmethod
     def order_is_legal(candidate: Iterable[MindLens]) -> bool:
-        """顺序合法性检查（供外部审计调用，不修改任何状态）。"""
+        """A complete unique lens set is legal regardless of runtime order."""
 
-        return tuple(candidate) == MIND_ORDER
+        items = tuple(candidate)
+        return len(items) == len(MIND_ORDER) and set(items) == set(MIND_ORDER)
+

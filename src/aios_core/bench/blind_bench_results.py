@@ -223,7 +223,8 @@ class StageEightResult:
     manifest_token_count: int
     manifest_budget: int
     single_load_assemblies: int
-    manifest_order_strict: bool
+    manifest_layout_stable: bool
+    runtime_call_order: tuple[str, ...]
     p0_iterations: int
     p0_latency_p50_ms: float
     p0_latency_p99_ms: float

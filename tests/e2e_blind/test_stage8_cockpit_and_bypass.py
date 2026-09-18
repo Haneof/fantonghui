@@ -15,12 +15,16 @@ def test_manifest_is_a_single_load_minimal_dashboard(bench_run: BenchRunResult) 
     assert stage.fact("manifest_section_order") == "self,bond,stance,scene"
 
 
-def test_mind_order_is_immutable(bench_run: BenchRunResult) -> None:
+def test_mind_lenses_allow_runtime_order_with_stable_layout(
+    bench_run: BenchRunResult,
+) -> None:
     stage = bench_run.stage("S8")
-    assert stage.fact("mind_order_reorder_blocked") is True
-    assert stage.fact("mind_order_sealed") == "self,bond,stance,scene"
+    assert stage.fact("mind_arbitrary_order_accepted") is True
+    assert stage.fact("mind_runtime_order") == "scene,self,stance,bond"
+    assert stage.fact("mind_layout_sealed") == "self,bond,stance,scene"
     assert MindOrderSession.order_is_legal(MIND_ORDER) is True
-    assert MindOrderSession.order_is_legal((MIND_ORDER[3], *MIND_ORDER[:3])) is False
+    assert MindOrderSession.order_is_legal((MIND_ORDER[3], *MIND_ORDER[:3])) is True
+    assert MindOrderSession.order_is_legal((MIND_ORDER[0],) * 4) is False
 
 
 def test_p0_hardware_bypass_preempts_the_world_model(bench_run: BenchRunResult) -> None:

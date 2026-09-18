@@ -6,7 +6,7 @@
   并且 Goal/Task 解耦 —— 用户否认被推断的目标时立刻回撤并自省；
 * **S7**：AI 自己的世界维护（每次介入/沉默/建议 + 真实反馈入库）、沟通风格博弈
   （损友/老友 vs 说教）与人设三防线（反谄媚、反教师爷、黑盒零 UI）；
-* **S8**：单次装载的驾驶舱 + 严格不可逆四步序、P0 硬旁路 ≤50ms 且 0 次大模型调用、
+* **S8**：单次装载的驾驶舱 + 稳定信息布局/模型自主访问、P0 硬旁路 ≤50ms 且 0 次大模型调用、
   条件任务双轨休眠零 Token 空转、多轮极简对话（1~3 句）与 1500 Token 硬预算。
 """
 
@@ -24,18 +24,11 @@ from aios_core.bench.blind_bench_results import (
 )
 from aios_core.cognition.mind_sequence import (
     MIND_SEQUENCE,
-    MindSequenceError,
     MindSequenceRunner,
     STEP_CALIBRATE_BOND,
     STEP_INSPECT_FIELD,
     STEP_MIRROR_SELF,
     STEP_SET_POSTURE,
-)
-from aios_core.cognition.self_reflection import (
-    CockpitSelfSummaryOperator,
-    DynamicRapportModel,
-    HumanlikeResponsePostureDecider,
-    SelfIdentityMirror,
 )
 from aios_core.cognition.symbiotic_advisor import ActionableAdvice
 from aios_core.cockpit.pipeline import CockpitPipeline, estimate_tokens, split_sentences
@@ -502,49 +495,51 @@ def run_stage8(harness: Any) -> StageEightResult:
     if stage1 is None:
         raise RuntimeError("run_stage8 requires run_stage1")
 
-    # ---- 1) 严格不可逆四步序 + 单次装载驾驶舱 ----
+    # ---- 1) 稳定驾驶舱布局 + 模型自主访问顺序 ----
     runner = MindSequenceRunner()
     runner.begin()
-    order_violation_blocked = False
-    try:
-        runner.advance(STEP_SET_POSTURE, {"posture": "抢先定调"}, tokens=10)
-    except MindSequenceError:
-        order_violation_blocked = True
-    mirror = SelfIdentityMirror().reflect()
-    runner.advance(
-        STEP_MIRROR_SELF,
-        {"identity": mirror["identity"], "principles": mirror["principles"]},
-        tokens=118,
-    )
-    ctx = runner.context_for(STEP_CALIBRATE_BOND)
-    runner.advance(
-        STEP_CALIBRATE_BOND,
-        {
-            "tier": "TRUSTED_WINGMAN",
-            "trust_score": 128.0,
-            "prior": sorted(ctx),
-        },
-        tokens=96,
-    )
-    runner.advance(
-        STEP_SET_POSTURE,
-        {"posture": "CRITICAL_SPOKEN", "tone": "老友直给，不废话"},
-        tokens=54,
-    )
-    runner.advance(
+    runtime_order = (
         STEP_INSPECT_FIELD,
-        {
+        STEP_MIRROR_SELF,
+        STEP_SET_POSTURE,
+        STEP_CALIBRATE_BOND,
+    )
+    payloads: dict[str, Mapping[str, Any]] = {
+        STEP_INSPECT_FIELD: {
             "evidence": [
                 _evidence_snippet(harness, "WANG:court_ruling", 30),
                 _evidence_snippet(harness, "OVERTIME:arrhythmia_diagnosis", 30),
-            ],
-            "recommended_action": "执行立案 + 24 小时动态心电图",
+            ]
         },
-        tokens=612,
-    )
+        STEP_MIRROR_SELF: {
+            "identity": "AIOS AI 驾驶员",
+            "principles": ["证据优先", "历史可追溯", "安全硬边界优先"],
+        },
+        STEP_SET_POSTURE: {
+            "cognitive_owner": "model",
+            "posture": "model_decides",
+        },
+        STEP_CALIBRATE_BOND: {
+            "relationship": "evidence-linked",
+            "score": None,
+        },
+    }
+    slot_tokens = {
+        STEP_INSPECT_FIELD: 612,
+        STEP_MIRROR_SELF: 118,
+        STEP_SET_POSTURE: 54,
+        STEP_CALIBRATE_BOND: 96,
+    }
+    for step in runtime_order:
+        runner.advance(step, payloads[step], tokens=slot_tokens[step])
+
     manifest = runner.as_manifest()
     single_load_assemblies = runner.runs
     sequence_complete = runner.completed
+    manifest_layout_stable = (
+        tuple(item["step"] for item in manifest["steps"]) == MIND_SEQUENCE
+    )
+    runtime_call_order = runner.runtime_call_order()
 
     # ---- 2) P0 硬旁路：≤50ms、0 次大模型调用、世界模型让路 ----
     cockpit = CockpitPipeline()
@@ -705,7 +700,8 @@ def run_stage8(harness: Any) -> StageEightResult:
         manifest_token_count=int(manifest["token_count"]),
         manifest_budget=1500,
         single_load_assemblies=single_load_assemblies,
-        manifest_order_strict=sequence_complete and order_violation_blocked,
+        manifest_layout_stable=sequence_complete and manifest_layout_stable,
+        runtime_call_order=runtime_call_order,
         p0_iterations=iterations,
         p0_latency_p50_ms=round(p0_p50, 4),
         p0_latency_p99_ms=round(p0_p99, 4),

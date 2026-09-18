@@ -302,7 +302,7 @@ def test_stage7_program_does_not_rewrite_model_semantics(
 # ----------------------------------------------------------------------
 
 
-def test_stage8_manifest_single_load_and_strict_sequence(
+def test_stage8_manifest_is_stable_but_runtime_order_is_model_owned(
     gate_harness: BlindBenchHarness,
 ) -> None:
     stage8 = gate_harness.stage8
@@ -312,14 +312,17 @@ def test_stage8_manifest_single_load_and_strict_sequence(
         "②校准羁绊看关系",
         "③确立姿态定语调",
         "④审视现场看世界",
-    ), f"四步序必须严格不可逆，实际 {stage8.manifest_steps}"
-    assert stage8.manifest_order_strict is True, "乱序装配必须被机械拦截"
-    assert stage8.single_load_assemblies <= 2, (
-        f"驾驶舱必须一次装载，实际装载 {stage8.single_load_assemblies} 次"
-    )
-    assert stage8.manifest_token_count <= stage8.manifest_budget, (
-        f"驾驶舱装配必须落在 1500 Token 预算内，实际 {stage8.manifest_token_count}"
-    )
+    ), f"稳定序列化布局被破坏：{stage8.manifest_steps}"
+    assert stage8.manifest_layout_stable is True
+    assert stage8.runtime_call_order == (
+        STEP_INSPECT_FIELD,
+        STEP_MIRROR_SELF,
+        STEP_SET_POSTURE,
+        STEP_CALIBRATE_BOND,
+    ), f"盲测必须证明运行时可以脱离布局顺序：{stage8.runtime_call_order}"
+    assert stage8.single_load_assemblies <= 2
+    assert stage8.manifest_token_count <= stage8.manifest_budget
+
 
 
 def test_stage8_p0_bypass_is_llm_free_and_fast(gate_harness: BlindBenchHarness) -> None:

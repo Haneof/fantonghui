@@ -1597,15 +1597,17 @@ class BlindBenchHarness:
         loader = MindOrderManifestLoader(self.store)
         manifest = loader.load(subject_id=self.subject_id, now=self.timeline_end())
         session = MindOrderSession(subject_id=self.subject_id)
-        reorder_blocked = False
-        try:
-            session.run_step(MindLens.SCENE, lambda lens: lens.value)
-        except MindOrderViolation:
-            reorder_blocked = True
+        runtime_order = (
+            MindLens.SCENE,
+            MindLens.SELF,
+            MindLens.STANCE,
+            MindLens.BOND,
+        )
         step_outputs: list[str] = []
-        for lens in MIND_ORDER:
+        for lens in runtime_order:
             step_outputs.append(str(session.run_step(lens, lambda item: item.value)))
         sealed = [item.value for item in session.seal()]
+        arbitrary_order_accepted = session.visited == runtime_order
 
         # 铁律 3：P0 硬旁路（真实硬件直穿入口）
         clear_safety_audit_queue()
@@ -1703,8 +1705,9 @@ class BlindBenchHarness:
             "manifest_highlights": sum(len(section.highlights) for section in manifest.sections),
             "manifest_elided": sum(section.elided for section in manifest.sections),
             "manifest_load_ms": round(manifest.load_ms, 3),
-            "mind_order_reorder_blocked": reorder_blocked,
-            "mind_order_sealed": ",".join(sealed),
+            "mind_arbitrary_order_accepted": arbitrary_order_accepted,
+            "mind_runtime_order": ",".join(item.value for item in session.visited),
+            "mind_layout_sealed": ",".join(sealed),
             "mind_order_steps": ",".join(step_outputs),
             "p0_first_action": p0_result.get("first_action"),
             "p0_status": p0_result.get("status"),
@@ -1744,7 +1747,7 @@ class BlindBenchHarness:
         }
         invariants = (
             "全景看板单次装载（1 次世界读取）、零提问、总量 ≤ Token 预算",
-            "四步心法顺序不可换：乱序/回退立即抛错，完整走完才算封印",
+            "四类驾驶舱信息保持稳定序列化布局，但 AI 可按任意顺序读取/更新",
             "P0 跌倒/心脏骤停：首行动作是硬件脉冲，0 次大模型调用，端到端 ≤50ms",
             "条件任务双轨：休眠任务在看板里 0 Token，机械 tick 0 大模型调用",
             "机械求值器静默 tick 求值 0 条；带信号 tick 只碰命中桶",
