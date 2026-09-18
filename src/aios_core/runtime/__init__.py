@@ -6,6 +6,7 @@ from .cognitive_runtime import (
     RuntimeSnapshot,
     RuntimeTurnResult,
 )
+from .events import RuntimeEvent
 from .lifecycle import RuntimeCycle, RuntimeLifecycle, RuntimeState
 
 __all__ = [
@@ -16,4 +17,5 @@ __all__ = [
     "RuntimeCycle",
     "RuntimeLifecycle",
     "RuntimeState",
+    "RuntimeEvent",
 ]
