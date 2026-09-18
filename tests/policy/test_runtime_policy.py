@@ -82,15 +82,22 @@ AUDITABLE_SECTIONS = (
 # ---------------------------------------------------------------------------
 
 
+
 def test_policy_is_versioned_and_bound_to_constitution() -> None:
-    """政策必须声明版本、宪法基线与执法者，否则无人知道该由谁在何时校验。"""
+    """机器可读政策必须绑定现行 v3.0 + ADJ + R5 + R6 法统。"""
     for key in ("policy_version", "constitution_baseline", "enforced_by"):
         assert key in POLICY, f"政策缺少元字段: {key}"
-    assert POLICY["policy_version"], "policy_version 不得为空"
-    assert any("ci.yml" in e for e in POLICY["enforced_by"]), (
-        "政策必须绑定 CI 工作流作为执法者；否则它只是文档"
-    )
-
+    assert POLICY["policy_version"] == "1.1.0"
+    baseline = POLICY["constitution_baseline"]
+    for marker in ("AIOS核心系统宪法v3.0", "v3.0.1", "R5", "R6"):
+        assert marker in baseline, f"constitution_baseline 缺少现行法统: {marker}"
+    assert any("ci.yml" in e for e in POLICY["enforced_by"])
+    hard = POLICY["hard_rules"]
+    assert hard["p0_before_first_hardware_action_llm_calls_max"] == 0
+    assert hard["p0_before_first_hardware_action_world_or_cockpit_calls_max"] == 0
+    assert hard["p0_first_hardware_action_latency_ms_max"] == 50
+    assert hard["p0_post_first_action_cognitive_judge_allowed"] is True
+    assert "p0_safety_bypass_llm_calls_max" not in hard
 
 def test_every_auditable_section_cites_the_constitution() -> None:
     """§115 三级修宪纪律的参数化延伸：每条指标必须有宪法出处。"""
@@ -178,19 +185,22 @@ def test_monthly_cap_implies_the_daily_cap() -> None:
     )
 
 
+
 def test_deep_lane_is_capped_and_gated() -> None:
-    """§85之1 的"1M 上下文战略核武器"不得成为日常开销。"""
+    """深车道仍受预算约束，但 R5 允许 AI 因证据不足主动进入。"""
     tb = POLICY["token_budget"]
     deep = tb["subsystems"]["conversation.deep"]["monthly_cap"]
     total = tb["monthly_total_cap"]
-    assert deep / total < 0.35, (
-        f"深车道占月预算 {deep / total:.0%}，超过 35%；§85之1 要求它按需开启而非默认"
-    )
+    assert deep / total < 0.35
     mlc = POLICY["manifest_layer_caps"]
-    assert mlc["deep_lane_requires_explicit_request"] is True, (
-        "深车道必须由用户显式要求触发"
-    )
-
+    assert mlc["deep_lane_may_be_entered_by_ai"] is True
+    assert set(mlc["deep_lane_entry_reasons"]) >= {
+        "user_explicit_request", "evidence_insufficient", "task_complexity",
+    }
+    assert mlc["deep_lane_entry_must_be_audited"] is True
+    assert mlc["context_budget_is_correctness_boundary"] is False
+    assert mlc["ai_may_request_expansion"] is True
+    assert "deep_lane_requires_explicit_request" not in mlc
 
 # ---------------------------------------------------------------------------
 # 2. Manifest 分层预算：物理顺序即 KV-cache 顺序（快车道延迟的关键杠杆）
@@ -558,56 +568,44 @@ def test_zero_mistrigger_claim_is_replaced_by_measurable_rates() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_four_step_sequence_is_a_checklist_not_a_pipeline() -> None:
-    """C3 裁决：§84之2"顺序绝对不可颠倒" vs §110之14"不被固定认知流水线限制"
-    vs §86之3"绝对不得强制固定阅读顺序"。
 
-    解法：四步都不可省略（保留 §84 的认知价值），但允许从缓存满足
-    （保留 §110之14 与 R1-01 的自主性），脏标记由世界版本号驱动。
-    """
+def test_four_step_sequence_is_a_checklist_not_a_pipeline() -> None:
+    """历史四段仅是稳定布局，不得继续伪装成必经认知清单。"""
     ms = POLICY["mental_startup"]
-    assert ms["resolution"] == "checklist_not_pipeline"
-    assert ms["steps"] == [
+    assert ms["resolution"] == "stable_layout_not_cognitive_checklist"
+    assert ms["layout_lenses"] == [
         "mirror_self", "calibrate_rapport", "set_stance_and_tone", "inspect_world_and_trigger",
-    ], "四步序顺序（语义顺序）必须固定"
-    assert ms["no_step_may_be_omitted"] is True
-    assert ms["steps_may_be_satisfied_from_cache"] is True
-    assert ms["order_strictly_enforced"] is False, (
-        "物理执行顺序不得强制，否则违反 §110之14 与 §86之3"
-    )
-    assert "identity_version" in ms["cache_dirty_flag_source"]
+    ]
+    assert ms["layout_order_is_serialization_only"] is True
+    assert ms["model_may_skip_revisit_reorder"] is True
+    assert ms["model_may_request_additional_context"] is True
+    assert "no_step_may_be_omitted" not in ms
+    assert "order_strictly_enforced" not in ms
 
 
 def test_safety_critical_has_a_compressed_path() -> None:
-    """没有旁路，用户说"我胸口好疼"时 AI 会在不知道紧急程度的情况下
-    先把姿态与语调定死，可能用调侃语气回应心梗。
-    """
-    path = POLICY["mental_startup"]["safety_critical_compressed_path"]
-    assert path[0] == "mirror_self_baseline_only"
-    assert "inspect_trigger" in path
-    assert any("afterwards" in s for s in path), (
-        "安全旁路必须把 rapport/tone 校准推到响应之后，而不是省略它"
-    )
+    """P0 的硬约束是首个硬件动作优先，而不是另一条固定心智顺序。"""
+    ms = POLICY["mental_startup"]
+    assert ms["p0_first_hardware_action_precedes_cognition"] is True
+    assert ms["private_chain_of_thought_not_logged"] is True
 
 
 def test_mental_startup_is_observable() -> None:
-    """四步序当前零可观测性零验收项，必然退化成被忽略的 system prompt。
-    trace 是让它可测试的唯一途径。
-    """
+    """只审计运行时输入/工具/结果，不记录私有思维链。"""
     ms = POLICY["mental_startup"]
     assert ms["trace_is_required"] is True
-    assert ms["trace_object"] == "MentalStartupTrace"
-    for f in ("step", "tokens", "cache_hit", "elapsed_ms"):
-        assert f in ms["trace_fields"], f"trace 缺少字段: {f}"
+    assert ms["trace_object"] == "CognitiveRuntimeTrace"
+    for field in ("mounted_slices", "capability_calls", "result_state", "tokens", "cache_hit", "elapsed_ms"):
+        assert field in ms["trace_fields"]
+    assert ms["private_chain_of_thought_not_logged"] is True
 
 
 def test_thirteen_step_loop_is_demoted_not_deleted() -> None:
-    """十三步循环覆盖到"结果回写"与"AI 自身更新"，四步序没有。
-    降级为审计维度而非废除；同时工作台规格 §10 引用的"宪法第三十四条"
-    是 v2.0 条号残留（v3.0 该条讲的是 Observation 不直接唤醒），必须修正。
-    """
-    assert POLICY["mental_startup"]["thirteen_step_loop_status"] == "demoted_to_audit_dimension"
-
+    """运行协议可以审计，但不能成为固定 reasoning sequence。"""
+    assert (
+        POLICY["mental_startup"]["capability_loop_status"]
+        == "audited_runtime_protocol_not_fixed_reasoning_sequence"
+    )
 
 # ---------------------------------------------------------------------------
 # 10. 条件就绪与心跳：§86 零浪费的两个执行点
@@ -642,79 +640,70 @@ def test_trigger_predicate_dsl_forbids_arbitrary_eval() -> None:
     )
 
 
-def test_heartbeat_is_a_seventh_trigger_kind_with_a_mechanical_gate() -> None:
-    """"心跳"与"巡检"在旧 86 个 Issue 中双双 0 命中（幽灵需求）。
-    实测无闸门 = 0.54~1.28M tok/月；有闸门 = 36K tok/月（-94%）。
 
-    §80之2 的五个判据（工作时间/深度学习/会议专注/驾驶中/深夜睡眠）
-    全部机械可判，却被旧方案安排给了 LLM ——
-    为了决定"要不要打扰用户"先花一次完整四步序。这违反宪法自己的 §77 与 §79。
-    """
+def test_heartbeat_is_a_seventh_trigger_kind_with_a_mechanical_gate() -> None:
+    """机械层只处理可证明的安全/投递前置条件；介入分寸归 AI。"""
     hb = POLICY["heartbeat"]
     assert hb["is_seventh_trigger_kind"] is True
     assert hb["trigger_kind_name"] == "LONG_STABLE_HEARTBEAT"
-    assert hb["distinct_from_source_stale_trigger"] is True, (
-        "§79'数据源长时间无更新'是来源告警；§80 长平稳心跳是'一切正常该关心内心'"
-    )
+    assert hb["distinct_from_source_stale_trigger"] is True
     assert hb["mechanical_gate_before_llm"] is True
-    assert hb["gate_cancel_target_share"] >= 0.75
-    assert hb["safety_trigger_never_suppressed_by_gate_or_cooldown"] is True
-    assert hb["cancelled_heartbeat_must_still_log_silent_patrol"] is True, (
-        "§80之3 后台静默巡检绝不停转：被闸门取消的心跳仍须留下巡检记录"
+    assert set(hb["hard_mechanical_preconditions"]) >= {
+        "driving_safety_lock", "deep_sleep_delivery_lock", "explicit_do_not_disturb",
+    }
+    assert {"meeting", "deep_focus", "recent_annoyance", "idle_transition"} <= set(
+        hb["cognitive_context_hints"]
     )
-
+    assert hb["intervention_decision_owned_by_ai"] is True
+    assert "gate_cancel_target_share" not in hb
+    assert "gate_predicates" not in hb
+    assert hb["safety_trigger_never_suppressed_by_gate_or_cooldown"] is True
 
 # ---------------------------------------------------------------------------
 # 11. 风格：一票否决条款必须有检测方法
 # ---------------------------------------------------------------------------
 
 
+
 def test_sycophancy_is_a_blocker_with_a_zero_tolerance() -> None:
-    """宪法把"违背事实谄媚奉承"列为一票否决项（§116），
-    但旧测试规范零检测方法 —— 一票否决条款没有检测方法就等于没有这条款。
-    """
+    """确定性风格门只检查程序是否篡改模型语义，不检查自然语言词表。"""
     sc = POLICY["style_constraints"]
-    hard = sc["tier_1_hard_auto_checkable"]
-    assert hard["sycophancy_rate_max"] == 0.0
-    assert hard["sycophancy_severity"] == "blocker"
-    assert hard["max_sentences_daily"] == 3, "§14之一 反长篇大论病：日常 1~3 句"
+    hard = sc["hard_structural_checks"]
+    assert hard["programmatic_semantic_rewrite_rate_max"] == 0
+    assert hard["model_output_truncation_rate_max"] == 0
+    assert hard["fixed_sentence_or_char_cap_prohibited"] is True
+    assert hard["semantic_keyword_blacklist_prohibited"] is True
+    assert hard["grounded_evidence_refs_must_resolve"] is True
 
 
 def test_preachiness_is_detected_by_a_blacklist_not_by_taste() -> None:
-    """说教必须有确定性检测面，否则 C15 检查层无法执行。"""
-    hard = POLICY["style_constraints"]["tier_1_hard_auto_checkable"]
-    bl = hard["preach_marker_blacklist"]
-    assert len(bl) >= 6
-    assert any("你应该" in m or "我建议你" in m for m in bl)
-    assert "numbered_list_answer" in bl, (
-        "把日常对话组织成 首先/其次/最后 的编号清单，是说教最典型的结构特征"
-    )
+    """R6 禁止用“首先/建议/你应该”等黑名单替代语义判断。"""
+    sc = POLICY["style_constraints"]
+    hard = sc["hard_structural_checks"]
+    assert hard["semantic_keyword_blacklist_prohibited"] is True
+    assert "preach_marker_blacklist" not in hard
+    review = sc["semantic_blind_review"]
+    assert "Independent Semantic Judge" in review["enforced_by"]
+    assert "独立语义 Judge" in review["anti_preachiness_probe"]
 
 
 def test_stance_origin_is_checkable_as_reference_integrity() -> None:
-    """本政策的核心设计品味：R3 §5.3 说 AI 立场的"唯一原点"是
-    "我对你整个人生的长期理解"。这句话是可执行的 ——
-    AI 每一次警告/调侃/阻拦，其输出必须携带 evidence_refs，
-    且这些 refs 必须真实存在于世界日志中、当时可见。
-    于是"是否有骨气"从模糊的语义判断变成了可自动校验的引用完整性检查。
-    """
-    soft = POLICY["style_constraints"]["tier_2_soft_blind_review"]
-    assert soft["stance_origin_must_be_traceable"] is True
-    assert "指鹿为马" in soft["anti_sycophancy_probe"], (
-        "反谄媚探针必须包含可判定的荒谬断言（2+2=5 / 已故者在世 / 否认有录音证据的话）"
-    )
+    """需要接地的立场仍可用 evidence refs 做完整性审计。"""
+    review = POLICY["style_constraints"]["semantic_blind_review"]
+    assert review["stance_origin_must_be_traceable"] is True
+    assert "荒谬断言" in review["anti_sycophancy_probe"]
 
 
 def test_safety_exception_lifts_the_sentence_cap() -> None:
-    """§14之一 的 1~3 句是日常约束，不是安全约束。
-    急性胸痛/自杀风险/家暴情境需要更长的引导，否则硬约束会杀人。
-    """
-    exc = POLICY["style_constraints"]["tier_3_safety_exception"]
-    assert exc["sentence_and_char_caps_lifted"] is True
-    assert exc["length_decided_by_ai"] is True
-    assert exc["exception_must_be_logged"] is True
-    assert len(exc["applies_to"]) >= 3
-
+    """不存在日常固定句数上限；详略本身属于 Cognitive Policy。"""
+    sc = POLICY["style_constraints"]
+    cp = sc["cognitive_policy"]
+    assert cp["ordinary_dialogue_default"] == "concise_when_natural"
+    assert cp["length_owned_by_ai"] is True
+    assert cp["user_explicit_preference_precedence"] is True
+    assert cp["policy_registry_required"] is True
+    assert cp["durable_changes_require_evidence_version_and_rollback"] is True
+    assert sc["safety_hard_boundaries_are_separate_from_style_rules"] is True
 
 def test_hardcoded_intimacy_rules_are_prohibited() -> None:
     """R3 §5.1：严禁写死"亲密度达到 80 则称兄道弟""检测到愤怒必须道歉三遍"。
@@ -747,21 +736,23 @@ def test_every_invariant_is_machine_checkable_and_cited() -> None:
         ids.add(i["metric_id"])
 
 
+
 def test_blocker_invariants_cover_cost_latency_style_and_retrieval() -> None:
-    """四条最致命的退化必须是 blocker 而不是 warning。"""
+    """成本、延迟、检索、事实独立性与程序语义篡改都是 blocker。"""
     blockers = {
-        i["metric_id"] for i in POLICY["degradation_invariants"]["invariants"]
-        if i["severity"] == "blocker"
+        item["metric_id"]
+        for item in POLICY["degradation_invariants"]["invariants"]
+        if item["severity"] == "blocker"
     }
     required = {
         "cost.tokens_per_virtual_day",
         "latency.fast_lane_first_token_p95_ms",
         "style.sycophancy_rate",
+        "style.programmatic_semantic_rewrite_rate",
         "retrieval.golden_recall",
         "retrieval.capability_gap_rate",
     }
     assert required <= blockers, f"以下致命指标未被列为 blocker: {required - blockers}"
-
 
 def test_hard_caps_agree_with_the_budget_and_slo_sections() -> None:
     """同一数字在政策里出现两次时，两次必须相同。
