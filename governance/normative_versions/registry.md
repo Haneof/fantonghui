@@ -18,6 +18,8 @@
 
 **冲突规则**：在同一规范层级内，后生效且明确处理同一事项的正式裁决/修改案优先于旧表述；R5/R6 不取消主宪法的数据完整性、安全、权限、历史不可篡改等硬边界。
 
+**可校验整合镜像（2026-09-18 登记）**：`docs/constitution/AIOS_Constitution_v3.0_FINAL_CONSOLIDATED.md` 为上表现行规范栈的**字节级可校验整合镜像**（另含宣言书释法依据、R4 CANDIDATE、路线图 NON_NORMATIVE 附录）。各编正文逐字并入并带来源 SHA-256 锚，可用 `python3 scripts/assemble_constitution_v3_final.py --check` 机器校验与源文件的一致性。本镜像用于审计、漂移核对与源文追溯，不改变任何源文件的生效状态；镜像与源文件如有出入，一律以源文件为准。宪法引用以正式发布的整合版 `docs/constitution/AIOS_Constitution_v3.0_FINAL.md`（2026-09-18 签发）为优先入口。
+
 ## 2. 解释优先级
 
 当代码、测试、治理表、注释或旧设计存在冲突时，按以下顺序解释：
