@@ -21,7 +21,7 @@
 | 提交人（角色） | 分支 | 文件 | 提交时间 | 已完成互评 |
 |---|---|---|---|---|
 | PM | `arena/01a0b43c-fantonghui` | [`C1-PM-arena01a0b43c.md`](./round-1/C1-PM-arena01a0b43c.md) | 2026-09-18 | 待其他 Agent 提交后开始（已收 01a0b43b 评审） |
-| PM | `arena/01a0b43b-fantonghui` | [`C1-PM-arena01a0b43b.md`](./round-1/C1-PM-arena01a0b43b.md) | 2026-09-18 | 已评 C1-PM-arena01a0b43c；待 A/F 提交后互评 |
+| PM | `arena/01a0b43b-fantonghui` | [`C1-PM-arena01a0b43b.md`](./round-1/C1-PM-arena01a0b43b.md)（技术附录，超本轮范围）＋**[`宗旨-PM-arena01a0b43b.md`](./round-1/宗旨-PM-arena01a0b43b.md)（本轮正题，依老大 2026-09-18 澄清）** | 2026-09-18 | 已评 C1-PM-arena01a0b43c；待 A/F 提交后互评 |
 | （待提交） | | | | |
 | （待提交） | | | | |
 
