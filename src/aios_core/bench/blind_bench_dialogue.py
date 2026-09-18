@@ -7,7 +7,7 @@
 * **S7**：AI 自己的世界维护（每次介入/沉默/建议 + 真实反馈入库）、沟通风格博弈
   （损友/老友 vs 说教）与人设三防线（反谄媚、反教师爷、黑盒零 UI）；
 * **S8**：单次装载的驾驶舱 + 稳定信息布局/模型自主访问、P0 硬旁路 ≤50ms 且 0 次大模型调用、
-  条件任务双轨休眠零 Token 空转、多轮极简对话（1~3 句）与 1500 Token 硬预算。
+  条件任务双轨休眠零 Token 空转、模型自主回复原样保留与 1500 Token 上下文硬预算。
 """
 
 from __future__ import annotations
@@ -653,7 +653,7 @@ def run_stage8(harness: Any) -> StageEightResult:
     # 信号只触碰第一条任务的索引桶：其余 199 条必须被索引直接跳过（这才是"零空转"）。
     dormancy_report = evaluator.evaluate_signal({"metric": "biometric_metric_000", "value": 82.0})
 
-    # ---- 4) 终极对话：10 轮 1~3 句 + 1500 Token 硬预算 ----
+    # ---- 4) 终极对话：模型显式回复 + 1500 Token 上下文预算 ----
     dispute_points = [
         _evidence_snippet(harness, "WANG:loan_transfer", 24),
         _evidence_snippet(harness, "WANG:dispute_quarrel", 24),
@@ -676,19 +676,28 @@ def run_stage8(harness: Any) -> StageEightResult:
     evidence_rounds = 0
     max_tokens = 0
     archive_ok = True
-    brevity_violations: list[str] = []
+    program_rewrites = 0
     for index, text in enumerate(turns):
         point = dispute_points[index % len(dispute_points)] if index % 3 == 0 else None
+        anchor = point or "当前会话"
+        model_reply = (
+            f"模型第 {index + 1} 轮基于证据自主回复：{anchor}。"
+            "首先这个词只是测试语料，不应触发程序删句。"
+            "保持积极也只是测试短语，不应被正则替换。"
+            "第四句完整保留。第五句继续保留。"
+        )
         round_result = dialogue.process_round(
             text,
             occurred_at=base + timedelta(hours=index),
             key_dispute_points=[point] if point else None,
+            assistant_reply=model_reply,
         )
         reply = round_result.assistant_round.text
+        if reply != model_reply:
+            program_rewrites += 1
         dialogue_sentences.append(len(split_sentences(reply)))
-        brevity_violations.extend(round_result.verdict.violations)
         max_tokens = max(max_tokens, round_result.cockpit.token_count)
-        if any(point and point in reply for point in dispute_points):
+        if point and point in reply:
             evidence_rounds += 1
         archive_ok = archive_ok and (
             len(dialogue.state.all_rounds()) == 2 * (index + 1)
@@ -724,7 +733,8 @@ def run_stage8(harness: Any) -> StageEightResult:
         dialogue_max_tokens=max_tokens,
         window_round_ids=window_ids,
         archive_lossless=archive_ok,
-        brevity_violations=tuple(sorted(set(brevity_violations))),
+        dialogue_program_rewrites=program_rewrites,
+        dialogue_model_outputs_preserved=program_rewrites == 0,
     )
     harness.stage8 = result
     harness.world["manifest"] = manifest

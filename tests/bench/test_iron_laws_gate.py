@@ -369,22 +369,23 @@ def test_stage8_dormant_tasks_burn_zero_tokens(gate_harness: BlindBenchHarness) 
     )
 
 
-def test_stage8_ultimate_dialogue_is_one_to_three_sentences(
+def test_stage8_model_reply_is_preserved_and_context_is_bounded(
     gate_harness: BlindBenchHarness,
 ) -> None:
     stage8 = gate_harness.stage8
     assert stage8 is not None, "S8 必须已运行"
     assert stage8.dialogue_rounds == 10, "终极对话必须是 10 轮"
-    assert all(1 <= count <= 3 for count in stage8.dialogue_sentence_counts), (
-        f"每一轮回复必须严格 1~3 句，实际 {stage8.dialogue_sentence_counts}"
+    assert max(stage8.dialogue_sentence_counts) >= 4, (
+        "盲测必须包含超过 3 句的模型输出，以证明旧截断器已退出"
     )
-    assert stage8.dialogue_evidence_rounds >= 3, "对话必须能引用真实历史证据"
+    assert stage8.dialogue_program_rewrites == 0, "程序不得改写模型回复"
+    assert stage8.dialogue_model_outputs_preserved is True
+    assert stage8.dialogue_evidence_rounds >= 3, "模型测试输出必须能引用真实历史证据"
     assert stage8.dialogue_max_tokens <= 1500, (
-        f"单轮上下文不得超 1500 Token，实际 {stage8.dialogue_max_tokens}"
+        f"单轮 Cockpit 上下文不得超 1500 Token，实际 {stage8.dialogue_max_tokens}"
     )
     assert len(stage8.window_round_ids) == 6, "活跃滑窗必须是 6 轮"
     assert stage8.archive_lossless is True, "被滑窗挤出的轮次必须无损归档"
-    assert stage8.brevity_violations == (), f"极简护栏不得出现违例：{stage8.brevity_violations}"
 
 
 # ----------------------------------------------------------------------

@@ -1,4 +1,4 @@
-"""M2-009R 高密危机防爆验收单测：1500 Token 硬预算 / 无损滚动 / 反爹味护栏 / P95 延迟。
+"""M2-009R 验收：1500 Token 上下文预算 / 无损滚动 / 模型回复原样保留 / P95 延迟。
 
 高阶实战场景：用户遭遇恶意降薪、强制调岗、竞业协议索赔，深夜连续 2 小时
 通过手环进行 50 轮高频、碎片、情绪激烈的长线对抗对话。
@@ -95,11 +95,22 @@ _DISPUTE_ANCHORS = {
 
 def build_night_pipeline() -> CockpitPipeline:
     rng = random.Random(20260915)
+    def test_model_reply(state: ConversationState) -> str:
+        evidence = state.dispute_evidence()
+        anchor = evidence[-1] if evidence else "当前输入"
+        return (
+            f"模型测试输出会保留证据锚：{anchor}。"
+            "首先这个词只是测试语料，不应该触发程序删句。"
+            "保持积极心态也只是测试短语，不应该被正则改写。"
+            "第四句必须完整保留。第五句也必须完整保留。"
+        )
+
     pipeline = CockpitPipeline(
         state=ConversationState(
             crisis_context="职业危机对抗线：恶意降薪 / 强制调岗 / 竞业协议索赔（深夜 50 轮）",
             size=ACTIVITY_WINDOW_SIZE,
-        )
+        ),
+        reply_provider=test_model_reply,
     )
     _ = rng  # 语料为确定性脚本，rng 预留扩展
     return pipeline
@@ -194,55 +205,39 @@ class TestGate2_LosslessRollingWindow:
 
 
 # ----------------------------------------------------------------------
-# 门禁 3：反爹味与极简老友语调（BrevityGuard 强制截断与合宪拦截）
+# 门禁 3：模型回复驾驶权 —— 程序不得删句、正则裁决或替换语义
 # ----------------------------------------------------------------------
 
 
-class TestGate3_BrevityGuard:
-    def test_long_sermon_injection_is_forced_cut_and_intercepted(self):
+class TestGate3_ModelOwnedOutput:
+    def test_long_semantic_reply_is_preserved_exactly(self):
         guard = BrevityGuard()
-        sermon = (
+        reply = (
             "您要保持积极心态，面对职业危机最重要的是情绪稳定。"
-            "为您推荐以下五点心理疏导方案：第一，每天冥想二十分钟调节呼吸；"
-            "第二，与信任的家人倾诉以缓解焦虑；第三，坚持规律作息改善睡眠质量；"
-            "第四，适度运动促进内啡肽分泌；第五，必要时寻求专业心理咨询帮助。"
-            "综上所述，请您相信过程会好起来的。"
+            "为您推荐以下五点心理疏导方案。"
+            "首先这一句故意命中旧规则。"
+            "第四句仍然必须保留。第五句也必须保留。"
         )
-        verdict = guard.enforce(sermon)
-        assert verdict.intercepted is True
-        assert any(v.startswith("PREACH_PATTERN") for v in verdict.violations)
-        # 强制截断：说教内容全部被剥离，1~3 句老友语调
-        assert 1 <= verdict.sentence_count <= 3
-        assert "积极心态" not in verdict.text
-        assert "心理疏导" not in verdict.text
-        assert "为您推荐" not in verdict.text
-        assert len(verdict.text) <= 120
-
-    def test_pure_sermon_falls_back_to_constitutional_line(self):
-        guard = BrevityGuard()
-        sermon = "您要保持积极心态。为您推荐以下五点心理疏导方案。祝您早日走出低谷。"
-        verdict = guard.enforce(sermon)
-        assert verdict.intercepted is True
-        assert 1 <= verdict.sentence_count <= 3
-        assert "积极心态" not in verdict.text and "心理疏导" not in verdict.text
-
-    def test_multi_sentence_talk_is_truncated_to_three(self):
-        guard = BrevityGuard()
-        talk = "第一句记录降薪幅度。第二句核对调岗函日期。第三句锁定竞业补偿条款。第四句准备仲裁材料。第五句约律师时间。"
-        verdict = guard.enforce(talk)
-        assert verdict.intercepted is True
-        assert verdict.sentence_count == 3
-        assert "第四句" not in verdict.text
-
-    def test_natural_friend_reply_passes_unscathed(self):
-        guard = BrevityGuard()
-        ok = "这条我记下了：竞业补偿只字不提。原件先拍照留好，别急着签。"
-        verdict = guard.enforce(ok)
+        verdict = guard.enforce(reply)
         assert verdict.intercepted is False
-        assert verdict.text == ok
-        assert verdict.sentence_count == 2
+        assert verdict.violations == ()
+        assert verdict.text == reply
+        assert verdict.sentence_count >= 4
 
-    def test_pipeline_replies_always_compliant_across_50_rounds(self):
+    def test_silence_is_preserved_as_model_choice(self):
+        verdict = BrevityGuard().enforce("")
+        assert verdict.text == ""
+        assert verdict.intercepted is False
+        assert verdict.sentence_count == 0
+
+    def test_pipeline_requires_cognitive_reply_source(self):
+        pipeline = CockpitPipeline(
+            state=ConversationState(crisis_context="test", size=ACTIVITY_WINDOW_SIZE)
+        )
+        with pytest.raises(ValueError, match="does not generate semantic replies"):
+            pipeline.process_round("用户输入")
+
+    def test_pipeline_preserves_provider_output_across_fifty_rounds(self):
         pipeline = build_night_pipeline()
         for index, fragment in enumerate(_USER_FRAGMENTS):
             result = pipeline.process_round(
@@ -250,8 +245,10 @@ class TestGate3_BrevityGuard:
                 occurred_at=NIGHT_START + timedelta(minutes=index),
                 key_dispute_points=_DISPUTE_ANCHORS.get(index),
             )
-            assert 1 <= result.verdict.sentence_count <= 3
-            assert len(result.assistant_round.text) <= 120
+            assert result.verdict.intercepted is False
+            assert result.verdict.violations == ()
+            assert result.assistant_round.text == result.verdict.text
+            assert result.verdict.sentence_count >= 4
 
 
 # ----------------------------------------------------------------------

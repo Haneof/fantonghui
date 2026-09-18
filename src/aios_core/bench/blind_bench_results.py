@@ -247,7 +247,8 @@ class StageEightResult:
     dialogue_max_tokens: int
     window_round_ids: tuple[str, ...]
     archive_lossless: bool
-    brevity_violations: tuple[str, ...]
+    dialogue_program_rewrites: int
+    dialogue_model_outputs_preserved: bool
 
 
 @dataclass(frozen=True, slots=True)

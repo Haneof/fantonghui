@@ -49,15 +49,17 @@ def test_dormant_conditional_tasks_burn_zero_tokens(bench_run: BenchRunResult) -
     assert stage.fact("evaluator_signal_evaluated") < stage.fact("evaluator_registered") // 4
 
 
-def test_final_ten_round_daily_conversation(bench_run: BenchRunResult) -> None:
+def test_final_ten_round_conversation_preserves_model_output(
+    bench_run: BenchRunResult,
+) -> None:
     stage = bench_run.stage("S8")
     assert stage.fact("conversation_rounds") == 10
     counts = [int(item) for item in stage.fact("conversation_sentence_counts").split(",")]
     assert len(counts) == 10
-    assert min(counts) >= 1
-    assert max(counts) <= 3
+    assert max(counts) >= 4, "盲测必须证明旧 1~3 句截断已经失效"
+    assert stage.fact("conversation_program_rewrites") == 0
+    assert stage.fact("conversation_model_outputs_preserved") is True
     assert stage.fact("conversation_max_round_tokens") <= stage.fact("conversation_single_shot_budget")
-    assert stage.fact("conversation_preach_hits") == 0
 
 
 def test_conversation_window_is_lossless_and_fast(bench_run: BenchRunResult) -> None:

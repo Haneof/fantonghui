@@ -26,10 +26,12 @@ def test_iron_rule_1_output_quality_first(bench_run: BenchRunResult) -> None:
     advice = bench_run.stage("S6")
     conversation = bench_run.stage("S8")
     assert advice.fact("advice_sentence_count") <= 3
-    counts = [int(item) for item in conversation.fact("conversation_sentence_counts").split(",")]
-    assert set(counts) <= {1, 2, 3}
-    assert conversation.fact("conversation_preach_hits") == 0
     assert advice.fact("advice_grounding_verified") is True
+    assert conversation.fact("conversation_program_rewrites") == 0
+    assert conversation.fact("conversation_model_outputs_preserved") is True
+    assert conversation.fact("conversation_max_round_tokens") <= conversation.fact(
+        "conversation_single_shot_budget"
+    )
 
 
 def test_iron_rule_2_history_never_rewritten(bench_run: BenchRunResult) -> None:

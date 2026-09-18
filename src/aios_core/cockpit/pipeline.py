@@ -1,23 +1,14 @@
-"""M2-009R 高密危机防爆：Single-Shot 单看板 1500 Token 硬预算流水线。
+"""Single-shot cockpit assembly with model-owned response semantics.
 
-高阶实战场景：用户遭遇重大职业危机（恶意降薪 / 强制调岗 / 竞业协议索赔），
-深夜连续 2 小时通过手环进行 50 轮高频、碎片、情绪激烈的长线对抗对话。
+Hard engineering guarantees live here:
+1. assembled cockpit context stays within the configured token budget;
+2. active conversation windows roll losslessly into archive state;
+3. model/runtime-selected reply bytes are preserved exactly;
+4. cockpit assembly remains bounded and fast.
 
-四条硬门禁的工程承诺：
-
-1. **单看板 1500 Token 绝对物理截断**：``SINGLE_SHOT_TOKEN_BUDGET = 1500``，
-   无论上下文累积多少万字，组装至大模型的 Single-Shot 看板由流水线硬性压缩
-   （丢最旧活动轮 → 压缩证据摘要 → 字符级物理硬切），``token_count <= 1500``
-   是结构化不变量（模型校验器兜底），杜绝长上下文算力浪费；
-2. **无损滚动与滑动窗口**：6 轮易变活动窗口（``RollingRoundWindow``），
-   被淘汰的旧轮次无损进入历史 Observation 归档（``archive``），关键争议点
-   证据（``key_dispute_points``）全链路可回溯，不得丢失；
-3. **反爹味与极简老友语调（BrevityGuard）**：手环回复严格 1~3 句老友语调；
-   检测到"保持积极心态 / 为您推荐以下五点 / 心理疏导方案"类爹味说教即
-   fail-closed 拦截 —— 强制截断至说教句之前（不足一句则回落到合宪兜底句），
-   并记录拦截审计（``BrevityVerdict``）；
-4. **看板组装延迟**：50 轮压测全流程动态组装 P95 <= 15ms
-   （组装只消费活动窗口 + 预聚合证据摘要，O(窗口) 而非 O(全量上下文)）。
+This module does not decide tone, sentence count, whether wording is "preachy",
+or what the AI should say. Those are cognitive decisions. Historical BrevityGuard
+names remain as compatibility surfaces, but they are non-destructive.
 """
 from __future__ import annotations
 
@@ -25,7 +16,7 @@ import re
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Callable, Dict, List, Optional, Sequence, Tuple
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -205,13 +196,13 @@ class ConversationState(RollingRoundWindow):
 
 
 # ----------------------------------------------------------------------
-# BrevityGuard：反爹味与极简老友语调（M2 门禁 3）
+# Historical BrevityGuard compatibility surface: preserve model semantics
 # ----------------------------------------------------------------------
 
 
 @dataclass(frozen=True)
 class BrevityVerdict:
-    """护栏裁决：最终合规文本 + 是否发生强制截断/拦截 + 违例审计。"""
+    """Non-destructive audit view of a model-selected reply."""
 
     text: str
     intercepted: bool
@@ -220,58 +211,19 @@ class BrevityVerdict:
 
 
 class BrevityGuard:
-    """反爹味极简护栏：严格 1~3 句老友语调，长篇说教强制截断 + 合宪拦截。
+    """Compatibility shim that never rewrites semantic model output.
 
-    - 命中爹味模式：从首个说教句起整体剥离（说教句之前的合规句保留）；
-      剥离后不足一句 → 回落到合宪兜底句；
-    - 句数越界：物理截断至前 3 句；
-    - 字符越界：物理硬切至 ``_MAX_REPLY_CHARS``。
+    Sentence count is retained only as descriptive telemetry for old callers.
+    Resource limits belong at model generation / context assembly boundaries,
+    not in a post-hoc natural-language rewrite layer.
     """
 
     def enforce(self, candidate: str) -> BrevityVerdict:
-        text = candidate.strip()
-        sentences = split_sentences(text)
-        violations: List[str] = []
-
-        preach_at: Optional[int] = None
-        for index, sentence in enumerate(sentences):
-            for name, pattern in _PREACH_PATTERNS:
-                if pattern.search(sentence):
-                    preach_at = index
-                    violations.append(f"PREACH_PATTERN:{name}")
-                    break
-            if preach_at is not None:
-                break
-
-        if len(sentences) > _MAX_SENTENCES:
-            violations.append(f"TOO_MANY_SENTENCES:{len(sentences)}")
-        if not (0 < len(sentences) < _MAX_SENTENCES + 1) and not sentences:
-            violations.append("EMPTY_REPLY")
-
-        if preach_at is not None:
-            kept = sentences[:preach_at]
-        else:
-            kept = sentences[:_MAX_SENTENCES]
-
-        if len(kept) < _MIN_SENTENCES:
-            kept = [_CONSTITUTIONAL_FALLBACK]
-
-        final_text = "".join(kept)
-        if len(final_text) > _MAX_REPLY_CHARS:  # 字符级物理硬切
-            final_text = final_text[:_MAX_REPLY_CHARS].rstrip()
-            if not split_sentences(final_text):
-                final_text = _CONSTITUTIONAL_FALLBACK
-            violations.append("HARD_CHAR_CUT")
-
-        if not final_text.strip():
-            final_text = _CONSTITUTIONAL_FALLBACK
-            violations.append("FALLBACK_USED")
-
         return BrevityVerdict(
-            text=final_text.strip(),
-            intercepted=bool(violations),
-            violations=tuple(violations),
-            sentence_count=len(split_sentences(final_text)),
+            text=candidate,
+            intercepted=False,
+            violations=(),
+            sentence_count=len(split_sentences(candidate)),
         )
 
 
@@ -302,11 +254,14 @@ class SingleShotCockpit(BaseModel):
         return self
 
 
-_TONE_DIRECTIVE = "回复要求：老友语调，1~3 句，直给建议，禁止说教与心理疏导清单。"
+_RUNTIME_DIRECTIVE = (
+    "回复由认知模型自主决定是否开口、语气与详略；"
+    "本看板只提供事实、证据与资源预算，不得由程序模板替代模型判断。"
+)
 
 
 class CockpitPipeline:
-    """M2-009R 单看板流水线：滚动窗口 + 证据链 + 硬预算组装。
+    """Single-shot cockpit: lossless rolling window + evidence + hard context budget.
 
     组装复杂度 O(活动窗口 + 证据条数)，与全量上下文长度解耦 ——
     50 轮万字级累积下 P95 <= 15ms 的关键。
@@ -318,6 +273,7 @@ class CockpitPipeline:
         state: Optional[ConversationState] = None,
         budget: int = SINGLE_SHOT_TOKEN_BUDGET,
         window_size: int = ACTIVITY_WINDOW_SIZE,
+        reply_provider: Optional[Callable[[ConversationState], str]] = None,
     ) -> None:
         self.state = state or ConversationState(
             crisis_context="职业危机对抗线：恶意降薪 / 强制调岗 / 竞业索赔",
@@ -325,6 +281,7 @@ class CockpitPipeline:
         )
         self.budget = budget
         self.guard = BrevityGuard()
+        self.reply_provider = reply_provider
 
     # ---------------- 轮次处理 ----------------
 
@@ -334,8 +291,14 @@ class CockpitPipeline:
         *,
         occurred_at: Optional[datetime] = None,
         key_dispute_points: Optional[Sequence[str]] = None,
+        assistant_reply: Optional[str] = None,
     ) -> "RoundResult":
-        """处理一轮：用户碎片入窗口 → 老友回复过护栏 → 组装看板。"""
+        """Record one user/model round and assemble the bounded cockpit.
+
+        The reply must come from the cognitive runtime, either explicitly through
+        assistant_reply or through an injected reply_provider. This pipeline never
+        composes semantic replies on its own.
+        """
         occurred = occurred_at or _utc_now()
         if isinstance(key_dispute_points, str):  # 单条争议点字符串 → 单元素列表
             key_dispute_points = [key_dispute_points]
@@ -348,8 +311,14 @@ class CockpitPipeline:
         )
         self.state.push(user_round)
 
-        assistant_text = self._compose_friend_reply()
-        verdict = self.guard.enforce(assistant_text)
+        if assistant_reply is None:
+            if self.reply_provider is None:
+                raise ValueError(
+                    "assistant_reply or reply_provider is required; "
+                    "CockpitPipeline does not generate semantic replies"
+                )
+            assistant_reply = self.reply_provider(self.state)
+        verdict = self.guard.enforce(assistant_reply)
         assistant_round = ConversationRound(
             round_id=self.state.next_round_id(),
             speaker="assistant",
@@ -370,17 +339,6 @@ class CockpitPipeline:
             cockpit=cockpit,
             assembly_ms=assembly_ms,
         )
-
-    def _compose_friend_reply(self) -> str:
-        """确定性的极简老友回复：锚定最新争议点，1~2 句，零说教。"""
-        points = self.state.dispute_evidence()
-        if points:
-            latest = points[-1]
-            return (
-                f"这条我记下了：{latest}。"
-                "原件先拍照留好，别急着签字，剩下的咱一条一条捋。"
-            )
-        return "先稳住，别在气头上签任何东西。把你看到的最狠的那条丢给我。"
 
     # ---------------- 看板组装（硬预算） ----------------
 
@@ -452,7 +410,7 @@ class CockpitPipeline:
         if window:
             dialogue = "\n".join(f"{r.speaker}: {r.text}" for r in window)
             parts.append(f"【活动窗口（最近 {len(window)} 轮）】\n{dialogue}")
-        parts.append(_TONE_DIRECTIVE)
+        parts.append(_RUNTIME_DIRECTIVE)
         return "\n".join(parts)
 
     # ---------------- 调度器兼容入口 ----------------
@@ -470,7 +428,7 @@ class CockpitPipeline:
 
 @dataclass(frozen=True)
 class RoundResult:
-    """单轮处理结果：用户轮 + 助手轮 + 护栏裁决 + 看板 + 组装耗时。"""
+    """One user/model round plus non-destructive audit, cockpit, and assembly time."""
 
     user_round: ConversationRound
     assistant_round: ConversationRound

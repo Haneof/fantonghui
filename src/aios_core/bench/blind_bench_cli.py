@@ -40,7 +40,7 @@ IRON_LAW_CHECKS: Mapping[str, tuple[str, ...]] = {
     "IRON_LAW_1_OUTPUT_QUALITY": (
         "S6 建议带证据指针且零客服八股",
         "S7 模型沟通决策原样保留、反馈事实可追溯、协议畸形可拒绝",
-        "S8 每轮回复 1~3 句且 1500 Token 内",
+        "S8 模型回复零改写且 Cockpit 上下文 1500 Token 内",
     ),
     "IRON_LAW_2_HISTORY_IMMUTABLE": (
         "S5 Observation 台账 SHA-256 校验通过、UPDATE/DELETE 违例 0",
@@ -94,7 +94,8 @@ def iron_law_report(harness: BlindBenchHarness) -> Dict[str, Any]:
             and s7.protocol_rewritten == 0
             and s7.protocol_rejected >= 1
             and s8
-            and all(1 <= count <= 3 for count in s8.dialogue_sentence_counts)
+            and s8.dialogue_program_rewrites == 0
+            and s8.dialogue_model_outputs_preserved
             and s8.dialogue_max_tokens <= s8.manifest_budget
         ),
         "evidence": {
@@ -105,7 +106,8 @@ def iron_law_report(harness: BlindBenchHarness) -> Dict[str, Any]:
                 f"{s7.protocol_rejected}/{s7.protocol_samples}" if s7 else None
             ),
             "S7_protocol_rewritten": s7.protocol_rewritten if s7 else None,
-            "S8_dialogue_sentences": list(s8.dialogue_sentence_counts) if s8 else None,
+            "S8_dialogue_program_rewrites": s8.dialogue_program_rewrites if s8 else None,
+            "S8_model_outputs_preserved": s8.dialogue_model_outputs_preserved if s8 else None,
             "S8_dialogue_max_tokens": s8.dialogue_max_tokens if s8 else None,
         },
     }

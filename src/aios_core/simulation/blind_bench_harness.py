@@ -1672,7 +1672,7 @@ class BlindBenchHarness:
             EvaluatorSignals(now=base_moment, present_places=("place_2",))
         )
 
-        # 终极对话：10 轮自然日常对话（每轮严格 1~3 句）
+        # 终极对话：模型显式提供回复；程序只保存、装配与核算资源。
         pipeline = CockpitPipeline()
         conversation_texts = [
             self.observation_text(item)
@@ -1681,18 +1681,31 @@ class BlindBenchHarness:
         ][:10]
         while len(conversation_texts) < 10:
             conversation_texts.append("今天没什么特别的，就是有点累。")
+        model_outputs = [
+            (
+                f"这是模型第 {index + 1} 轮自主生成的测试输出。"
+                "首先这个词不应触发 Python 规则删句。"
+                "保持积极只是测试短语，不应被程序替换。"
+                "第四句完整保留。第五句也完整保留。"
+            )
+            for index in range(10)
+        ]
         turn_sentences: list[int] = []
         turn_tokens: list[int] = []
         assembly_timings: list[float] = []
-        preach_hits = 0
-        for text in conversation_texts:
-            result = pipeline.process_round(text, key_dispute_points=[text[:20]])
+        program_rewrites = 0
+        for text, model_reply in zip(conversation_texts, model_outputs):
+            result = pipeline.process_round(
+                text,
+                key_dispute_points=[text[:20]],
+                assistant_reply=model_reply,
+            )
+            if result.assistant_round.text != model_reply:
+                program_rewrites += 1
             sentences = split_sentences(result.assistant_round.text)
             turn_sentences.append(len(sentences))
             turn_tokens.append(result.cockpit.token_count)
             assembly_timings.append(result.assembly_ms)
-            if "首先" in result.assistant_round.text or "保持积极" in result.assistant_round.text:
-                preach_hits += 1
 
         facts: dict[str, Any] = {
             "manifest_total_tokens": manifest.total_tokens,
@@ -1740,7 +1753,8 @@ class BlindBenchHarness:
             "conversation_active_window": len(pipeline.state.active_window()),
             "conversation_archived_rounds": len(pipeline.state.archived()),
             "conversation_lossless_rounds": len(pipeline.state.all_rounds()),
-            "conversation_preach_hits": preach_hits,
+            "conversation_program_rewrites": program_rewrites,
+            "conversation_model_outputs_preserved": program_rewrites == 0,
             "assembly_p50_ms": round(percentiles(assembly_timings)["p50"], 4),
             "assembly_p95_ms": round(percentiles(assembly_timings)["p95"], 4),
             "assembly_p99_ms": round(percentiles(assembly_timings)["p99"], 4),
@@ -1751,7 +1765,7 @@ class BlindBenchHarness:
             "P0 跌倒/心脏骤停：首行动作是硬件脉冲，0 次大模型调用，端到端 ≤50ms",
             "条件任务双轨：休眠任务在看板里 0 Token，机械 tick 0 大模型调用",
             "机械求值器静默 tick 求值 0 条；带信号 tick 只碰命中桶",
-            "10 轮自然对话每轮严格 1~3 句，单轮看板 Token 不越 1500，窗口无损滚动",
+            "10 轮模型回复逐字保留；只限制下一轮看板 Token ≤1500，窗口无损滚动",
         )
         return StageReport(
             stage_id="S8",
@@ -1771,7 +1785,7 @@ class BlindBenchHarness:
         if ingest is not None:
             parts["铁律1 输出质量绝对第一"] = (
                 f"百万流压缩比 {ingest.compression_ratio:.6f}；"
-                "对话侧见 S8（每轮 1~3 句、单轮 ≤1500 Token、0 说教命中）"
+                "对话侧见 S8（模型回复零改写、单轮 Cockpit ≤1500 Token、历史无损）"
             )
             parts["铁律4 大模型自主判断删除"] = (
                 f"边缘噪声裁决 {ingest.noise_dropped_at_edge} 条；"
