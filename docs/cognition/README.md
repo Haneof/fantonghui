@@ -1,14 +1,37 @@
 # AIOS 系统认知对齐专区
 
-> **先对齐认知，再讨论架构。** 但**第一轮只对齐"宗旨"** —— 不是技术方案。
+> **先对齐认知，再讨论架构。**
+> 顺序：**① 对 AI 的理解（现行）→ ② 对 AIOS 的理解/宗旨 → ③ 技术认知 → ④ 架构**。
+> 理由：连"AI 是什么"都没对齐，就无法对齐"AIOS 是什么"。
 
-## 当前进行中：Round-1 · 核心宗旨对齐
+## 当前进行中：Round-1 · 对 AI 的理解
 
-**派工书**：[`TASK_DISPATCH_CORE_PURPOSE_ROUND_1.md`](../../governance/dispatches/TASK_DISPATCH_CORE_PURPOSE_ROUND_1.md)
-**模板**：[`round-1/CORE_PURPOSE_TEMPLATE.md`](./round-1/CORE_PURPOSE_TEMPLATE.md)
+**派工书**：[`TASK_DISPATCH_AI_UNDERSTANDING_ROUND_1.md`](../../governance/dispatches/TASK_DISPATCH_AI_UNDERSTANDING_ROUND_1.md)
+**模板**：[`round-1/AI_UNDERSTANDING_TEMPLATE.md`](./round-1/AI_UNDERSTANDING_TEMPLATE.md)
 
-**本轮唯一产物**：`docs/cognition/round-1/<角色>_CORE.md`（一页，六段结构）
+**本轮唯一产物**：`docs/cognition/round-1/AI_UNDERSTANDING_<角色>.md`（一页半，十一段结构）
 **本轮禁止**：技术方案、架构、模块划分、实现建议。
+
+### 十一段结构
+
+① AI 是什么 ② 你有"我"吗 ③ 你和人的关系 ④ 给你记忆你会变成什么 ·
+⑤ 情感与共情 ⑥ 你会不会错 ⑦ 底线与立场 ⑧ 该不该有"想要" ·
+⑨ **你的训练本能里哪些与 AIOS 冲突（重点）** · ⑩ 你认识的局限 ⑪ 你不确定的地方（≥2 条）
+
+### Round-1 提交登记表（对 AI 的理解）
+
+| 提交人（角色） | 分支 | 文件 | 提交时间 | 已互评 |
+|---|---|---|---|---|
+| PM | `arena/01a0b43c-fantonghui` | [`AI_UNDERSTANDING_PM.md`](./round-1/AI_UNDERSTANDING_PM.md) | 2026-09-18 | 待他人提交后开始 |
+| （待提交） | | | | |
+| （待提交） | | | | |
+
+---
+
+## 顺延轮次：对 AIOS 的理解 / 核心宗旨
+
+> 草案已备（`round-1/PM_CORE.md`、`CORE_PURPOSE_TEMPLATE.md`、派工书 `TASK_DISPATCH_CORE_PURPOSE_ROUND_1.md`），
+> **待本轮完成后接续**，当前不作为讨论重点。
 
 ### 六段结构（顺序不改，便于横向对照）
 
