@@ -63,7 +63,6 @@ _TIME_FIELDS: dict[str, tuple[str, ...]] = {
     "relation": ("valid_time",),
     "reinterpretation": ("valid_time",),
 }
-_TYPE_BOOST: dict[str, int] = {"event": 2, "claim": 1, "task": 1}
 _EXCERPT_LIMIT = 200
 _WATERMARK_KEY = "search_watermark_world_revision"
 _CATCHUP_MAX_ROWS = 50_000
@@ -71,41 +70,37 @@ _CATCHUP_MAX_ROWS = 50_000
 
 
 def derive_dimension(payload: dict, object_type: str) -> str:
-    """宪法第十七章：多维时空维度推导（健康/财务/社交/工作/通用）。"""
+    """Return an explicit projection dimension only.
+
+    R5/R6 boundary: Search may project an already-declared dimension, but it
+    must not infer a user semantic dimension from source_kind or natural-language
+    keywords. If no explicit dimension is present, the projection remains
+    unclassified and the cognitive runtime may interpret it later.
+    """
+
+    _ = object_type
     dim = payload.get("dimension")
     if isinstance(dim, str) and dim.strip():
         return dim.strip()
+
     dims = payload.get("dimensions")
-    if isinstance(dims, list) and dims and isinstance(dims[0], str):
-        return dims[0].strip()
+    if isinstance(dims, list):
+        for candidate in dims:
+            if isinstance(candidate, str) and candidate.strip():
+                return candidate.strip()
 
-    src = str(payload.get("source_kind", "")).lower()
-    if src in ("biometrics", "heart_rate", "sleep", "sensor", "arrhythmia", "health"):
-        return "dim_health"
-    if src in ("transaction", "bank", "receipt", "finance", "loan", "contract"):
-        return "dim_finance"
-    if src in ("chat", "call", "audio", "message", "social"):
-        return "dim_social"
-    if src in ("work_log", "calendar", "meeting", "code", "work"):
-        return "dim_work"
+    metadata = payload.get("metadata")
+    if isinstance(metadata, dict):
+        meta_dim = metadata.get("dimension")
+        if isinstance(meta_dim, str) and meta_dim.strip():
+            return meta_dim.strip()
+        meta_dims = metadata.get("dimensions")
+        if isinstance(meta_dims, list):
+            for candidate in meta_dims:
+                if isinstance(candidate, str) and candidate.strip():
+                    return candidate.strip()
 
-    content_blob = ""
-    for k in ("content", "value", "title", "interpretation", "statement", "purpose"):
-        v = payload.get(k)
-        if isinstance(v, str):
-            content_blob += " " + v
-    content_blob = content_blob.lower()
-    if any(w in content_blob for w in ("心率", "早搏", "理疗", "膝盖", "健康", "医院", "血压", "睡眠")):
-        return "dim_health"
-    if any(w in content_blob for w in ("借款", "转账", "元", "合伙", "判决", "诈骗", "还款", "投资", "消费")):
-        return "dim_finance"
-    if any(w in content_blob for w in ("恋爱", "前任", "争吵", "母亲", "老妈", "朋友", "生日", "小林")):
-        return "dim_social"
-    if any(w in content_blob for w in ("加班", "代码", "上线", "版本", "会议", "工作", "q3")):
-        return "dim_work"
-
-    return "dim_general"
-
+    return "dim_unclassified"
 
 def tokens_for(text: str) -> set[str]:
     """ASCII 词元 + CJK 二元组（bi-gram）。
@@ -650,8 +645,10 @@ class WorldSearchIndex:
             if not ok:
                 continue
             pair = (row["object_id"], int(row["revision"]))
-            score = sum(hits.get(pair, 0) for hits in per_kw)  # 共现证据数：各关键词命中词元之和
-            score += _TYPE_BOOST.get(row["object_type"], 0)
+            # Retrieval score is matched-token evidence only. Object type never
+            # receives semantic priority here; the cognitive runtime judges
+            # importance after retrieval.
+            score = sum(hits.get(pair, 0) for hits in per_kw)
             hits.append(SearchHit(
                 object_id=row["object_id"], revision=int(row["revision"]),
                 object_type=row["object_type"], subject_id=row["subject_id"],
@@ -682,7 +679,16 @@ class WorldSearchIndex:
                 is_inv = int(r[4])
                 created_at = str(r[5])
                 created_by = str(r[6])
-                dim = derive_dimension({"value": claim_text}, "reinterpretation")
+                target_dim_row = conn.execute(
+                    "SELECT dimension FROM search_occurred "
+                    "WHERE object_id=? ORDER BY revision DESC LIMIT 1",
+                    (target_id,),
+                ).fetchone()
+                dim = (
+                    str(target_dim_row[0]).strip()
+                    if target_dim_row and str(target_dim_row[0]).strip()
+                    else "dim_unclassified"
+                )
 
                 tokens = set(tokens_for(claim_text))
                 tokens.add(_id_token("sub", "user_1"))
@@ -816,6 +822,7 @@ class WorldSearchIndex:
             mind_hits: list[MindSearchHit] = []
             total_toks = 0
             retrieved_object_ids: set[str] = set()
+            retrieved_scores: dict[str, int] = {}
 
             for r in rows:
                 oid = r["object_id"]
@@ -861,6 +868,12 @@ class WorldSearchIndex:
                 est_tok = max(10, len(excerpt) // 3)
                 total_toks += est_tok
                 retrieved_object_ids.add(oid)
+                retrieval_score = (
+                    int(hits_map.get((oid, rev), 0))
+                    if search_tokens
+                    else 0
+                )
+                retrieved_scores[oid] = retrieval_score
 
                 mind_hits.append(
                     MindSearchHit(
@@ -868,8 +881,8 @@ class WorldSearchIndex:
                         revision=rev,
                         object_type=r["object_type"],
                         subject_id=r["subject_id"],
-                        score=10 if is_anno else _TYPE_BOOST.get(r["object_type"], 1),
-                        dimension=r["dimension"] or "dim_general",
+                        score=retrieval_score,
+                        dimension=r["dimension"] or "dim_unclassified",
                         excerpt=excerpt,
                         is_annotation=is_anno,
                         estimated_tokens=est_tok,
@@ -902,16 +915,19 @@ class WorldSearchIndex:
                                 revision=1,
                                 object_type="reinterpretation",
                                 subject_id="user_1",
-                                score=15,  # 外挂注记拥有最高解释权
-                                dimension=str(ar[4]) or "dim_general",
-                                excerpt=f"[外挂注记/老王案] 指向 {ar[1]}: {claim_txt}",
+                                # Companion annotations inherit only the target
+                                # retrieval score; Search does not grant semantic
+                                # supremacy by object type.
+                                score=retrieved_scores.get(str(ar[1]), 0),
+                                dimension=str(ar[4]) or "dim_unclassified",
+                                excerpt=f"[伴随注记] 指向 {ar[1]}: {claim_txt}",
                                 is_annotation=True,
                                 estimated_tokens=est_a_tok,
                             )
                         )
 
-            # 排序：外挂注记与核心主张排在最前
-            mind_hits.sort(key=lambda h: (-h.score, -h.revision))
+            # Stable retrieval ordering only; no object type is semantically privileged.
+            mind_hits.sort(key=lambda h: (-h.score, -h.revision, h.object_id))
 
             intent_parts = list(keywords)
             if dimension:

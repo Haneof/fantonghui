@@ -4,7 +4,7 @@
 1. 按维度（Dimension）：dim_finance, dim_health, dim_social 等；
 2. 按主张（Claim）：通过 claim_id 因果穿透证据链；
 3. 按实体（Entity）：通过 entity_id 与别名网络精准关联；
-4. 按注记（Annotation）：老王案外挂解释图层联动，带回最高解释权；
+4. 按注记（Annotation）：老王案外挂解释图层联动，作为候选证据而非固定最高解释权；
 5. 多维正交联合精准检索：时空窗 + 维度 + 实体 + 注记伴随，Token 极简 (< 150)。
 """
 
@@ -86,6 +86,7 @@ def bus_test_env(tmp_path):
         learned_at=t0,
         recorded_at=t0,
         created_by="test",
+        metadata={"dimension": "dim_finance"},
     )
     # 健康：早搏心电
     obs_cardiac = Observation(
@@ -99,6 +100,7 @@ def bus_test_env(tmp_path):
         learned_at=t1,
         recorded_at=t1,
         created_by="test",
+        metadata={"dimension": "dim_health"},
     )
     # 社交：母亲生日送礼
     obs_mom_gift = Observation(
@@ -112,6 +114,7 @@ def bus_test_env(tmp_path):
         learned_at=t1,
         recorded_at=t1,
         created_by="test",
+        metadata={"dimension": "dim_social"},
     )
 
     # 3. 写入主张（Claim）：合伙信用主张，支持证据是指向借款
@@ -172,6 +175,39 @@ def test_search_by_dimension(bus_test_env):
     assert "obs_wang_loan_50w" not in h_ids
 
 
+def test_dimension_projection_requires_explicit_world_metadata(tmp_path):
+    db_file = tmp_path / "dimension_explicit.db"
+    store = SQLiteWorldStore(str(db_file))
+    engine = MultidimensionalSearchEngine(str(db_file), store=store)
+    t0 = datetime(2026, 9, 18, tzinfo=UTC)
+    ambiguous = Observation(
+        object_id="obs_ambiguous_dimension",
+        subject_id="user_1",
+        revision=1,
+        source_kind="transaction",
+        modality="text",
+        value="今天转账后又聊到心率、妈妈和代码，文本故意跨多个旧关键词规则。",
+        occurred=TemporalExtent.point(t0),
+        learned_at=t0,
+        recorded_at=t0,
+        created_by="test",
+    )
+    store.commit(
+        [ambiguous],
+        OperationRequest(
+            operation_id=new_operation_id(),
+            operation_name="dimension.explicit.test",
+            expected_world_revision=0,
+            reason="prove search does not infer semantic dimension from keywords",
+            idempotency_key="dimension_explicit_1",
+            source_class=SourceClass.AI_COGNITION,
+        ),
+    )
+    engine.catch_up()
+    page = engine.search_mind(keywords=["心率"])
+    hit = next(h for h in page.hits if h.object_id == ambiguous.object_id)
+    assert hit.dimension == "dim_unclassified"
+
 def test_search_by_entity(bus_test_env):
     """测试原生按实体（Entity）精准关联检索（支持别名展开）。"""
     store, engine, suite, _ = bus_test_env
@@ -195,25 +231,19 @@ def test_search_by_claim(bus_test_env):
 
 
 def test_search_by_annotation_and_companion_attachment(bus_test_env):
-    """测试原生按注记（Annotation）检索及外挂注记伴随联动（老王案原罪与今天标签同框）。"""
+    """注记可直接/伴随召回，但 Search 不授予固定最高解释权。"""
     store, engine, suite, anno = bus_test_env
-    # 1. 直接按注记 ID 检索
     anno_page = engine.search_by_annotation(anno.annotation_id)
     assert anno_page.status == "ok"
-    assert len(anno_page.hits) >= 1
     assert any(h.object_id == anno.annotation_id for h in anno_page.hits)
 
-    # 2. 检索历史老王借款事实，验证外挂注记被自动联动伴随召回，且具有最高解释权重
     loan_page = engine.search_mind(keywords=["老王", "借款"], include_annotations=True)
     hit_ids = [h.object_id for h in loan_page.hits]
     assert "obs_wang_loan_50w" in hit_ids
     assert anno.annotation_id in hit_ids
-    # 验证注记条目具有最高优先级 score=15
-    top_hit = loan_page.hits[0]
-    assert top_hit.is_annotation is True
-    assert top_hit.score >= 10
-    assert "合同诈骗" in top_hit.excerpt
-
+    anno_hits = [h for h in loan_page.hits if h.object_id == anno.annotation_id]
+    assert len(anno_hits) == 1
+    assert "合同诈骗" in anno_hits[0].excerpt
 
 def test_multidimensional_joint_search_and_token_efficiency(bus_test_env):
     """测试维度 + 实体 + 关键词 + 注记四维联合正交检索与极简 Token (< 150)。"""

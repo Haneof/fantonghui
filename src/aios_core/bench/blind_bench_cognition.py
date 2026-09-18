@@ -92,6 +92,15 @@ BUS_QUERY: tuple[str, ...] = ("合伙", "借贷", "撕逼", "银行流水")
 #: 它只是对同义词与长词（>2 字）天生失明 —— 这正是召回总线存在的理由。
 CONTROL_QUERY: tuple[str, ...] = ("合伙", "借条")
 
+# Blind-bench fixture only: explicit retrieval-policy input. These expansions
+# are not production defaults and have no constitutional semantic authority.
+BUS_EXPANSIONS: Mapping[str, tuple[str, ...]] = {
+    "合伙": ("合伙", "股份", "协议", "白纸"),
+    "借贷": ("借条", "借款", "欠", "还你", "流水", "转出"),
+    "撕逼": ("翻脸", "不认", "法庭", "账"),
+    "银行流水": ("流水", "转出", "尾号", "招商"),
+}
+
 _ENTITY_ALIASES: Mapping[str, tuple[str, ...]] = {
     "ent_user": ("我", "本人", "当事人"),
     "ent_old_wang": ("老王", "王强", "合伙人"),
@@ -175,7 +184,7 @@ def run_stage3(harness: Any) -> StageThreeResult:
     conn = sqlite3.connect(index_path)
     ensure_cjk_schema(conn)
     index = CJKTopologicalInvertedIndex(conn)
-    bus = CoOccurrenceRecallBus(conn)
+    bus = CoOccurrenceRecallBus(conn, expansions=BUS_EXPANSIONS)
     entity_for_key = {
         "WANG:pact_signing": "ent_old_wang",
         "WANG:loan_transfer": "ent_bank",
@@ -215,7 +224,7 @@ def run_stage3(harness: Any) -> StageThreeResult:
     control_hits = index.co_search(list(CONTROL_QUERY))
     exact_latency_ms = (time.perf_counter() - query_started) * 1000.0
     bus_started = time.perf_counter()
-    recall = bus.recall(BUS_QUERY)
+    recall = bus.recall(BUS_QUERY, min_coverage=0.5)
     bus_latency_ms = (time.perf_counter() - bus_started) * 1000.0
     harness.recorder.record("S3.exact_intersection_ms", exact_latency_ms)
     harness.recorder.record("S3.cooccurrence_bus_ms", bus_latency_ms)

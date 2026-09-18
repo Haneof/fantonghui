@@ -15,9 +15,8 @@
 --------------
 在真实倒排索引之上加一层**召回总线**（不改索引内部实现，只做只读投影）：
 
-1. **口语词 → 世界术语的同义展开**（``seed_expansions`` 可注入、可版本化）；
-2. **覆盖度召回**：不再要求"每个词都命中"，而是按"命中了查询原词组的几个组"
-   打分（覆盖度 = 命中组数 / 查询组数），并保留**每个组的实际命中词**用于解释；
+1. **可选策略扩展**：同义/近义扩展必须由调用方或版本化 Cognitive Policy 显式注入；本模块不内置世界语义词典；
+2. **覆盖度度量**：返回命中组数 / 查询组数作为可解释检索证据；默认不以固定 coverage 阈值替 AI 作相关性裁决；
 3. **拒绝全表扫描**：召回只走 ``topological_cjk_terms`` 的 term 索引 + 一次
    ``IN`` 查询，然后按 entity 聚合（在 CPU 上做覆盖度计算，绝不做 LIKE 全扫）。
 
@@ -35,26 +34,13 @@ from aios_core.query.cjk_inverted_index import tokenize_cjk_overlapping
 
 __all__ = [
     "CoOccurrenceRecallBus",
-    "DEFAULT_SEED_EXPANSIONS",
     "RecallHit",
     "RecallResult",
 ]
 
 
-#: 口语查询词 → 世界术语种子展开表（**词元级**，与 1/2 元重叠倒排的切词口径对齐）。
-#: 表本身可版本化、可由经验沉淀（OperationExperience）替换。
-DEFAULT_SEED_EXPANSIONS: Mapping[str, Sequence[str]] = {
-    "合伙": ("合伙", "股份", "协议", "白纸"),
-    "借贷": ("借条", "借款", "欠", "还你", "流水", "转出"),
-    "撕逼": ("翻脸", "不认", "法庭", "账"),
-    "银行流水": ("流水", "转出", "尾号", "招商"),
-    "早搏": ("早搏", "心律", "心口", "发紧"),
-    "熬夜": ("熬夜", "通宵", "凌晨", "咖啡"),
-    "妈妈": ("妈", "住院", "血压", "饺子", "回家"),
-    "搬家": ("搬家", "搬到", "搬去", "租的房子", "成都"),
-    "慢性病": ("血压", "血糖", "胰岛素", "复查", "住院"),
-    "承诺": ("答应", "说好", "承诺", "我来"),
-}
+#: R5/R6: no built-in semantic expansion table. Callers inject versioned policy data explicitly.
+
 
 
 @dataclass(frozen=True, slots=True)
@@ -96,13 +82,10 @@ class CoOccurrenceRecallBus:
         token_cost_per_hit: int = 12,
     ) -> None:
         self._conn = conn
-        merged: Dict[str, tuple[str, ...]] = {
-            key: tuple(value) for key, value in DEFAULT_SEED_EXPANSIONS.items()
-        }
+        self._expansions: Dict[str, tuple[str, ...]] = {}
         if expansions:
             for key, value in expansions.items():
-                merged[key] = tuple(value)
-        self._expansions = merged
+                self._expansions[str(key)] = tuple(value)
         self._token_cost_per_hit = int(token_cost_per_hit)
 
     # ------------------------------------------------------------------
@@ -114,8 +97,16 @@ class CoOccurrenceRecallBus:
         query_terms: Sequence[str],
         *,
         limit: int = 10,
-        min_coverage: float = 0.5,
+        min_coverage: float | None = None,
     ) -> RecallResult:
+        """Return retrieval candidates without a built-in relevance cutoff.
+
+        min_coverage is an optional caller/policy hint. None means the
+        retrieval layer returns all matched candidates and leaves relevance
+        judgment to the cognitive runtime.
+        """
+        if min_coverage is not None and not 0.0 <= float(min_coverage) <= 1.0:
+            raise ValueError("min_coverage must be within [0, 1] when provided")
         groups: list[tuple[str, tuple[str, ...]]] = []
         for term in query_terms:
             key = str(term).strip()
@@ -160,7 +151,7 @@ class CoOccurrenceRecallBus:
         for entity_id, bucket in per_entity.items():
             groups_hit = sorted(bucket["groups"])  # type: ignore[arg-type]
             coverage = len(groups_hit) / len(groups)
-            if coverage < min_coverage:
+            if min_coverage is not None and coverage < float(min_coverage):
                 continue
             hits.append(
                 RecallHit(

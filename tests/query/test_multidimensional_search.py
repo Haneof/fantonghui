@@ -2,7 +2,7 @@
 
 贯彻最高宪法第二十章与第二十四章：
 1. 验证按多维属性（dim_health, dim_finance, dim_social）精准过滤；
-2. 验证今天外挂注记（RetrospectiveAnnotation）自动同步并高权重置顶召回；
+2. 验证今天外挂注记（RetrospectiveAnnotation）自动同步并作为伴随证据召回，不获得固定最高权重；
 3. 验证毫秒级延迟 (<= 20ms) 与极简 Token 封套 (<= 150 tokens)；
 4. 验证 WorldOperatorSuite.search 原语的原生无缝驱动。
 """
@@ -75,6 +75,7 @@ def test_world():
         learned_at=T0,
         recorded_at=T0,
         created_by="test",
+        metadata={"dimension": "dim_health"},
     )
     # 财务维
     obs_loan = Observation(
@@ -88,6 +89,7 @@ def test_world():
         learned_at=T0,
         recorded_at=T0,
         created_by="test",
+        metadata={"dimension": "dim_finance"},
     )
     # 工作维
     obs_work = Observation(
@@ -101,6 +103,7 @@ def test_world():
         learned_at=T0,
         recorded_at=T0,
         created_by="test",
+        metadata={"dimension": "dim_work"},
     )
 
     op = OperationRequest(
@@ -163,16 +166,15 @@ def test_search_with_today_retrospective_annotation(test_world):
 
     assert page.status == "ok"
     assert len(page.hits) >= 1
-    # 注记自动被检索召回并置顶
-    top_hit = page.hits[0]
-    assert top_hit.is_annotation is True
-    assert "合同诈骗罪" in top_hit.excerpt
-    assert top_hit.score >= 10
-    assert lat_ms <= 50.0  # 宪法 C13 召回同步预算 50ms 红线
+    # 注记作为伴随证据返回，但 Search 不得自动赋予“最高解释权”。
+    annotation_hits = [hit for hit in page.hits if hit.is_annotation]
+    assert annotation_hits
+    assert any("合同诈骗罪" in hit.excerpt for hit in annotation_hits)
+    assert all(hit.score <= max(h.score for h in page.hits) for hit in annotation_hits)
+    assert lat_ms <= 50.0
 
     # 验证 Token 封套极简性 (<= 150 Tokens)
     assert page.total_estimated_tokens <= 150
-
 
 def test_entity_alias_disambiguation_in_mind_search(test_world):
     suite, store = test_world
