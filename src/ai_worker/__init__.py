@@ -1,17 +1,19 @@
-"""AI Worker - 负责调用大模型并通过 Core 公共接口操作世界。
+"""AI Worker public surface.
 
-边界红线：
-- 禁止 import sqlite3
-- 禁止 from aios_core.storage.sqlite_store import ...
-- 禁止直接打开 *.db
-- 禁止 import evaluator 隐藏真值
+R5/R6 primary execution path:
+- CognitiveExecutor -> CognitiveRuntime -> CapabilityRegistry/WorldCapabilityBus.
 
-所有世界读写必须走 aios_core 公开接口。
+Legacy one-shot cockpit components remain importable from their explicit modules
+for migration only, but are intentionally not re-exported here as the default worker.
 """
 
-from .brevity_guard import enforce_dialogue_brevity_guard
+from .cognitive_executor import (
+    CognitiveExecutionResult,
+    CognitiveExecutor,
+    ModelDirective,
+    WorldStorePort,
+)
 from .context_pipeline import AssembledContext, ContextAssemblyPipeline
-from .cockpit_executor import CockpitExecutor, TurnExecutionResult
 from .manifest_optimizer import CockpitManifest, CockpitManifestOptimizer
 from .stream_pipeline import (
     ActiveRollingWindow,
@@ -24,14 +26,15 @@ from .stream_pipeline import (
 __all__ = [
     "ActiveRollingWindow",
     "AssembledContext",
-    "CockpitExecutor",
+    "CognitiveExecutionResult",
+    "CognitiveExecutor",
     "CockpitManifest",
     "CockpitManifestOptimizer",
     "ContextAssemblyPipeline",
     "ExtractedClaimCandidate",
+    "ModelDirective",
     "ProactiveAssociativeRecall",
     "StreamingExtractWorker",
     "ThreeStageStreamPipeline",
-    "TurnExecutionResult",
-    "enforce_dialogue_brevity_guard",
+    "WorldStorePort",
 ]

@@ -11,7 +11,6 @@ import time
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional
 
-from .brevity_guard import enforce_dialogue_brevity_guard
 from .context_pipeline import AssembledContext, ContextAssemblyPipeline
 from .manifest_optimizer import CockpitManifestOptimizer
 from .stream_pipeline import ThreeStageStreamPipeline
@@ -82,7 +81,8 @@ class CockpitExecutor:
         )
 
         raw_reply = self.model_handler(assembled_ctx)
-        final_reply, was_truncated = enforce_dialogue_brevity_guard(raw_reply)
+        # R6: legacy executor preserves model semantics exactly.
+        final_reply, was_truncated = raw_reply, False
 
         turn_no = self.pipeline._turn_counter + 1
         self.pipeline._turn_counter = turn_no
@@ -126,5 +126,4 @@ class CockpitExecutor:
 __all__ = [
     "CockpitExecutor",
     "TurnExecutionResult",
-    "enforce_dialogue_brevity_guard",
 ]

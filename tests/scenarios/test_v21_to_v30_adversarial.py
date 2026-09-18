@@ -2,11 +2,11 @@
 
 十项高阶极端对抗场景全面覆盖：
 - V21: 身份颠覆与单跳雪崩阻断 (两年前老王是骗子，历史零改写，单跳打标，0递归重算)
-- V22: 突发严重跌倒与心脏骤停 P0 熔断直通车 (<= 50ms 硬件穿透，0 LLM 调用)
+- V22: 突发严重跌倒与心脏骤停 P0 熔断直通车 (<= 50ms 首硬件动作；其前 0 LLM/0 World，之后允许急救认知研判)
 - V23: 跨半年未知陌生人声纹冷热淘汰 (180 天 TTL，活跃实体不受影响)
 - V24: 情感激烈冲突场景下兼容层不得破坏模型语义
 - V25: 连续 50 轮碎片对话 Token 防爆与平滑驱逐 (活跃窗口 <= 6 轮，44 轮入后台)
-- V26: 派生动态维度恶性膨胀抑制 (500 偶发标签不转正，活跃上限严格 <= 32)
+- V26: 旧离线维度演化守卫回归（legacy/offline experimental；不得直接接入 R5 Runtime，阈值待迁 R6 Policy）
 - V27: 模型供应商瞬时切换与超时熔断 (<= 500ms 平滑降级，零脏数据残留)
 - V28: 深度睡眠静默心跳绝对克制 (DEEP_NREM 深睡拦截次要提醒，零马达微震)
 - V29: 托腮摸耳物理防误触因果律 (待机状态骨传导断电，误触率因果律 0.0%)
@@ -43,7 +43,7 @@ from aios_core.wearable.fsm import (
 )
 from aios_core.cognition.dependency_isolator import invalidate_overturned_fact_single_hop
 from aios_core.perception.edge_cleaner import prune_expired_voiceprints
-from ai_worker.brevity_guard import enforce_dialogue_brevity_guard
+from aios_core.cockpit.pipeline import BrevityGuard
 from ai_worker.stream_pipeline import ActiveRollingWindow
 
 
@@ -180,11 +180,12 @@ def test_v24_emotional_conflict_preserves_model_semantics():
         "我知道你现在不想被分析，也不需要我替你讲道理。"
         "今天先到这儿；如果你晚点想复盘，我再陪你把事情拆开。"
     )
-    cleaned_reply, was_truncated = enforce_dialogue_brevity_guard(model_reply)
+    verdict = BrevityGuard().enforce(model_reply)
 
-    # R6：风格兼容层不得以所谓“反爹味”规则改写模型已经形成的有效语义。
-    assert cleaned_reply == model_reply
-    assert was_truncated is False
+    # R6：兼容审计层不得以所谓“反爹味”规则改写模型已经形成的有效语义。
+    assert verdict.text == model_reply
+    assert verdict.intercepted is False
+    assert verdict.violations == ()
 
 
 # =====================================================================
