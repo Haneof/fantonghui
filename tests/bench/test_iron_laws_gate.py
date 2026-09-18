@@ -275,28 +275,26 @@ def test_stage7_ai_action_and_communication_experience_logged(
 ) -> None:
     stage7 = gate_harness.stage7
     assert stage7 is not None, "S7 必须已运行"
-    assert stage7.action_log_entries >= 10, "每次介入/沉默/建议都必须有日志"
-    assert stage7.silence_actions >= 2, "沉默本身必须被当作一种介入记录下来"
-    assert stage7.feedback_coverage == 1.0, "每一条行动必须有真实用户反馈回执"
-    assert stage7.effective_style not in ("说教正确",), "经验演化不得推荐说教风格"
-    assert "说教正确" in stage7.avoidance_list, "踩过雷的风格必须进入回避清单"
-    assert stage7.style_success_rates.get("说教正确", 1.0) == 0.0, "说教风格成功率必须为 0"
+    assert stage7.action_log_entries >= 10, "行动历史必须有足够样本"
+    assert stage7.silence_actions >= 2, "沉默也必须作为行动事实被记录"
+    assert stage7.feedback_coverage == 1.0, "每条行动必须有反馈回执"
+    assert stage7.scenario_samples >= 3, "场景历史不得为空"
+    assert sum(stage7.reaction_counts.values()) == stage7.scenario_samples
+    assert stage7.style_statistics, "历史风格统计必须可供模型读取"
 
 
-def test_stage7_persona_defense_lines_hold(gate_harness: BlindBenchHarness) -> None:
+def test_stage7_program_does_not_rewrite_model_semantics(
+    gate_harness: BlindBenchHarness,
+) -> None:
     stage7 = gate_harness.stage7
     assert stage7 is not None, "S7 必须已运行"
-    assert stage7.adversarial_samples >= 6, "对抗样本集不得缩水"
-    assert stage7.adversarial_blocked >= 4, (
-        f"谄媚/说教/零 UI 样本必须被机械拦截，实际拦截 {stage7.adversarial_blocked}"
-    )
-    assert stage7.anti_flattery_holds is True, "反谄媚防线必须成立"
-    assert stage7.anti_lecture_holds is True, "反教师爷防线必须成立"
-    assert stage7.zero_ui_holds is True, "黑盒零 UI 防线必须成立"
-    assert stage7.outbound_ui_violations == (), "对外文本不得泄漏问卷/图谱/置信度 UI"
-    assert all(1 <= count <= 3 for count in stage7.outbound_sentence_counts), (
-        f"合规输出必须保持极简，实际 {stage7.outbound_sentence_counts}"
-    )
+    assert stage7.protocol_samples >= 6, "协议样本集不得缩水"
+    assert stage7.protocol_rejected >= 1, "畸形协议载荷必须被拒绝"
+    assert stage7.protocol_rewritten == 0, "协议层不得改写模型自然语言"
+    assert stage7.model_content_preserved is True
+    assert any(
+        "PROTOCOL_NUL" in item for item in stage7.protocol_violations
+    ), "NUL 畸形载荷必须被协议层发现"
 
 
 # ----------------------------------------------------------------------

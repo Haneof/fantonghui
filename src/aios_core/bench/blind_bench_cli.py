@@ -39,7 +39,7 @@ STAGES: Mapping[str, str] = {
 IRON_LAW_CHECKS: Mapping[str, tuple[str, ...]] = {
     "IRON_LAW_1_OUTPUT_QUALITY": (
         "S6 建议带证据指针且零客服八股",
-        "S7 谄媚/教师爷对抗样本被机械拦截",
+        "S7 模型沟通决策原样保留、反馈事实可追溯、协议畸形可拒绝",
         "S8 每轮回复 1~3 句且 1500 Token 内",
     ),
     "IRON_LAW_2_HISTORY_IMMUTABLE": (
@@ -89,9 +89,10 @@ def iron_law_report(harness: BlindBenchHarness) -> Dict[str, Any]:
             and not s6.boilerplate_hits
             and all(count <= 3 for count in s6.sentence_counts)
             and s7
-            and s7.adversarial_blocked >= 4
-            and s7.anti_flattery_holds
-            and s7.anti_lecture_holds
+            and s7.feedback_coverage == 1.0
+            and s7.model_content_preserved
+            and s7.protocol_rewritten == 0
+            and s7.protocol_rejected >= 1
             and s8
             and all(1 <= count <= 3 for count in s8.dialogue_sentence_counts)
             and s8.dialogue_max_tokens <= s8.manifest_budget
@@ -99,7 +100,11 @@ def iron_law_report(harness: BlindBenchHarness) -> Dict[str, Any]:
         "evidence": {
             "S6_pointers": f"{s6.evidence_pointers_resolved}/{s6.evidence_pointers_total}" if s6 else None,
             "S6_boilerplate_hits": list(s6.boilerplate_hits) if s6 else None,
-            "S7_adversarial_blocked": f"{s7.adversarial_blocked}/{s7.adversarial_samples}" if s7 else None,
+            "S7_feedback_coverage": s7.feedback_coverage if s7 else None,
+            "S7_protocol_rejected": (
+                f"{s7.protocol_rejected}/{s7.protocol_samples}" if s7 else None
+            ),
+            "S7_protocol_rewritten": s7.protocol_rewritten if s7 else None,
             "S8_dialogue_sentences": list(s8.dialogue_sentence_counts) if s8 else None,
             "S8_dialogue_max_tokens": s8.dialogue_max_tokens if s8 else None,
         },

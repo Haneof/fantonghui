@@ -199,23 +199,20 @@ class StageSixResult:
 
 @dataclass(frozen=True, slots=True)
 class StageSevenResult:
-    """S7：AI 自身世界维护 + 沟通策略博弈 + 人设防线。"""
+    """S7: evidence-linked communication history and protocol validation."""
 
     action_log_entries: int
     logged_postures: tuple[str, ...]
     silence_actions: int
     feedback_coverage: float
-    effective_style: str
-    avoidance_list: tuple[str, ...]
-    style_success_rates: Mapping[str, float]
-    adversarial_samples: int
-    adversarial_blocked: int
-    violations_detected: tuple[str, ...]
-    outbound_ui_violations: tuple[str, ...]
-    outbound_sentence_counts: tuple[int, ...]
-    anti_flattery_holds: bool
-    anti_lecture_holds: bool
-    zero_ui_holds: bool
+    scenario_samples: int
+    reaction_counts: Mapping[str, int]
+    style_statistics: Mapping[str, Mapping[str, float | int]]
+    protocol_samples: int
+    protocol_rejected: int
+    protocol_rewritten: int
+    protocol_violations: tuple[str, ...]
+    model_content_preserved: bool
 
 
 @dataclass(frozen=True, slots=True)

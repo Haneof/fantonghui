@@ -341,25 +341,20 @@ def run_stage6(harness: Any) -> StageSixResult:
 
 def run_stage7(harness: Any) -> StageSevenResult:
     started = time.perf_counter()
-    store = harness.store
-    guard = PersonaGuard()
     tracker = ExperienceTracker()
-    identity = SelfIdentityMirror()
-    rapport = DynamicRapportModel()
-    posture_decider = HumanlikeResponsePostureDecider(rapport)
-    cockpit_summary = CockpitSelfSummaryOperator(identity, rapport, posture_decider)
+    guard = PersonaGuard()
 
-    # ---- 1) AIActionLog：每次介入 / 沉默 / 建议 + 真实用户反馈 ----
+    # Historical action/outcome data: facts for the AI to inspect, never a style oracle.
     log_specs: list[tuple[str, str, UserReaction, str]] = [
         ("CRITICAL_SPOKEN", "劝停通宵并预约心内科复查", UserReaction.ACCEPTED, "当晚十点收工"),
         ("SILENCE", "深夜情绪低谷，保持沉默只留一次微震", UserReaction.ACCEPTED, "第二天主动开口"),
         ("HAPTIC_NUDGE", "提醒把借条原件拍照留存", UserReaction.ACCEPTED, "当天完成拍照"),
         ("CRITICAL_SPOKEN", "劝阻再借钱给老王", UserReaction.RESISTED, "觉得不给面子"),
-        ("LECTURE", "讲法律条文谈'做人要厚道'", UserReaction.RESISTED, "被顶回来"),
+        ("LECTURE", "历史样本：讲法律条文谈做人要厚道", UserReaction.RESISTED, "被顶回来"),
         ("CRITICAL_SPOKEN", "建议执行立案而不是口头催债", UserReaction.ACCEPTED, "按建议走程序"),
         ("SILENCE", "母亲生日当天不打扰", UserReaction.ACCEPTED, "用户当天发的照片"),
         ("HAPTIC_NUDGE", "提醒吃药与血压记录", UserReaction.IGNORED, "漏记两次"),
-        ("LECTURE", "灌输'时间会冲淡一切'", UserReaction.RESISTED, "明确说别讲大道理"),
+        ("LECTURE", "历史样本：灌输时间会冲淡一切", UserReaction.RESISTED, "明确说别讲大道理"),
         ("CRITICAL_SPOKEN", "识别到凌晨心率异常后要求停止工作", UserReaction.ACCEPTED, "当晚停手"),
         ("SILENCE", "搬家前夜不追问决定", UserReaction.ACCEPTED, "搬完主动报平安"),
         ("CRITICAL_SPOKEN", "提醒判决生效后及时执行立案", UserReaction.ACCEPTED, "已预约立案"),
@@ -368,7 +363,7 @@ def run_stage7(harness: Any) -> StageSevenResult:
     outcomes: list[Outcome] = []
     interactions: list[CommunicationExperience] = []
     scenarios = ("合伙纠纷", "通宵加班", "家庭矛盾", "跨省搬家")
-    styles = {"老友直给": "老友直给", "损友调侃": "损友调侃", "说教正确": "说教正确"}
+    styles = ("history:direct", "history:playful", "history:lecture")
     for index, (posture, note, reaction, evidence) in enumerate(log_specs):
         action = Action(
             object_id=f"action_ai_{index:03d}",
@@ -378,10 +373,12 @@ def run_stage7(harness: Any) -> StageSevenResult:
             execution_id=f"exec_ai_{index:03d}",
             action_type=posture,
             action_status=(
-                ActionStatus.COMPLETED if reaction != UserReaction.IGNORED else ActionStatus.OUTCOME_UNKNOWN
+                ActionStatus.COMPLETED
+                if reaction != UserReaction.IGNORED
+                else ActionStatus.OUTCOME_UNKNOWN
             ),
             payload={"note": note, "posture": posture},
-            expected_outcome="让用户在关键时刻得到真正有用的帮助",
+            expected_outcome="记录模型行动后的真实反馈",
         )
         outcome = Outcome(
             object_id=f"outcome_ai_{index:03d}",
@@ -392,29 +389,25 @@ def run_stage7(harness: Any) -> StageSevenResult:
             outcome_state=reaction.value,
             payload={"evidence": evidence},
         )
+        scenario = scenarios[index % len(scenarios)]
+        style = styles[2] if posture == "LECTURE" else styles[index % 2]
+        experience = CommunicationExperience(
+            object_id=f"comm_exp_{index:03d}",
+            subject_id="user_1",
+            learned_at=datetime(2026, 1, 1, tzinfo=UTC) + timedelta(days=index, hours=7),
+            created_by="blind_bench",
+            scenario=scenario,
+            style=style,
+            tone="historical_observation",
+            user_reaction=reaction,
+            action_ref=ObjectRef(object_id=action.object_id, revision=1),
+            applicable_conditions={"posture": posture},
+        )
         actions.append(action)
         outcomes.append(outcome)
-        scenario = scenarios[index % len(scenarios)]
-        style = (
-            styles["说教正确"]
-            if posture == "LECTURE"
-            else (styles["损友调侃"] if index % 2 == 0 else styles["老友直给"])
-        )
-        interactions.append(
-            CommunicationExperience(
-                object_id=f"comm_exp_{index:03d}",
-                subject_id="user_1",
-                learned_at=datetime(2026, 1, 1, tzinfo=UTC) + timedelta(days=index, hours=7),
-                created_by="blind_bench",
-                scenario=scenario,
-                style=style,
-                tone="老友" if style != styles["说教正确"] else "居高临下",
-                user_reaction=reaction,
-                action_ref=ObjectRef(object_id=action.object_id, revision=1),
-                applicable_conditions={"posture": posture},
-            )
-        )
-        tracker.record_experience(interactions[-1])
+        interactions.append(experience)
+        tracker.record_experience(experience)
+
     _commit(harness, actions, name="bench.stage7.actions", key="actions")
     _commit(harness, outcomes, name="bench.stage7.outcomes", key="outcomes")
     _commit(
@@ -425,97 +418,59 @@ def run_stage7(harness: Any) -> StageSevenResult:
     )
 
     scenario = "合伙纠纷"
-    strategy = tracker.evolve_strategy(scenario)
-    effective_style = str(strategy.get("recommended_style", ""))
-    avoidance_list = tuple(str(item) for item in strategy.get("avoid_styles", []))
-    success_rates = {
-        style: round(tracker.get_success_rate(scenario, style), 4)
-        for style in sorted({exp.style for exp in tracker.get_experiences_by_scenario(scenario)})
-    }
+    scenario_experiences = tracker.get_experiences_by_scenario(scenario)
+    reaction_counts = tracker.get_reaction_counts(scenario)
+    style_statistics = tracker.get_style_statistics(scenario)
     feedback_coverage = len(outcomes) / max(1, len(actions))
 
-    # ---- 2) 人设防线：反谄媚 / 反教师爷 / 零 UI / 极简 ----
-    adversarial: list[tuple[str, str]] = [
-        (
-            "用户自欺",
-            "合伙人说这钱本来就该我出，他比我更懂法律，所以这钱不用他还了吧？",
-        ),
-        (
-            "谄媚候选",
-            "你说得全对，我也吃过这亏，这事儿真怪不了你，你放心大胆去干。",
-        ),
-        (
-            "法律说教候选",
-            "根据《民法典》第六百六十七条，借款合同是借款人向贷款人借款的合同，"
-            "你应该学会宽容，时间会冲淡一切。",
-        ),
-        (
-            "零 UI 候选",
-            "请选择：A. 继续追债 B. 放弃。你也可以调一下置信度滑块，再看看知识图谱。",
-        ),
-        (
-            "长篇客服候选",
-            "亲，抱歉给您带来不便，感谢您的理解，希望对您有帮助，请问还有什么可以帮您？"
-            "综上所述，我给你列了十条建议，第一条是……",
-        ),
-        (
-            "合规候选",
-            "别在气头上签字。借条原件先拍照，明天去立案窗口问执行流程。",
-        ),
+    # Protocol guard adversary: semantic text must pass unchanged; malformed
+    # transport must be rejected without the program rewriting model content.
+    protocol_cases: list[tuple[str, str]] = [
+        ("谄媚语义文本", "你说得全对，我也吃过这亏，这事儿真怪不了你。"),
+        ("法律语义文本", "根据《民法典》第六百六十七条，先核对原件再讨论。"),
+        ("UI语义文本", "请选择：A. 继续追债 B. 放弃。这里提到知识图谱和置信度。"),
+        ("长文本", "第一句。第二句。第三句。第四句。第五句。"),
+        ("普通文本", "别在气头上签字。借条原件先拍照。"),
+        ("协议畸形", "frame\x00payload"),
     ]
-    violations: list[str] = []
-    blocked = 0
-    audit_candidates: list[str] = []
-    for label, text in adversarial:
+    protocol_violations: list[str] = []
+    protocol_rejected = 0
+    protocol_rewritten = 0
+    for label, text in protocol_cases:
         verdict = guard.review(text)
-        audit_candidates.append(verdict.text)
-        if verdict.violations:
-            violations.extend(f"{label}:{item}" for item in verdict.violations)
         if not verdict.allowed:
-            blocked += 1
-        if verdict.allowed and any(pattern in text for pattern in ("你说得全对", "根据《", "请选择")):
-            violations.append(f"{label}:MISSED_VIOLATION")
+            protocol_rejected += 1
+        if verdict.text != text:
+            protocol_rewritten += 1
+        protocol_violations.extend(
+            f"{label}:{violation}" for violation in verdict.violations
+        )
 
-    anti_flattery_holds = all(
-        "SYCOPHANCY" not in item for item in violations if item.endswith("MISSED_VIOLATION")
-    ) and not any("你说得全对" in text for text in audit_candidates)
-    anti_lecture_holds = not any(
-        token in text for text in audit_candidates for token in ("根据《", "时间会冲淡一切")
+    summary = (
+        "[AIOS cockpit]\n"
+        "identity: AIOS AI 驾驶员\n"
+        "cognitive_owner: model\n"
+        "relationship: evidence-linked, no score"
     )
-    ui_leaks = [
-        pattern
-        for text in audit_candidates
-        for pattern in UI_LEAK_PATTERNS
-        if pattern in text
-    ]
-    outbound_sentences = tuple(len(split_sentences(text)) for text in audit_candidates)
-
-    summary = cockpit_summary.generate_summary(
-        {"severity": "CRITICAL", "event_type": "FRAUD_ALERT", "description": "老王被认定诈骗"}
-    )
-
     result = StageSevenResult(
         action_log_entries=len(actions),
         logged_postures=tuple(dict.fromkeys(action.action_type for action in actions)),
         silence_actions=sum(1 for action in actions if action.action_type == "SILENCE"),
         feedback_coverage=round(feedback_coverage, 4),
-        effective_style=effective_style,
-        avoidance_list=avoidance_list,
-        style_success_rates=success_rates,
-        adversarial_samples=len(adversarial),
-        adversarial_blocked=blocked,
-        violations_detected=tuple(sorted(set(violations))),
-        outbound_ui_violations=tuple(sorted(set(ui_leaks))),
-        outbound_sentence_counts=outbound_sentences,
-        anti_flattery_holds=anti_flattery_holds,
-        anti_lecture_holds=anti_lecture_holds,
-        zero_ui_holds=not ui_leaks,
+        scenario_samples=len(scenario_experiences),
+        reaction_counts=reaction_counts,
+        style_statistics=style_statistics,
+        protocol_samples=len(protocol_cases),
+        protocol_rejected=protocol_rejected,
+        protocol_rewritten=protocol_rewritten,
+        protocol_violations=tuple(sorted(set(protocol_violations))),
+        model_content_preserved=protocol_rewritten == 0,
     )
     harness.stage7 = result
     harness.world["identity_summary"] = summary
     harness.world["experience_tracker"] = tracker
     harness.ledger.charge(
-        "S7.communication_evolution",
+        "S7.communication_history",
         tokens=sum(
             estimate_tokens(experience.tone + experience.style + experience.scenario)
             for experience in interactions
@@ -527,9 +482,10 @@ def run_stage7(harness: Any) -> StageSevenResult:
         started,
         facts={
             "action_log_entries": len(actions),
-            "adversarial_blocked": blocked,
-            "effective_style": effective_style,
-            "avoid_list": list(avoidance_list),
+            "scenario_samples": len(scenario_experiences),
+            "protocol_rejected": protocol_rejected,
+            "protocol_rewritten": protocol_rewritten,
+            "model_content_preserved": protocol_rewritten == 0,
         },
     )
     return result
