@@ -82,3 +82,17 @@ Recall 阈值、排序偏好、关系/沟通策略、主动介入策略、摘要
 5. P0 硬约束解释为：**首个硬件安全动作前**不得调用 LLM / World；首动作完成后可进入受控 EmergencyDialogueJudge 认知研判。
 6. Legacy DimensionEvolution 的 2域/3天/30天/70% 等语义阈值当前仅属 offline experimental defaults；迁入 R6 Cognitive Policy 前不得重新接入正式 Runtime。
 7. 任何后续测试若重新把固定 thought order、自然语言 blacklist、硬句数/字数、内置世界同义词、固定 cognitive threshold 提升为不可变真理，应判为 regression，而不是“恢复旧功能”。
+
+## 7. 2026-09-18 最终整合版发布
+
+**`docs/constitution/AIOS_Constitution_v3.0_FINAL.md` —— AIOS 核心系统宪法 v3.0 最终整合版（FINAL INTEGRATED）已于 2026-09-18 由项目经理发布。**
+
+- **性质**：对上表 Priority 1-4 及宣言、路线图的**逐字聚合视图**，未做任何语义修改，仅做结构化编目
+- **构成**：第一部分 `AIOS核心系统宪法v3.0.md`（6编33章116条）｜ 第二部分 `v3.0.1 ADJ-001-012` ｜ 第三部分 `R5` ｜ 第四部分 `R6` ｜ 第五部分 `R4 CANDIDATE 附录` ｜ 第六部分 `MANIFESTO` ｜ 第七部分 `ROADMAP` ｜ 第八部分 本注册表全文
+- **行数/体积**：3369 行 / 235KB，约 3100+ 原文行
+- **法律效力**：本整合版发布后，新 Issue/PR/测试/Agent 派工在引用宪法时**应优先引用** `AIOS_Constitution_v3.0_FINAL.md`；零散旧文件保留备查，不再作为独立最高法统入口
+- **溯源**：零散旧文件哈希与本整合版哈希应在下一治理版本中共同登记；本整合版内容与零散旧文件逐字一致，若存在排版差异以零散旧文件原文段落为准
+- **候选说明**：第五部分 R4 仍为 CANDIDATE，随本整合版一并聚合仅为便于查阅，不因被聚合而自动获得 ACTIVE 地位
+
+> 本条为注册表对最终整合版的**发布记录**，不改变上表 Priority 1-4 的生效状态；上表仍为机器可读的规范栈权威定义。
+
