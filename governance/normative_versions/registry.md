@@ -9,6 +9,8 @@
 
 ## 1. 当前生效规范栈
 
+> **合卷本（推荐阅读入口）**：`docs/constitution/AIOS_Constitution_v3.0_FINAL.md` 由下表全部 ACTIVE 文件加本文件 §6 裁决**逐字合并**而成，内容与各原件等同。它是阅读与派工入口，不是新的法源；发生疑义时以下表原件为准，并重新执行 `scripts/build_constitution_final.py` 消除漂移。
+
 | Priority | Normative document | Status | Scope / authority |
 |---:|---|---|---|
 | 1 | `docs/constitution/AIOS核心系统宪法v3.0.md` | ACTIVE | 主宪法与基础原则 |
