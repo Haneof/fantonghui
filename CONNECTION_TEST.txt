@@ -1,0 +1,1 @@
+GitHub write permission verification for AIOS development.
