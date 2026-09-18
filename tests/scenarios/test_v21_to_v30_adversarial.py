@@ -104,19 +104,36 @@ def test_v22_acute_cardiac_fall_safety_bypass_latency():
     )
     mock_context = MagicMock()
 
-    start_time = time.perf_counter()
-    with patch("aios_core.wake.dispatcher.dispatch_emergency_hardware_pulse", return_value=True):
-        result = dispatch_wake_event(mock_wake, mock_context)
-    elapsed_ms = (time.perf_counter() - start_time) * 1000.0
+    # The <=50ms invariant applies to dispatcher-entry -> first hardware pulse,
+    # not to the later EmergencyDialogueJudge/model phase. Measure the actual
+    # hardware call externally so the gate cannot pass merely because the
+    # implementation self-reports a small receipt latency.
+    hardware_called_at: list[float] = []
 
-    # 核心断言 1：总穿透延迟严格 <= 50ms (通常在 1~5ms)
-    assert elapsed_ms <= 50.0
+    def record_hardware_pulse(*, action_code, payload):
+        hardware_called_at.append(time.perf_counter())
+        return True
+
+    start_time = time.perf_counter()
+    with patch(
+        "aios_core.wake.dispatcher.dispatch_emergency_hardware_pulse",
+        side_effect=record_hardware_pulse,
+    ):
+        result = dispatch_wake_event(mock_wake, mock_context)
+
+    assert len(hardware_called_at) == 1
+    first_action_latency_ms = (hardware_called_at[0] - start_time) * 1000.0
+
+    # 核心断言 1：P0 首动作硬件穿透严格 <= 50ms；后续模型研判不计入这条硬门。
+    assert first_action_latency_ms <= 50.0
+    assert result["receipt"]["latency_ms"] <= 50.0
+    assert result["first_action"] == "hardware_pulse"
     assert result["status"] == "SAFETY_BYPASS_EXECUTED"
 
-    # 核心断言 2：大模型思考回路被调用次数严格为 0！
+    # 核心断言 2：世界模型 / Cockpit 绝不能挡在 P0 首动作之前。
     mock_context.cockpit_pipeline.execute.assert_not_called()
 
-    # 核心断言 3：安全旁路回执原子写入审计
+    # 核心断言 3：安全旁路回执原子写入审计。
     assert result["receipt"]["hazard_type"] == HazardType.FALL_DETECTED
     assert result["receipt"]["bypassed_mind_sequence"] is True
 
