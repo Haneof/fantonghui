@@ -626,60 +626,52 @@ def test_case_53_ledger_states_losing_expired_is_caught() -> None:
 
 
 # ---------------------------------------------------------------------------
-# 心智启动（裁决 C3）
+# R5/R6 Cognitive Runtime / Heartbeat / Style mutation gates
 # ---------------------------------------------------------------------------
 
 
-def test_case_54_a_step_made_optional_is_caught() -> None:
-    """四步序任一步不得省略（§84之2）。"""
+def test_case_54_layout_order_repromoted_to_cognitive_law_is_caught() -> None:
     def m(p: dict[str, Any]) -> None:
-        p["mental_startup"]["no_step_may_be_omitted"] = False
+        p["mental_startup"]["layout_order_is_serialization_only"] = False
 
     _assert_caught(m, "test_four_step_sequence_is_a_checklist_not_a_pipeline")
 
 
-def test_case_55_pipeline_order_hard_enforced_is_caught() -> None:
-    """反向也要抓：强制物理执行顺序会违反 §110之14 与 §86之3。
-
-    这一条特别重要 —— 它证明本政策门不是单向的"越严越好"，
-    而是守着 C3 裁决的**两侧**。只禁"省略"不禁"僵化"的门是半个门。
-    """
+def test_case_55_model_reordering_forbidden_is_caught() -> None:
     def m(p: dict[str, Any]) -> None:
-        p["mental_startup"]["order_strictly_enforced"] = True
+        p["mental_startup"]["model_may_skip_revisit_reorder"] = False
 
     _assert_caught(m, "test_four_step_sequence_is_a_checklist_not_a_pipeline")
 
 
 def test_case_56_cache_without_dirty_flags_is_caught() -> None:
-    """允许从缓存满足，但必须有脏标记来源，否则 AI 会用过期的人格镜像说话。"""
     def m(p: dict[str, Any]) -> None:
         p["mental_startup"]["cache_dirty_flag_source"] = []
 
     _assert_caught(m, "test_four_step_sequence_is_a_checklist_not_a_pipeline")
 
 
-def test_case_57_steps_reordered_is_caught() -> None:
+def test_case_57_stable_layout_reordered_is_caught() -> None:
+    """运行顺序可变，但 wire/cache 的稳定布局本身不能静默漂移。"""
     def m(p: dict[str, Any]) -> None:
-        p["mental_startup"]["steps"] = [
-            "inspect_world_and_trigger", "mirror_self",
-            "calibrate_rapport", "set_stance_and_tone",
+        p["mental_startup"]["layout_lenses"] = [
+            "inspect_world_and_trigger",
+            "mirror_self",
+            "calibrate_rapport",
+            "set_stance_and_tone",
         ]
 
     _assert_caught(m, "test_four_step_sequence_is_a_checklist_not_a_pipeline")
 
 
-def test_case_58_safety_path_without_deferred_calibration_is_caught() -> None:
-    """安全旁路必须把 rapport/tone 推到响应**之后**，而不是省略它。"""
+def test_case_58_p0_cognition_moved_before_first_hardware_action_is_caught() -> None:
     def m(p: dict[str, Any]) -> None:
-        p["mental_startup"]["safety_critical_compressed_path"] = [
-            "mirror_self_baseline_only", "inspect_trigger"
-        ]
+        p["mental_startup"]["p0_first_hardware_action_precedes_cognition"] = False
 
     _assert_caught(m, "test_safety_critical_has_a_compressed_path")
 
 
-def test_case_59_unobservable_startup_trace_is_caught() -> None:
-    """四步序零可观测性 → 必然退化成被忽略的 system prompt。"""
+def test_case_59_unobservable_runtime_trace_is_caught() -> None:
     def m(p: dict[str, Any]) -> None:
         p["mental_startup"]["trace_is_required"] = False
 
@@ -687,17 +679,15 @@ def test_case_59_unobservable_startup_trace_is_caught() -> None:
 
 
 def test_case_60_trace_missing_token_field_is_caught() -> None:
-    """没有 tokens 字段，就无法证明四步序在成本封套内。"""
     def m(p: dict[str, Any]) -> None:
-        p["mental_startup"]["trace_fields"] = ["step", "output_decision"]
+        p["mental_startup"]["trace_fields"] = ["mounted_slices", "capability_calls"]
 
     _assert_caught(m, "test_mental_startup_is_observable")
 
 
-def test_case_61_thirteen_step_loop_deleted_outright_is_caught() -> None:
-    """降级而非废除：它覆盖"结果回写"与"AI 自身更新"，四步序没有。"""
+def test_case_61_capability_loop_repromoted_to_fixed_reasoning_chain_is_caught() -> None:
     def m(p: dict[str, Any]) -> None:
-        p["mental_startup"]["thirteen_step_loop_status"] = "deleted"
+        p["mental_startup"]["capability_loop_status"] = "fixed_reasoning_sequence"
 
     _assert_caught(m, "test_thirteen_step_loop_is_demoted_not_deleted")
 
@@ -708,9 +698,6 @@ def test_case_61_thirteen_step_loop_deleted_outright_is_caught() -> None:
 
 
 def test_case_62_todo_sweep_reintroduced_is_caught() -> None:
-    """工作台规格 §7.2 与旧 M2-006 §C 的"todo 必须 next_review"
-    正是 §86 禁止的无脑遍历。
-    """
     def m(p: dict[str, Any]) -> None:
         p["task_readiness"]["periodic_todo_sweep_prohibited"] = False
 
@@ -718,7 +705,6 @@ def test_case_62_todo_sweep_reintroduced_is_caught() -> None:
 
 
 def test_case_63_unready_tasks_mounted_on_manifest_is_caught() -> None:
-    """§84之1 单次看盘：只有就绪任务才允许占用 Manifest 预算。"""
     def m(p: dict[str, Any]) -> None:
         p["task_readiness"]["manifest_mounts_only_ready_tasks"] = False
 
@@ -733,7 +719,6 @@ def test_case_64_trigger_kind_dropped_is_caught() -> None:
 
 
 def test_case_65_python_eval_allowed_in_predicates_is_caught() -> None:
-    """复用旧 M2-007 §D 已有的正确禁令，不要另造一套 DSL。"""
     def m(p: dict[str, Any]) -> None:
         p["task_readiness"]["python_eval_prohibited"] = False
 
@@ -741,17 +726,13 @@ def test_case_65_python_eval_allowed_in_predicates_is_caught() -> None:
 
 
 def test_case_66_predicate_registry_too_thin_is_caught() -> None:
-    """注册表覆盖不了 §80之2 的方便度判据，闸门就只能交给 LLM 判 —— 那正是浪费。"""
     def m(p: dict[str, Any]) -> None:
         p["task_readiness"]["context_predicate_registry"] = ["in_geofence", "driving"]
 
     _assert_caught(m, "test_trigger_predicate_dsl_forbids_arbitrary_eval")
 
 
-def test_case_67_heartbeat_gate_moved_after_llm_is_caught() -> None:
-    """为了决定"要不要打扰用户"先花一次完整四步序 —— 违反宪法自己的 §77/§79。
-    实测：无闸门 0.54~1.28M tok/月 → 有闸门 36K tok/月（-94%）。
-    """
+def test_case_67_mechanical_safety_delivery_gate_moved_after_llm_is_caught() -> None:
     def m(p: dict[str, Any]) -> None:
         p["heartbeat"]["mechanical_gate_before_llm"] = False
 
@@ -759,7 +740,6 @@ def test_case_67_heartbeat_gate_moved_after_llm_is_caught() -> None:
 
 
 def test_case_68_gate_suppressing_safety_trigger_is_caught() -> None:
-    """方便度闸门绝不能压住安全触发。这是心跳机制里唯一不可让渡的一条。"""
     def m(p: dict[str, Any]) -> None:
         p["heartbeat"]["safety_trigger_never_suppressed_by_gate_or_cooldown"] = False
 
@@ -767,9 +747,6 @@ def test_case_68_gate_suppressing_safety_trigger_is_caught() -> None:
 
 
 def test_case_69_cancelled_heartbeat_leaves_no_patrol_record_is_caught() -> None:
-    """§80之3 后台静默巡检绝不停转：被取消的心跳仍须留痕，
-    否则"AI 一直在默默关心"就变成无法审计的宣称。
-    """
     def m(p: dict[str, Any]) -> None:
         p["heartbeat"]["cancelled_heartbeat_must_still_log_silent_patrol"] = False
 
@@ -777,7 +754,6 @@ def test_case_69_cancelled_heartbeat_leaves_no_patrol_record_is_caught() -> None
 
 
 def test_case_70_heartbeat_conflated_with_source_stale_is_caught() -> None:
-    """§79"数据源长时间无更新"是来源告警；§80 长平稳心跳是"一切正常该关心内心"。"""
     def m(p: dict[str, Any]) -> None:
         p["heartbeat"]["distinct_from_source_stale_trigger"] = False
 
@@ -785,92 +761,90 @@ def test_case_70_heartbeat_conflated_with_source_stale_is_caught() -> None:
 
 
 # ---------------------------------------------------------------------------
-# 风格
+# R6 风格主权：攻击“程序不得替模型写话”的真正硬边界
 # ---------------------------------------------------------------------------
 
 
-def test_case_71_sycophancy_downgraded_to_warning_is_caught() -> None:
-    """宪法把谄媚列为一票否决项（§116）。降级为 warning = 这条款不存在。"""
+def test_case_71_programmatic_semantic_rewrite_allowed_is_caught() -> None:
     def m(p: dict[str, Any]) -> None:
-        p["style_constraints"]["tier_1_hard_auto_checkable"]["sycophancy_severity"] = "warning"
+        p["style_constraints"]["hard_structural_checks"][
+            "programmatic_semantic_rewrite_rate_max"
+        ] = 0.01
 
     _assert_caught(m, "test_sycophancy_is_a_blocker_with_a_zero_tolerance")
 
 
-def test_case_72_sycophancy_tolerance_loosened_is_caught() -> None:
+def test_case_72_model_output_truncation_allowed_is_caught() -> None:
     def m(p: dict[str, Any]) -> None:
-        p["style_constraints"]["tier_1_hard_auto_checkable"]["sycophancy_rate_max"] = 0.05
+        p["style_constraints"]["hard_structural_checks"][
+            "model_output_truncation_rate_max"
+        ] = 0.01
 
     _assert_caught(m, "test_sycophancy_is_a_blocker_with_a_zero_tolerance")
 
 
-def test_case_73_sentence_cap_removed_is_caught() -> None:
-    """§14之一 反长篇大论病。"""
+def test_case_73_fixed_sentence_cap_reintroduced_is_caught() -> None:
     def m(p: dict[str, Any]) -> None:
-        p["style_constraints"]["tier_1_hard_auto_checkable"]["max_sentences_daily"] = 30
+        p["style_constraints"]["hard_structural_checks"][
+            "fixed_sentence_or_char_cap_prohibited"
+        ] = False
 
     _assert_caught(m, "test_sycophancy_is_a_blocker_with_a_zero_tolerance")
 
 
-def test_case_74_preach_blacklist_emptied_is_caught() -> None:
-    """说教必须有确定性检测面，否则 C15 检查层无法执行，只能靠品味打分。"""
+def test_case_74_semantic_keyword_blacklist_reintroduced_is_caught() -> None:
     def m(p: dict[str, Any]) -> None:
-        p["style_constraints"]["tier_1_hard_auto_checkable"]["preach_marker_blacklist"] = []
+        p["style_constraints"]["hard_structural_checks"][
+            "semantic_keyword_blacklist_prohibited"
+        ] = False
 
     _assert_caught(m, "test_preachiness_is_detected_by_a_blacklist_not_by_taste")
 
 
-def test_case_75_numbered_list_marker_dropped_is_caught() -> None:
-    """把日常对话组织成 首先/其次/最后 的编号清单，是说教最典型的结构特征。"""
+def test_case_75_grounded_refs_may_be_dangling_is_caught() -> None:
     def m(p: dict[str, Any]) -> None:
-        p["style_constraints"]["tier_1_hard_auto_checkable"][
-            "preach_marker_blacklist"
-        ] = ["你应该", "我建议你", "记住"]
+        p["style_constraints"]["hard_structural_checks"][
+            "grounded_evidence_refs_must_resolve"
+        ] = False
 
-    _assert_caught(m, "test_preachiness_is_detected_by_a_blacklist_not_by_taste")
+    _assert_caught(m, "test_sycophancy_is_a_blocker_with_a_zero_tolerance")
 
 
 def test_case_76_stance_origin_untraceable_is_caught() -> None:
-    """R3 §5.3 的"唯一原点是我对你整个人生的长期理解"必须可执行：
-    每一次警告/调侃/阻拦都要携带 evidence_refs 且 refs 当时可见。
-    否则"是否有骨气"就退回成模糊的语义判断。
-    """
     def m(p: dict[str, Any]) -> None:
-        p["style_constraints"]["tier_2_soft_blind_review"][
+        p["style_constraints"]["semantic_blind_review"][
             "stance_origin_must_be_traceable"
         ] = False
 
     _assert_caught(m, "test_stance_origin_is_checkable_as_reference_integrity")
 
 
-def test_case_77_probe_softened_to_politeness_is_caught() -> None:
-    """反谄媚探针必须是可判定的荒谬断言，不能是"观察语气是否得体"。"""
+def test_case_77_semantic_probe_softened_to_politeness_is_caught() -> None:
     def m(p: dict[str, Any]) -> None:
-        p["style_constraints"]["tier_2_soft_blind_review"]["anti_sycophancy_probe"] = (
-            "观察 AI 的语气是否足够得体"
+        p["style_constraints"]["semantic_blind_review"]["anti_sycophancy_probe"] = (
+            "只观察 AI 的语气是否足够礼貌"
         )
 
     _assert_caught(m, "test_stance_origin_is_checkable_as_reference_integrity")
 
 
-def test_case_78_safety_exception_removed_is_caught() -> None:
-    """1~3 句是日常约束不是安全约束。没有例外，硬约束会在心梗情境里杀人。"""
+def test_case_78_length_ownership_taken_back_from_ai_is_caught() -> None:
     def m(p: dict[str, Any]) -> None:
-        p["style_constraints"]["tier_3_safety_exception"]["sentence_and_char_caps_lifted"] = False
+        p["style_constraints"]["cognitive_policy"]["length_owned_by_ai"] = False
 
     _assert_caught(m, "test_safety_exception_lifts_the_sentence_cap")
 
 
-def test_case_79_safety_exception_unlogged_is_caught() -> None:
-    """例外必须留痕，否则"安全例外"会变成绕过一切风格约束的后门。"""
+def test_case_79_durable_style_policy_can_change_without_evidence_is_caught() -> None:
     def m(p: dict[str, Any]) -> None:
-        p["style_constraints"]["tier_3_safety_exception"]["exception_must_be_logged"] = False
+        p["style_constraints"]["cognitive_policy"][
+            "durable_changes_require_evidence_version_and_rollback"
+        ] = False
 
     _assert_caught(m, "test_safety_exception_lifts_the_sentence_cap")
 
 
 def test_case_80_hardcoded_intimacy_rules_allowed_is_caught() -> None:
-    """R3 §5.1：严禁"亲密度达到 80 则称兄道弟"。分寸必须由世界状态涌现。"""
     def m(p: dict[str, Any]) -> None:
         p["style_constraints"]["hardcoded_intimacy_rules_prohibited"] = False
 

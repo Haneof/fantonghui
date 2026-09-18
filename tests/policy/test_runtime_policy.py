@@ -579,6 +579,8 @@ def test_four_step_sequence_is_a_checklist_not_a_pipeline() -> None:
     assert ms["layout_order_is_serialization_only"] is True
     assert ms["model_may_skip_revisit_reorder"] is True
     assert ms["model_may_request_additional_context"] is True
+    assert ms["steps_may_be_satisfied_from_cache"] is True
+    assert ms["cache_dirty_flag_source"], "缓存必须有可审计失效来源"
     assert "no_step_may_be_omitted" not in ms
     assert "order_strictly_enforced" not in ms
 
@@ -657,6 +659,7 @@ def test_heartbeat_is_a_seventh_trigger_kind_with_a_mechanical_gate() -> None:
     assert hb["intervention_decision_owned_by_ai"] is True
     assert "gate_cancel_target_share" not in hb
     assert "gate_predicates" not in hb
+    assert hb["cancelled_heartbeat_must_still_log_silent_patrol"] is True
     assert hb["safety_trigger_never_suppressed_by_gate_or_cooldown"] is True
 
 # ---------------------------------------------------------------------------
