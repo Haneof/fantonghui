@@ -12,6 +12,12 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from aios_core.bench.blind_bench_harness import BlindBenchHarness
+from aios_core.cognition.mind_sequence import (
+    STEP_CALIBRATE_BOND,
+    STEP_INSPECT_FIELD,
+    STEP_MIRROR_SELF,
+    STEP_SET_POSTURE,
+)
 
 UTC = timezone.utc
 
